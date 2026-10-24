@@ -25,65 +25,68 @@ export function LapTableSection({ table }: { table: LapTable }) {
       <h2 id="activity-laps" className="text-lg font-semibold sm:text-xl">
         {table.title}
       </h2>
-      <table className="w-full border-collapse text-left">
-        <caption className="sr-only">{table.title}</caption>
-        <thead>
-          <tr className="border-b border-border-strong">
-            <th scope="col" className="pb-2 font-normal">
-              <MonoLabel size="nano" className="text-[9.5px]">
-                {table.title === "Tours" ? "Tour" : "Segment"}
+      <LapTableView table={table} />
+    </section>
+  );
+}
+
+export function LapTableView({ table }: { table: LapTable }) {
+  return (
+    <table className="w-full border-collapse text-left">
+      <caption className="sr-only">{table.title}</caption>
+      <thead>
+        <tr className="border-b border-border-strong">
+          <th scope="col" className="pb-2 font-normal">
+            <MonoLabel size="nano" className="text-[9.5px]">
+              {table.title === "Tours" ? "Tour" : "Segment"}
+            </MonoLabel>
+          </th>
+          {table.columns.map((column) => (
+            <th
+              key={column.key}
+              scope="col"
+              className={cn(
+                "pb-2 pl-2 text-right font-normal",
+                displays[column.display],
+              )}
+            >
+              <MonoLabel size="nano" className="text-[9.5px] whitespace-nowrap">
+                {column.shortLabel === column.label ? (
+                  column.label
+                ) : (
+                  <>
+                    <span className="sm:hidden">{column.shortLabel}</span>
+                    <span className="max-sm:hidden">{column.label}</span>
+                  </>
+                )}
               </MonoLabel>
             </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {table.rows.map((row) => (
+          <tr key={row.key} className="border-b border-border">
+            <th
+              scope="row"
+              className="py-2.5 text-left font-metric text-[17px] font-semibold tabular-nums"
+            >
+              {row.label}
+            </th>
             {table.columns.map((column) => (
-              <th
+              <td
                 key={column.key}
-                scope="col"
                 className={cn(
-                  "pb-2 pl-2 text-right font-normal",
+                  "py-2.5 pl-2 text-right font-metric text-[17px] font-semibold whitespace-nowrap text-foreground tabular-nums",
                   displays[column.display],
                 )}
               >
-                <MonoLabel
-                  size="nano"
-                  className="text-[9.5px] whitespace-nowrap"
-                >
-                  {column.shortLabel === column.label ? (
-                    column.label
-                  ) : (
-                    <>
-                      <span className="sm:hidden">{column.shortLabel}</span>
-                      <span className="max-sm:hidden">{column.label}</span>
-                    </>
-                  )}
-                </MonoLabel>
-              </th>
+                {row.cells[column.key] ?? <Missing />}
+              </td>
             ))}
           </tr>
-        </thead>
-        <tbody>
-          {table.rows.map((row) => (
-            <tr key={row.key} className="border-b border-border">
-              <th
-                scope="row"
-                className="py-2.5 text-left font-metric text-[17px] font-semibold tabular-nums"
-              >
-                {row.label}
-              </th>
-              {table.columns.map((column) => (
-                <td
-                  key={column.key}
-                  className={cn(
-                    "py-2.5 pl-2 text-right font-metric text-[17px] font-semibold whitespace-nowrap text-foreground tabular-nums",
-                    displays[column.display],
-                  )}
-                >
-                  {row.cells[column.key] ?? <Missing />}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+        ))}
+      </tbody>
+    </table>
   );
 }
