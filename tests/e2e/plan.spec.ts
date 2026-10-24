@@ -269,12 +269,17 @@ test("an unknown session leaves Plan without a panel", async ({ page }) => {
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
-test("the removed week and session pages are not found", async ({ page }) => {
+test("the removed week page is not found and a session URL opens Plan", async ({
+  page,
+}) => {
   await signIn(page, "plan@example.com");
   expect((await page.goto("/plan/week"))?.status()).toBe(404);
-  expect((await page.goto("/plan/sessions/s-2000-01-01-1"))?.status()).toBe(
-    404,
-  );
+  await page.goto("/plan/sessions/s-2000-01-01-1");
+  await expect(page).toHaveURL(/\/plan\?session=s-2000-01-01-1$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Marathon de Paris$/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
 test("an athlete without a stored plan is invited to ask the coach", async ({

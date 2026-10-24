@@ -9,13 +9,8 @@ import { requireAthlete } from "@/server/app/session";
 import { loadPlanOverview, programInput } from "@/server/plans/overview";
 import { loadIntensityPaces } from "@/server/plans/paces";
 import { loadProposalReview } from "@/server/plans/proposals";
-import { loadSessionPanel } from "@/server/plans/session-panel";
-import {
-  watchCopy,
-  watchDayTags,
-  watchRowFor,
-  watchState,
-} from "@/features/garmin/watch";
+import { loadSessionSheet } from "@/server/plans/session-sheet";
+import { watchDayTags } from "@/features/garmin/watch";
 import { loadWatchView } from "@/server/garmin/watch";
 import { CopyProgramButton } from "../_components/copy-program";
 import { PlanEmpty } from "../_components/plan-empty";
@@ -36,9 +31,9 @@ export default async function PlanPage({
   const proposalId = typeof query.proposal === "string" ? query.proposal : null;
   const sessionKey =
     typeof query.session === "string" && !proposalId ? query.session : null;
-  const [overview, panel, paces, review] = await Promise.all([
+  const [overview, sheet, paces, review] = await Promise.all([
     loadPlanOverview(context),
-    sessionKey ? loadSessionPanel(context, sessionKey) : null,
+    sessionKey ? loadSessionSheet(context, sessionKey) : null,
     loadIntensityPaces(context),
     proposalId ? loadProposalReview(context, proposalId) : null,
   ]);
@@ -60,14 +55,6 @@ export default async function PlanPage({
     programs.find((item) => race !== null && item.raceId === race) ??
     programs[0];
   const session = state.sessions.find((item) => item.sessionKey === sessionKey);
-  const sessionWatch =
-    watch.enabled && session
-      ? watchState({
-          session,
-          today: overview.today,
-          row: watchRowFor(watch.rows, planId, session.sessionKey),
-        })
-      : null;
   const requested =
     typeof query.week === "string"
       ? query.week
@@ -119,15 +106,12 @@ export default async function PlanPage({
           today: overview.today,
         })}
       />
-      {panel && (
+      {sheet && (
         <SessionSheet
-          key={panel.sessionKey}
-          planId={planId}
-          panel={panel}
-          watch={
-            sessionWatch &&
-            watchCopy(sessionWatch, { pendingChange: panel.proposal !== null })
-          }
+          key={sheet.panel.sessionKey}
+          planId={sheet.planId}
+          panel={sheet.panel}
+          watch={sheet.watch}
         />
       )}
       {reviewSheet}

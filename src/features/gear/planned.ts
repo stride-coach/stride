@@ -1,3 +1,4 @@
+import { sessionPanelHref } from "@/features/plans/view/session-href";
 import { addDays, mondayOf } from "@/features/plans/model/dates";
 import type { PlanSession } from "@/features/plans/model/plan";
 import type { IntensityPaces } from "@/features/plans/model/structure";
@@ -301,7 +302,7 @@ export function weekShoes(
           .filter(Boolean)
           .join(" · "),
         pair: view?.chosen?.name ?? null,
-        href: `/plan?session=${encodeURIComponent(session.sessionKey)}`,
+        href: sessionPanelHref(session.sessionKey),
       };
     });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useShellPathname } from "./shell-pathname";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import {
   SidebarMenuSub,
@@ -25,7 +25,7 @@ export function CoachNavItem({
 }: {
   attention: CoachAttention | null;
 }) {
-  const pathname = usePathname();
+  const pathname = useShellPathname();
   const active = pathname === "/coach" || pathname.startsWith("/coach/");
   const team = pathname === "/coach/team";
   const waiting = coachWaiting(attention);

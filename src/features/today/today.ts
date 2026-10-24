@@ -1,3 +1,4 @@
+import { sessionPanelHref } from "@/features/plans/view/session-href";
 import type { DebriefView } from "@/features/plans/debrief/view";
 import {
   activityKind,
@@ -275,7 +276,7 @@ function session(input: TodayInput): TodaySession {
       terrain:
         panel.stats.find((stat) => stat.key === "terrain")?.value ?? null,
       quality: planned ? isQuality(planned) : false,
-      href: `/plan?session=${encodeURIComponent(panel.sessionKey)}`,
+      href: sessionPanelHref(panel.sessionKey),
     };
   }
   if (!plan) return { kind: "none" };
@@ -293,7 +294,7 @@ function session(input: TodayInput): TodaySession {
       ? {
           title: next.title,
           when: formatTodayDate(next.scheduledOn),
-          href: `/plan?session=${encodeURIComponent(next.sessionKey)}`,
+          href: sessionPanelHref(next.sessionKey),
         }
       : null,
   };

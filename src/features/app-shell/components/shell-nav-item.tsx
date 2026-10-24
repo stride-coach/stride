@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useShellPathname } from "./shell-pathname";
 import { NavBadge, NavItem } from "@/components/stride/navigation";
 import type { ShellBadge } from "../shell";
 
@@ -15,7 +15,7 @@ export function ShellNavItem({
   label: string;
   badge?: ShellBadge | null;
 }) {
-  const pathname = usePathname();
+  const pathname = useShellPathname();
   return (
     <NavItem
       href={href}

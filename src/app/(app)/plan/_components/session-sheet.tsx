@@ -1,13 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { sessionPanelHref } from "@/features/plans/view/session-href";
 import type { SessionPanel } from "@/features/plans/view/session-panel";
 import type { WatchCopy } from "@/features/garmin/watch";
 import {
@@ -21,6 +28,38 @@ const iconButton =
   "size-8.5 rounded-control border-border text-muted hover:text-foreground";
 
 let openedFromPlan = false;
+let overlayTrigger: HTMLElement | null = null;
+let overlayClosing = false;
+
+function rememberOverlayTrigger() {
+  overlayClosing = false;
+  const active = document.activeElement;
+  if (
+    active instanceof HTMLElement &&
+    active !== document.body &&
+    !active.closest('[role="dialog"]')
+  )
+    overlayTrigger = active;
+}
+
+function focusTrigger(sessionKey: string, overlay: boolean) {
+  if (overlay) {
+    if (
+      !overlayClosing &&
+      window.location.pathname.startsWith("/plan/sessions/")
+    )
+      return;
+    overlayClosing = false;
+    const trigger = overlayTrigger;
+    overlayTrigger = null;
+    if (trigger?.isConnected) trigger.focus();
+    return;
+  }
+  const links = document.querySelectorAll<HTMLElement>(
+    `[data-session-key="${CSS.escape(sessionKey)}"]`,
+  );
+  [...links].find((link) => link.offsetParent !== null)?.focus();
+}
 
 export function markSessionOpened(event: React.MouseEvent) {
   openedFromPlan =
@@ -35,27 +74,41 @@ export function SessionSheet({
   planId,
   panel,
   watch = null,
+  overlay = false,
 }: {
   planId: string;
   panel: SessionPanel;
   watch?: WatchCopy | null;
+  overlay?: boolean;
 }) {
   const router = useRouter();
   const watchSend = useWatchSend(panel.sessionKey);
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const mobile = useIsMobile();
   const [open, setOpen] = useState(true);
   const touch = useRef<number | null>(null);
 
+  const left = overlay && !pathname.startsWith("/plan/sessions/");
+
+  useLayoutEffect(() => {
+    if (overlay && !left) rememberOverlayTrigger();
+  }, [overlay, left]);
+
   const navigate = useCallback(
     (sessionKey: string | null) => {
+      if (overlay) {
+        if (sessionKey)
+          router.replace(sessionPanelHref(sessionKey), { scroll: false });
+        return;
+      }
       const query = new URLSearchParams(searchParams);
       if (sessionKey) query.set("session", sessionKey);
       else query.delete("session");
       const search = query.toString();
       router.replace(search ? `/plan?${search}` : "/plan", { scroll: false });
     },
-    [router, searchParams],
+    [overlay, router, searchParams],
   );
 
   const go = useCallback(
@@ -67,13 +120,17 @@ export function SessionSheet({
 
   const close = useCallback(() => {
     setOpen(false);
-    if (openedFromPlan) {
+    if (overlay) {
+      overlayClosing = true;
+      router.back();
+    } else if (openedFromPlan) {
       openedFromPlan = false;
       router.back();
     } else navigate(null);
-  }, [navigate, router]);
+  }, [navigate, overlay, router]);
 
   useEffect(() => {
+    if (left) return;
     function onKeyDown(event: KeyboardEvent) {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
         return;
@@ -84,7 +141,9 @@ export function SessionSheet({
     }
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [go, panel.previousKey, panel.nextKey]);
+  }, [go, left, panel.previousKey, panel.nextKey]);
+
+  if (left) return null;
 
   const position = `Séance ${panel.position.index} / ${panel.position.count}`;
   const previous = (
@@ -121,10 +180,7 @@ export function SessionSheet({
         overlayClassName="bg-background/45"
         onCloseAutoFocus={(event) => {
           event.preventDefault();
-          const links = document.querySelectorAll<HTMLElement>(
-            `[data-session-key="${CSS.escape(panel.sessionKey)}"]`,
-          );
-          [...links].find((link) => link.offsetParent !== null)?.focus();
+          focusTrigger(panel.sessionKey, overlay);
         }}
         onTouchStart={(event) => {
           touch.current = event.touches[0]?.clientX ?? null;

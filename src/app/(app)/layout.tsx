@@ -11,8 +11,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AppLayout({
   children,
+  panel,
 }: {
   children: React.ReactNode;
+  panel: React.ReactNode;
 }) {
   await requireAthlete();
   const navigation = getShellNavigation();
@@ -30,6 +32,7 @@ export default async function AppLayout({
       defaultOpen={cookieStore.get("sidebar_state")?.value !== "false"}
     >
       {children}
+      {panel}
     </AppShell>
   );
 }

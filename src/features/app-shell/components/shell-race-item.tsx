@@ -1,7 +1,7 @@
 "use client";
 
+import { useShellPathname } from "./shell-pathname";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { MonoLabel } from "@/components/stride/mono-label";
 
@@ -16,7 +16,7 @@ export function ShellRaceItem({
   priority: string;
   date: string | null;
 }) {
-  const pathname = usePathname();
+  const pathname = useShellPathname();
   const href = `/races/${id}`;
   const active = pathname === href || pathname.startsWith(`${href}/`);
   return (
