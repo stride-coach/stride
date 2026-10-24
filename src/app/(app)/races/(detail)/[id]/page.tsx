@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { localToday } from "@/features/app-shell/shell";
 import type { RaceWeather } from "@/features/races/weather";
 import { walkPortions, walkSummary } from "@/features/races/grade";
 import { raceOnTrack, type RaceOnTrack } from "@/features/races/on-track";
@@ -110,17 +111,24 @@ function CourseWorkspace({
 function RaceStatus({
   data,
   onTrack,
+  askTarget = true,
 }: {
   data: RaceWorkspaceData;
   onTrack: RaceOnTrack | null;
+  askTarget?: boolean;
 }) {
-  if (!data.race.targetSeconds)
-    return <TargetMissing race={data.race} plan={data.plan} />;
-  return onTrack ? (
-    <RaceCard>
-      <OnTrack onTrack={onTrack} />
-    </RaceCard>
-  ) : null;
+  return (
+    <>
+      {askTarget && !data.race.targetSeconds && (
+        <TargetMissing race={data.race} plan={data.plan} />
+      )}
+      {onTrack && (
+        <RaceCard>
+          <OnTrack onTrack={onTrack} />
+        </RaceCard>
+      )}
+    </>
+  );
 }
 
 export default async function RaceCoursePage({
@@ -128,15 +136,25 @@ export default async function RaceCoursePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const inputsRead = requireAthlete().then((context) =>
+    loadOnTrackInputs(context, localToday(new Date())),
+  );
   const { id } = await params;
-  const [{ context, data, today }, races] = await Promise.all([
+  const [{ context, data }, races, inputs] = await Promise.all([
     loadRace(id),
     requireAthlete().then((context) => listRaces(context)),
+    inputsRead,
   ]);
+  const onTrack = raceOnTrack(
+    data.race,
+    inputs,
+    preparationProgress(preparationRows(data)),
+  );
   if (!data.course) {
     const activities = await listCourseActivities(context);
     return (
       <>
+        <RaceStatus data={data} onTrack={onTrack} askTarget={false} />
         <CourseImport
           race={data.race}
           activities={activities}
@@ -146,12 +164,6 @@ export default async function RaceCoursePage({
       </>
     );
   }
-  const inputs = await loadOnTrackInputs(context, today);
-  const onTrack = raceOnTrack(
-    data.race,
-    inputs,
-    preparationProgress(preparationRows(data)),
-  );
   const views = planFor(data)!;
   const props = { data, views, races };
   const { planned } = views;

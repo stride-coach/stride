@@ -71,3 +71,20 @@ export function formatResultDelta(seconds: number) {
   if (minutes < 60) return `${sign}${minutes} min`;
   return `${sign}${Math.floor(minutes / 60)}h${pad(minutes % 60)}`;
 }
+
+export function resultWindow(races: Pick<RaceSummary, "date">[]) {
+  const days = races.flatMap((race) => (race.date ? [race.date] : [])).sort();
+  return days.length ? { from: days[0], to: days[days.length - 1] } : null;
+}
+
+export function raceResults(
+  races: Pick<RaceSummary, "id" | "date" | "distanceKm" | "targetSeconds">[],
+  activities: ResultActivity[],
+): Record<string, RaceResult> {
+  return Object.fromEntries(
+    races.flatMap((race) => {
+      const result = matchRaceResult(race, activities);
+      return result ? [[race.id, result]] : [];
+    }),
+  );
+}

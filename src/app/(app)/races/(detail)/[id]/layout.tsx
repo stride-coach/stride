@@ -33,6 +33,7 @@ export default async function RaceLayout({
             raceId={data.race.id}
             name={data.race.name}
             replacing={data.course !== null}
+            kind={data.race.kind}
           />
         }
       />

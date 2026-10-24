@@ -79,12 +79,6 @@ function PlanCell({ goal }: { goal: GoalCard }) {
   );
 }
 
-function targetDetail(goal: GoalCard) {
-  if (goal.note) return "pas de prévision fiable en ultra";
-  if (!goal.road) return "pas de prévision Garmin à cette distance";
-  return null;
-}
-
 export function OnTrack({
   onTrack,
   className,
@@ -109,11 +103,18 @@ export function OnTrack({
           Suis-je dans les temps ?
         </MonoLabel>
       </h2>
-      <p className="max-w-180 text-body leading-normal text-pretty">
-        {goal.verdict}
-      </p>
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-4">
-        <Cell label="Ton objectif" detail={targetDetail(goal)}>
+      {goal.verdict && (
+        <p className="max-w-180 text-body leading-normal text-pretty">
+          {goal.verdict}
+        </p>
+      )}
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border",
+          (goal.road || prep) && "lg:grid-cols-4",
+        )}
+      >
+        <Cell label="Ton objectif" detail={goal.targetNote}>
           <Metric value={goal.target ?? "—"} className={metricClass} />
         </Cell>
         {goal.road ? (
@@ -139,6 +140,8 @@ export function OnTrack({
             </Cell>
             <PlanCell goal={goal} />
           </>
+        ) : !prep ? (
+          <PlanCell goal={goal} />
         ) : (
           <>
             <PlanCell goal={goal} />
@@ -149,8 +152,8 @@ export function OnTrack({
               }
             >
               <Metric
-                value={prep?.longest ?? "—"}
-                unit={prep?.distance ? `/ ${prep.distance} km` : "km"}
+                value={prep.longest ?? "—"}
+                unit={prep.distance ? `/ ${prep.distance} km` : "km"}
                 className={metricClass}
               />
             </Cell>
@@ -160,7 +163,7 @@ export function OnTrack({
               detailTone={goal.gainCovered ? "success" : "muted"}
             >
               <Metric
-                value={prep?.weeklyGain ?? "—"}
+                value={prep.weeklyGain ?? "—"}
                 unit="m"
                 className={metricClass}
               />

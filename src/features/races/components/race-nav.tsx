@@ -15,18 +15,25 @@ export const raceSections = [
   },
 ] as const;
 
-const roadSections = raceSections.filter((section) => section.path === "");
+const roadSections = [
+  raceSections[0],
+  { path: "/gear", label: "Check-lists", crumb: "Check-lists" },
+] as const;
+
+function sectionsOf(kind: "road" | "trail") {
+  return kind === "road" ? roadSections : raceSections;
+}
 
 const extraCrumbs: Record<string, { crumb: string; tab: string }> = {
   "/waypoints": { crumb: "Points de passage", tab: "" },
   "/course": { crumb: "Ajouter le GPX", tab: "" },
 };
 
-function sectionOf(pathname: string, base: string) {
+function sectionOf(pathname: string, base: string, kind: "road" | "trail") {
   const rest = pathname.slice(base.length).replace(/\/$/, "");
   const extra = extraCrumbs[rest];
   if (extra) return { tab: extra.tab, crumb: extra.crumb };
-  const section = raceSections.find((item) => item.path === rest);
+  const section = sectionsOf(kind).find((item) => item.path === rest);
   return { tab: section?.path ?? "", crumb: section?.crumb ?? null };
 }
 
@@ -34,14 +41,16 @@ export function RaceBreadcrumb({
   raceId,
   name,
   replacing,
+  kind,
 }: {
   raceId: string;
   name: string;
   replacing: boolean;
+  kind: "road" | "trail";
 }) {
   const pathname = usePathname();
   const base = `/races/${raceId}`;
-  const { crumb } = sectionOf(pathname, base);
+  const { crumb } = sectionOf(pathname, base, kind);
   const label =
     crumb === "Ajouter le GPX" && replacing ? "Remplacer le GPX" : crumb;
   return (
@@ -91,9 +100,8 @@ export function RaceTabs({
 }) {
   const pathname = usePathname();
   const base = `/races/${raceId}`;
-  const { tab } = sectionOf(pathname, base);
-  const sections = kind === "road" ? roadSections : raceSections;
-  if (sections.length < 2) return null;
+  const { tab } = sectionOf(pathname, base, kind);
+  const sections = sectionsOf(kind);
   return (
     <nav
       aria-label="Sections de la course"

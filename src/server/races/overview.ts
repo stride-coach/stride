@@ -22,7 +22,7 @@ export const readRacesOverview = cache(
         ? readWorkspace(context, split.featured.id)
         : Promise.resolve(null),
       loadOnTrackInputs(context, today),
-      readRaceResults(context, split.past).catch(() => ({})),
+      readRaceResults(context, split.past),
     ]);
     const phases = planPhases(inputs.program, inputs.blockKinds);
     const roadGoals = Object.fromEntries(

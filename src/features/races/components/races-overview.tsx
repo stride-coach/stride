@@ -81,7 +81,9 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
       <div className="flex items-baseline gap-3">
         <MonoLabel>Ta saison</MonoLabel>
         <span className="text-xs text-muted-foreground max-sm:hidden">
-          Phases du plan et courses à venir
+          {timeline.phases.length
+            ? "Phases du plan et courses à venir"
+            : "Courses à venir"}
         </span>
         <Link
           href="/plan"

@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { StrideMark } from "@/components/stride/stride-mark";
 import {
@@ -24,7 +23,15 @@ export default async function RaceGearPage({
     loadRace(id),
     requireAthlete(),
   ]);
-  if (data.race.kind === "road") redirect(`/races/${id}`);
+  if (data.race.kind === "road")
+    return (
+      <ChecklistBoard
+        raceId={id}
+        lists={prepLists}
+        items={data.checklist}
+        compact
+      />
+    );
   const pairs = await loadGear(context)
     .then(({ shoes }) => pairSummaries(shoes))
     .catch(() => []);

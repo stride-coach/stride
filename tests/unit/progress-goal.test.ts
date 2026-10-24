@@ -12,6 +12,8 @@ import {
   noPlanNote,
   preparationVerdict,
   raceGoalCard,
+  roadDistanceNote,
+  trailNote,
   ultraNote,
 } from "@/features/progress/goal";
 import { addDays } from "@/features/progress/period";
@@ -281,6 +283,36 @@ describe("race goal card", () => {
     );
   });
 
+  it("keeps a road race off a Garmin distance to its target", () => {
+    const road = race({ kind: "road", distanceKm: 15, date: "2026-11-22" });
+    const card = raceGoalCard({ ...road, date: road.date! }, inputs);
+    expect(card).toMatchObject({
+      road: null,
+      preparation: null,
+      gap: null,
+      gainCovered: null,
+      targetNote: null,
+      note: roadDistanceNote,
+      verdict: roadDistanceNote,
+    });
+  });
+
+  it("says ultra only from 60 km", () => {
+    const at = (distanceKm: number) => {
+      const goal = race({ distanceKm });
+      return raceGoalCard({ ...goal, date: goal.date! }, inputs);
+    };
+    expect(at(120)).toMatchObject({
+      note: ultraNote,
+      targetNote: "pas de prévision fiable en ultra",
+    });
+    expect(at(60).targetNote).toBe("pas de prévision fiable en ultra");
+    expect(at(42)).toMatchObject({
+      note: trailNote,
+      targetNote: "pas de prévision fiable en trail",
+    });
+  });
+
   it("shows no plan phase without an active plan", () => {
     const goal = race();
     const card = raceGoalCard(
@@ -325,13 +357,38 @@ describe("preparation verdict", () => {
     expect(preparationVerdict({ ...base, raceGainM: null })).toBe(
       "La distance de la course reste à construire d’ici le jour J.",
     );
+  });
+
+  it("never judges a value it does not know", () => {
+    expect(preparationVerdict({ ...base, longestMeters: null })).toBe(
+      "Sur la bonne voie. Le D+ de la course est déjà couvert en une semaine.",
+    );
+    expect(
+      preparationVerdict({
+        ...base,
+        distanceKm: null,
+        weeklyGainMeters: 900,
+      }),
+    ).toBe("Le D+ de la course reste à construire d’ici le jour J.");
+    expect(
+      preparationVerdict({
+        ...base,
+        longestMeters: 125_000,
+        weeklyGainMeters: null,
+      }),
+    ).toBe(
+      "Sur la bonne voie. La distance de la course est déjà couverte à l’entraînement.",
+    );
     expect(
       preparationVerdict({
         ...base,
         longestMeters: null,
         weeklyGainMeters: null,
       }),
-    ).toBe("Pas encore assez de sorties récentes pour juger ta préparation.");
+    ).toBeNull();
+    expect(
+      preparationVerdict({ ...base, distanceKm: null, raceGainM: null }),
+    ).toBeNull();
   });
 });
 

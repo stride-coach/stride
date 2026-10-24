@@ -19,6 +19,13 @@ export const preparationWindowDays = 182;
 export const ultraNote =
   "Pas de prévision de temps fiable en ultra : Stride suit ta préparation.";
 
+export const trailNote =
+  "Pas de prévision de temps fiable en trail : Stride suit ta préparation.";
+
+export const roadDistanceNote = "Pas de prévision Garmin pour cette distance.";
+
+export const ultraDistanceKm = 60;
+
 export type GoalPhaseSegment = {
   key: string;
   name: string;
@@ -58,7 +65,8 @@ export type GoalCard = {
   note: string | null;
   phase: GoalPhase | null;
   planNote: string | null;
-  verdict: string;
+  verdict: string | null;
+  targetNote: string | null;
   gap: { label: string; tone: "success" | "warning" } | null;
   phaseShort: string | null;
   longestDay: string | null;
@@ -257,20 +265,23 @@ export function preparationVerdict({
   weeklyGainMeters: number | null;
   raceGainM: number | null;
 }) {
-  if (longestMeters === null && weeklyGainMeters === null)
-    return "Pas encore assez de sorties récentes pour juger ta préparation.";
   const distance =
     distanceKm === null || longestMeters === null
       ? null
       : longestMeters >= distanceKm * 1000;
   const gain =
-    raceGainM === null || raceGainM === 0 || weeklyGainMeters === null
+    !raceGainM || weeklyGainMeters === null
       ? null
       : weeklyGainMeters >= raceGainM;
+  if (distance === null && gain === null) return null;
   if (gain === null)
     return distance
       ? "Sur la bonne voie. La distance de la course est déjà couverte à l’entraînement."
       : "La distance de la course reste à construire d’ici le jour J.";
+  if (distance === null)
+    return gain
+      ? "Sur la bonne voie. Le D+ de la course est déjà couvert en une semaine."
+      : "Le D+ de la course reste à construire d’ici le jour J.";
   if (gain && distance)
     return "Sur la bonne voie. La distance et le D+ de la course sont déjà couverts à l’entraînement.";
   if (gain)
@@ -327,6 +338,8 @@ export function raceGoalCard(
       ? prediction.seconds - race.targetSeconds
       : null;
   const raceGain = race.elevationGainM;
+  const road = race.kind === "road";
+  const ultra = (race.distanceKm ?? 0) >= ultraDistanceKm;
   return {
     id: race.id,
     name: race.name,
@@ -335,7 +348,7 @@ export function raceGoalCard(
     countdown: days === 0 ? "Jour J" : `J-${formatInteger(days)}`,
     target: race.targetSeconds ? formatTarget(race.targetSeconds) : null,
     road: key ? roadCard(prediction, race.targetSeconds) : null,
-    preparation: key
+    preparation: road
       ? null
       : {
           longest:
@@ -350,17 +363,30 @@ export function raceGoalCard(
               : formatInteger(maxWeeklyGainMeters),
           preparation,
         },
-    note: race.kind === "trail" ? ultraNote : null,
+    note: road
+      ? key
+        ? null
+        : roadDistanceNote
+      : ultra
+        ? ultraNote
+        : trailNote,
     phase: phase(program, blockKinds, today),
     planNote: planNote(program, today),
     verdict: key
       ? roadVerdict(prediction, race.targetSeconds)
-      : preparationVerdict({
-          longestMeters: longestRunMeters,
-          distanceKm: race.distanceKm,
-          weeklyGainMeters: maxWeeklyGainMeters,
-          raceGainM: raceGain,
-        }),
+      : road
+        ? roadDistanceNote
+        : preparationVerdict({
+            longestMeters: longestRunMeters,
+            distanceKm: race.distanceKm,
+            weeklyGainMeters: maxWeeklyGainMeters,
+            raceGainM: raceGain,
+          }),
+    targetNote: road
+      ? null
+      : ultra
+        ? "pas de prévision fiable en ultra"
+        : "pas de prévision fiable en trail",
     gap:
       gap === null
         ? null
@@ -375,7 +401,7 @@ export function raceGoalCard(
         : null,
     raceGain: raceGain ? formatInteger(raceGain) : null,
     gainCovered:
-      key || !raceGain || maxWeeklyGainMeters === null
+      road || !raceGain || maxWeeklyGainMeters === null
         ? null
         : maxWeeklyGainMeters >= raceGain,
   };

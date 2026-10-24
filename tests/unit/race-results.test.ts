@@ -3,6 +3,8 @@ import {
   formatResultDelta,
   formatResultTime,
   matchRaceResult,
+  raceResults,
+  resultWindow,
   type ResultActivity,
 } from "@/features/races/results";
 
@@ -68,5 +70,46 @@ describe("race result matching", () => {
     expect(formatResultDelta(660)).toBe("+11 min");
     expect(formatResultDelta(-20)).toBe("−20 s");
     expect(formatResultDelta(3_900)).toBe("+1h05");
+  });
+});
+
+describe("race results for the list", () => {
+  it("spans the earliest to the latest dated race", () => {
+    expect(
+      resultWindow([
+        { date: "2026-09-27" },
+        { date: null },
+        { date: "2025-03-21" },
+        { date: "2026-09-13" },
+      ]),
+    ).toEqual({ from: "2025-03-21", to: "2026-09-27" });
+    expect(resultWindow([{ date: null }])).toBeNull();
+  });
+
+  it("keys each matched race by id and skips the others", () => {
+    expect(
+      raceResults(
+        [
+          { id: "eighty", ...race },
+          {
+            id: "tco",
+            date: "2026-09-13",
+            distanceKm: 62,
+            targetSeconds: null,
+          },
+        ],
+        [
+          activity({ id: "race" }),
+          activity({ id: "other", date: "2026-09-14" }),
+        ],
+      ),
+    ).toEqual({
+      eighty: {
+        activityId: "race",
+        seconds: 42_720,
+        distanceMeters: 80_200,
+        deltaSeconds: -480,
+      },
+    });
   });
 });

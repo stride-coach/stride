@@ -195,7 +195,10 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
   const sections = page.getByRole("navigation", {
     name: "Sections de la course",
   });
-  await expect(sections).toHaveCount(0);
+  await expect(sections.getByRole("link")).toHaveText([
+    "Course",
+    "Check-lists",
+  ]);
   await expect(page.getByText("Simulation par tronçon")).toHaveCount(0);
   await expect(page.getByText("Marche en pente")).toHaveCount(0);
   await expect(
@@ -231,4 +234,14 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
   await expect(
     page.locator("dl > div", { hasText: "Départ" }).first(),
   ).toContainText("09:00", { timeout: 15_000 });
+
+  const raceUrl = page.url();
+  await page.goto(`${raceUrl}/preparation`);
+  await expect(page).toHaveURL(`${raceUrl}/gear`);
+  await expect(
+    sections.getByRole("link", { name: "Check-lists" }),
+  ).toHaveAttribute("aria-current", "page");
+  for (const list of ["J-7", "J-1", "Jour J"])
+    await expect(page.getByText(list, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Obligatoire", { exact: true })).toHaveCount(0);
 });

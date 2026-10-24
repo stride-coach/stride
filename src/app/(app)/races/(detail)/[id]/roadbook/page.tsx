@@ -59,9 +59,14 @@ export default async function RoadbookPage({
       </RaceCard>
     );
 
-  const views = planFor(data, scenarioSchema.parse(query.scenario));
+  const views = planFor(data);
   if (!views) return null;
   const { model, planned, scenarios } = views;
+  const scenario = scenarioSchema.parse(query.scenario);
+  const simulated =
+    scenario === "target"
+      ? planned
+      : (planFor(data, scenario)?.planned ?? planned);
   const profile = profileData({
     course: model.course,
     waypoints: model.waypoints,
@@ -89,11 +94,11 @@ export default async function RoadbookPage({
       {planned?.night && planned.night.totalSeconds > 0 && (
         <NightCard planned={planned} model={model} raceId={data.race.id} />
       )}
-      {planned && (
+      {planned && simulated && (
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
           <SimulationCard
             model={model}
-            planned={planned}
+            planned={simulated}
             scenarios={scenarios}
             raceId={data.race.id}
             walkThreshold={data.plan.walkGradePercent}

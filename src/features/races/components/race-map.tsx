@@ -112,6 +112,7 @@ function RaceMapView({
   onSelect,
   onPick,
   onFullscreen,
+  fullscreenRef,
   cooperative = true,
   label,
   className,
@@ -123,6 +124,7 @@ function RaceMapView({
   onSelect?: (id: string) => void;
   onPick?: (distanceM: number) => void;
   onFullscreen?: () => void;
+  fullscreenRef?: React.Ref<HTMLButtonElement>;
   cooperative?: boolean;
   label: string;
   className?: string;
@@ -439,6 +441,7 @@ function RaceMapView({
               variant="ghost"
               size="icon-sm"
               type="button"
+              ref={fullscreenRef}
               aria-label="Plein écran"
               onClick={onFullscreen}
               className="rounded-none"

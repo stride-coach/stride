@@ -42,19 +42,6 @@ export function RaceEntryLoading() {
               </div>
               <Skeleton className="h-34 w-full rounded-panel sm:h-24" />
             </div>
-            <div
-              aria-hidden="true"
-              className="-mx-5 flex gap-6 overflow-hidden border-b border-border px-5 sm:mx-0 sm:px-0"
-            >
-              {["w-14", "w-24", "w-18", "w-44"].map((width) => (
-                <div
-                  key={width}
-                  className="flex min-h-11 shrink-0 items-center"
-                >
-                  <Skeleton className={`h-4 ${width}`} />
-                </div>
-              ))}
-            </div>
             <Skeleton
               aria-hidden="true"
               className="h-44 w-full rounded-panel"

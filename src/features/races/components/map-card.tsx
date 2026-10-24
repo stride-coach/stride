@@ -200,7 +200,7 @@ export function MapCard({
 }) {
   const road = kind === "road";
   const [fullscreen, setFullscreen] = useState(false);
-  const opener = useRef<HTMLElement | null>(null);
+  const opener = useRef<HTMLButtonElement>(null);
   const [layers, setLayers] = useState<MapLayers>({
     markers: !road,
     walk: !road,
@@ -259,13 +259,8 @@ export function MapCard({
         data={data}
         layers={layers}
         label={label}
-        onFullscreen={() => {
-          opener.current =
-            document.activeElement instanceof HTMLElement
-              ? document.activeElement
-              : null;
-          setFullscreen(true);
-        }}
+        fullscreenRef={opener}
+        onFullscreen={() => setFullscreen(true)}
         className="h-60 sm:h-105"
       />
       {chips && (
