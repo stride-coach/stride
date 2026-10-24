@@ -12,8 +12,8 @@ export const termsSections: readonly LegalSection[] = [
       <p>
         Ces conditions encadrent l’utilisation de Stride, un service web
         d’accompagnement à l’entraînement en course à pied sur route et en
-        trail, édité par {publisher.name}. Créer un compte vaut acceptation de
-        ces conditions et de la{" "}
+        trail, édité à titre personnel et non commercial par un particulier.
+        Créer un compte vaut acceptation de ces conditions et de la{" "}
         <Link href="/privacy">politique de confidentialité</Link>.
       </p>
     ),
@@ -134,9 +134,9 @@ export const termsSections: readonly LegalSection[] = [
     title: "Propriété",
     content: (
       <p>
-        Stride, son interface, ses textes et son code appartiennent à{" "}
-        {publisher.name}. Tes données restent les tiennes : tu autorises
-        seulement Stride à les traiter pour te fournir le service.
+        Stride, son interface, ses textes et son code appartiennent à son
+        éditeur. Tes données restent les tiennes : tu autorises seulement Stride
+        à les traiter pour te fournir le service.
       </p>
     ),
   },
@@ -147,7 +147,7 @@ export const termsSections: readonly LegalSection[] = [
       <p>
         Stride fait son possible pour que le service soit disponible et exact,
         sans pouvoir le garantir en permanence. Dans les limites permises par la
-        loi, {publisher.name} n’est pas responsable des dommages indirects ni
+        loi, l’éditeur de Stride n’est pas responsable des dommages indirects ni
         des conséquences des décisions d’entraînement que tu prends. Rien dans
         ces conditions ne limite les droits que tu tiens de la loi en tant que
         consommateur.

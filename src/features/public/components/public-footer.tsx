@@ -40,12 +40,10 @@ export function PublicFooter({ withDisclaimer = false }) {
             Stride est un outil d’entraînement, pas un dispositif médical. Il ne
             pose aucun diagnostic. En cas de douleur persistante ou de symptôme
             inhabituel, consulte un professionnel de santé. Garmin est une
-            marque de Garmin Ltd. ou de ses filiales. © 2026 {publisher.name}.
+            marque de Garmin Ltd. ou de ses filiales. © 2026 Stride.
           </p>
         ) : (
-          <p className="text-xs text-muted-foreground">
-            © 2026 {publisher.name}
-          </p>
+          <p className="text-xs text-muted-foreground">© 2026 Stride</p>
         )}
       </div>
     </footer>

@@ -12,12 +12,13 @@ export const noticeSections: readonly LegalSection[] = [
     content: (
       <LegalFacts
         facts={[
-          ["Raison sociale", publisher.name],
-          ["Forme juridique", publisher.legalForm],
-          ["SIRET", publisher.siret],
-          ["Code NAF", publisher.activity],
-          ["TVA", publisher.vat],
-          ["Adresse", publisher.address],
+          ["Statut", publisher.status],
+          [
+            "Éditeur",
+            <a key="github" href={publisher.github}>
+              {publisher.githubLabel}
+            </a>,
+          ],
           [
             "Contact",
             <a key="email" href={`mailto:${publisher.email}`}>
@@ -29,18 +30,12 @@ export const noticeSections: readonly LegalSection[] = [
     ),
   },
   {
-    id: "publication",
-    title: "Directeur de la publication",
-    toc: "Publication",
-    content: <p>{publisher.director}.</p>,
-  },
-  {
     id: "hebergement",
     title: "Hébergement",
     content: (
       <LegalFacts
         facts={[
-          ["Application", publisher.appHost],
+          ["Application", `${publisher.appHost}, ${publisher.appHostCountry}`],
           [
             "Base de données",
             "Supabase Pte. Ltd., 65 Chulia Street #38-02/03, OCBC Centre, Singapour 049513 · serveurs Amazon Web Services à Paris (eu-west-3)",

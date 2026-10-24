@@ -14,8 +14,8 @@ export const privacySections: readonly LegalSection[] = [
     toc: "Responsable",
     content: (
       <p>
-        Stride est édité par <strong>{publisher.name}</strong>, micro-entreprise
-        immatriculée sous le SIRET {publisher.siret}, {publisher.address}.
+        Stride est un projet personnel, gratuit et non commercial, édité par un
+        particulier (<a href={publisher.github}>{publisher.githubLabel}</a>).
         Contact : {contact}.
       </p>
     ),
