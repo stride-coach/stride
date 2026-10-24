@@ -349,10 +349,13 @@ test("an unplanned run takes a feeling and opens the coach with the activity att
   const card = page.getByRole("region", { name: "Hors plan" });
   await expect(card).toBeVisible();
   await expect(card).not.toContainText("Compte dans ta charge");
-  await card
+  const effort = card
     .getByRole("radiogroup", { name: "Effort perçu, de 1 à 10" })
-    .getByRole("radio", { name: "6", exact: true })
-    .click();
+    .getByRole("radio", { name: "6", exact: true });
+  await expect(async () => {
+    await effort.click();
+    await expect(effort).toBeChecked({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   await card
     .getByRole("radiogroup", { name: "Sensations" })
     .getByRole("radio", { name: "Bien", exact: true })
