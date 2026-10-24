@@ -7,7 +7,9 @@ import {
 import type { ActivitySegment } from "@/features/activities/detail";
 import {
   activityTotals,
+  byStartTime,
   mergeLaps,
+  type ActivityTotalsInput,
 } from "@/features/plans/view/session-activities";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import type { SessionMatch } from "./matches";
@@ -17,7 +19,12 @@ import { readSessionActivities } from "./session-activities";
 
 export type DebriefTarget = { sessionKey: string } | { activityId: string };
 
-export function debriefLaps(segments: ActivitySegment[]): DebriefLap[] {
+type LapSegment = Pick<
+  ActivitySegment,
+  "type" | "index" | "durationSeconds" | "distanceMeters" | "averageHeartRate"
+>;
+
+export function debriefLaps(segments: LapSegment[]): DebriefLap[] {
   return segments
     .filter((segment) => segment.type === "lap")
     .map((segment) => ({
@@ -26,6 +33,22 @@ export function debriefLaps(segments: ActivitySegment[]): DebriefLap[] {
       distanceMeters: segment.distanceMeters,
       averageHeartRate: segment.averageHeartRate,
     }));
+}
+
+export type SessionRead = {
+  activity: ActivityTotalsInput;
+  segments: LapSegment[];
+};
+
+export function sessionLapInput(reads: SessionRead[]) {
+  const ordered = [...reads].sort((first, second) =>
+    byStartTime(first.activity, second.activity),
+  );
+  return {
+    laps: mergeLaps(ordered.map((read) => debriefLaps(read.segments))),
+    averageHeartRate: activityTotals(ordered.map((read) => read.activity))
+      .averageHeartRate,
+  };
 }
 
 export function isDebriefMatch(
@@ -58,12 +81,12 @@ export async function loadSessionDebrief(
     loadIntensityPaceRanges(context),
   ]);
   if (!main) return null;
-  const activities = reads.map((read) => read.activity);
+  const { laps, averageHeartRate } = sessionLapInput(reads);
   return buildDebriefView({
     session,
     activityId: main.id,
-    activityIds: activities.map((activity) => activity.id),
-    laps: mergeLaps(reads.map((read) => debriefLaps(read.segments))),
+    activityIds: reads.map((read) => read.activity.id),
+    laps,
     paceRanges,
     match,
     garmin: {
@@ -71,6 +94,6 @@ export async function loadSessionDebrief(
       feel: main.feel,
     },
     athlete: feeling,
-    averageHeartRate: activityTotals(activities).averageHeartRate,
+    averageHeartRate,
   });
 }

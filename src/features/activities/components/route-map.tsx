@@ -10,7 +10,13 @@ import {
   useState,
 } from "react";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
-import { CrosshairIcon, MinusIcon, PlusIcon } from "lucide-react";
+import {
+  CrosshairIcon,
+  ExpandIcon,
+  MinusIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/features/theme/components/theme-store";
 import type { ResolvedTheme } from "@/features/theme/model";
@@ -103,6 +109,8 @@ function RouteMapView({
   onModeChange,
   hover,
   onHover,
+  marker = null,
+  fullscreen = null,
 }: {
   theme: ResolvedTheme;
   view: RouteView;
@@ -111,7 +119,10 @@ function RouteMapView({
   onModeChange: (mode: ColorMode) => void;
   hover: number | null;
   onHover: (index: number | null) => void;
+  marker?: number | null;
+  fullscreen?: { open: boolean; onToggle: () => void } | null;
 }) {
+  const point = hover ?? marker;
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -131,6 +142,9 @@ function RouteMapView({
   const routeKey = useMemo(() => view.route.join(";"), [view.route]);
 
   const fallback = useMemo(() => projectFallback(view, size), [view, size]);
+  useEffect(() => {
+    mapRef.current?.resize();
+  }, [size]);
   const colors = useMemo(
     () => vertexColors(view, mode, palette),
     [view, mode, palette],
@@ -354,11 +368,11 @@ function RouteMapView({
     const geojson = source as {
       setData: (data: GeoJSON.FeatureCollection) => void;
     };
-    if (hover === null) {
+    if (point === null) {
       geojson.setData({ type: "FeatureCollection", features: [] });
       return;
     }
-    const [latitude, longitude] = view.route[hover];
+    const [latitude, longitude] = view.route[point];
     geojson.setData({
       type: "FeatureCollection",
       features: [
@@ -369,7 +383,7 @@ function RouteMapView({
         },
       ],
     });
-  }, [engine, hover, view]);
+  }, [engine, point, view]);
 
   const pointOf = useCallback(
     (index: number): Point => {
@@ -406,6 +420,7 @@ function RouteMapView({
   return (
     <div
       ref={frame}
+      data-marker={point ?? undefined}
       className="absolute inset-0 overflow-hidden bg-surface-inset"
     >
       <svg
@@ -465,10 +480,10 @@ function RouteMapView({
           className="fill-foreground stroke-background"
           strokeWidth={2}
         />
-        {engine !== "map" && hover !== null && (
+        {engine !== "map" && point !== null && (
           <circle
-            cx={fallback.points[hover].x}
-            cy={fallback.points[hover].y}
+            cx={fallback.points[point].x}
+            cy={fallback.points[point].y}
             r={6}
             className="fill-foreground stroke-background"
             strokeWidth={2}
@@ -517,66 +532,93 @@ function RouteMapView({
           </span>
         )}
       </div>
-      {engine === "map" && (
-        <div className="absolute top-3 right-3 flex flex-col overflow-hidden rounded-surface border border-border bg-surface/90">
+      <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+        {fullscreen && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             type="button"
-            aria-label="Zoom avant"
-            onClick={() => map?.zoomIn()}
-            className="grid size-8 place-items-center border-b border-border text-muted hover:text-foreground"
+            aria-label={
+              fullscreen.open
+                ? "Quitter le plein écran"
+                : "Carte en plein écran"
+            }
+            onClick={fullscreen.onToggle}
+            className="size-9 bg-surface max-md:size-11"
           >
-            <PlusIcon className="size-4" />
+            {fullscreen.open ? (
+              <XIcon className="size-4" />
+            ) : (
+              <ExpandIcon className="size-3.5" />
+            )}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            aria-label="Zoom arrière"
-            onClick={() => map?.zoomOut()}
-            className="grid size-8 place-items-center border-b border-border text-muted hover:text-foreground"
-          >
-            <MinusIcon className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            aria-label="Orienter au nord"
-            onClick={() => map?.resetNorth()}
-            className="grid size-8 place-items-center border-b border-border"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path d="M7 1.5 L9.6 7 H4.4Z" className="fill-danger" />
-              <path
-                d="M7 12.5 L4.4 7 H9.6Z"
-                className="fill-muted-foreground"
-              />
-            </svg>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            aria-label="Recentrer le tracé"
-            onClick={() => {
-              const latitudes = view.route.map((point) => point[0]);
-              const longitudes = view.route.map((point) => point[1]);
-              map?.fitBounds(
-                [
-                  [Math.min(...longitudes), Math.min(...latitudes)],
-                  [Math.max(...longitudes), Math.max(...latitudes)],
-                ],
-                { padding, duration: 400 },
-              );
-            }}
-            className="grid size-8 place-items-center text-muted hover:text-foreground"
-          >
-            <CrosshairIcon className="size-3.5" />
-          </Button>
-        </div>
-      )}
+        )}
+        {engine === "map" && (
+          <div className="flex flex-col overflow-hidden rounded-surface border border-border bg-surface/90">
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="Zoom avant"
+              onClick={() => map?.zoomIn()}
+              className="grid size-8 place-items-center border-b border-border text-muted hover:text-foreground"
+            >
+              <PlusIcon className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="Zoom arrière"
+              onClick={() => map?.zoomOut()}
+              className="grid size-8 place-items-center border-border text-muted hover:text-foreground lg:border-b"
+            >
+              <MinusIcon className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="Orienter au nord"
+              onClick={() => map?.resetNorth()}
+              className="grid size-8 place-items-center border-b border-border max-lg:hidden"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                aria-hidden="true"
+              >
+                <path d="M7 1.5 L9.6 7 H4.4Z" className="fill-danger" />
+                <path
+                  d="M7 12.5 L4.4 7 H9.6Z"
+                  className="fill-muted-foreground"
+                />
+              </svg>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="Recentrer le tracé"
+              onClick={() => {
+                const latitudes = view.route.map((point) => point[0]);
+                const longitudes = view.route.map((point) => point[1]);
+                map?.fitBounds(
+                  [
+                    [Math.min(...longitudes), Math.min(...latitudes)],
+                    [Math.max(...longitudes), Math.max(...latitudes)],
+                  ],
+                  { padding, duration: 400 },
+                );
+              }}
+              className="grid size-8 place-items-center text-muted hover:text-foreground max-lg:hidden"
+            >
+              <CrosshairIcon className="size-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
       {tooltipPoint && hover !== null && (
         <div
           className="pointer-events-none absolute z-10 flex flex-col gap-0.5 rounded-surface border border-border-strong bg-surface/95 px-2.5 py-2"
@@ -632,7 +674,7 @@ function RouteMapView({
                 ))}
           </div>
         )}
-        <div className="flex items-end gap-1.5">
+        <div className="flex items-end gap-1.5 max-lg:hidden">
           <span
             className="h-1.25 border border-t-0 border-muted-foreground"
             style={{ width: bar.pixels }}

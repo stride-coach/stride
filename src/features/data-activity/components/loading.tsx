@@ -45,7 +45,7 @@ function ActivityRowsLoading() {
   return (
     <div
       aria-hidden="true"
-      className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
+      className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:[scrollbar-gutter:stable]"
     >
       <div className="border-b border-border-subtle px-5 pt-2.5 pb-1 lg:px-3.5">
         <Skeleton className="h-3 w-20" />
@@ -70,75 +70,39 @@ function ActivityRowsLoading() {
   );
 }
 
-function ActivityContentLoading({ full = false }: { full?: boolean }) {
+function ActivityContentLoading() {
   return (
     <div
       aria-hidden="true"
       className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
     >
-      <article
-        className={
-          full
-            ? "mx-auto flex w-full max-w-360 flex-col gap-10 px-5 pt-8 pb-12 sm:px-[4vw]"
-            : "flex w-full max-w-240 flex-col gap-8 px-5 pt-8 pb-12 lg:px-10 2xl:mx-auto 2xl:max-w-360"
-        }
-      >
-        <div
-          className={
-            full
-              ? "flex flex-col gap-3"
-              : "flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between"
-          }
-        >
-          {full && <Skeleton className="h-3 w-48" />}
-          <div
-            className={
-              full
-                ? "flex flex-wrap items-end justify-between gap-x-8 gap-y-5"
-                : "contents"
-            }
-          >
-            <Skeleton
-              className={
-                full ? "h-8 w-72 max-w-full sm:h-13" : "h-10 w-56 max-w-full"
-              }
-            />
-            <div className="flex flex-wrap gap-x-5 gap-y-4">
-              {[0, 1, 2].map((item) => (
-                <div key={item} className="flex flex-col gap-2">
-                  <Skeleton className="h-9 w-20" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-              ))}
-            </div>
+      <article className="flex w-full max-w-240 flex-col gap-6 px-5 pt-8 pb-12 lg:px-10 2xl:mx-auto 2xl:max-w-360">
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-3 w-48" />
+          <Skeleton className="h-8 w-64 max-w-full sm:h-10" />
+          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border bg-border sm:grid-cols-6">
+            {Array.from({ length: 6 }, (_, item) => (
+              <div
+                key={item}
+                className="flex flex-col gap-2 bg-surface px-3 py-2.5"
+              >
+                <Skeleton className="h-6 w-14" />
+                <Skeleton className="h-2.5 w-12" />
+              </div>
+            ))}
           </div>
         </div>
-        <section className="flex flex-col gap-2.5">
-          <MonoLabel>Parcours</MonoLabel>
-          <div className="overflow-hidden rounded-card border border-border bg-surface-inset">
-            <Skeleton
-              className={
-                full
-                  ? "h-95 w-full rounded-none"
-                  : "h-64 w-full rounded-none lg:h-90"
-              }
-            />
-            <div className="border-t border-border px-3.5 pt-2.5 pb-2">
-              <Skeleton className="h-3 w-28" />
-              <Skeleton className="mt-2 h-16 w-full" />
+        <Skeleton className="h-36 w-full rounded-panel" />
+        <section className="flex flex-col gap-3">
+          <MonoLabel>Parcours et données</MonoLabel>
+          <div className="overflow-hidden rounded-panel border border-border bg-surface-panel">
+            <Skeleton className="h-60 w-full rounded-none lg:h-85" />
+            <div className="border-t border-border p-3">
+              <Skeleton className="h-42.5 w-full lg:h-55" />
             </div>
           </div>
         </section>
-        <div
-          className={
-            full
-              ? "grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem]"
-              : "flex flex-col gap-8"
-          }
-        >
-          <Skeleton className="h-64 w-full rounded-card" />
-          <Skeleton className="h-40 w-full rounded-card" />
-        </div>
+        <Skeleton className="h-64 w-full rounded-card" />
       </article>
     </div>
   );
@@ -196,23 +160,6 @@ export function ActivityDetailLoading() {
       className="flex min-h-0 flex-1 flex-col"
     >
       <ActivityContentLoading />
-    </LoadingScope>
-  );
-}
-
-export function ActivityFullDetailLoading() {
-  return (
-    <LoadingScope
-      label="Chargement du détail de l’activité"
-      className="flex min-h-0 flex-1 flex-col"
-    >
-      <ActivityToolbar>
-        <span aria-hidden="true" className="text-dim">
-          /
-        </span>
-        <span aria-current="page">Détail</span>
-      </ActivityToolbar>
-      <ActivityContentLoading full />
     </LoadingScope>
   );
 }

@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { signInAs } from "./support/session";
 
+test.describe.configure({ mode: "default" });
+
 const authUrl = `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}`;
 
 function signIn(page: Page) {
@@ -155,16 +157,14 @@ test("a run with another pair in Garmin asks which one was worn", async ({
   );
   const shoes = page.getByRole("region", { name: "Chaussures" });
   await expect(shoes.getByText("Nike Zegama")).toBeVisible();
-  await expect(
-    shoes.getByText("Garmin · la séance prévoyait les Adizero Evo SL 3"),
-  ).toBeVisible();
+  await expect(shoes.getByText("· Garmin", { exact: true })).toBeVisible();
   await page.screenshot({ path: "test-results/gear-check-activity.png" });
 
   await page
     .getByRole("group", { name: /^Garmin indique les Zegama/ })
     .getByRole("button", { name: "Oui, les Zegama" })
     .click();
-  await expect(shoes.getByText(/^Garmin · confirmée par toi/)).toBeVisible({
+  await expect(shoes.getByText("· confirmée par toi")).toBeVisible({
     timeout: 15_000,
   });
   await expect(

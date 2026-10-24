@@ -24,6 +24,7 @@ export async function saveActivityFeeling(
   if (error) return { status: "error" };
   revalidatePath("/today");
   revalidatePath("/plan");
+  revalidatePath("/activities");
   revalidatePath(`/activities/${activityId}`);
   return { status: "saved" };
 }

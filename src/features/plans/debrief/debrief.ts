@@ -290,7 +290,10 @@ function alignedVerdict(steps: StepResult[]): Verdict {
   };
 }
 
-function overallVerdict(match: DebriefMatch, heartRate: boolean): Verdict {
+export function overallVerdict(
+  match: DebriefMatch,
+  heartRate: boolean,
+): Verdict {
   const { duration, intensity } = match.compliance;
   if (match.status === "partial")
     return {
@@ -394,4 +397,16 @@ export function buildDebrief(input: DebriefInput): Debrief | null {
     ),
     feeling: normalizeFeeling(input.garmin, input.athlete),
   };
+}
+
+export function sessionVerdict(
+  input: Omit<DebriefInput, "garmin" | "athlete">,
+): Verdict | null {
+  return (
+    buildDebrief({
+      ...input,
+      garmin: { rpe: null, feel: null },
+      athlete: null,
+    })?.verdict ?? null
+  );
 }

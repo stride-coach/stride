@@ -2,11 +2,15 @@ import { createRequire } from "node:module";
 import { Writable } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
 import {
+  countActivities,
   listActivities,
   loadHeartRateZones,
   readActivity,
   readActivityDetail,
+  readWeekActivities,
 } from "@/server/activities/activities";
+import { loadActivityList } from "@/server/activities/list";
+import { loadActivityPanel } from "@/server/activities/panel";
 import { loadWatchView } from "@/server/garmin/watch";
 import { loadGear } from "@/server/gear/load";
 import { readGoals } from "@/server/onboarding/goals";
@@ -101,6 +105,13 @@ const reads: Record<string, (context: OnboardingContext) => Promise<unknown>> =
     readGoals: (context) => readGoals(context),
     readActivity: (context) => readActivity(context, "activity-1"),
     listActivities: (context) => listActivities(context, "all", 20, ""),
+    countActivities: (context) => countActivities(context, ""),
+    readWeekActivities: (context) =>
+      readWeekActivities(context, "2026-10-19", "all", ""),
+    loadActivityList: (context) =>
+      loadActivityList(context, "all", 50, "", "2026-10-23"),
+    loadActivityPanel: (context) =>
+      loadActivityPanel(context, "activity-1", now),
     loadHeartRateZones: (context) => loadHeartRateZones(context, now),
     loadGear: (context) => loadGear(context),
     loadWatchView: (context) => loadWatchView(context, null),

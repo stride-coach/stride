@@ -337,6 +337,11 @@ const tables = {
     activity(3, 4, {
       activity_type: "strength_training",
       duration_seconds: 3300,
+      average_heart_rate: 118,
+      max_heart_rate: 152,
+      calories: 410,
+      aerobic_training_effect: 1.6,
+      anaerobic_training_effect: 0.8,
     }),
     activity(4, 6, {
       activity_name: "Threshold 3 × 10 min",
@@ -350,6 +355,8 @@ const tables = {
       average_heart_rate: 152,
       max_heart_rate: 176,
       average_cadence: 168,
+      average_power_watts: 248,
+      max_power_watts: 412,
       aerobic_training_effect: 3.4,
       anaerobic_training_effect: 1.8,
       detail_imported_at: "2026-10-07T04:12:00Z",
@@ -383,28 +390,33 @@ const tables = {
     ),
   ],
   provider_activity_segments: [
-    [900, 2570, 5.5, 134, 168, 6],
-    [600, 2270, 4.4, 161, 182, 4],
-    [120, 320, 6.2, 141, 164, 0],
-    [600, 2230, 4.49, 167, 181, 3],
-    [120, 320, 6.18, 146, 163, 0],
-    [440, 1600, 4.36, 171, 180, 2],
-    [740, 1990, 6.12, 136, 158, 1],
+    [900, 2570, 5.5, 134, 168, 6, 4, 221],
+    [600, 2270, 4.4, 161, 182, 4, 5, 286],
+    [120, 320, 6.2, 141, 164, 0, 1, 198],
+    [600, 2230, 4.49, 167, 181, 3, 3, 281],
+    [120, 320, 6.18, 146, 163, 0, 0, 196],
+    [440, 1600, 4.36, 171, 180, 2, 4, 274],
+    [740, 1990, 6.12, 136, 158, 1, 2, 209],
   ]
-    .map(([duration, distance, , heartRate, cadence, gain], index) => ({
-      activity_id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000004",
-      user_id: user.id,
-      segment_type: "lap",
-      segment_index: index,
-      started_at: null,
-      distance_meters: distance,
-      duration_seconds: duration,
-      average_heart_rate: heartRate,
-      average_cadence: cadence,
-      average_power_watts: null,
-      elevation_gain_meters: gain,
-      elevation_loss_meters: null,
-    }))
+    .map(
+      (
+        [duration, distance, , heartRate, cadence, gain, loss, power],
+        index,
+      ) => ({
+        activity_id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000004",
+        user_id: user.id,
+        segment_type: "lap",
+        segment_index: index,
+        started_at: null,
+        distance_meters: distance,
+        duration_seconds: duration,
+        average_heart_rate: heartRate,
+        average_cadence: cadence,
+        average_power_watts: power,
+        elevation_gain_meters: gain || null,
+        elevation_loss_meters: loss || null,
+      }),
+    )
     .concat(progressLaps),
   provider_activity_tracks: [
     {
@@ -443,10 +455,19 @@ const tables = {
           { length: 100 },
           (_, index) => (index * 3520) / 99,
         ),
-        distance_m: Array.from(
-          { length: 100 },
-          (_, index) => (index * 11300) / 99,
-        ),
+        distance_m: (() => {
+          const speeds = Array.from(
+            { length: 100 },
+            (_, index) => 3 + Math.sin(index / 8) * 0.7,
+          );
+          const steps = speeds.map((speed, index) => (index === 0 ? 0 : speed));
+          const total = steps.reduce((sum, value) => sum + value, 0);
+          let covered = 0;
+          return steps.map((value) => {
+            covered += value;
+            return Math.round((covered / total) * 11300);
+          });
+        })(),
         heart_rate: Array.from(
           { length: 100 },
           (_, index) => 125 + Math.round(51 * Math.abs(Math.sin(index / 11))),
@@ -462,6 +483,10 @@ const tables = {
         cadence: Array.from(
           { length: 100 },
           (_, index) => 168 + Math.round(Math.sin(index / 8) * 12),
+        ),
+        power_w: Array.from(
+          { length: 100 },
+          (_, index) => 248 + Math.round(Math.sin(index / 8) * 40),
         ),
       },
       heart_rate_histogram: {
@@ -480,9 +505,16 @@ const tables = {
       route: null,
       bounds: null,
       series: {
-        elapsed_s: [0, 600, 1200, 1800, 2400, 3300],
-        heart_rate: [100, 120, 140, 130, 125, 105],
-        speed_mps: [1, 2, 3, 2, 1, 1],
+        elapsed_s: Array.from({ length: 56 }, (_, minute) => minute * 60),
+        heart_rate: Array.from({ length: 56 }, (_, minute) =>
+          Math.round(
+            minute < 8
+              ? 96 + minute * 3
+              : 112 +
+                  26 * Math.max(0, Math.sin((minute - 8) / 2.2)) -
+                  (minute % 5),
+          ),
+        ),
       },
       heart_rate_histogram: { 100: 600, 120: 900, 140: 1800 },
       source_point_count: 3300,
@@ -667,7 +699,18 @@ const planSessionTemplates = {
     durationSeconds: 1_800,
     distanceMeters: null,
     elevationGainMeters: null,
-    structure: [step(1_800, "easy")],
+    structure: [
+      { ...step(480, "easy", "warmup"), cue: "Échauffement mobilité hanches" },
+      {
+        type: "repeat",
+        count: 3,
+        steps: [
+          { ...step(240, "easy"), cue: "Squat bulgare" },
+          step(60, "recovery", "recovery"),
+        ],
+      },
+      { ...step(420, "easy"), cue: "Gainage frontal" },
+    ],
   }),
   mobility: () => ({
     sport: "strength",
@@ -920,6 +963,12 @@ const planDebriefSession = planMatchedSessions.find(
 const planDebriefActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005002";
 const planMissedSession = pastPlanSessions[2];
 const planImportedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005001";
+const planStrengthSession = planMatchedSessions.findLast(
+  (session) =>
+    session.kind === "strength" &&
+    session.scheduled_on < planDoneSession.scheduled_on,
+);
+const planStrengthActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005003";
 const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
 const planDoneStart = Date.parse(`${planDoneSession.scheduled_on}T17:12:00Z`);
 tables.provider_activities.push({
@@ -978,6 +1027,45 @@ if (planDebriefSession) {
       elevation_loss_meters: null,
     })),
   );
+}
+const strengthHeartRate = Array.from({ length: 56 }, (_, minute) =>
+  Math.round(
+    minute < 8
+      ? 96 + minute * 3
+      : 112 + 26 * Math.max(0, Math.sin((minute - 8) / 2.2)) - (minute % 5),
+  ),
+);
+const strengthSeries = {
+  elapsed_s: strengthHeartRate.map((_, minute) => minute * 60),
+  heart_rate: strengthHeartRate,
+};
+if (planStrengthSession) {
+  tables.provider_activities.push({
+    ...activity(5003, 0, {
+      activity_type: "strength_training",
+      activity_name: "Renforcement",
+      duration_seconds: 3300,
+      average_heart_rate: 118,
+      max_heart_rate: 152,
+      calories: 410,
+      aerobic_training_effect: 1.6,
+      anaerobic_training_effect: 0.8,
+    }),
+    user_id: planUser.id,
+    provider_activity_id: "21894515003",
+    started_at: `${planStrengthSession.scheduled_on}T10:30:00Z`,
+    local_started_at: `${planStrengthSession.scheduled_on} 12:30:00`,
+  });
+  tables.provider_activity_tracks.push({
+    activity_id: planStrengthActivityId,
+    user_id: planUser.id,
+    status: "available",
+    route: null,
+    bounds: null,
+    series: strengthSeries,
+    heart_rate_histogram: { 110: 1500, 130: 1200, 150: 600 },
+    source_point_count: 3300,
+  });
 }
 tables.provider_activity_gear = [
   {
@@ -1243,7 +1331,9 @@ Object.assign(tables, {
         ? planDoneActivityId
         : session === planDebriefSession
           ? planDebriefActivityId
-          : null,
+          : session === planStrengthSession
+            ? planStrengthActivityId
+            : null,
     method: "auto",
     status: "completed",
     confidence: 0.9,
@@ -1924,6 +2014,15 @@ function selectRows(table, params) {
     );
   else if (owner)
     rows = rows.filter((row) => `eq.${row.activity_id}` === owner);
+  const others = params
+    .get("or")
+    ?.match(/^\(activity_type\.is\.null,activity_type\.not\.in\.\((.*)\)\)$/);
+  if (others) {
+    const known = others[1].split(",");
+    rows = rows.filter(
+      (row) => !row.activity_type || !known.includes(row.activity_type),
+    );
+  }
   const types = params.get("activity_type")?.match(/^in\.\((.*)\)$/);
   if (types) {
     const allowed = types[1].split(",").map((type) => type.replace(/"/g, ""));

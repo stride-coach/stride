@@ -19,6 +19,9 @@ export function ActivityListPane({
   limit,
   search,
   today,
+  counts,
+  weeks,
+  pills,
   selectedId,
   current,
   registerSnapshot = true,
@@ -29,8 +32,18 @@ export function ActivityListPane({
 }) {
   const register = useRegisterActivityListSnapshot();
   const snapshot = useMemo(
-    () => ({ activities, total, filter, limit, search, today }),
-    [activities, total, filter, limit, search, today],
+    () => ({
+      activities,
+      total,
+      filter,
+      limit,
+      search,
+      today,
+      counts,
+      weeks,
+      pills,
+    }),
+    [activities, total, filter, limit, search, today, counts, weeks, pills],
   );
 
   useEffect(() => {
@@ -39,7 +52,12 @@ export function ActivityListPane({
 
   return (
     <>
-      <ActivityListHeader current={current} filter={filter} search={search} />
+      <ActivityListHeader
+        current={current}
+        filter={filter}
+        search={search}
+        counts={counts}
+      />
       <DataCategoryScope
         categories={["activities"]}
         className="flex min-h-0 flex-1 flex-col"
@@ -47,7 +65,7 @@ export function ActivityListPane({
         <ListScrollRegion
           storageKey={`stride:activities:list:${filter}:${search}`}
           label="Liste des activités"
-          className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:[scrollbar-gutter:stable]"
         >
           <ActivityList
             groups={groupActivities(activities, today)}
@@ -57,6 +75,8 @@ export function ActivityListPane({
             selectedId={selectedId}
             current={current}
             today={today}
+            weeks={weeks}
+            pills={pills}
           />
           {activities.length > 0 && (
             <>

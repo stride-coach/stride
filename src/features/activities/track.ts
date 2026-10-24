@@ -167,7 +167,7 @@ function distanceFractions(series: Series, length: number) {
   return total > 0 ? filled.map((value) => value / total) : null;
 }
 
-function nearestIndex(fractions: readonly number[], target: number) {
+export function nearestIndex(fractions: readonly number[], target: number) {
   let low = 0;
   let high = fractions.length - 1;
   while (low < high) {

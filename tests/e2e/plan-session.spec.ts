@@ -228,9 +228,9 @@ test("a matched structured run shows its debrief and takes a feeling", async ({
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto(`/activities/${activityId}`);
-  const section = page.getByRole("region", { name: "Débrief de la séance" });
+  const section = page.getByRole("region", { name: "Séance du plan" });
   await expect(section).toBeVisible({ timeout: 20_000 });
-  await expect(section.getByText("Séance écourtée")).toBeVisible();
+  await expect(section.getByText("Seuil · écourtée")).toBeVisible();
   await section.getByRole("link", { name: "Voir dans le plan" }).click();
 
   const panel = page.getByRole("dialog");

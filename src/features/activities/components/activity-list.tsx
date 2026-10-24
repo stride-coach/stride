@@ -13,33 +13,110 @@ import {
   maxActivityWindow,
   type ActivityFilter,
   type ActivityGroup,
+  type ActivityWeekSummary,
 } from "@/features/activities/activities";
+import type { ActivityPill } from "@/features/activities/plan-status";
+import { PlanPill } from "./plan-pill";
+
+const emptyFilterMessages: Record<ActivityFilter, string> = {
+  all: "Aucune activité importée pour l’instant.",
+  road: "Aucune course à pied importée pour l’instant.",
+  trail: "Aucune sortie trail importée pour l’instant.",
+  strength: "Aucune séance de renfo importée pour l’instant.",
+  cycling: "Aucune sortie vélo importée pour l’instant.",
+  other: "Aucune autre activité importée pour l’instant.",
+};
+
+export const filterChipClass =
+  "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-control border px-2.75 text-xs whitespace-nowrap transition-colors duration-150 ease-stride lg:min-h-7.5";
 
 export function ActivityFilters({
   filter,
   search,
+  counts,
 }: {
   filter: ActivityFilter;
   search: string;
+  counts: Record<ActivityFilter, number> | null;
 }) {
   return (
-    <nav aria-label="Filtrer les activités" className="flex gap-1">
-      {activityFilters.map((item) => (
-        <Link
-          key={item}
-          href={`/activities${activitiesQuery(item, activityPageSize, search)}`}
-          aria-current={item === filter ? "page" : undefined}
-          className={cn(
-            "inline-flex min-h-11 items-center rounded-surface border px-3.5 text-sm transition-colors duration-150 ease-stride lg:min-h-7 lg:rounded-control lg:px-2.5 lg:text-xs",
-            item === filter
-              ? "border-border-strong bg-surface-raised text-foreground"
-              : "border-border text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {activityFilterLabels[item]}
-        </Link>
-      ))}
+    <nav
+      aria-label="Filtrer par sport"
+      className="-mx-5 flex gap-1.25 overflow-x-auto px-5 lg:mx-0 lg:flex-wrap lg:px-0"
+    >
+      {activityFilters
+        .filter(
+          (item) =>
+            item === "all" ||
+            item === filter ||
+            counts === null ||
+            counts[item] > 0,
+        )
+        .map((item) => (
+          <Link
+            key={item}
+            href={`/activities${activitiesQuery(item, activityPageSize, search)}`}
+            aria-current={item === filter ? "page" : undefined}
+            className={cn(
+              filterChipClass,
+              item === filter
+                ? "border-border-strong bg-surface-raised text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {activityFilterLabels[item]}
+            {counts && (
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                {counts[item]}
+              </span>
+            )}
+          </Link>
+        ))}
     </nav>
+  );
+}
+
+function WeekHeader({
+  label,
+  summary,
+}: {
+  label: string;
+  summary: ActivityWeekSummary | undefined;
+}) {
+  return (
+    <h2 className="sticky top-0 z-1 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 border-y border-border-subtle bg-surface-panel px-5 pt-3 pb-2.5 font-normal lg:px-3.5 lg:pt-2.5 lg:pb-2.25">
+      <MonoLabel
+        size="nano"
+        tone="muted"
+        className="text-[9.5px] whitespace-nowrap text-muted"
+      >
+        {label}
+      </MonoLabel>
+      {summary && summary.totals.length > 0 && (
+        <span className="flex gap-2.5">
+          {summary.totals.map((item) => (
+            <Metric
+              key={item.key}
+              size="sm"
+              className="text-sm"
+              value={item.value}
+              unit={
+                item.unit && (
+                  <span className="font-sans text-[11px] font-normal text-muted-foreground">
+                    {item.unit}
+                  </span>
+                )
+              }
+            />
+          ))}
+        </span>
+      )}
+      {summary?.subline && (
+        <span className="col-span-full text-[11.5px] text-muted-foreground">
+          {summary.subline}
+        </span>
+      )}
+    </h2>
   );
 }
 
@@ -51,7 +128,11 @@ export function ActivityList({
   selectedId,
   current,
   today,
+  weeks,
+  pills,
 }: {
+  weeks: Record<string, ActivityWeekSummary>;
+  pills: Record<string, ActivityPill[]>;
   groups: ActivityGroup[];
   filter: ActivityFilter;
   limit: number;
@@ -67,20 +148,14 @@ export function ActivityList({
           ? "Aucune activité ne correspond à ce nom."
           : filter === "all"
             ? "Aucune activité importée pour l’instant."
-            : `Aucune sortie ${activityFilterLabels[filter].toLowerCase()} importée pour l’instant.`}
+            : emptyFilterMessages[filter]}
       </p>
     );
   return (
     <div className="flex flex-col">
       {groups.map((group) => (
-        <section key={group.label} aria-label={group.label}>
-          <MonoLabel
-            size="nano"
-            asChild
-            className="sticky top-0 z-10 block border-b border-border-subtle bg-surface-inset px-5 pt-2.5 pb-1 lg:px-3.5"
-          >
-            <h2>{group.label}</h2>
-          </MonoLabel>
+        <section key={group.weekStart} aria-label={group.label}>
+          <WeekHeader label={group.label} summary={weeks[group.weekStart]} />
           <ul>
             {group.activities.map((activity) => {
               const selected = activity.id === selectedId;
@@ -110,7 +185,7 @@ export function ActivityList({
                         : undefined
                     }
                     className={cn(
-                      "flex flex-col gap-1.5 border-b border-border-subtle px-5 py-3 transition-colors duration-150 ease-stride hover:bg-surface lg:px-3.5",
+                      "flex flex-col gap-1.75 border-b border-border-subtle px-5 py-3.5 transition-colors duration-150 ease-stride hover:bg-surface lg:px-3.5",
                       selected &&
                         (current
                           ? "bg-surface-raised shadow-[inset_2px_0_0_var(--color-accent)]"
@@ -137,18 +212,25 @@ export function ActivityList({
                         </time>
                       </MonoLabel>
                     </span>
-                    <span className="flex flex-wrap gap-x-3 gap-y-1 text-muted">
+                    <span className="flex flex-wrap gap-x-3 gap-y-1 text-foreground">
                       {listMetrics(activity).map((metric) => (
                         <Metric
                           key={metric.key}
                           size="sm"
-                          className="text-body"
+                          className="text-[17px] lg:text-body"
                           value={metric.value}
                           unit={metric.unit}
                           aria-label={`${metric.label} ${metric.value}${metric.unit ? ` ${metric.unit}` : ""}`}
                         />
                       ))}
                     </span>
+                    {pills[activity.id] && (
+                      <span className="flex flex-wrap gap-1.5">
+                        {pills[activity.id].map((pill) => (
+                          <PlanPill key={pill.label} pill={pill} />
+                        ))}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

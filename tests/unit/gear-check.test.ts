@@ -189,6 +189,19 @@ describe("activity pair copy", () => {
     ).toMatchObject({ name: "Aucune paire", line: "sortie hors séance" });
   });
 
+  it("keeps a short source for the one-line shoe row", () => {
+    expect(activityPairView(checked(input({})), shoes).short).toBe("Garmin");
+    expect(
+      activityPairView(checked(input({ garminGearUuid: null })), shoes).short,
+    ).toBe("prévue : Adizero Evo SL 3");
+    expect(
+      activityPairView(
+        checked(input({ decision: { decision: "corrected", shoeId: "evo" } })),
+        shoes,
+      ).short,
+    ).toBe("corrigée par toi");
+  });
+
   it("asks only when Garmin and the session disagree", () => {
     expect(pairQuestion(checked(input({})), shoes)).toBeNull();
     expect(

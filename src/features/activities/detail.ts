@@ -7,6 +7,7 @@ import {
   positiveMeasure,
   type ActivityKind,
 } from "./activities";
+import { feelLabels, type FeelValue } from "@/features/plans/debrief/debrief";
 
 export const activityDetailColumns =
   "id, activity_type, activity_name, route_name, started_at, local_started_at, distance_meters, duration_seconds, elevation_gain_meters, elevation_loss_meters, average_heart_rate, max_heart_rate, average_cadence, average_power_watts, max_power_watts, aerobic_training_effect, anaerobic_training_effect, calories, workout_rpe, workout_feel, detail_imported_at";
@@ -98,6 +99,7 @@ export const segmentRowSchema = z
     averageCadence: row.average_cadence,
     averagePowerWatts: row.average_power_watts,
     elevationGainMeters: row.elevation_gain_meters,
+    elevationLossMeters: row.elevation_loss_meters,
   }));
 
 export type ActivityDetailData = z.output<typeof activityDetailRowSchema>;
@@ -109,8 +111,22 @@ export type DetailStat = {
   unit?: string;
 };
 export type LapColumnKey =
-  "duration" | "distance" | "pace" | "heartRate" | "cadence" | "elevation";
-export type LapColumn = { key: LapColumnKey; label: string; compact: boolean };
+  | "duration"
+  | "distance"
+  | "pace"
+  | "heartRate"
+  | "cadence"
+  | "elevation"
+  | "elevationLoss"
+  | "climb"
+  | "power";
+export type LapColumnDisplay = "all" | "wide" | "narrow";
+export type LapColumn = {
+  key: LapColumnKey;
+  label: string;
+  shortLabel: string;
+  display: LapColumnDisplay;
+};
 export type LapRow = {
   key: string;
   label: string;
@@ -129,21 +145,22 @@ const effect = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 1,
 });
 const integer = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
-const columnDefinitions: Record<LapColumnKey, LapColumn> = {
-  duration: { key: "duration", label: "Temps", compact: true },
-  distance: { key: "distance", label: "Dist.", compact: true },
-  pace: { key: "pace", label: "Allure", compact: true },
-  heartRate: { key: "heartRate", label: "FC moy.", compact: true },
-  cadence: { key: "cadence", label: "Cad.", compact: false },
-  elevation: { key: "elevation", label: "D+", compact: false },
-};
-const columnOrder: LapColumnKey[] = [
-  "duration",
-  "distance",
-  "pace",
-  "heartRate",
-  "cadence",
-  "elevation",
+const column = (
+  key: LapColumnKey,
+  label: string,
+  display: LapColumnDisplay,
+  shortLabel = label,
+): LapColumn => ({ key, label, shortLabel, display });
+const columns: LapColumn[] = [
+  column("duration", "Temps", "all"),
+  column("distance", "Dist.", "wide"),
+  column("pace", "Allure", "all"),
+  column("heartRate", "FC moy.", "all", "FC"),
+  column("cadence", "Cad.", "wide"),
+  column("elevation", "D+", "wide"),
+  column("elevationLoss", "D−", "wide"),
+  column("climb", "D+/D−", "narrow"),
+  column("power", "Puiss.", "all", "W"),
 ];
 
 function paceOf(
@@ -166,7 +183,13 @@ function cell(segment: ActivitySegment, kind: ActivityKind) {
     averageHeartRate,
     averageCadence,
     elevationGainMeters,
+    elevationLossMeters,
+    averagePowerWatts,
   } = segment;
+  const gain =
+    elevationGainMeters !== null ? integer.format(elevationGainMeters) : null;
+  const loss =
+    elevationLossMeters !== null ? integer.format(elevationLossMeters) : null;
   return {
     duration: durationSeconds !== null ? formatDuration(durationSeconds) : null,
     distance: distanceMeters !== null ? formatDistance(distanceMeters) : null,
@@ -174,8 +197,12 @@ function cell(segment: ActivitySegment, kind: ActivityKind) {
     heartRate:
       averageHeartRate !== null ? integer.format(averageHeartRate) : null,
     cadence: averageCadence !== null ? integer.format(averageCadence) : null,
-    elevation:
-      elevationGainMeters !== null ? integer.format(elevationGainMeters) : null,
+    elevation: gain,
+    elevationLoss: loss,
+    climb:
+      gain !== null || loss !== null ? `${gain ?? "—"}/${loss ?? "—"}` : null,
+    power:
+      averagePowerWatts !== null ? integer.format(averagePowerWatts) : null,
   } satisfies Record<LapColumnKey, string | null>;
 }
 
@@ -196,18 +223,21 @@ export function lapTable(
     label: String(position + 1),
     cells: cell(segment, kind),
   }));
-  const columns = columnOrder
-    .filter((key) => rows.some((row) => row.cells[key] !== null))
-    .map((key) => columnDefinitions[key]);
-  if (columns.length === 0) return null;
+  const present = columns.filter((item) =>
+    rows.some((row) => row.cells[item.key] !== null),
+  );
+  if (present.length === 0) return null;
   return {
     title: chosen === laps ? "Tours" : "Segments",
-    columns,
+    columns: present,
     rows,
   };
 }
 
-export function effortStats(activity: ActivityDetailData): DetailStat[] {
+export function effortStats(
+  activity: ActivityDetailData,
+  feeling: { effort: number | null; feel: FeelValue | null } | null = null,
+): DetailStat[] {
   const stats: (DetailStat | null)[] = [
     activity.calories !== null
       ? {
@@ -217,21 +247,16 @@ export function effortStats(activity: ActivityDetailData): DetailStat[] {
           unit: "kcal",
         }
       : null,
-    activity.perceivedEffort !== null && activity.perceivedEffort <= 10
+    feeling?.effort !== null && feeling?.effort !== undefined
       ? {
           key: "perceivedEffort",
           label: "Effort ressenti",
-          value: effect.format(activity.perceivedEffort),
+          value: integer.format(feeling.effort),
           unit: "/10",
         }
       : null,
-    activity.feel !== null
-      ? {
-          key: "feel",
-          label: "Ressenti après séance",
-          value: integer.format(activity.feel),
-          unit: "/100",
-        }
+    feeling?.feel !== null && feeling?.feel !== undefined
+      ? { key: "feel", label: "Sensations", value: feelLabels[feeling.feel] }
       : null,
     activity.aerobicTrainingEffect !== null
       ? {
@@ -245,22 +270,6 @@ export function effortStats(activity: ActivityDetailData): DetailStat[] {
           key: "anaerobic",
           label: "Effet anaérobie",
           value: effect.format(activity.anaerobicTrainingEffect),
-        }
-      : null,
-    activity.averageCadence !== null
-      ? {
-          key: "cadence",
-          label: "Cadence moy.",
-          value: integer.format(activity.averageCadence),
-          unit: "pas/min",
-        }
-      : null,
-    activity.maxHeartRate !== null
-      ? {
-          key: "maxHeartRate",
-          label: "FC max",
-          value: integer.format(activity.maxHeartRate),
-          unit: "bpm",
         }
       : null,
     activity.averagePowerWatts !== null
@@ -277,6 +286,22 @@ export function effortStats(activity: ActivityDetailData): DetailStat[] {
           label: "Puissance max",
           value: integer.format(activity.maxPowerWatts),
           unit: "W",
+        }
+      : null,
+    activity.averageCadence !== null
+      ? {
+          key: "cadence",
+          label: "Cadence moy.",
+          value: integer.format(activity.averageCadence),
+          unit: "pas/min",
+        }
+      : null,
+    activity.maxHeartRate !== null
+      ? {
+          key: "maxHeartRate",
+          label: "FC max",
+          value: integer.format(activity.maxHeartRate),
+          unit: "bpm",
         }
       : null,
     activity.elevationLossMeters !== null

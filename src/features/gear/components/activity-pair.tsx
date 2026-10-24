@@ -139,9 +139,58 @@ export function PairAlert({ question }: { question: PairQuestion }) {
   );
 }
 
-export function ActivityPairBlock({ view }: { view: ActivityPairView }) {
+export function ActivityPairBlock({
+  view,
+  compact = false,
+}: {
+  view: ActivityPairView;
+  compact?: boolean;
+}) {
   const [picking, setPicking] = useState(false);
   const { pending, save } = useActivityPair(view.activityId);
+  const sheet = picking && (
+    <PairSheet
+      title="Quelle paire as-tu portée ?"
+      context={view.context}
+      note="Stride corrige aussi la paire dans Garmin."
+      options={view.options}
+      initialId={view.selectedId}
+      pending={pending}
+      open={picking}
+      onOpenChange={setPicking}
+      onConfirm={(option) =>
+        save(option.id, `Les ${option.name}, corrigé dans Garmin.`, () =>
+          setPicking(false),
+        )
+      }
+    />
+  );
+  if (compact)
+    return (
+      <section
+        aria-label="Chaussures"
+        className="flex min-w-0 items-center gap-2 text-meta text-muted"
+      >
+        <NavGearIcon className="size-4.5 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 truncate text-foreground">{view.name}</span>
+        {view.short && (
+          <span className="shrink-0 whitespace-nowrap text-muted-foreground">
+            · {view.short}
+          </span>
+        )}
+        {view.options.length > 0 && (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setPicking(true)}
+            className="inline-flex min-h-8 shrink-0 items-center whitespace-nowrap underline underline-offset-3 hover:text-foreground disabled:opacity-50"
+          >
+            Changer
+          </button>
+        )}
+        {sheet}
+      </section>
+    );
   return (
     <section
       aria-label="Chaussures"
@@ -174,23 +223,7 @@ export function ActivityPairBlock({ view }: { view: ActivityPairView }) {
           Changer
         </Button>
       )}
-      {picking && (
-        <PairSheet
-          title="Quelle paire as-tu portée ?"
-          context={view.context}
-          note="Stride corrige aussi la paire dans Garmin."
-          options={view.options}
-          initialId={view.selectedId}
-          pending={pending}
-          open={picking}
-          onOpenChange={setPicking}
-          onConfirm={(option) =>
-            save(option.id, `Les ${option.name}, corrigé dans Garmin.`, () =>
-              setPicking(false),
-            )
-          }
-        />
-      )}
+      {sheet}
     </section>
   );
 }

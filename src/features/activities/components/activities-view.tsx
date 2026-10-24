@@ -4,13 +4,13 @@ import {
   formatActivityDate,
   type Activity,
   type ActivityFilter,
+  type ActivityListView,
 } from "@/features/activities/activities";
 import { ActivityListPane } from "./activity-list-pane";
 import { ActivitySplitFrame, ActivityToolbar } from "./activity-frame";
 
 export function ActivitiesView({
-  activities,
-  total,
+  list,
   filter,
   limit,
   selected,
@@ -19,8 +19,7 @@ export function ActivitiesView({
   today,
   children,
 }: {
-  activities: Activity[];
-  total: number;
+  list: ActivityListView;
   filter: ActivityFilter;
   limit: number;
   selected: Pick<Activity, "id" | "date"> | null;
@@ -34,8 +33,7 @@ export function ActivitiesView({
       current={current}
       list={
         <ActivityListPane
-          activities={activities}
-          total={total}
+          {...list}
           filter={filter}
           limit={limit}
           search={search}

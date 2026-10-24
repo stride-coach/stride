@@ -12,6 +12,7 @@ import {
   type FeelValue,
 } from "@/features/plans/debrief/debrief";
 import type { DebriefFeelingView } from "@/features/plans/debrief/view";
+import type { DebriefFeeling } from "@/features/plans/debrief/debrief";
 import { saveActivityFeeling } from "@/server/activities/actions";
 
 const errors = {
@@ -26,11 +27,15 @@ export function FeelingPrompt({
   activityId,
   initial = null,
   compact = false,
+  inline = false,
+  strength = false,
   onSaved,
 }: {
   activityId: string;
   initial?: { effort: number | null; feel: FeelValue | null } | null;
   compact?: boolean;
+  inline?: boolean;
+  strength?: boolean;
   onSaved?: () => void;
 }) {
   const id = useId();
@@ -61,6 +66,78 @@ export function FeelingPrompt({
   }
 
   const showFeel = !compact || effort !== null;
+  if (inline)
+    return (
+      <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-1.5">
+          <span id={`${id}-title`} className="text-meta font-semibold">
+            {strength ? "Effort de la séance" : "Comment c’était ?"}{" "}
+            <span className="font-normal text-muted-foreground">
+              {strength
+                ? "de 1 à 10 · compte dans ta charge de renfo"
+                : "Effort perçu, de 1 à 10"}
+            </span>
+          </span>
+          <ToggleGroup
+            type="single"
+            variant="choice"
+            aria-label={
+              strength
+                ? "Effort de la séance, de 1 à 10"
+                : "Effort perçu, de 1 à 10"
+            }
+            value={effort === null ? "" : String(effort)}
+            disabled={pending}
+            onValueChange={(value) => {
+              const next = Number(value);
+              if (!efforts.includes(next)) return;
+              if (feel === null) setEffort(next);
+              else save(next, feel);
+            }}
+            className="grid grid-cols-5 gap-1 sm:grid-cols-10"
+          >
+            {efforts.map((value) => (
+              <ToggleGroupItem
+                key={value}
+                value={String(value)}
+                className="min-h-10 rounded-control px-0 font-metric text-base tabular-nums sm:min-h-8"
+              >
+                {value}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
+        {effort !== null && (
+          <div className="flex flex-col gap-1.5">
+            <span id={`${id}-feel`} className="text-meta text-muted">
+              Sensations
+            </span>
+            <ToggleGroup
+              type="single"
+              variant="choice"
+              aria-labelledby={`${id}-feel`}
+              value={feel === null ? "" : String(feel)}
+              disabled={pending}
+              onValueChange={(value) => {
+                const next = feelValues.find((item) => String(item) === value);
+                if (next !== undefined) save(effort, next);
+              }}
+              className="grid grid-cols-5 gap-1"
+            >
+              {feelValues.map((value) => (
+                <ToggleGroupItem
+                  key={value}
+                  value={String(value)}
+                  className="min-h-10 rounded-control px-1 text-xs whitespace-normal sm:min-h-8"
+                >
+                  {feelLabels[value]}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+        )}
+      </div>
+    );
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.75">
@@ -237,5 +314,58 @@ export function DebriefFeeling({
         </div>
       )}
     </section>
+  );
+}
+
+export function CardFeeling({
+  activityId,
+  feeling,
+  strength = false,
+}: {
+  activityId: string;
+  feeling: DebriefFeeling | null;
+  strength?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  if (!feeling || editing)
+    return (
+      <FeelingPrompt
+        activityId={activityId}
+        inline
+        strength={strength}
+        initial={
+          feeling ? { effort: feeling.effort, feel: feeling.feel } : null
+        }
+        onSaved={() => setEditing(false)}
+      />
+    );
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2 text-meta text-muted">
+      Ressenti
+      {feeling.effort !== null && (
+        <span className="font-metric text-[17px] font-semibold text-foreground tabular-nums">
+          {feeling.effort}/10
+        </span>
+      )}
+      {feeling.feel !== null && (
+        <span>
+          {feeling.effort !== null && "· "}
+          {feelLabels[feeling.feel]}
+        </span>
+      )}
+      {feeling.source === "garmin" ? (
+        <span className="text-xs text-muted-foreground">
+          · saisi sur ta montre
+        </span>
+      ) : (
+        <button
+          type="button"
+          className="min-h-8 text-[12.5px] text-muted-foreground underline underline-offset-3 hover:text-foreground"
+          onClick={() => setEditing(true)}
+        >
+          Modifier
+        </button>
+      )}
+    </span>
   );
 }

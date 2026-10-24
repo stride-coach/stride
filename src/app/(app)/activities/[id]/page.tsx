@@ -2,30 +2,18 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { ActivitiesView } from "@/features/activities/components/activities-view";
-import { ActivityDetail } from "@/features/activities/components/activity-detail";
 import {
-  activitiesQuery,
   parseActivityFilter,
   parseActivityLimit,
   parseActivitySearch,
 } from "@/features/activities/activities";
 import { localToday } from "@/features/app-shell/shell";
-import { buildActivityView } from "@/features/activities/activity-view";
-import {
-  listActivities,
-  readActivityDetail,
-  loadHeartRateZones,
-} from "@/server/activities/activities";
+import { readActivity } from "@/server/activities/activities";
+import { loadActivityList } from "@/server/activities/list";
+import { loadActivityPanel } from "@/server/activities/panel";
 import { requireAthlete } from "@/server/app/session";
-import {
-  ActivityPairBlock,
-  PairQuestionCard,
-} from "@/features/gear/components/activity-pair";
-import { activityPairView, pairQuestion } from "@/features/gear/check-view";
 import { loadPairChecks } from "@/server/gear/checks";
-import { reconcileGearNotificationsAfterResponse } from "@/server/notifications/garmin";
-import { ActivityDebrief } from "@/features/activities/components/activity-debrief";
-import { loadSessionDebrief } from "@/server/plans/debrief";
+import { ActivityPanel } from "../_components/activity-panel";
 
 export const metadata: Metadata = { title: "Activité · Activités" };
 
@@ -42,49 +30,26 @@ export default async function ActivityPage({
   const limit = parseActivityLimit(query.limit);
   const context = await requireAthlete();
   const now = new Date();
+  const today = localToday(now);
   const search = parseActivitySearch(query.q);
-  const [detail, { activities, total }, calibration, checks, debrief] =
-    await Promise.all([
-      readActivityDetail(context, id),
-      listActivities(context, filter, limit, search),
-      loadHeartRateZones(context, now),
-      loadPairChecks(context, id),
-      loadSessionDebrief(context, { activityId: id }).catch(() => null),
-    ]);
-  if (!detail) notFound();
-  reconcileGearNotificationsAfterResponse(context, checks);
-  const check = checks?.checks.get(id) ?? null;
-  const question = check && checks ? pairQuestion(check, checks.shoes) : null;
+  const [activity, list] = await Promise.all([
+    readActivity(context, id),
+    loadActivityList(context, filter, limit, search, today),
+    loadActivityPanel(context, id, now),
+    loadPairChecks(context, id),
+  ]);
+  if (!activity) notFound();
   return (
     <ActivitiesView
-      activities={activities}
-      total={total}
+      list={list}
       filter={filter}
       limit={limit}
-      selected={detail.activity}
+      selected={activity}
       search={search}
       current
-      today={localToday(now)}
+      today={today}
     >
-      <ActivityDetail
-        activity={detail.activity}
-        view={buildActivityView({
-          ...detail,
-          zones: calibration?.zones ?? null,
-        })}
-        current
-        detailHref={`/activities/${id}/details${activitiesQuery(filter, limit, search)}`}
-        debrief={debrief && <ActivityDebrief debrief={debrief} />}
-        pair={
-          check &&
-          checks && (
-            <div className="flex flex-col gap-2.5">
-              <ActivityPairBlock view={activityPairView(check, checks.shoes)} />
-              {question && <PairQuestionCard question={question} />}
-            </div>
-          )
-        }
-      />
+      <ActivityPanel context={context} id={id} now={now} current />
     </ActivitiesView>
   );
 }

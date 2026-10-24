@@ -1,21 +1,48 @@
 import { z } from "zod";
+import type { ActivityPill } from "./plan-status";
 
-export const activityFilters = ["all", "road", "trail"] as const;
+export const activityFilters = [
+  "all",
+  "road",
+  "trail",
+  "strength",
+  "cycling",
+  "other",
+] as const;
 export type ActivityFilter = (typeof activityFilters)[number];
+export type ActivityGroupKey = Exclude<ActivityFilter, "all">;
 export type ActivityKind = "road" | "trail" | "other";
 
 export const activityFilterLabels: Record<ActivityFilter, string> = {
   all: "Tout",
-  road: "Route",
+  road: "Course",
   trail: "Trail",
+  strength: "Renfo",
+  cycling: "Vélo",
+  other: "Autres",
 };
 export const activityTypesByFilter: Record<
-  Exclude<ActivityFilter, "all">,
+  Exclude<ActivityGroupKey, "other">,
   readonly string[]
 > = {
   road: ["running", "treadmill_running", "track_running"],
   trail: ["trail_running", "ultra_run"],
+  strength: ["strength_training", "indoor_cardio", "hiit", "yoga", "pilates"],
+  cycling: [
+    "cycling",
+    "road_biking",
+    "mountain_biking",
+    "gravel_cycling",
+    "indoor_cycling",
+    "virtual_ride",
+  ],
 };
+export const typedActivityFilters = [
+  "road",
+  "trail",
+  "strength",
+  "cycling",
+] as const;
 const typeLabels: Record<string, string> = {
   running: "Course à pied",
   treadmill_running: "Course sur tapis",
@@ -36,7 +63,7 @@ const typeLabels: Record<string, string> = {
 };
 
 export const activityColumns =
-  "id, activity_type, activity_name, route_name, started_at, local_started_at, distance_meters, duration_seconds, elevation_gain_meters, average_heart_rate";
+  "id, activity_type, activity_name, route_name, started_at, local_started_at, distance_meters, duration_seconds, elevation_gain_meters, average_heart_rate, workout_rpe, workout_feel";
 
 export const positiveMeasure = z
   .union([z.number(), z.string()])
@@ -58,6 +85,18 @@ export const activityRowSchema = z
     duration_seconds: positiveMeasure,
     elevation_gain_meters: positiveMeasure,
     average_heart_rate: positiveMeasure,
+    workout_rpe: positiveMeasure.optional().default(null),
+    workout_feel: z
+      .union([z.number(), z.string()])
+      .nullable()
+      .optional()
+      .transform((value) => {
+        if (value === null || value === undefined || value === "") return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100
+          ? parsed
+          : null;
+      }),
   })
   .transform((row) => ({
     id: row.id,
@@ -69,9 +108,18 @@ export const activityRowSchema = z
     durationSeconds: row.duration_seconds,
     elevationGainMeters: row.elevation_gain_meters,
     averageHeartRate: row.average_heart_rate,
+    garminFeeling: { rpe: row.workout_rpe, feel: row.workout_feel },
   }));
 
 export type Activity = z.output<typeof activityRowSchema>;
+export type ActivityMeasures = Pick<
+  Activity,
+  | "type"
+  | "distanceMeters"
+  | "durationSeconds"
+  | "elevationGainMeters"
+  | "averageHeartRate"
+>;
 export type ActivityMetricKey =
   "distance" | "duration" | "pace" | "elevation" | "heartRate";
 export type ActivityMetric = {
@@ -80,7 +128,11 @@ export type ActivityMetric = {
   value: string;
   unit?: string;
 };
-export type ActivityGroup = { label: string; activities: Activity[] };
+export type ActivityGroup = {
+  weekStart: string;
+  label: string;
+  activities: Activity[];
+};
 
 const metricLabels: Record<ActivityMetricKey, string> = {
   distance: "Distance",
@@ -92,7 +144,7 @@ const metricLabels: Record<ActivityMetricKey, string> = {
 const listMetricOrder: Record<ActivityKind, ActivityMetricKey[]> = {
   road: ["distance", "pace"],
   trail: ["distance", "elevation", "duration"],
-  other: ["duration", "elevation"],
+  other: ["duration", "distance"],
 };
 const detailMetricOrder: ActivityMetricKey[] = [
   "distance",
@@ -115,19 +167,28 @@ const shortDayYear = new Intl.DateTimeFormat("fr-FR", {
   year: "numeric",
   timeZone: "UTC",
 });
-const monthName = new Intl.DateTimeFormat("fr-FR", {
-  month: "long",
-  timeZone: "UTC",
-});
-const monthYear = new Intl.DateTimeFormat("fr-FR", {
-  month: "long",
-  year: "numeric",
+const dayMonth = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
   timeZone: "UTC",
 });
 const dayMs = 86_400_000;
 
 export function parseActivityFilter(value: unknown): ActivityFilter {
   return activityFilters.find((filter) => filter === value) ?? "all";
+}
+
+export function activityGroupOf(type: string | null): ActivityGroupKey {
+  for (const group of typedActivityFilters)
+    if (type && activityTypesByFilter[group].includes(type)) return group;
+  return "other";
+}
+
+export function matchesActivityFilter(
+  type: string | null,
+  filter: ActivityFilter,
+) {
+  return filter === "all" || activityGroupOf(type) === filter;
 }
 
 export function activityKind(type: string | null): ActivityKind {
@@ -169,7 +230,7 @@ export function formatPace(meters: number, seconds: number) {
 }
 
 function metric(
-  activity: Activity,
+  activity: ActivityMeasures,
   key: ActivityMetricKey,
 ): ActivityMetric | null {
   const label = metricLabels[key];
@@ -211,13 +272,13 @@ function metric(
   }
 }
 
-function present(keys: ActivityMetricKey[], activity: Activity) {
+function present(keys: ActivityMetricKey[], activity: ActivityMeasures) {
   return keys
     .map((key) => metric(activity, key))
     .filter((item): item is ActivityMetric => item !== null);
 }
 
-export function listMetrics(activity: Activity) {
+export function listMetrics(activity: ActivityMeasures) {
   const metrics = present(
     listMetricOrder[activityKind(activity.type)],
     activity,
@@ -225,7 +286,7 @@ export function listMetrics(activity: Activity) {
   return metrics.length > 0 ? metrics : present(["duration"], activity);
 }
 
-export function detailMetrics(activity: Activity) {
+export function detailMetrics(activity: ActivityMeasures) {
   return present(detailMetricOrder, activity);
 }
 
@@ -233,13 +294,17 @@ function dayNumber(date: string) {
   return Date.parse(`${date}T00:00:00Z`) / dayMs;
 }
 
-function mondayNumber(date: string) {
-  const day = dayNumber(date);
-  return day - ((new Date(day * dayMs).getUTCDay() + 6) % 7);
+function isoOf(day: number) {
+  return new Date(day * dayMs).toISOString().slice(0, 10);
 }
 
-function capitalize(text: string) {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+export function activityWeekStart(date: string) {
+  const day = dayNumber(date);
+  return isoOf(day - ((new Date(day * dayMs).getUTCDay() + 6) % 7));
+}
+
+export function shiftDate(date: string, days: number) {
+  return isoOf(dayNumber(date) + days);
 }
 
 export function formatActivityDate(date: string, today: string) {
@@ -249,27 +314,153 @@ export function formatActivityDate(date: string, today: string) {
   ).format(value);
 }
 
-export function activityPeriod(date: string, today: string) {
-  const weeks = (mondayNumber(today) - mondayNumber(date)) / 7;
+export function formatWeekSpan(weekStart: string, today: string) {
+  const end = shiftDate(weekStart, 6);
+  const first = new Date(`${weekStart}T00:00:00Z`);
+  const last = new Date(`${end}T00:00:00Z`);
+  const range =
+    first.getUTCMonth() === last.getUTCMonth()
+      ? `${first.getUTCDate()}–${dayMonth.format(last)}`
+      : `${dayMonth.format(first)}–${dayMonth.format(last)}`;
+  return end.slice(0, 4) === today.slice(0, 4)
+    ? range
+    : `${range} ${end.slice(0, 4)}`;
+}
+
+export function activityWeekLabel(weekStart: string, today: string) {
+  const weeks = Math.round(
+    (dayNumber(activityWeekStart(today)) - dayNumber(weekStart)) / 7,
+  );
   if (weeks <= 0) return "Cette semaine";
   if (weeks === 1) return "Semaine dernière";
-  const value = new Date(`${date}T00:00:00Z`);
-  return capitalize(
-    (date.slice(0, 4) === today.slice(0, 4) ? monthName : monthYear).format(
-      value,
-    ),
-  );
+  return formatWeekSpan(weekStart, today);
 }
 
 export function groupActivities(activities: Activity[], today: string) {
   const groups: ActivityGroup[] = [];
   for (const activity of activities) {
-    const label = activityPeriod(activity.date, today);
+    const weekStart = activityWeekStart(activity.date);
     const last = groups.at(-1);
-    if (last?.label === label) last.activities.push(activity);
-    else groups.push({ label, activities: [activity] });
+    if (last?.weekStart === weekStart) last.activities.push(activity);
+    else
+      groups.push({
+        weekStart,
+        label: activityWeekLabel(weekStart, today),
+        activities: [activity],
+      });
   }
   return groups;
+}
+
+export type WeekTotals = {
+  count: number;
+  distanceMeters: number;
+  elevationGainMeters: number;
+  durationSeconds: number;
+};
+
+export function weekTotals(
+  activities: readonly Pick<
+    Activity,
+    "distanceMeters" | "elevationGainMeters" | "durationSeconds"
+  >[],
+): WeekTotals {
+  return activities.reduce<WeekTotals>(
+    (totals, activity) => ({
+      count: totals.count + 1,
+      distanceMeters: totals.distanceMeters + (activity.distanceMeters ?? 0),
+      elevationGainMeters:
+        totals.elevationGainMeters + (activity.elevationGainMeters ?? 0),
+      durationSeconds: totals.durationSeconds + (activity.durationSeconds ?? 0),
+    }),
+    { count: 0, distanceMeters: 0, elevationGainMeters: 0, durationSeconds: 0 },
+  );
+}
+
+export type WeekTotalItem = { key: string; value: string; unit?: string };
+
+const oneDecimal = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+export function formatHoursMinutes(seconds: number) {
+  const minutes = Math.round(seconds / 60);
+  return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+export function weekTotalItems(totals: WeekTotals): WeekTotalItem[] {
+  const items: (WeekTotalItem | null)[] = [
+    totals.distanceMeters > 0
+      ? {
+          key: "distance",
+          value: oneDecimal.format(totals.distanceMeters / 1000),
+          unit: "km",
+        }
+      : null,
+    totals.elevationGainMeters >= 1
+      ? {
+          key: "elevation",
+          value: integer.format(totals.elevationGainMeters),
+          unit: "m D+",
+        }
+      : null,
+    totals.durationSeconds > 0
+      ? { key: "duration", value: formatHoursMinutes(totals.durationSeconds) }
+      : null,
+  ];
+  return items.filter((item): item is WeekTotalItem => item !== null);
+}
+
+export type ActivityWeekSummary = {
+  totals: WeekTotalItem[];
+  subline: string;
+};
+
+export type ActivityListView = {
+  activities: Activity[];
+  total: number;
+  counts: Record<ActivityFilter, number> | null;
+  weeks: Record<string, ActivityWeekSummary>;
+  pills: Record<string, ActivityPill[]>;
+};
+
+export type PlanWeekCounts = { planned: number; done: number };
+
+export function planWeekLine(
+  plan: PlanWeekCounts | null,
+  unplanned: number,
+): string | null {
+  if (!plan || plan.planned === 0) return null;
+  const sessions = plan.done >= 2 ? "séances" : "séance";
+  return [
+    `Plan : ${plan.done} ${sessions} sur ${plan.planned}`,
+    unplanned > 0 ? `${unplanned} hors plan` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export function weekSubline({
+  weekStart,
+  today,
+  count,
+  plan,
+}: {
+  weekStart: string;
+  today: string;
+  count: number;
+  plan: string | null;
+}) {
+  const label = activityWeekLabel(weekStart, today);
+  const range = formatWeekSpan(weekStart, today);
+  return [
+    label === range ? null : range,
+    `${count} ${count > 1 ? "activités" : "activité"}`,
+    plan,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export const activityPageSize = 50;

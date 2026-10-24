@@ -39,6 +39,7 @@ import {
   attachmentContextSchema,
   attachmentContextText,
   loadAttachmentOptions,
+  loadActivityOption,
   loadRaceOption,
   loadSessionOption,
   resolveAttachments,
@@ -289,6 +290,47 @@ describe("attachment resolution", () => {
     ]);
     expect(await loadSessionOption(context, options, "unknown")).toEqual([]);
     expect(await loadSessionOption(context, options, "Bad Key!")).toEqual([]);
+  });
+
+  it("preselects an activity from the picker or reads it when older", async () => {
+    const listed = option("activity", activity.id, activity.date);
+    expect(
+      await loadActivityOption(
+        context,
+        { session: [], activity: [listed], race: [] },
+        activity.id,
+      ),
+    ).toEqual([listed]);
+    reads.readActivity.mockResolvedValueOnce(activity);
+    expect(
+      await loadActivityOption(
+        context,
+        { session: [], activity: [], race: [] },
+        activity.id,
+      ),
+    ).toMatchObject([
+      {
+        kind: "activity",
+        id: activity.id,
+        title: "Sortie longue vallonnée",
+        distanceKm: 24.6,
+      },
+    ]);
+    reads.readActivity.mockResolvedValueOnce(null);
+    expect(
+      await loadActivityOption(
+        context,
+        { session: [], activity: [], race: [] },
+        "c0000000-0000-4000-8000-00000000000c",
+      ),
+    ).toEqual([]);
+    expect(
+      await loadActivityOption(
+        context,
+        { session: [], activity: [], race: [] },
+        "not-an-id",
+      ),
+    ).toEqual([]);
   });
 
   it("preselects only a listed race with a valid id", () => {
