@@ -192,10 +192,7 @@ describe("activity pair copy", () => {
   it("keeps a short source for the one-line shoe row", () => {
     expect(activityPairView(checked(input({})), shoes).short).toBe("Garmin");
     expect(
-      activityPairView(
-        checked(input({ garminGearUuid: null })),
-        shoes,
-      ).short,
+      activityPairView(checked(input({ garminGearUuid: null })), shoes).short,
     ).toBe("prévue : Adizero Evo SL 3");
     expect(
       activityPairView(
