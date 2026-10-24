@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(11);
 
 insert into auth.users (id, aud, role, email) values
   ('a3000000-0000-4000-8000-00000000000a', 'authenticated', 'authenticated', 'choices-a@example.com'),
@@ -45,6 +45,15 @@ select lives_ok(
     do update set user_id = excluded.user_id, session_key = excluded.session_key,
       shoe_id = excluded.shoe_id, updated_at = now()$$,
   'athlete changes the pair of the same session'
+);
+select lives_ok(
+  $$insert into public.plan_session_shoe_choices (user_id, session_key, shoe_id, updated_at)
+    values ('a3000000-0000-4000-8000-00000000000a', 's-2026-10-22-1',
+      'a3000000-0000-4000-8000-0000000000a2', now())
+    on conflict (user_id, session_key)
+    do update set user_id = excluded.user_id, session_key = excluded.session_key,
+      shoe_id = excluded.shoe_id, updated_at = excluded.updated_at$$,
+  'athlete saves a choice with its update time'
 );
 select is(
   (select shoe_id from public.plan_session_shoe_choices where session_key = 's-2026-10-22-1'),
