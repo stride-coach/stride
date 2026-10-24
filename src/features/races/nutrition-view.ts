@@ -11,6 +11,7 @@ import {
   productName,
   type NutritionProduct,
 } from "@/features/fueling/products";
+import type { FuelingRehearsal } from "@/features/fueling/base";
 import type { ChecklistItem } from "./checklists";
 import {
   formatClock,
@@ -22,7 +23,7 @@ import type { RacePlan } from "./race";
 import type { RaceTimeline } from "./timeline";
 import { temperatureRange, type RaceWeather } from "./weather";
 
-export type UpcomingSession = { date: string; title: string };
+export type UpcomingSession = FuelingRehearsal;
 
 const shortDate = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -263,6 +264,8 @@ export type SegmentRow = {
   route: string;
   timing: string;
   carbs: string;
+  water: string;
+  sodium: string;
   eat: string;
   arrival: string;
 };
@@ -289,6 +292,8 @@ export function segmentRows(
         .filter(Boolean)
         .join(" · "),
       carbs: `${formatInteger(segment.carbsG)} g`,
+      water: `${formatDecimal(segment.waterMl / 1000)} L`,
+      sodium: `${formatInteger(segment.sodiumMg)} mg`,
       eat:
         [segment.text, segment.note].filter(Boolean).join(" · ") ||
         "Rien à prendre",

@@ -3,6 +3,7 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { fuelingRehearsals, type FuelingRace } from "@/features/fueling/base";
 import { emptyNutritionPlan } from "@/features/fueling/race-plan";
 import {
   CardLabel,
@@ -51,20 +52,20 @@ async function NutritionWithWeather({
 function upcomingSessions(
   stored: Awaited<ReturnType<typeof readActivePlan>>,
   today: string,
-  raceDate: string | null,
+  race: FuelingRace | null,
 ): UpcomingSession[] {
-  return (stored?.state.sessions ?? [])
-    .filter(
-      (session) =>
-        session.scheduledOn > today &&
-        (!raceDate || session.scheduledOn < raceDate) &&
-        session.sport !== "rest" &&
-        session.kind !== "rest" &&
-        session.targets.durationSeconds >= 90 * 60,
-    )
-    .sort((a, b) => a.scheduledOn.localeCompare(b.scheduledOn))
-    .slice(0, 3)
-    .map((session) => ({ date: session.scheduledOn, title: session.title }));
+  return fuelingRehearsals({
+    sessions: (stored?.state.sessions ?? [])
+      .filter((session) => session.sport !== "rest" && session.kind !== "rest")
+      .map((session) => ({
+        sessionKey: session.sessionKey,
+        date: session.scheduledOn,
+        title: session.title,
+        durationSeconds: session.targets.durationSeconds,
+      })),
+    from: today,
+    race,
+  });
 }
 
 export default async function NutritionPage({
@@ -90,7 +91,20 @@ export default async function NutritionPage({
     readProductNames(context),
   ]);
   const sheet = review && <RaceProposalSheet key={review.id} review={review} />;
-  const sessions = upcomingSessions(stored, today, data.race.date);
+  const fuelingRace: FuelingRace | null = data.race.date
+    ? {
+        id: data.race.id,
+        name: data.race.name,
+        kind: data.race.kind,
+        date: data.race.date,
+        targets: {
+          carbsPerHourG: data.plan.carbsPerHourG,
+          waterMlPerHour: data.plan.waterMlPerHour,
+          sodiumMgPerHour: data.plan.sodiumMgPerHour,
+        },
+      }
+    : null;
+  const sessions = upcomingSessions(stored, today, fuelingRace);
   const views = planFor(data, scenarioSchema.parse(query.scenario));
   const productsCard = (
     <ProductsCard products={products.active} sessions={sessions} />

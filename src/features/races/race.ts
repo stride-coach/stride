@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fuelingDefaults } from "@/features/fueling/base";
 import { clockFromSql } from "./format";
 import type { RaceKind } from "@/features/onboarding/goals";
 import type { CoursePoint } from "./course";
@@ -48,9 +49,7 @@ export const defaultPlan: RacePlan = {
   walkPaceSecondsPerKm: 690,
   aidStopSeconds: 300,
   waterStopSeconds: 120,
-  carbsPerHourG: 60,
-  waterMlPerHour: 450,
-  sodiumMgPerHour: 500,
+  ...fuelingDefaults,
   alarmMinutes: 20,
   nightCaffeine: true,
   flaskMl: 500,

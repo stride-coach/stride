@@ -194,6 +194,10 @@ describe("day types and carbohydrates", () => {
         ultra: false,
         gramsPerHour: { min: 30, max: 60 },
         totalGrams: { min: 105, max: 210 },
+        source: "stride",
+        raceId: null,
+        sodiumMgPerHour: 500,
+        waterMlPerHour: 450,
       },
     ]);
   });
@@ -228,8 +232,86 @@ describe("day types and carbohydrates", () => {
         ultra: false,
         gramsPerHour: { min: 30, max: 60 },
         totalGrams: { min: 50, max: 100 },
+        source: "stride",
+        raceId: null,
+        sodiumMgPerHour: 500,
+        waterMlPerHour: 450,
       },
     ]);
+  });
+});
+
+describe("shared fueling base", () => {
+  const ecotrail = {
+    id: "8f9a0e4c-1d2b-4c3a-9e8f-7a6b5c4d3e2f",
+    name: "EcoTrail Paris 120K",
+    kind: "trail" as const,
+    date: "2027-03-20",
+    targets: { carbsPerHourG: 70, waterMlPerHour: 500, sodiumMgPerHour: 400 },
+  };
+
+  it("fuels long training sessions at the next race plan's rates", () => {
+    const result = computed(
+      nutritionForDay(
+        day({ sessions: [run(18, 110)], fuelingRaces: [ecotrail] }),
+      ),
+    );
+    expect(result.fueling).toEqual([
+      {
+        target: 0,
+        durationSeconds: 6_600,
+        ultra: false,
+        source: "race",
+        raceId: ecotrail.id,
+        gramsPerHour: { min: 70, max: 70 },
+        totalGrams: { min: 128, max: 128 },
+        sodiumMgPerHour: 400,
+        waterMlPerHour: 500,
+      },
+    ]);
+  });
+
+  it("ignores races that are already behind the day", () => {
+    const result = computed(
+      nutritionForDay(
+        day({
+          sessions: [run(18, 110)],
+          fuelingRaces: [{ ...ecotrail, date: "2026-10-19" }],
+        }),
+      ),
+    );
+    expect(result.fueling[0]).toMatchObject({ source: "stride" });
+  });
+
+  it("starts fueling at exactly 90 minutes", () => {
+    const result = computed(nutritionForDay(day({ sessions: [run(15, 90)] })));
+    expect(result.fueling).toHaveLength(1);
+    expect(result.mainEffort).toEqual({
+      target: 0,
+      durationSeconds: 5_400,
+      measured: false,
+    });
+  });
+});
+
+describe("measured inputs", () => {
+  it("uses Garmin calories of a session already done", () => {
+    const result = computed(
+      nutritionForDay(
+        day({ sessions: [run(18, 110, { measuredKcal: 1_234 })] }),
+      ),
+    );
+    expect(result.energy.trainingKcal).toBe(1_234);
+    expect(result.mainEffort).toMatchObject({ measured: true });
+  });
+
+  it("records where the weight comes from", () => {
+    const athlete = computed(nutritionForDay(day()));
+    const garminWeight = computed(
+      nutritionForDay(day({ profile: { ...male, weightSource: "garmin" } })),
+    );
+    expect(athlete.inputsUsed.weightSource).toBe("athlete");
+    expect(garminWeight.inputsUsed.weightSource).toBe("garmin");
   });
 });
 
