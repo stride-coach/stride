@@ -17,7 +17,7 @@ import {
 import { loadAthleteProfile } from "@/server/onboarding/athlete-profile";
 import { readProfile } from "@/server/onboarding/profile";
 import { readGoals } from "@/server/onboarding/goals";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 import { getShellIdentity } from "@/server/app/shell";
 import { signOut } from "@/server/auth/actions";
 import { pushSummary } from "@/features/notifications/push";
@@ -27,7 +27,7 @@ import { readProfileMetrics } from "@/server/settings/data";
 export const metadata: Metadata = { title: "Réglages" };
 
 export default async function SettingsOverviewPage() {
-  const context = await requireAthlete();
+  const context = await requireAthleteAccount();
   const [profile, goals, shell, athleteProfile, push, metrics] =
     await Promise.all([
       readProfile(context),
