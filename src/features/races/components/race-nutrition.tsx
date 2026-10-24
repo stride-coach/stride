@@ -7,9 +7,11 @@ import {
 } from "@/features/fueling/components/product-dialog";
 import type { NutritionProduct } from "@/features/fueling/products";
 import type { RaceNutritionPlan } from "@/features/fueling/race-plan";
-import { formatClock } from "../format";
+import { sessionPanelHref } from "@/features/plans/view/session-href";
+import { formatClock, formatDuration, formatInteger } from "../format";
 import {
   dropBagNote,
+  formatShortDate,
   nutritionTiles,
   productRows,
   segmentRows,
@@ -419,6 +421,26 @@ export function NutritionBody({
           ]}
         />
       </section>
+      <section
+        aria-label="Base commune"
+        className="flex flex-col gap-2 rounded-panel border border-border p-3.5 text-meta text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:px-4.5"
+      >
+        <MonoLabel size="nano" tone="accent" className="sm:text-micro">
+          Base commune
+        </MonoLabel>
+        <p className="leading-normal sm:min-w-65 sm:flex-1">
+          Ces chiffres sont aussi ta base d’entraînement : chaque séance de 1 h
+          30 ou plus suit {formatInteger(plan.carbsPerHourG)} g/h,{" "}
+          {formatInteger(plan.sodiumMgPerHour)} mg/h de sodium et{" "}
+          {formatInteger(plan.waterMlPerHour)} ml/h d’eau.
+        </p>
+        <Link
+          href="/nutrition"
+          className="inline-flex min-h-11 items-center text-accent hover:text-foreground sm:min-h-0"
+        >
+          Nutrition du jour →
+        </Link>
+      </section>
       <div className="grid min-w-0 items-start gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
           <RaceCard
@@ -466,48 +488,86 @@ export function NutritionBody({
               ))}
             </dl>
           </RaceCard>
-          <RaceCard
-            aria-labelledby="teste-entrainement"
-            className="gap-2 max-sm:hidden"
-          >
-            <h2 id="teste-entrainement" className="text-base font-semibold">
-              Testé à l’entraînement
-            </h2>
-            {tested.length ? (
-              <ul>
-                {tested.map((row, index) => (
+          <RaceCard aria-labelledby="teste-ravito" className="gap-2 max-sm:p-4">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 id="teste-ravito" className="text-base font-semibold">
+                Teste ton ravito
+              </h2>
+              <span className="text-xs text-muted-foreground sm:ml-auto">
+                Sorties de 1 h 30 ou plus avant la course
+              </span>
+            </div>
+            {sessions.length ? (
+              <ul aria-label="Sorties pour tester ton ravito">
+                {sessions.map((session) => (
                   <li
-                    key={index}
+                    key={session.sessionKey}
                     className="flex items-start gap-2.5 border-t border-border py-2 text-meta"
                   >
-                    {row.done ? (
-                      <CheckMark />
-                    ) : (
-                      <span
-                        aria-hidden="true"
-                        className="mt-1 size-2.5 shrink-0 rounded-full bg-warning"
-                      />
-                    )}
-                    <span className="flex-1">
-                      <span className="sr-only">
-                        {row.done ? "Testé : " : "À tester : "}
+                    <span
+                      aria-hidden="true"
+                      className="mt-1 size-2.5 shrink-0 rounded-full bg-warning"
+                    />
+                    <span className="flex flex-1 flex-col gap-0.5">
+                      <Link
+                        href={sessionPanelHref(session.sessionKey)}
+                        className="hover:text-accent"
+                      >
+                        {formatShortDate(session.date)} · {session.title} ·{" "}
+                        {formatDuration(session.durationSeconds)}
+                      </Link>
+                      <span className="text-xs text-muted-foreground">
+                        {formatInteger(session.carbsG.max)} g à{" "}
+                        {formatInteger(plan.carbsPerHourG)} g/h
                       </span>
-                      {row.text}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="border-t border-border pt-2 text-meta text-muted">
-                Aucun produit testé pour l’instant : coche « Testé à
-                l’entraînement » dans Mes produits après ta prochaine sortie
-                longue.
+                Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
+              </p>
+            )}
+            {tested.length ? (
+              <>
+                <MonoLabel size="micro" className="pt-2">
+                  Déjà validé
+                </MonoLabel>
+                <ul>
+                  {tested.map((row, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2.5 border-t border-border py-2 text-meta"
+                    >
+                      {row.done ? (
+                        <CheckMark />
+                      ) : (
+                        <span
+                          aria-hidden="true"
+                          className="mt-1 size-2.5 shrink-0 rounded-full border border-warning"
+                        />
+                      )}
+                      <span className="flex-1">
+                        <span className="sr-only">
+                          {row.done ? "Testé : " : "À tester : "}
+                        </span>
+                        {row.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="pt-1 text-xs text-muted-foreground">
+                Coche « Testé à l’entraînement » dans Mes produits après ta
+                prochaine sortie longue.
               </p>
             )}
             {sessions.length > 0 && (
               <Link
                 href="/plan"
-                className="text-meta text-accent hover:text-foreground"
+                className="inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:min-h-0"
               >
                 Voir ces séances dans le plan →
               </Link>
@@ -535,7 +595,7 @@ export function NutritionBody({
           <colgroup>
             <col className="w-12" />
             <col className="w-[22%]" />
-            <col className="w-20" />
+            <col className="w-30" />
             <col className="w-[30%]" />
             <col />
           </colgroup>
@@ -549,6 +609,8 @@ export function NutritionBody({
               </th>
               <th scope="col" className={headClass}>
                 Glucides
+                <br />
+                eau · sodium
               </th>
               <th scope="col" className={headClass}>
                 À prendre pendant
@@ -571,8 +633,14 @@ export function NutritionBody({
                     {row.timing}
                   </span>
                 </th>
-                <td className="px-2 py-3 font-metric text-[1.0625rem] font-semibold tabular-nums">
-                  {row.carbs}
+                <td className="px-2 py-3">
+                  <span className="font-metric text-[1.0625rem] font-semibold tabular-nums">
+                    {row.carbs}
+                  </span>
+                  <br />
+                  <span className="text-xs whitespace-nowrap text-muted-foreground">
+                    {row.water} · {row.sodium}
+                  </span>
                 </td>
                 <td className="px-2 py-3">{row.eat}</td>
                 <td className="px-2 py-3 text-muted">{row.arrival}</td>
@@ -593,6 +661,10 @@ export function NutritionBody({
                   {row.carbs}
                 </span>
               </div>
+              <span className="flex gap-3 text-xs text-muted">
+                <span>Eau {row.water}</span>
+                <span>Sodium {row.sodium}</span>
+              </span>
               <span className="text-meta">{row.eat}</span>
               <span className="text-xs text-muted-foreground">
                 Au ravito : {row.arrival}

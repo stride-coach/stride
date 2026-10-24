@@ -1,15 +1,24 @@
 import {
+  fuelingBase,
+  fuelsDuring,
+  nextFuelingRace,
+  type FuelingRace,
+} from "@/features/fueling/base";
+import {
   nutritionThresholds as t,
   nutritionThresholdsVersion,
 } from "./thresholds";
 
 export type NutritionSex = "male" | "female";
 
+export type NutritionWeightSource = "garmin" | "athlete";
+
 export type NutritionProfile = {
   birthDate?: string | null;
   sex?: string | null;
   heightCm?: number | null;
   weightKg?: number | null;
+  weightSource?: NutritionWeightSource | null;
 };
 
 export type NutritionSession = {
@@ -19,6 +28,7 @@ export type NutritionSession = {
   elevationGainM?: number;
   kind?: string;
   isKey?: boolean;
+  measuredKcal?: number;
 };
 
 export type NutritionRace = {
@@ -45,6 +55,7 @@ export type NutritionDayInput = {
   deficitRequested?: boolean;
   weekType?: NutritionWeekType | null;
   healthFlags?: NutritionHealthFlag[];
+  fuelingRaces?: FuelingRace[];
 };
 
 export type NutritionDayType =
@@ -75,8 +86,12 @@ export type NutritionFueling = {
   target: "race" | number;
   durationSeconds: number;
   ultra: boolean;
+  source: "race" | "stride";
+  raceId: string | null;
   gramsPerHour: NutritionRange;
   totalGrams: NutritionRange;
+  sodiumMgPerHour: number;
+  waterMlPerHour: number;
 };
 
 export type NutritionDeficitRefusal =
@@ -98,6 +113,7 @@ export type NutritionInputsUsed = {
   sex: NutritionSex;
   heightCm: number;
   weightKg: number;
+  weightSource: NutritionWeightSource;
   neat: { kcalPerDay: number; source: "garmin" | "default" };
   sessions: NutritionSession[];
   race: NutritionRace | null;
@@ -130,6 +146,11 @@ export type NutritionDayResult = {
   };
   fat: { grams: number; gPerKg: number; floorApplied: boolean };
   fueling: NutritionFueling[];
+  mainEffort: {
+    target: "race" | number;
+    durationSeconds: number;
+    measured: boolean;
+  } | null;
   deficit: NutritionDeficit;
   inputsUsed: NutritionInputsUsed;
   estimations: NutritionEstimation[];
@@ -150,6 +171,7 @@ type Profile = {
   sex: NutritionSex;
   heightCm: number;
   weightKg: number;
+  weightSource: NutritionWeightSource;
 };
 
 type Effort = {
@@ -160,6 +182,7 @@ type Effort = {
   distanceKm: number | null;
   durationSeconds: number;
   elevationGainM: number;
+  measuredKcal: number | null;
 };
 
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -219,6 +242,7 @@ function readProfile(profile: NutritionProfile, date: string) {
       sex,
       heightCm: profile.heightCm as number,
       weightKg: profile.weightKg as number,
+      weightSource: profile.weightSource === "garmin" ? "garmin" : "athlete",
     } satisfies Profile,
   };
 }
@@ -283,6 +307,7 @@ function sessionEffort(
     elevationGainM: positive(session.elevationGainM)
       ? session.elevationGainM
       : 0,
+    measuredKcal: positive(session.measuredKcal) ? session.measuredKcal : null,
   };
 }
 
@@ -327,10 +352,12 @@ function raceEffort(
     distanceKm,
     durationSeconds,
     elevationGainM: positive(race.elevationGainM) ? race.elevationGainM : 0,
+    measuredKcal: null,
   };
 }
 
 export function trainingEnergy(effort: Effort, weightKg: number) {
+  if (effort.measuredKcal !== null) return effort.measuredKcal;
   if (runningSports.has(effort.sport)) {
     return (
       weightKg * (effort.distanceKm ?? 0) * t.runKcalPerKgPerKm +
@@ -401,17 +428,39 @@ function isUltra(effort: Effort) {
   );
 }
 
-function fuelingFor(effort: Effort): NutritionFueling | null {
+function fuelingFor(
+  effort: Effort,
+  race: FuelingRace | null,
+): NutritionFueling | null {
   const ultra = isUltra(effort);
-  if (!ultra && effort.durationSeconds <= t.fuelingMinimumSeconds) return null;
-  const gramsPerHour = ultra ? t.ultraFuelingGPerHour : t.fuelingGPerHour;
+  if (!ultra && !fuelsDuring(effort.durationSeconds)) return null;
+  const base = fuelingBase(race, ultra);
   return {
     target: effort.target,
     durationSeconds: Math.round(effort.durationSeconds),
     ultra,
-    gramsPerHour: { ...gramsPerHour },
-    totalGrams: scale(gramsPerHour, effort.durationSeconds / 3_600),
+    source: base.source,
+    raceId: base.race?.id ?? null,
+    gramsPerHour: { ...base.carbsPerHourG },
+    totalGrams: scale(base.carbsPerHourG, effort.durationSeconds / 3_600),
+    sodiumMgPerHour: base.sodiumMgPerHour,
+    waterMlPerHour: base.waterMlPerHour,
   };
+}
+
+function mainEffortOf(efforts: Effort[]) {
+  const main = efforts.reduce<Effort | null>(
+    (best, effort) =>
+      !best || effort.durationSeconds > best.durationSeconds ? effort : best,
+    null,
+  );
+  return main
+    ? {
+        target: main.target,
+        durationSeconds: Math.round(main.durationSeconds),
+        measured: main.measuredKcal !== null,
+      }
+    : null;
 }
 
 function fatFor(
@@ -528,6 +577,7 @@ function computeDay(
   const weekType = input.weekType ?? null;
   const healthFlags = input.healthFlags ?? [];
   const recovery = type === "long_or_hard" || type === "race";
+  const fuelingRace = nextFuelingRace(input.fuelingRaces ?? [], input.date);
 
   return {
     ok: true,
@@ -552,8 +602,9 @@ function computeDay(
     },
     fat: fatFor(targetKcal, carbs, protein, profile.weightKg),
     fueling: efforts
-      .map(fuelingFor)
+      .map((effort) => fuelingFor(effort, fuelingRace))
       .filter((item): item is NutritionFueling => item !== null),
+    mainEffort: mainEffortOf(efforts),
     deficit: deficitFor(
       input.deficitRequested === true,
       targetKcal,

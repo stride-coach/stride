@@ -13,8 +13,8 @@ export const metadata: Metadata = { title: "Nutrition" };
 export default async function NutritionRoute() {
   const context = await requireAthlete();
   const today = localToday(new Date());
-  const { results, sessions } = await loadNutrition(context, today);
-  const view = nutritionView(results, sessions, today);
+  const loaded = await loadNutrition(context, today);
+  const view = nutritionView({ ...loaded, today });
   return view.status === "missing" ? (
     <NutritionMissing missing={view.missing} />
   ) : (

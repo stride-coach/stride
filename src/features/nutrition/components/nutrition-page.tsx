@@ -4,7 +4,11 @@ import { MonoLabel } from "@/components/stride/mono-label";
 import { StaffPortrait } from "@/features/coach/components/staff-portrait";
 import { cn } from "@/lib/utils";
 import type {
+  NutritionBaseView,
+  NutritionRehearsalView,
   NutritionRowView,
+  NutritionSourceTag,
+  NutritionTimelineStepView,
   NutritionTodayView,
 } from "@/features/nutrition/view";
 import type { NutritionDayType } from "@/features/nutrition/calculator";
@@ -24,6 +28,22 @@ function Dot({ type }: { type: NutritionDayType }) {
       aria-hidden="true"
       className={cn("size-1.5 shrink-0 rounded-full", dayTone[type])}
     />
+  );
+}
+
+function SourceTag({ tag }: { tag: NutritionSourceTag }) {
+  return (
+    <MonoLabel
+      size="nano"
+      className={cn(
+        "rounded-tag border px-1.5 py-px sm:text-micro",
+        tag === "garmin"
+          ? "border-success-border text-success"
+          : "border-border-strong text-warning",
+      )}
+    >
+      {tag === "garmin" ? "Garmin" : "Estimation"}
+    </MonoLabel>
   );
 }
 
@@ -56,14 +76,339 @@ function Stat({
   );
 }
 
-function AskLea({ className }: { className?: string }) {
+function AskLea({ href, className }: { href: string; className?: string }) {
   return (
     <Button asChild className={className}>
-      <Link href="/coach">
+      <Link href={href}>
         <StaffPortrait agent="nutritionist" size={22} decorative />
-        Demander à Léa
+        Demander à Léa pour cette journée
       </Link>
     </Button>
+  );
+}
+
+function ContextLinks({ today }: { today: NutritionTodayView }) {
+  const links = [
+    today.session && { ...today.session, hint: "Plan", dot: true },
+    today.race && { ...today.race, hint: "Course", dot: false },
+  ].filter((link) => link !== null);
+  if (!links.length) return null;
+  return (
+    <ul
+      aria-label="Contexte du jour"
+      className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap sm:pt-1.5"
+    >
+      {links.map((link) => (
+        <li key={link.href}>
+          <Link
+            href={link.href}
+            className="flex min-h-11 items-center gap-2 rounded-card border border-border-strong px-3.5 text-sm transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-focus sm:min-h-8.5 sm:rounded-full sm:px-3 sm:text-meta"
+          >
+            {link.dot ? (
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full bg-staff-nutritionist"
+              />
+            ) : (
+              <svg
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                className="size-3.25 shrink-0 text-muted-foreground"
+              >
+                <path
+                  d="M3.5 14V2.5 M3.5 3H12L10 6L12 9H3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  fill="none"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+            {link.label}
+            <span className="ml-auto text-xs text-muted-foreground sm:ml-0">
+              {link.hint}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function TimelineStep({ step }: { step: NutritionTimelineStepView }) {
+  return (
+    <li
+      className={cn(
+        "grid grid-cols-[14px_minmax(0,1fr)] gap-x-3 gap-y-1 border-t border-border py-3 sm:flex sm:flex-col sm:gap-2.5 sm:rounded-card sm:border sm:p-4.5",
+        step.highlighted
+          ? "-mx-3 rounded-card border-accent/30 bg-accent/5 px-3 sm:mx-0"
+          : "sm:bg-surface",
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "mt-1.25 size-2 rounded-full sm:hidden",
+          step.highlighted
+            ? "bg-accent"
+            : "border-[1.5px] border-muted-foreground",
+        )}
+      />
+      <span className="flex justify-between gap-2 sm:contents">
+        <MonoLabel
+          size="nano"
+          tone={step.highlighted ? "accent" : "muted"}
+          className="sm:order-1 sm:text-label"
+        >
+          {step.when}
+        </MonoLabel>
+        <span className="flex items-baseline gap-1.5 sm:order-3">
+          <span className="font-metric text-base font-semibold tabular-nums sm:text-[30px] sm:leading-none">
+            {step.amount.value}
+          </span>
+          <span className="text-xs text-muted-foreground sm:text-meta">
+            {step.amount.unit}
+          </span>
+        </span>
+      </span>
+      <h3 className="col-start-2 text-sm font-semibold sm:order-2 sm:text-base">
+        {step.title}
+      </h3>
+      <p className="col-start-2 text-meta leading-normal text-muted sm:order-4">
+        {step.detail}
+      </p>
+      {step.link ? (
+        <Link
+          href={step.link.href}
+          className="col-start-2 inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:order-5 sm:mt-auto sm:min-h-0"
+        >
+          {step.link.label} →
+        </Link>
+      ) : null}
+    </li>
+  );
+}
+
+function FuelingBase({
+  base,
+  rehearsals,
+}: {
+  base: NutritionBaseView;
+  rehearsals: NutritionRehearsalView[];
+}) {
+  return (
+    <section
+      aria-labelledby="nutrition-base"
+      className="grid gap-6 sm:grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))]"
+    >
+      <div className="flex flex-col gap-3.5 rounded-panel border border-border bg-surface-raised p-4 sm:p-5.5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2
+            id="nutrition-base"
+            className="text-[17px] font-semibold sm:text-lg"
+          >
+            Ta base de ravito
+          </h2>
+          <MonoLabel size="nano" className="sm:text-label">
+            Entraînement et course
+          </MonoLabel>
+        </div>
+        <dl className="grid grid-cols-3 gap-2.5 sm:gap-4">
+          {[
+            ["Glucides", base.carbs],
+            ["Sodium", base.sodium],
+            ["Eau", base.water],
+          ].map(([label, value]) => (
+            <div key={label} className="flex flex-col gap-1">
+              <dt>
+                <MonoLabel size="nano" className="sm:text-label">
+                  {label}
+                </MonoLabel>
+              </dt>
+              <dd className="font-metric text-[22px] font-semibold tabular-nums sm:text-[26px]">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="text-meta leading-[1.55] text-muted">{base.note}</p>
+        {base.race ? (
+          <Link
+            href={base.race.href}
+            className="inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:min-h-0"
+          >
+            {base.race.label} →
+          </Link>
+        ) : null}
+      </div>
+      <div className="flex flex-col gap-2 rounded-panel border border-border bg-surface-raised p-4 sm:p-5.5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-[17px] font-semibold sm:text-lg">
+            Teste ton ravito
+          </h2>
+          <span className="text-meta text-muted-foreground">
+            Sorties de 1 h 30 ou plus
+          </span>
+        </div>
+        {rehearsals.length ? (
+          <ul aria-label="Sorties pour tester ton ravito">
+            {rehearsals.map((rehearsal) => (
+              <li
+                key={rehearsal.sessionKey}
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 border-t border-border py-2.5"
+              >
+                <Link
+                  href={rehearsal.href}
+                  className="text-meta hover:text-accent sm:text-sm"
+                >
+                  {rehearsal.label}
+                </Link>
+                <span className="text-right font-metric text-base font-semibold tabular-nums">
+                  {rehearsal.carbs}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {rehearsal.today ? "Aujourd’hui" : "À venir"}
+                </span>
+                <span className="text-right text-xs text-muted-foreground">
+                  {rehearsal.perHour}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="border-t border-border pt-2.5 text-meta text-muted">
+            Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function DayRows({ days }: { days: NutritionRowView[] }) {
+  return (
+    <>
+      <ul className="sm:hidden">
+        {days.map((day) => (
+          <li
+            key={day.date}
+            className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 border-t border-border py-3"
+          >
+            <span className={cn("text-sm", day.today && "font-semibold")}>
+              {day.dateLabel}
+              {day.today ? " · aujourd’hui" : ""}
+            </span>
+            <span className="text-right font-metric text-lg font-semibold tabular-nums">
+              {day.energy} kcal
+            </span>
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted">
+              <Dot type={day.dayType} />
+              {day.sessionHref ? (
+                <Link href={day.sessionHref} className="truncate">
+                  {day.session}
+                </Link>
+              ) : (
+                <span className="truncate">{day.session}</span>
+              )}
+            </span>
+            <span className="text-right text-xs text-muted-foreground">
+              Gluc. {day.carbs}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {day.dayTypeLabel}
+            </span>
+            <span className="text-right text-xs text-muted-foreground">
+              Prot. {day.protein}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="overflow-x-auto max-sm:hidden">
+        <table className="w-full min-w-180 border-collapse text-sm">
+          <thead>
+            <tr>
+              {[
+                "Jour",
+                "Séance prévue",
+                "Type de journée",
+                "Énergie · kcal",
+                "Glucides",
+                "Protéines",
+                "Ravito",
+              ].map((title, index) => (
+                <th
+                  key={title}
+                  scope="col"
+                  className={cn(
+                    "px-3 pb-2.5 font-mono text-label font-normal text-muted-foreground uppercase first:pl-0 last:pr-0",
+                    index < 3 ? "text-left" : "text-right",
+                  )}
+                >
+                  {title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {days.map((day) => (
+              <tr
+                key={day.date}
+                aria-current={day.today ? "date" : undefined}
+                className={cn(
+                  "border-t border-border",
+                  day.today && "bg-surface-raised",
+                )}
+              >
+                <td className="py-3 pr-3 whitespace-nowrap">
+                  {day.dateLabel}
+                  {day.today ? (
+                    <MonoLabel tone="accent" className="ml-2">
+                      Aujourd’hui
+                    </MonoLabel>
+                  ) : null}
+                </td>
+                <td className="p-3 text-muted">
+                  {day.sessionHref ? (
+                    <Link
+                      href={day.sessionHref}
+                      className="underline-offset-2 hover:text-foreground hover:underline"
+                    >
+                      {day.session}
+                    </Link>
+                  ) : (
+                    day.session
+                  )}
+                </td>
+                <td className="p-3">
+                  <span className="inline-flex items-center gap-1.5 text-meta">
+                    <Dot type={day.dayType} />
+                    {day.dayTypeLabel}
+                  </span>
+                </td>
+                {[day.energy, day.carbs, day.protein].map((value, index) => (
+                  <td
+                    key={index}
+                    className="p-3 text-right font-metric text-lg font-semibold tabular-nums"
+                  >
+                    {value}
+                  </td>
+                ))}
+                <td
+                  className={cn(
+                    "py-3 pl-3 text-right",
+                    day.fueling
+                      ? "font-metric text-lg font-semibold tabular-nums"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {day.fueling ?? "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
@@ -76,7 +421,7 @@ export function NutritionPage({
 }) {
   return (
     <div className="flex flex-col gap-6.5 sm:gap-12">
-      <section className="flex max-w-205 flex-col gap-2.5 sm:gap-3">
+      <section className="flex max-w-215 flex-col gap-2.5 sm:gap-3">
         <MonoLabel>Nutrition · {today.dateLabel}</MonoLabel>
         <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[clamp(32px,4vw,46px)] sm:leading-[1.05] sm:tracking-[-0.03em]">
           {today.headline}
@@ -84,186 +429,102 @@ export function NutritionPage({
         <p className="text-sm leading-normal text-pretty text-muted sm:text-base sm:leading-[1.55]">
           {today.summary}
         </p>
+        <ContextLinks today={today} />
         <div className="flex flex-wrap gap-2.5 pt-1.5 max-sm:hidden">
-          <AskLea />
+          <AskLea href={today.coachHref} />
           <Button asChild variant="outline">
             <Link href="/settings/profile">Vérifier mon profil</Link>
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground max-sm:hidden">
+          Léa reçoit ta séance, ta course, tes objectifs du jour et ta base de
+          ravito.
+        </p>
       </section>
 
       <section
         aria-label="Objectifs du jour"
-        className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] sm:gap-8 sm:border-y sm:border-border sm:py-7"
+        className="flex flex-col gap-2.5 sm:gap-5 sm:border-y sm:border-border sm:py-7"
       >
-        <Stat
-          label="Énergie"
-          value={today.energy.value}
-          unit="kcal"
-          detail={today.energy.detail}
-        />
-        <Stat
-          label="Glucides"
-          value={today.carbs.value}
-          unit="g"
-          detail={today.carbs.detail}
-        />
-        <Stat
-          label="Protéines"
-          value={today.protein.value}
-          unit="g"
-          detail={today.protein.detail}
-        />
-        <Stat
-          label="Lipides"
-          value={today.fat.value}
-          unit="g"
-          detail={today.fat.detail}
-        />
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] sm:gap-8">
+          <Stat
+            label="Énergie"
+            value={today.energy.value}
+            unit="kcal"
+            detail={today.energy.detail}
+          />
+          <Stat
+            label="Glucides"
+            value={today.carbs.value}
+            unit="g"
+            detail={today.carbs.detail}
+          />
+          <Stat
+            label="Protéines"
+            value={today.protein.value}
+            unit="g"
+            detail={today.protein.detail}
+          />
+          <Stat
+            label="Lipides"
+            value={today.fat.value}
+            unit="g"
+            detail={today.fat.detail}
+          />
+        </div>
+        <ul
+          aria-label="Sources des chiffres"
+          className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground"
+        >
+          {today.sources.map((source) => (
+            <li key={source.text} className="inline-flex items-center gap-1.5">
+              {source.tag ? <SourceTag tag={source.tag} /> : null}
+              {source.text}
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {today.fueling || today.recovery ? (
-        <section className="grid grid-cols-[repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-x-10 gap-y-6.5">
-          {today.fueling ? (
-            <div className="flex flex-col gap-2 sm:gap-2.5">
-              <h2 className="text-[17px] font-semibold sm:text-lg">
-                Pendant la séance
-              </h2>
-              <p className="flex items-baseline gap-2.5">
-                <span className="font-metric text-[44px] leading-none font-semibold tabular-nums">
-                  {today.fueling.perHour}
-                </span>
-                <span className="text-meta text-muted-foreground">
-                  g de glucides par heure
-                </span>
-              </p>
-              <p className="text-sm leading-[1.55] text-muted">
-                Soit {today.fueling.total} g sur {today.fueling.duration}.
-                Profites-en pour tester ton ravitaillement de course.
-              </p>
-            </div>
-          ) : null}
-          {today.recovery ? (
-            <div className="flex flex-col gap-2 sm:gap-2.5">
-              <h2 className="text-[17px] font-semibold sm:text-lg">
-                Récupération
-              </h2>
-              <p className="flex items-baseline gap-2.5">
-                <span className="font-metric text-[44px] leading-none font-semibold tabular-nums">
-                  {today.recovery.withinHours} h
-                </span>
-                <span className="text-meta text-muted-foreground">
-                  après la séance
-                </span>
-              </p>
-              <p className="text-sm leading-[1.55] text-muted">
-                Une prise de {today.recovery.perIntake} g de protéines avec des
-                glucides dans les {today.recovery.withinHours} heures qui
-                suivent. Répartis le reste sur {today.recovery.intakes} prises
-                dans la journée.
-              </p>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
+      <section
+        aria-labelledby="nutrition-timeline"
+        className="flex flex-col gap-1 sm:gap-4.5"
+      >
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-3">
+          <h2
+            id="nutrition-timeline"
+            className="text-[17px] font-semibold sm:text-lg"
+          >
+            {today.timeline.title}
+          </h2>
+          <span className="pb-1.5 text-xs text-muted-foreground sm:pb-0 sm:text-meta">
+            {today.timeline.caption}
+          </span>
+        </div>
+        <ol className="flex flex-col sm:grid sm:grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] sm:gap-3">
+          {today.timeline.steps.map((step) => (
+            <TimelineStep key={step.key} step={step} />
+          ))}
+        </ol>
+      </section>
+
+      <FuelingBase base={today.base} rehearsals={today.rehearsals} />
 
       <section
         aria-labelledby="nutrition-days"
         className="flex flex-col gap-3.5"
       >
-        <h2
-          id="nutrition-days"
-          className="text-[17px] font-semibold sm:text-lg"
-        >
-          Les 7 prochains jours
-        </h2>
-        <ul className="sm:hidden">
-          {days.map((day) => (
-            <li
-              key={day.date}
-              className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 border-t border-border py-3"
-            >
-              <span className={cn("text-sm", day.today && "font-semibold")}>
-                {day.dateLabel}
-                {day.today ? " · aujourd’hui" : ""}
-              </span>
-              <span className="text-right font-metric text-lg font-semibold tabular-nums">
-                {day.energy} kcal
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted">
-                <Dot type={day.dayType} />
-                {day.dayTypeLabel}
-              </span>
-              <span className="text-right text-xs text-muted-foreground">
-                Glucides {day.carbs}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <div className="overflow-x-auto max-sm:hidden">
-          <table className="w-full min-w-180 border-collapse text-sm">
-            <thead>
-              <tr>
-                {[
-                  "Jour",
-                  "Séance prévue",
-                  "Type de journée",
-                  "Énergie · kcal",
-                  "Glucides",
-                  "Protéines",
-                ].map((title, index) => (
-                  <th
-                    key={title}
-                    scope="col"
-                    className={cn(
-                      "px-3 pb-2.5 font-mono text-label font-normal text-muted-foreground uppercase first:pl-0 last:pr-0",
-                      index < 3 ? "text-left" : "text-right",
-                    )}
-                  >
-                    {title}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {days.map((day) => (
-                <tr
-                  key={day.date}
-                  aria-current={day.today ? "date" : undefined}
-                  className={cn(
-                    "border-t border-border",
-                    day.today && "bg-surface-raised",
-                  )}
-                >
-                  <td className="py-3 pr-3 whitespace-nowrap">
-                    {day.dateLabel}
-                    {day.today ? (
-                      <MonoLabel tone="accent" className="ml-2">
-                        Aujourd’hui
-                      </MonoLabel>
-                    ) : null}
-                  </td>
-                  <td className="p-3 text-muted">{day.session}</td>
-                  <td className="p-3">
-                    <span className="inline-flex items-center gap-1.5 text-meta">
-                      <Dot type={day.dayType} />
-                      {day.dayTypeLabel}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right font-metric text-lg font-semibold tabular-nums">
-                    {day.energy}
-                  </td>
-                  <td className="p-3 text-right font-metric text-lg font-semibold tabular-nums">
-                    {day.carbs}
-                  </td>
-                  <td className="py-3 pl-3 text-right font-metric text-lg font-semibold tabular-nums">
-                    {day.protein}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2
+            id="nutrition-days"
+            className="text-[17px] font-semibold sm:text-lg"
+          >
+            Les 7 prochains jours
+          </h2>
+          <span className="text-meta text-muted-foreground max-sm:hidden">
+            Selon ton plan
+          </span>
         </div>
+        <DayRows days={days} />
       </section>
 
       <section
@@ -281,14 +542,7 @@ export function NutritionPage({
             <div key={row.label} className="contents">
               <dt className="flex flex-wrap items-center gap-2 text-muted">
                 {row.label}
-                {row.estimated ? (
-                  <MonoLabel
-                    tone="warning"
-                    className="rounded-[4px] border border-border-strong px-1.5"
-                  >
-                    Estimation
-                  </MonoLabel>
-                ) : null}
+                {row.tag ? <SourceTag tag={row.tag} /> : null}
               </dt>
               <dd className="text-right font-metric text-lg font-semibold tabular-nums">
                 {row.value}
@@ -298,14 +552,14 @@ export function NutritionPage({
         </dl>
         <p className="text-meta leading-[1.55] text-muted-foreground">
           {today.neatEstimated
-            ? "L’activité hors entraînement est une estimation par défaut tant que les calories quotidiennes Garmin ne sont pas disponibles. "
+            ? "L’activité hors entraînement est estimée tant que les calories quotidiennes Garmin ne sont pas disponibles. "
             : ""}
           Pas d’objectif de poids : un déficit léger se demande à Léa, jamais un
           jour long, en affûtage ou avec un signal de santé ouvert.
         </p>
       </section>
 
-      <AskLea className="min-h-12 sm:hidden" />
+      <AskLea href={today.coachHref} className="min-h-12 sm:hidden" />
     </div>
   );
 }

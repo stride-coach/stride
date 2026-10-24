@@ -295,6 +295,15 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
   await expect(
     page.getByRole("complementary", { name: "Liste de courses" }),
   ).toContainText("Näak Ultra Energy · doses");
+  await expect(first.getByText(/^\d+,\d L · \d+ mg$/)).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "Base commune" })
+      .getByRole("link", { name: "Nutrition du jour" }),
+  ).toHaveAttribute("href", "/nutrition");
+  await expect(
+    page.getByRole("region", { name: "Teste ton ravito" }),
+  ).toBeVisible();
   await page.screenshot({
     path: "test-results/race-nutrition-1440.png",
     fullPage: true,
@@ -345,6 +354,8 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(plan.getByText(/^Au ravito : /).first()).toBeVisible();
+  await expect(plan.getByText(/^Eau \d+,\d L$/).first()).toBeVisible();
+  await expect(plan.getByText(/^Sodium \d+ mg$/).first()).toBeVisible();
   await page.screenshot({
     path: "test-results/race-nutrition-390.png",
     fullPage: true,
