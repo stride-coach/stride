@@ -122,7 +122,6 @@ function RaceMapView({
   onClose,
   closeRef,
   overlay,
-  controlsClassName,
   cooperative = true,
   label,
   className,
@@ -138,7 +137,6 @@ function RaceMapView({
   onClose?: () => void;
   closeRef?: React.Ref<HTMLButtonElement>;
   overlay?: React.ReactNode;
-  controlsClassName?: string;
   cooperative?: boolean;
   label: string;
   className?: string;
@@ -471,12 +469,7 @@ function RaceMapView({
         </div>
       )}
       {framed && (
-        <div
-          className={cn(
-            "absolute top-3 right-3 z-10 flex flex-col gap-1.5",
-            controlsClassName,
-          )}
-        >
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
           {onClose ? (
             <Button
               variant="outline"

@@ -57,7 +57,7 @@ export function WalkCard({
   const distance = `${formatDecimal(current.distanceM / 1000)} km`;
   return (
     <RaceCard aria-busy={pending} className="gap-2.5">
-      <div className="flex flex-col gap-2 border-t border-border pt-2 md:flex-row md:items-center md:gap-3 md:pt-1.5">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
         <p className="text-meta">
           Marche dès <b>{value} %</b>
           <span className="max-md:hidden"> de pente</span> à{" "}

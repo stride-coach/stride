@@ -131,13 +131,12 @@ function FullscreenMap({
         overlay={chips}
         onClose={onClose}
         closeRef={close}
-        controlsClassName={rows.length > 0 ? "md:right-86" : undefined}
         className="absolute inset-0"
       />
       {rows.length > 0 && (
         <aside
           aria-label="Tronçons"
-          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-2xl border-t border-border bg-surface-inset/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:right-5 md:bottom-auto md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-panel md:border md:bg-surface-inset md:p-4"
+          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-2xl border-t border-border bg-surface-inset/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-panel md:border md:bg-surface-inset md:p-4"
         >
           <span
             aria-hidden="true"
