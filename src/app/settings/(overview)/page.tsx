@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { formatLocalDate, localToday } from "@/features/app-shell/shell";
 import {
-  athleteModelShares,
+  athleteModelCounts,
+  athleteModelQuestions,
   formatMemberSince,
 } from "@/features/settings/athlete-model";
 import { cn } from "@/lib/utils";
 import { ageOn } from "@/features/settings/age";
+import { ModelQuestions } from "@/features/settings/components/model-questions";
 import {
   SettingsGroup,
   SettingsLinkRow,
@@ -21,18 +22,21 @@ import { getShellIdentity } from "@/server/app/shell";
 import { signOut } from "@/server/auth/actions";
 import { pushSummary } from "@/features/notifications/push";
 import { readPushSettings } from "@/server/push/preferences";
+import { readProfileMetrics } from "@/server/settings/data";
 
 export const metadata: Metadata = { title: "Réglages" };
 
 export default async function SettingsOverviewPage() {
   const context = await requireAthlete();
-  const [profile, goals, shell, athleteProfile, push] = await Promise.all([
-    readProfile(context),
-    readGoals(context),
-    getShellIdentity(),
-    loadAthleteProfile(context, new Date()),
-    readPushSettings(context),
-  ]);
+  const [profile, goals, shell, athleteProfile, push, metrics] =
+    await Promise.all([
+      readProfile(context),
+      readGoals(context),
+      getShellIdentity(),
+      loadAthleteProfile(context, new Date()),
+      readPushSettings(context),
+      readProfileMetrics(context),
+    ]);
   const races = goals.races
     .filter((item) => item.values.name)
     .toSorted((a, b) =>
@@ -43,29 +47,31 @@ export default async function SettingsOverviewPage() {
     .map((item) => `${item.values.name} (${item.values.priority})`);
   const age = ageOn(profile.values.birth_date, localToday(new Date()));
   const days = profile.values.available_weekdays?.length;
-  const shares = athleteModelShares(athleteProfile, profile.values);
+  const counts = athleteModelCounts(athleteProfile);
+  const questions = athleteModelQuestions(
+    athleteProfile,
+    profile.values,
+    metrics,
+  );
   const updated = formatLocalDate(profile.updatedAt);
   const memberSince = formatMemberSince(context.createdAt ?? null);
   const segments = [
     {
       key: "garmin",
-      share: shares.garmin,
-      source: shares.garmin,
-      label: "signaux Garmin",
+      count: counts.garmin,
+      label: `${counts.garmin} ${counts.garmin > 1 ? "faits relevés" : "fait relevé"} par Garmin`,
       className: "bg-provider",
     },
     {
       key: "athlete",
-      share: shares.athlete,
-      source: shares.athlete,
-      label: "de ta part",
+      count: counts.athlete,
+      label: `${counts.athlete} de ta part`,
       className: "bg-foreground",
     },
     {
       key: "estimate",
-      share: shares.estimate,
-      source: shares.estimate,
-      label: "estimations Stride",
+      count: counts.estimate,
+      label: `${counts.estimate} ${counts.estimate > 1 ? "estimés" : "estimé"} par Stride`,
       className: "bg-accent",
     },
   ];
@@ -115,15 +121,6 @@ export default async function SettingsOverviewPage() {
               Mis à jour le {updated}
             </span>
           )}
-          {shares.openQuestions > 0 && (
-            <Link
-              href="/settings/profile"
-              className="text-sm font-medium text-accent hover:underline md:hidden"
-            >
-              {shares.openQuestions} question
-              {shares.openQuestions > 1 ? "s" : ""}
-            </Link>
-          )}
         </div>
         <p className="hidden max-w-160 text-sm leading-normal text-muted md:block">
           Garmin fournit les signaux. Stride en tire ton modèle, avec tes
@@ -131,13 +128,13 @@ export default async function SettingsOverviewPage() {
         </p>
         <div
           role="img"
-          aria-label={`${shares.garmin} % signaux Garmin, ${shares.athlete} % de ta part, ${shares.estimate} % estimations Stride`}
+          aria-label={segments.map(({ label }) => label).join(", ")}
           className="flex h-2 gap-0.5 md:h-2.5"
         >
-          {segments.map(({ key, share, className }) => (
+          {segments.map(({ key, count, className }) => (
             <span
               key={key}
-              style={{ flexGrow: share }}
+              style={{ flexGrow: count }}
               className={cn(
                 "basis-0 first:rounded-l-xs last:rounded-r-xs",
                 className,
@@ -146,32 +143,22 @@ export default async function SettingsOverviewPage() {
           ))}
         </div>
         <p className="text-xs text-muted-foreground md:hidden">
-          Garmin {shares.garmin} % · toi {shares.athlete} % · estimations Stride{" "}
-          {shares.estimate} %
+          {counts.garmin} {counts.garmin > 1 ? "faits" : "fait"} Garmin ·{" "}
+          {counts.athlete} de toi · {counts.estimate}{" "}
+          {counts.estimate > 1 ? "estimés" : "estimé"}
         </p>
         <div className="hidden flex-wrap gap-x-5 gap-y-2 md:flex">
-          {segments.map(({ key, label, className, source }) => (
+          {segments.map(({ key, label, className }) => (
             <span
               key={key}
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
             >
               <span className={cn("size-2 rounded-xs", className)} />
-              {source} % {label}
+              {label}
             </span>
           ))}
-          {shares.openQuestions > 0 && (
-            <Link
-              href="/settings/profile"
-              className="ml-auto text-sm font-medium text-accent hover:underline"
-            >
-              {shares.openQuestions} question
-              {shares.openQuestions > 1
-                ? "s l’affineraient"
-                : " l’affinerait"}{" "}
-              →
-            </Link>
-          )}
         </div>
+        <ModelQuestions questions={questions} />
       </div>
       <SettingsGroup title="Toi">
         <SettingsLinkRow
@@ -218,7 +205,7 @@ export default async function SettingsOverviewPage() {
         <SettingsLinkRow
           href="/settings/privacy"
           title="Données et confidentialité"
-          detail="Données enregistrées et export"
+          detail="Ce qu’on stocke · copie de tes réglages"
         />
       </SettingsGroup>
       <form
