@@ -5,6 +5,7 @@ import {
   SettingsHeading,
   SettingsLinkRow,
 } from "@/features/settings/components/settings-shell";
+import { publisher } from "@/features/public/publisher";
 import { requireAthlete } from "@/server/app/session";
 import { readStoredCounts } from "@/server/settings/data";
 
@@ -19,7 +20,7 @@ export default async function PrivacySettingsPage() {
     <>
       <SettingsHeading
         title="Données et confidentialité"
-        description="Consulte les données enregistrées dans ton compte et télécharge une copie de tes réglages."
+        description="Tes données ne servent qu’à te coacher. Elles ne sont jamais vendues ni utilisées pour de la publicité. Tu peux télécharger une copie de tes réglages ou demander la suppression de ton compte."
       />
       <SettingsGroup title="Enregistré dans Stride">
         <div className="border-b border-border p-4 md:px-0">
@@ -71,43 +72,28 @@ export default async function PrivacySettingsPage() {
           detail="Éditeur et hébergement"
         />
       </SettingsGroup>
-      <section
-        aria-labelledby="deletion-heading"
-        className="overflow-hidden rounded-surface border border-danger-border bg-danger-surface/40"
-      >
-        <h2
-          id="deletion-heading"
-          className="border-b border-danger-border px-4 py-4 font-mono text-label tracking-wider text-danger uppercase md:px-5"
-        >
-          Suppression
-        </h2>
-        <div className="flex flex-wrap items-center gap-4 border-b border-danger-border px-4 py-5 md:px-5">
-          <div className="flex-1">
+      <SettingsGroup title="Suppression">
+        <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
+          <div className="min-w-0 flex-1 basis-80">
             <strong className="text-sm">
-              Supprimer les données Garmin importées
+              Supprimer ton compte ou tes données Garmin
             </strong>
             <p className="mt-1 text-sm text-muted">
-              Cette action est indisponible tant que l’intégration ne permet pas
-              la suppression.
+              Pas encore possible depuis les réglages. Écris-nous à{" "}
+              {publisher.email} : on supprime ce que tu demandes sous 30 jours
+              et on te confirme par e-mail. Tes données sur Garmin ne sont pas
+              touchées.
             </p>
           </div>
-          <Button type="button" variant="destructive" disabled>
-            Indisponible
+          <Button asChild variant="outline" className="max-md:w-full">
+            <a
+              href={`mailto:${publisher.email}?subject=${encodeURIComponent("Suppression de mon compte Stride")}`}
+            >
+              Écrire à l’équipe
+            </a>
           </Button>
         </div>
-        <div className="flex flex-wrap items-center gap-4 px-4 py-5 md:px-5">
-          <div className="flex-1">
-            <strong className="text-sm">Supprimer le compte</strong>
-            <p className="mt-1 text-sm text-muted">
-              La suppression du compte est indisponible dans les réglages.
-              Contacte l’équipe Stride par le canal d’assistance habituel.
-            </p>
-          </div>
-          <Button type="button" variant="destructive" disabled>
-            Indisponible
-          </Button>
-        </div>
-      </section>
+      </SettingsGroup>
     </>
   );
 }

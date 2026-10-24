@@ -543,6 +543,54 @@ test("profile keeps all metric containers when athlete data is absent", async ({
   ).toBe(true);
 });
 
+test("settings show zones and open questions without inert controls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+  await page.goto("/settings/profile");
+  const heartRate = page.getByRole("table", {
+    name: "Zones de fréquence cardiaque",
+  });
+  await expect(heartRate.getByRole("row")).toHaveCount(5);
+  await expect(heartRate.getByRole("rowheader", { name: /Z1/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Allures" })).toBeVisible();
+  await page.goto("/settings/training");
+  await expect(
+    page.getByRole("heading", { name: "Unités", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Coach", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("Bientôt")).toHaveCount(0);
+  await page.goto("/settings/privacy");
+  await expect(
+    page.getByRole("link", { name: "Écrire à l’équipe" }),
+  ).toHaveAttribute("href", /^mailto:/);
+  await expect(page.getByRole("button", { name: "Indisponible" })).toHaveCount(
+    0,
+  );
+});
+
+test("settings list open questions that link to the missing answer", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page, "records-empty@example.com");
+  await page.goto("/settings");
+  await expect(
+    page.getByRole("link", { name: "Répondre : Quelle est ta FC max ?" }),
+  ).toBeVisible();
+  await page.getByText("Voir les 9 autres").click();
+  const question = page.getByRole("link", {
+    name: "Répondre : Quel est ton poids ?",
+  });
+  await expect(question).toBeVisible();
+  await question.click();
+  await expect(page).toHaveURL("/settings/profile#weight_kg");
+  await expect(page.getByText(/Pas encore de zones/)).toBeVisible();
+});
+
 test("profile preserves partial French dates and decimal input and rejects invalid photos", async ({
   page,
 }) => {
@@ -592,8 +640,7 @@ test("profile tablet layouts fit without clipping and edit in a sheet", async ({
       ),
     ).toBe(true);
     const metricRows = content
-      .locator("section")
-      .last()
+      .locator("section#entrainement")
       .locator(":scope > div")
       .last()
       .locator(":scope > div > div");
