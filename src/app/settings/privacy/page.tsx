@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   SettingsGroup,
   SettingsHeading,
+  SettingsLinkRow,
 } from "@/features/settings/components/settings-shell";
 import { requireAthlete } from "@/server/app/session";
 import { readStoredCounts } from "@/server/settings/data";
@@ -52,6 +53,23 @@ export default async function PrivacySettingsPage() {
             </a>
           </Button>
         </div>
+      </SettingsGroup>
+      <SettingsGroup title="Documents">
+        <SettingsLinkRow
+          href="/privacy"
+          title="Confidentialité"
+          detail="Données collectées, prestataires et tes droits"
+        />
+        <SettingsLinkRow
+          href="/terms"
+          title="Conditions"
+          detail="Conditions d’utilisation du service"
+        />
+        <SettingsLinkRow
+          href="/legal"
+          title="Mentions légales"
+          detail="Éditeur et hébergement"
+        />
       </SettingsGroup>
       <section
         aria-labelledby="deletion-heading"
