@@ -1,7 +1,13 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { MonoLabel } from "@/components/stride/mono-label";
+import {
+  NightCard,
+  SimulationCard,
+  StrategyCard,
+} from "@/features/races/components/course-cards";
 import { ProfileChart } from "@/features/races/components/profile-chart";
 import { PrintSheetButton } from "@/features/races/components/print-sheet-button";
 import {
@@ -17,17 +23,24 @@ import {
   formatMargin,
 } from "@/features/races/format";
 import { profileData } from "@/features/races/profile";
+import { raceStrategy } from "@/features/races/reading";
 import { defaultStartMinutes } from "@/features/races/race";
 import { defaultWatchLabel, serviceLabels } from "@/features/races/waypoints";
 import { loadRace } from "@/server/races/load";
 import { planFor } from "@/server/races/views";
 
+const scenarioSchema = z
+  .enum(["ambitious", "target", "cautious"])
+  .catch("target");
+
 export default async function RoadbookPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const { data } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
   const base = `/races/${id}`;
@@ -46,9 +59,9 @@ export default async function RoadbookPage({
       </RaceCard>
     );
 
-  const views = planFor(data);
+  const views = planFor(data, scenarioSchema.parse(query.scenario));
   if (!views) return null;
-  const { model, planned } = views;
+  const { model, planned, scenarios } = views;
   const profile = profileData({
     course: model.course,
     waypoints: model.waypoints,
@@ -73,6 +86,31 @@ export default async function RoadbookPage({
 
   return (
     <>
+      {planned?.night && planned.night.totalSeconds > 0 && (
+        <NightCard planned={planned} model={model} raceId={data.race.id} />
+      )}
+      {planned && (
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+          <SimulationCard
+            model={model}
+            planned={planned}
+            scenarios={scenarios}
+            raceId={data.race.id}
+            walkThreshold={data.plan.walkGradePercent}
+            walkPace={data.plan.walkPaceSecondsPerKm}
+            aidStop={data.plan.aidStopSeconds}
+            waterStop={data.plan.waterStopSeconds}
+          />
+          <StrategyCard
+            items={raceStrategy({
+              model,
+              planned,
+              walkGrade: data.plan.walkGradePercent,
+              walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
+            })}
+          />
+        </div>
+      )}
       <RaceCard className="gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardLabel>

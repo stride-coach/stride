@@ -1,9 +1,6 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { Suspense } from "react";
-import { ChevronDownIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MonoLabel } from "@/components/stride/mono-label";
-import { StrideMark } from "@/components/stride/stride-mark";
 import {
   formatClock,
   formatDecimal,
@@ -15,96 +12,13 @@ import {
 } from "../format";
 import type { ProfileData } from "../profile";
 import { formatShortDate, type RaceSummary } from "../race";
-import type { Reading, StrategyItem } from "../reading";
-import { glyphFor, type RaceWeather } from "../weather";
+import type { StrategyItem } from "../reading";
+import type { RaceWeather } from "../weather";
 import type { CourseModel, RacePlanModel, Scenario } from "../workspace";
 import { segmentNight } from "../workspace";
 import { ProfileChart } from "./profile-chart";
-import { CardLabel, Figure, LegendItem, RaceCard, StatusPill } from "./race-ui";
+import { CardLabel, Figure, LegendItem, RaceCard } from "./race-ui";
 import { WeatherIcon } from "./weather-icon";
-import { LoadingScope } from "@/features/data-activity/components/loading";
-import { Skeleton } from "@/components/ui/skeleton";
-
-async function ReadingText({
-  reading,
-  field,
-}: {
-  reading: Promise<Reading>;
-  field: keyof Reading;
-}) {
-  return (await reading)[field];
-}
-
-function readingText(
-  reading: Reading,
-  pending: Promise<Reading> | undefined,
-  field: keyof Reading,
-) {
-  if (!pending) return reading[field];
-  return (
-    <Suspense fallback={reading[field]}>
-      <ReadingText reading={pending} field={field} />
-    </Suspense>
-  );
-}
-
-export function ReadingCard({
-  reading,
-  pending,
-  road = false,
-  strategy = false,
-}: {
-  reading: Reading;
-  pending?: Promise<Reading>;
-  road?: boolean;
-  strategy?: boolean;
-}) {
-  return (
-    <div className="relative">
-      <details className="group rounded-panel border border-border bg-surface">
-        <summary
-          className={cn(
-            "flex cursor-pointer list-none flex-col gap-2 rounded-panel px-4 py-3.5 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-14 sm:flex-row sm:items-center sm:gap-3.5 sm:px-5 [&::-webkit-details-marker]:hidden",
-            strategy && "sm:pr-31",
-          )}
-        >
-          <MonoLabel className="flex shrink-0 items-center gap-2 whitespace-nowrap max-sm:text-nano">
-            <StrideMark className="size-3.5 shrink-0" />
-            {road ? "Repères de course" : "Lecture de Stride"}
-          </MonoLabel>
-          <span
-            aria-hidden="true"
-            className="h-4.5 w-px shrink-0 bg-border-strong max-sm:hidden"
-          />
-          <span className="min-w-0 text-base leading-[1.35] font-semibold tracking-[-0.01em] sm:flex-1 sm:truncate">
-            {readingText(reading, pending, "title")}
-          </span>
-          <span className="flex min-h-7 items-center gap-1.5 text-meta whitespace-nowrap text-muted sm:min-h-0 sm:border-l sm:border-border sm:pl-3.5">
-            <span className="group-open:hidden">Lire l’analyse</span>
-            <span className="hidden group-open:inline">Réduire</span>
-            <ChevronDownIcon
-              aria-hidden="true"
-              className="size-3 shrink-0 group-open:rotate-180 motion-safe:transition-transform motion-safe:duration-150"
-            />
-          </span>
-        </summary>
-        <div className="px-4 pb-4 sm:mx-5 sm:border-t sm:border-border sm:px-0 sm:pt-3.5 sm:pb-5.5 sm:pl-5.5">
-          <p className="max-w-205 border-t border-border pt-3.5 text-sm leading-[1.65] text-muted sm:border-t-0 sm:pt-0 sm:text-body sm:leading-[1.65]">
-            {readingText(reading, pending, "body")}
-          </p>
-        </div>
-      </details>
-      {strategy && (
-        <a
-          href="#strategie"
-          className="absolute top-3 right-4 rounded-tag text-meta whitespace-nowrap text-accent hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:top-4.5 sm:right-5"
-        >
-          Stratégie ↓
-        </a>
-      )}
-    </div>
-  );
-}
 
 export function ProfileCard({
   profile,
@@ -310,166 +224,6 @@ export function MarkBadge({
   );
 }
 
-export function WeatherCardLoading({
-  planned,
-  race,
-}: {
-  planned: RacePlanModel;
-  race: RaceSummary;
-}) {
-  const start = planned.simulation.passages[0].clockMinutes;
-  const finish = start + planned.simulation.finishSeconds / 60;
-  return (
-    <LoadingScope label="Chargement de la météo" className="flex flex-col">
-      <RaceCard>
-        <div className="flex items-center justify-between gap-3">
-          <CardLabel>Météo du jour J</CardLabel>
-          <div className="flex gap-1.5">
-            <StatusPill>Départ {formatClock(start)}</StatusPill>
-            <StatusPill tone="outline">
-              Arrivée ~{formatClock(finish)}
-            </StatusPill>
-          </div>
-        </div>
-        <Skeleton className="h-19 w-full rounded-[10px]" />
-        {race.kind !== "road" && (
-          <div aria-hidden="true" className="flex gap-1.5">
-            {[0, 1, 2, 3, 4, 5].map((item) => (
-              <Skeleton
-                key={item}
-                className="h-22 flex-[1_0_58px] rounded-surface"
-              />
-            ))}
-          </div>
-        )}
-      </RaceCard>
-    </LoadingScope>
-  );
-}
-
-export function WeatherCard({
-  weather,
-  planned,
-  race,
-}: {
-  weather: RaceWeather;
-  planned: RacePlanModel;
-  race: RaceSummary;
-}) {
-  const start = planned.simulation.passages[0].clockMinutes;
-  const finish = start + planned.simulation.finishSeconds / 60;
-  const headlineGlyph = glyphFor(
-    [...weather.slots].sort(
-      (a, b) => b.precipitationProbability - a.precipitationProbability,
-    )[0].code,
-    false,
-  );
-  const road = race.kind === "road";
-  const temperature = weather.slots.map((slot) => slot.temperature);
-  const precipitation = weather.slots.map(
-    (slot) => slot.precipitationProbability,
-  );
-  const showSlots =
-    !road ||
-    (weather.mode === "forecast" &&
-      planned.simulation.finishSeconds >= 2 * 3600 &&
-      (Math.max(...temperature) - Math.min(...temperature) >= 2 ||
-        Math.max(...precipitation) - Math.min(...precipitation) >= 20));
-  const minTemperature = Math.round(Math.min(...temperature));
-  const maxTemperature = Math.round(Math.max(...temperature));
-  const weatherDetail =
-    road && minTemperature === maxTemperature
-      ? weather.detail.replace(
-          `${minTemperature} → ${maxTemperature} °C`,
-          `${minTemperature} °C`,
-        )
-      : weather.detail;
-  return (
-    <RaceCard>
-      <div className="flex items-center justify-between gap-3">
-        <CardLabel>Météo du jour J</CardLabel>
-        <div className="flex gap-1.5">
-          <StatusPill>Départ {formatClock(start)}</StatusPill>
-          <StatusPill tone="outline">Arrivée ~{formatClock(finish)}</StatusPill>
-        </div>
-      </div>
-      <div className="flex items-center gap-3.5 rounded-[10px] bg-surface-raised px-4 py-3.5">
-        <WeatherIcon
-          glyph={weather.mode === "forecast" ? headlineGlyph : "partly"}
-          className="size-8"
-        />
-        <div className="flex flex-1 flex-col gap-0.5">
-          <MonoLabel size="nano">
-            {weather.mode === "forecast"
-              ? "Pendant la course"
-              : `Normales du ${race.date ? formatShortDate(race.date) : "jour J"}`}
-          </MonoLabel>
-          <span className="text-lead font-semibold">{weather.title}</span>
-          <span className="text-meta text-muted">{weatherDetail}</span>
-        </div>
-        <div className="flex flex-col gap-0.5 text-right text-xs text-muted">
-          {weather.mode === "forecast" ? (
-            weather.facts.map((fact) => <span key={fact}>{fact}</span>)
-          ) : (
-            <>
-              <span>Prévisions</span>
-              <span>dès le {formatShortDate(weather.forecastFrom)}</span>
-            </>
-          )}
-        </div>
-      </div>
-      {showSlots && (
-        <div className="flex [scrollbar-width:none] gap-1.5 overflow-x-auto">
-          {weather.slots.map((slot) => {
-            const glyph = glyphFor(slot.code, slot.night);
-            const wet =
-              weather.mode === "forecast" &&
-              slot.precipitationProbability >= 50;
-            return (
-              <div
-                key={slot.elapsedSeconds}
-                className={cn(
-                  "flex flex-[1_0_58px] flex-col items-center gap-0.75 rounded-surface border px-1 py-2",
-                  wet
-                    ? "border-provider/40 bg-provider/15"
-                    : "border-border-subtle bg-surface-inset",
-                )}
-              >
-                <MonoLabel size="nano">
-                  {String(
-                    Math.floor(
-                      (((slot.clockMinutes % 1440) + 1440) % 1440) / 60,
-                    ),
-                  ).padStart(2, "0")}
-                  h
-                </MonoLabel>
-                <WeatherIcon glyph={glyph} />
-                <span className="font-metric text-lg leading-none font-semibold">
-                  {Math.round(slot.temperature)}°
-                </span>
-                <span
-                  className={cn(
-                    "text-micro",
-                    wet ? "text-provider" : "text-muted-foreground",
-                  )}
-                >
-                  {Math.round(slot.precipitationProbability)} %
-                </span>
-                <MonoLabel size="nano" className="tracking-normal">
-                  km {Math.round(slot.distanceM / 1000)}
-                </MonoLabel>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      <MonoLabel size="nano" className="self-end text-dim">
-        {weather.source}
-      </MonoLabel>
-    </RaceCard>
-  );
-}
-
 export function NightCard({
   planned,
   model,
@@ -563,8 +317,8 @@ export function ScenarioChips({
           key={scenario.key}
           href={
             scenario.key === "target"
-              ? `/races/${raceId}`
-              : `/races/${raceId}?scenario=${scenario.key}`
+              ? `/races/${raceId}/roadbook`
+              : `/races/${raceId}/roadbook?scenario=${scenario.key}`
           }
           scroll={false}
           aria-current={scenario.key === current.key ? "true" : undefined}

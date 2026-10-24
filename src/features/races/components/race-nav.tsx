@@ -5,16 +5,17 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export const raceSections = [
-  { path: "", label: "Parcours", crumb: null },
-  { path: "/roadbook", label: "Roadbook", crumb: "Roadbook" },
+  { path: "", label: "Course", crumb: null },
+  { path: "/roadbook", label: "Plan de course", crumb: "Plan de course" },
   { path: "/nutrition", label: "Nutrition", crumb: "Nutrition" },
-  { path: "/gear", label: "Équipement", crumb: "Équipement" },
-  { path: "/preparation", label: "Préparation", crumb: "Préparation" },
+  {
+    path: "/gear",
+    label: "Équipement et check-lists",
+    crumb: "Équipement et check-lists",
+  },
 ] as const;
 
-const roadSections = raceSections.filter(
-  (section) => section.path === "" || section.path === "/preparation",
-);
+const roadSections = raceSections.filter((section) => section.path === "");
 
 const extraCrumbs: Record<string, { crumb: string; tab: string }> = {
   "/waypoints": { crumb: "Points de passage", tab: "" },
@@ -91,12 +92,14 @@ export function RaceTabs({
   const pathname = usePathname();
   const base = `/races/${raceId}`;
   const { tab } = sectionOf(pathname, base);
+  const sections = kind === "road" ? roadSections : raceSections;
+  if (sections.length < 2) return null;
   return (
     <nav
       aria-label="Sections de la course"
       className="-mx-5 flex [scrollbar-width:none] gap-6 overflow-x-auto border-b border-border px-5 sm:mx-0 sm:px-0 print:hidden"
     >
-      {(kind === "road" ? roadSections : raceSections).map((section) => {
+      {sections.map((section) => {
         const current = section.path === tab;
         return (
           <Link

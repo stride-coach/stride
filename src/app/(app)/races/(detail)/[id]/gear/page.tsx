@@ -1,12 +1,11 @@
-import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { redirect } from "next/navigation";
-import { ArrowRightIcon } from "lucide-react";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { StrideMark } from "@/components/stride/stride-mark";
 import {
   gearLists,
   gearReadiness,
   gearSummary,
+  prepLists,
 } from "@/features/races/checklists";
 import { ChecklistBoard } from "@/features/races/components/checklist-board";
 import { RaceCard } from "@/features/races/components/race-ui";
@@ -61,18 +60,18 @@ export default async function RaceGearPage({
                 : "Ajoute ton équipement ou utilise une liste type pour préparer la course."}
           </p>
         </div>
-        <Link
-          href={`/races/${id}/preparation`}
-          className="inline-flex min-h-9 items-center gap-2 rounded-control border border-border-strong px-3 text-sm hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          Voir la préparation <ArrowRightIcon className="size-3.5" />
-        </Link>
       </RaceCard>
       <ChecklistBoard
         raceId={id}
         lists={gearLists}
         items={items}
         pairs={pairs}
+      />
+      <ChecklistBoard
+        raceId={id}
+        lists={prepLists}
+        items={data.checklist}
+        compact
       />
     </>
   );

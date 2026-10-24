@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { PulseDot } from "@/components/stride/marks";
+import { StrideMark } from "@/components/stride/stride-mark";
+import { coachRequestHref } from "@/features/coach/request";
 import {
   formatClock,
   formatDuration,
@@ -278,15 +280,6 @@ function stats(
       edit: true,
     },
     paceStat(race, plan, course, waypoints),
-    {
-      key: "cutoff",
-      value: plan.cutoffSeconds ? formatDuration(plan.cutoffSeconds) : "—",
-      label: "Barrière",
-      detail: plan.cutoffSeconds
-        ? `arrivée avant ${formatClock(start + plan.cutoffSeconds / 60)}`
-        : "à renseigner",
-      edit: true,
-    },
   ];
 }
 
@@ -321,6 +314,19 @@ export function RaceHeader({
     >
       {children}
     </RaceSettingsDialog>
+  );
+  const askButton = (
+    <Button
+      asChild
+      variant="outline"
+      size="md"
+      className="rounded-surface text-meta"
+    >
+      <Link href={coachRequestHref(null, null, race.id)}>
+        <StrideMark className="size-3.5" />
+        Poser une question
+      </Link>
+    </Button>
   );
   return (
     <div className="flex flex-col gap-5 sm:gap-7">
@@ -371,10 +377,11 @@ export function RaceHeader({
                 >
                   <Link href={`${base}/waypoints#montre`}>
                     <DownloadIcon className="size-3.5" />
-                    Exporter pour la montre
+                    Envoyer à la montre
                   </Link>
                 </Button>
               )}
+              {askButton}
             </div>
           </div>
         ) : (
@@ -383,12 +390,15 @@ export function RaceHeader({
               <PulseDot tone="warning" breathing={false} />
               Aucun GPX pour cette course
             </span>
-            <Button asChild size="md" className="rounded-surface text-meta">
-              <Link href={`${base}/course`}>
-                <UploadIcon className="size-3.5" />
-                Ajouter le GPX
-              </Link>
-            </Button>
+            <div className="flex flex-wrap justify-end gap-2">
+              {askButton}
+              <Button asChild size="md" className="rounded-surface text-meta">
+                <Link href={`${base}/course`}>
+                  <UploadIcon className="size-3.5" />
+                  Ajouter le GPX
+                </Link>
+              </Button>
+            </div>
           </div>
         )}
       </section>
@@ -473,11 +483,19 @@ export function RaceHeader({
           Aucun GPX pour cette course
         </span>
       )}
-      {editTrigger(
-        <Button variant="outline" size="sm" className="self-start sm:hidden">
-          Modifier départ, objectif et barrière
-        </Button>,
-      )}
+      <div className="flex flex-wrap gap-2 sm:hidden">
+        {editTrigger(
+          <Button variant="outline" size="sm">
+            Modifier départ et objectif
+          </Button>,
+        )}
+        <Button asChild variant="outline" size="sm">
+          <Link href={coachRequestHref(null, null, race.id)}>
+            <StrideMark className="size-3.5" />
+            Poser une question
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

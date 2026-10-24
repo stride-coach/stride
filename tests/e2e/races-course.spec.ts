@@ -30,20 +30,23 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     await expect(pace).toContainText("12:00 /km");
     if (viewport.width > 500)
       await expect(pace).toContainText("11:46 hors ravitos");
-    const reading = page.locator("details", { hasText: "Lecture de Stride" });
-    const summary = reading.locator("summary");
-    await expect(summary.getByText("Lire l’analyse")).toBeVisible();
-    await expect(reading).not.toHaveAttribute("open");
-    await summary.focus();
-    await summary.press("Enter");
-    await expect(reading).toHaveAttribute("open");
-    await expect(summary.getByText("Réduire")).toBeVisible();
-    await summary.click();
-    await expect(reading).not.toHaveAttribute("open");
+    const onTrack = page.getByRole("region", {
+      name: "Suis-je dans les temps ?",
+    });
+    await expect(onTrack).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Stratégie ↓" }),
-    ).toHaveAttribute("href", "#strategie");
-    await expect(summary.getByRole("link")).toHaveCount(0);
+      onTrack.getByText("pas de prévision fiable en ultra"),
+    ).toBeVisible();
+    await expect(page.getByText("Météo du jour J")).toHaveCount(0);
+    await expect(page.locator("dl > div", { hasText: "Barrière" })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByRole("link", { name: "Poser une question" }).first(),
+    ).toHaveAttribute(
+      "href",
+      "/coach/new?race=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    );
     const chart = page
       .locator('svg[aria-label^="Profil altimétrique"]:visible')
       .first();
@@ -113,14 +116,32 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       path: `test-results/race-course-${viewport.width}.png`,
       fullPage: true,
     });
+    const expand = page.getByRole("button", { name: "Plein écran" });
+    await expand.click();
+    const fullscreen = page.getByRole("dialog", { name: /Carte$/ });
+    await expect(fullscreen).toBeVisible();
+    await expect(
+      fullscreen.getByRole("img", { name: /^Carte du parcours/ }),
+    ).toBeVisible();
+    await expect(
+      fullscreen.getByRole("complementary", { name: "Tronçons" }),
+    ).toContainText("T1");
+    const frame = await fullscreen.boundingBox();
+    expect(frame?.width).toBe(viewport.width);
+    expect(frame?.height).toBe(viewport.height);
+    await page.screenshot({
+      path: `test-results/race-map-fullscreen-${viewport.width}.png`,
+    });
+    await page.keyboard.press("Escape");
+    await expect(fullscreen).toBeHidden();
+    await expect(expand).toBeFocused();
     const sections = page.getByRole("navigation", {
       name: "Sections de la course",
     });
     for (const label of [
-      "Roadbook",
+      "Plan de course",
       "Nutrition",
-      "Équipement",
-      "Préparation",
+      "Équipement et check-lists",
     ]) {
       await sections.getByRole("link", { name: label }).click();
       await expect(
@@ -156,7 +177,7 @@ test("a populated race opens every workspace section on desktop and mobile", asy
   }
 });
 
-test("a road 10 km keeps the relevant preparation and accepts a new start time", async ({
+test("a road 10 km shows only the course and accepts a new start time", async ({
   page,
   request,
 }) => {
@@ -174,23 +195,16 @@ test("a road 10 km keeps the relevant preparation and accepts a new start time",
   const sections = page.getByRole("navigation", {
     name: "Sections de la course",
   });
-  await expect(sections.getByRole("link", { name: "Parcours" })).toBeVisible();
-  await expect(
-    sections.getByRole("link", { name: "Préparation" }),
-  ).toBeVisible();
-  await expect(sections.getByRole("link", { name: "Nutrition" })).toHaveCount(
-    0,
-  );
+  await expect(sections).toHaveCount(0);
   await expect(page.getByText("Simulation par tronçon")).toHaveCount(0);
   await expect(page.getByText("Marche en pente")).toHaveCount(0);
   await expect(
     page.locator("dl > div", { hasText: "Allure moy" }),
   ).toContainText("3:54 /km");
   await expect(page.getByText("sur l’objectif")).toBeVisible();
-  const reading = page.locator("details", { hasText: "Repères de course" });
-  await expect(page.getByRole("link", { name: "Stratégie ↓" })).toHaveCount(0);
-  await reading.locator("summary").click();
-  await expect(reading).toHaveAttribute("open");
+  await expect(
+    page.getByRole("region", { name: "Suis-je dans les temps ?" }),
+  ).toBeVisible();
   await page.screenshot({
     path: "test-results/race-road-1440.png",
     fullPage: true,
@@ -214,7 +228,7 @@ test("a road 10 km keeps the relevant preparation and accepts a new start time",
   await expect(
     page.getByRole("dialog", { name: "Modifier la course" }),
   ).toHaveCount(0, { timeout: 15_000 });
-  await expect(page.getByText("Départ prévu à 09:00")).toBeVisible({
-    timeout: 15_000,
-  });
+  await expect(
+    page.locator("dl > div", { hasText: "Départ" }).first(),
+  ).toContainText("09:00", { timeout: 15_000 });
 });
