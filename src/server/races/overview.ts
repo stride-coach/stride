@@ -1,41 +1,57 @@
 import "server-only";
 import { cache } from "react";
+import { roadPredictionKey } from "@/features/progress/goal";
+import { raceOnTrack } from "@/features/races/on-track";
 import {
-  elevationSamples,
+  planPhases,
   preparationProgress,
   preparationRows,
   splitRaces,
 } from "@/features/races/overview";
-import { isStation } from "@/features/races/waypoints";
 import type { OnboardingContext } from "@/server/onboarding/context";
+import { loadOnTrackInputs } from "./on-track";
 import { listRaces, readWorkspace } from "./races";
-import { planFor } from "./views";
+import { readRaceResults } from "./results";
 
 export const readRacesOverview = cache(
   async (context: OnboardingContext, today: string) => {
     const races = await listRaces(context);
     const split = splitRaces(races, today);
-    const data = split.featured
-      ? await readWorkspace(context, split.featured.id)
-      : null;
-    if (!data) return { ...split, featured: null, workspace: null };
-    const rows = preparationRows(data);
-    const views = planFor(data);
+    const [data, inputs, results] = await Promise.all([
+      split.featured
+        ? readWorkspace(context, split.featured.id)
+        : Promise.resolve(null),
+      loadOnTrackInputs(context, today),
+      readRaceResults(context, split.past).catch(() => ({})),
+    ]);
+    const phases = planPhases(inputs.program, inputs.blockKinds);
+    const roadGoals = Object.fromEntries(
+      split.calendar.flatMap((race) => {
+        const onTrack = roadPredictionKey(race)
+          ? raceOnTrack(race, inputs, null)
+          : null;
+        return onTrack ? [[race.id, onTrack.goal]] : [];
+      }),
+    );
+    if (!data)
+      return {
+        ...split,
+        featured: null,
+        onTrack: null,
+        phases,
+        roadGoals,
+        results,
+      };
+    const progress = preparationProgress(preparationRows(data));
     return {
       ...split,
       featured: data.race,
-      workspace: {
-        plan: data.plan,
-        course: data.course,
-        rows,
-        progress: preparationProgress(rows),
-        elevation: data.course ? elevationSamples(data.course) : null,
-        nightRanges: views?.planned?.nightKm ?? [],
-        nightSeconds: views?.planned?.night?.totalSeconds ?? null,
-        stationDistances: data.waypoints
-          .filter((waypoint) => isStation(waypoint.kind))
-          .map((waypoint) => waypoint.distanceM),
-      },
+      onTrack: raceOnTrack(data.race, inputs, progress),
+      course: data.course,
+      plan: data.plan,
+      phases,
+      roadGoals,
+      results,
     };
   },
 );

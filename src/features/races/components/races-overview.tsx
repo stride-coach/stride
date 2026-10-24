@@ -2,6 +2,7 @@ import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { MonoLabel } from "@/components/stride/mono-label";
+import { SourceMark } from "@/components/stride/marks";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,22 +11,24 @@ import {
   formatInteger,
   formatKm,
 } from "../format";
+import type { GoalCard } from "@/features/progress/goal";
+import type { RaceOnTrack } from "../on-track";
+import { countdownLabel, type SeasonTimeline } from "../overview";
 import {
-  countdownLabel,
-  type PreparationRow,
-  type SeasonTimeline,
-} from "../overview";
+  formatResultDelta,
+  formatResultTime,
+  type RaceResult,
+} from "../results";
 import {
   defaultStartMinutes,
   formatRaceDate,
   formatShortDate,
-  daysUntil,
   type RacePlan,
   type RaceSummary,
   type StoredCourse,
 } from "../race";
-import { RaceSettingsDialog } from "./race-settings-dialog";
-import { EmptyState, Figure, RaceCard } from "./race-ui";
+import { OnTrack } from "./on-track";
+import { RaceCard } from "./race-ui";
 
 export function PriorityBadge({
   priority,
@@ -78,7 +81,7 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
       <div className="flex items-baseline gap-3">
         <MonoLabel>Ta saison</MonoLabel>
         <span className="text-xs text-muted-foreground max-sm:hidden">
-          Phases indicatives et courses à venir
+          Phases du plan et courses à venir
         </span>
         <Link
           href="/plan"
@@ -182,298 +185,71 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
   );
 }
 
-function ElevationStrip({
-  samples,
-  distanceM,
-  nightRanges,
-  stations,
-}: {
-  samples: { distanceM: number; ele: number }[];
-  distanceM: number;
-  nightRanges: { fromM: number; toM: number }[];
-  stations: number[];
-}) {
-  const width = 560;
-  const height = 70;
-  const low = Math.min(...samples.map((sample) => sample.ele));
-  const high = Math.max(...samples.map((sample) => sample.ele));
-  const span = high - low || 1;
-  const x = (meters: number) => (meters / distanceM) * width;
-  const line = samples
-    .map(
-      (sample, index) =>
-        `${index === 0 ? "M" : "L"}${x(sample.distanceM).toFixed(1)},${(8 + (1 - (sample.ele - low) / span) * 46).toFixed(1)}`,
-    )
-    .join(" ");
-  return (
-    <div className="flex flex-col gap-1.5">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        className="h-17.5 w-full overflow-visible"
-      >
-        {nightRanges.map((range) => (
-          <rect
-            key={range.fromM}
-            x={x(range.fromM)}
-            y={0}
-            width={Math.max(0, x(range.toM) - x(range.fromM))}
-            height={height}
-            className="fill-night/20"
-          />
-        ))}
-        <path
-          d={line}
-          fill="none"
-          strokeWidth="1.5"
-          vectorEffect="non-scaling-stroke"
-          className="stroke-muted"
-        />
-        {stations.map((meters) => (
-          <line
-            key={meters}
-            x1={x(meters)}
-            x2={x(meters)}
-            y1={60}
-            y2={70}
-            strokeWidth="2"
-            vectorEffect="non-scaling-stroke"
-            className="stroke-accent"
-          />
-        ))}
-      </svg>
-      <div className="flex items-center justify-between gap-3">
-        <MonoLabel size="nano">0 km</MonoLabel>
-        <span className="flex items-center gap-3">
-          {stations.length > 0 && (
-            <MonoLabel size="nano" className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="h-0.5 w-2.5 bg-accent" />
-              Ravitos
-            </MonoLabel>
-          )}
-          {nightRanges.length > 0 && (
-            <MonoLabel size="nano" className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="size-2 bg-night/40" />
-              Nuit
-            </MonoLabel>
-          )}
-        </span>
-        <MonoLabel size="nano">{formatKm(distanceM)} km</MonoLabel>
-      </div>
-    </div>
-  );
-}
-
-const rowMarks: Record<PreparationRow["state"], string> = {
-  done: "bg-success",
-  partial: "bg-warning",
-  todo: "border border-border-strong",
-};
-
-const rowStateLabels: Record<PreparationRow["state"], string> = {
-  done: "Fait",
-  partial: "En cours",
-  todo: "À faire",
-};
-
 export function FeaturedRace({
   race,
   plan,
   course,
-  rows,
-  progress,
-  elevation,
-  nightRanges,
-  nightSeconds,
-  stationDistances,
+  onTrack,
   today,
 }: {
   race: RaceSummary;
   plan: RacePlan;
   course: StoredCourse | null;
-  rows: PreparationRow[];
-  progress: { done: number; total: number; next: string | null };
-  elevation: { distanceM: number; ele: number }[] | null;
-  nightRanges: { fromM: number; toM: number }[];
-  nightSeconds: number | null;
-  stationDistances: number[];
+  onTrack: RaceOnTrack | null;
   today: string;
 }) {
-  const days = race.date ? daysUntil(race.date, today) : null;
+  const countdown = countdownLabel(race.date, today);
   const distance = course
     ? `${formatKm(course.distanceM)} km`
     : race.distanceKm
       ? `${formatInteger(race.distanceKm)} km`
-      : "—";
+      : null;
   const gain = course?.elevationGainM ?? race.elevationGainM;
   const start = plan.startMinutes ?? defaultStartMinutes;
-  const principal = race.priority === "A";
+  const meta = [
+    distance,
+    gain !== null ? `${formatInteger(gain)} m D+` : null,
+    `départ ${formatClock(start)}`,
+    race.targetSeconds
+      ? `objectif ${formatDuration(race.targetSeconds)}`
+      : null,
+  ].filter(Boolean);
   return (
     <section
       aria-label={race.name}
-      className="grid overflow-hidden rounded-panel border border-accent/30 bg-surface lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]"
+      className="flex flex-col gap-4 rounded-panel border border-accent/30 bg-surface px-4.5 py-4.5 sm:gap-5 sm:px-7 sm:py-6.5"
     >
-      <div className="flex min-w-0 flex-col gap-4.5 px-5 py-5.5 sm:px-7 sm:py-6.5">
-        <div className="flex items-center gap-3">
-          <PriorityBadge priority={race.priority} />
-          <MonoLabel className="min-w-0 truncate">
-            {principal ? "Objectif principal" : `Course ${race.priority}`}
-            {race.date ? ` · ${formatRaceDate(race.date)}` : ""}
-          </MonoLabel>
-          <MonoLabel
-            size="micro"
-            className="ml-auto shrink-0 rounded-tag border border-border-strong px-1.5 py-0.5"
-          >
-            {race.kind === "road" ? "Route" : "Trail"}
-          </MonoLabel>
-        </div>
-        <h2 className="text-[2rem] leading-none font-semibold tracking-[-0.03em] text-balance sm:text-[2.5rem]">
+      <div className="flex items-center gap-3">
+        <PriorityBadge priority={race.priority} />
+        <MonoLabel className="min-w-0 truncate">
+          {race.priority === "A" ? "Objectif" : `Course ${race.priority}`}
+          {race.date ? ` · ${formatRaceDate(race.date)}` : ""}
+        </MonoLabel>
+        {countdown && (
+          <span className="ml-auto shrink-0 font-metric text-[22px] leading-none font-semibold tabular-nums sm:text-[28px]">
+            {countdown}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h2 className="text-[26px] leading-[1.05] font-semibold tracking-[-0.02em] text-balance sm:text-[32px]">
           {race.name}
         </h2>
-        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-          {days !== null && days >= 0 && (
-            <div className="flex items-end gap-2.5">
-              <span className="font-metric text-[4rem] leading-[0.8] font-semibold tabular-nums">
-                {days}
-              </span>
-              <span className="pb-1 text-body">
-                {days > 1 ? "jours" : "jour"}
-              </span>
-            </div>
-          )}
-          {race.targetSeconds && (
-            <Figure
-              value={formatDuration(race.targetSeconds)}
-              label="Objectif"
-              className="pb-1 [&>span:first-child]:text-[1.875rem]"
-            />
-          )}
-          {nightSeconds !== null && nightSeconds > 0 && (
-            <Figure
-              value={`≈ ${formatDuration(nightSeconds)}`}
-              label="de nuit à l’objectif"
-              tone="night"
-              className="pb-1 [&>span:first-child]:text-[1.875rem]"
-            />
-          )}
-        </div>
-        {elevation && course ? (
-          <ElevationStrip
-            samples={elevation}
-            distanceM={course.distanceM}
-            nightRanges={nightRanges}
-            stations={stationDistances}
-          />
-        ) : (
-          <EmptyState title="Pas encore de parcours">
-            Importe le GPX pour afficher le profil, les ravitos et la nuit.
-          </EmptyState>
-        )}
-        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            { label: course ? "Distance GPX" : "Distance", value: distance },
-            {
-              label: course ? "D+ GPX" : "D+",
-              value: gain !== null ? `${formatInteger(gain)} m` : "—",
-            },
-            { label: "Départ", value: formatClock(start) },
-            {
-              label: "Barrière",
-              value: plan.cutoffSeconds
-                ? formatClock(start + plan.cutoffSeconds / 60)
-                : "—",
-            },
-          ].map((item) => (
-            <div key={item.label} className="flex min-w-0 flex-col gap-1">
-              <dd className="order-1 font-metric text-[1.625rem] leading-none font-semibold tabular-nums">
-                {item.value}
-              </dd>
-              <MonoLabel asChild size="nano" className="order-2">
-                <dt>{item.label}</dt>
-              </MonoLabel>
-            </div>
-          ))}
-        </dl>
-      </div>
-      <div className="flex min-w-0 flex-col gap-3.5 border-t border-border bg-surface-inset px-5 py-5.5 sm:px-7 sm:py-6.5 lg:border-t-0 lg:border-l">
-        <div className="flex items-baseline justify-between">
-          <MonoLabel>Préparation</MonoLabel>
-          <span className="text-xs text-muted-foreground">
-            {progress.done} sur {progress.total}
-          </span>
-        </div>
-        <div
-          role="progressbar"
-          aria-label="Préparation"
-          aria-valuemin={0}
-          aria-valuemax={progress.total}
-          aria-valuenow={progress.done}
-          className="h-1 overflow-hidden rounded-full bg-border-subtle"
+        <span className="text-meta text-muted-foreground sm:text-sm">
+          {meta.join(" · ")}
+        </span>
+        <Button
+          asChild
+          size="md"
+          className="ml-auto rounded-surface max-sm:hidden"
         >
-          <div
-            className="h-full bg-success"
-            style={{
-              width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%`,
-            }}
-          />
-        </div>
-        <ul className="flex flex-col">
-          {rows.map((row) => {
-            const className =
-              "flex w-full items-center gap-2.5 py-2 text-left text-meta hover:text-accent focus-visible:outline-2 focus-visible:outline-ring";
-            const content = (
-              <>
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    rowMarks[row.state],
-                  )}
-                />
-                <span className="flex-1">{row.label}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {row.detail}
-                </span>
-                <span className="sr-only">{rowStateLabels[row.state]}</span>
-              </>
-            );
-            return (
-              <li
-                key={row.key}
-                className="border-t border-border first:border-t"
-              >
-                {row.href ? (
-                  <Link href={row.href} prefetch={false} className={className}>
-                    {content}
-                  </Link>
-                ) : (
-                  <RaceSettingsDialog
-                    raceId={race.id}
-                    raceRevision={race.revision}
-                    targetSeconds={race.targetSeconds}
-                    kind={race.kind}
-                    plan={plan}
-                  >
-                    <button type="button" className={className}>
-                      {content}
-                    </button>
-                  </RaceSettingsDialog>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-        {progress.next && (
-          <p className="mt-auto flex items-start gap-2.5 rounded-card border border-border-subtle bg-surface px-3.5 py-3 text-meta leading-normal text-pretty text-muted">
-            <StrideMark className="mt-0.5 size-3.5 shrink-0" />
-            {progress.next}
-          </p>
-        )}
-        <Button asChild size="lg" className="w-full rounded-surface">
           <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
         </Button>
       </div>
+      {onTrack && <OnTrack onTrack={onTrack} />}
+      <Button asChild size="lg" className="w-full rounded-surface sm:hidden">
+        <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
+      </Button>
     </section>
   );
 }
@@ -481,9 +257,11 @@ export function FeaturedRace({
 export function CalendarRow({
   race,
   today,
+  goal = null,
 }: {
   race: RaceSummary;
   today: string;
+  goal?: GoalCard | null;
 }) {
   const label = countdownLabel(race.date, today);
   const terrain = [
@@ -494,7 +272,7 @@ export function CalendarRow({
     <Link
       href={`/races/${race.id}`}
       prefetch={false}
-      className="grid items-center gap-x-5 gap-y-3 rounded-card border border-border bg-surface px-4 py-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:grid-cols-[2rem_minmax(0,1fr)_10rem_9rem_7rem_1rem] sm:px-5"
+      className="grid items-center gap-x-5 gap-y-3 rounded-card border border-border bg-surface px-4 py-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:grid-cols-[2rem_minmax(0,1fr)_10rem_9rem_auto_1rem] sm:px-5"
     >
       <PriorityBadge priority={race.priority} />
       <span className="flex min-w-0 flex-col gap-0.5">
@@ -516,12 +294,47 @@ export function CalendarRow({
       <span className="font-metric text-xl leading-none font-semibold">
         {terrain.length ? terrain.join(" · ") : "—"}
       </span>
-      <span className="flex flex-col gap-0.5">
-        <span className="font-metric text-xl leading-none font-semibold">
-          {race.targetSeconds ? formatDuration(race.targetSeconds) : "—"}
+      {goal?.road ? (
+        <span className="grid grid-cols-3 gap-4">
+          {[
+            { label: "Objectif", value: goal.target ?? "—", tone: null },
+            {
+              label: "Prévision",
+              value: goal.road.prediction ?? "—",
+              tone: null,
+              provider: true,
+            },
+            {
+              label: "Écart",
+              value: goal.gap?.label ?? "—",
+              tone: goal.gap?.tone,
+            },
+          ].map((item) => (
+            <span key={item.label} className="flex flex-col gap-0.5">
+              <span
+                className={cn(
+                  "font-metric text-xl leading-none font-semibold tabular-nums",
+                  item.tone === "success" && "text-success",
+                  item.tone === "warning" && "text-warning",
+                )}
+              >
+                {item.value}
+              </span>
+              <MonoLabel size="nano" className="flex items-center gap-1.5">
+                {item.provider && <SourceMark source="provider" />}
+                {item.label}
+              </MonoLabel>
+            </span>
+          ))}
         </span>
-        <MonoLabel size="nano">Objectif</MonoLabel>
-      </span>
+      ) : (
+        <span className="flex flex-col gap-0.5">
+          <span className="font-metric text-xl leading-none font-semibold">
+            {race.targetSeconds ? formatDuration(race.targetSeconds) : "—"}
+          </span>
+          <MonoLabel size="nano">Objectif</MonoLabel>
+        </span>
+      )}
       <ChevronRightIcon
         aria-hidden="true"
         className="size-4 text-muted-foreground max-sm:hidden"
@@ -551,61 +364,83 @@ export function OpenSlot({ priority }: { priority: "B" }) {
   );
 }
 
-export function PastRaces({ races }: { races: RaceSummary[] }) {
+export function PastRaces({
+  races,
+  results,
+}: {
+  races: RaceSummary[];
+  results: Record<string, RaceResult>;
+}) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-136 border-collapse">
-        <thead>
-          <tr className="border-b border-border-strong text-left">
-            {["Course", "Date", "Distance", "D+", "Objectif"].map(
-              (heading, index) => (
-                <th
-                  key={heading}
-                  scope="col"
-                  className={cn(
-                    "pb-2 font-mono text-micro font-normal tracking-[0.08em] text-muted-foreground uppercase",
-                    index > 1 && "text-right",
-                  )}
-                >
-                  {heading}
-                </th>
-              ),
+    <ul className="flex flex-col">
+      {races.map((race) => {
+        const result = results[race.id];
+        const distance = result
+          ? `${formatKm(result.distanceMeters)} km`
+          : race.distanceKm
+            ? `${formatInteger(race.distanceKm)} km`
+            : null;
+        return (
+          <li
+            key={race.id}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1 border-t border-border py-3.25 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_6rem_minmax(0,1fr)_8rem] sm:gap-x-4"
+          >
+            <Link
+              href={`/races/${race.id}`}
+              prefetch={false}
+              className="flex min-w-0 items-center gap-2.5 text-body font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <span className="font-metric text-muted">{race.priority}</span>
+              <span className="truncate">{race.name}</span>
+            </Link>
+            <span className="text-xs text-muted-foreground max-sm:order-3 sm:text-meta">
+              {[race.date ? formatRaceDate(race.date) : null, distance]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+            <span className="text-right font-metric text-xl leading-none font-semibold tabular-nums max-sm:order-2 sm:text-left">
+              {result ? formatResultTime(result.seconds) : "—"}
+            </span>
+            <span className="text-xs max-sm:order-4 max-sm:text-right sm:text-meta">
+              {result ? (
+                race.targetSeconds && result.deltaSeconds !== null ? (
+                  <>
+                    <span className="text-muted-foreground">
+                      objectif {formatDuration(race.targetSeconds)} ·{" "}
+                    </span>
+                    <span
+                      className={
+                        result.deltaSeconds <= 0
+                          ? "text-success"
+                          : "text-warning"
+                      }
+                    >
+                      {formatResultDelta(result.deltaSeconds)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">sans objectif</span>
+                )
+              ) : (
+                <span className="text-muted-foreground">
+                  Résultat non trouvé
+                </span>
+              )}
+            </span>
+            {result ? (
+              <Link
+                href={`/activities/${result.activityId}`}
+                prefetch={false}
+                className="text-xs text-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-sm:order-5 max-sm:col-span-2 sm:text-right sm:text-meta"
+              >
+                Voir l’activité ›
+              </Link>
+            ) : (
+              <span aria-hidden="true" className="max-sm:hidden" />
             )}
-          </tr>
-        </thead>
-        <tbody>
-          {races.map((race) => (
-            <tr key={race.id} className="border-b border-border">
-              <td className="py-3 pr-3">
-                <Link
-                  href={`/races/${race.id}`}
-                  prefetch={false}
-                  className="flex items-center gap-2.5 text-body font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
-                >
-                  <span className="font-metric text-muted">
-                    {race.priority}
-                  </span>
-                  {race.name}
-                </Link>
-              </td>
-              <td className="py-3 pr-3 text-meta text-muted">
-                {race.date ? formatRaceDate(race.date) : "—"}
-              </td>
-              <td className="py-3 text-right font-metric text-lg tabular-nums">
-                {race.distanceKm ? `${formatInteger(race.distanceKm)} km` : "—"}
-              </td>
-              <td className="py-3 text-right font-metric text-lg tabular-nums">
-                {race.elevationGainM
-                  ? `${formatInteger(race.elevationGainM)} m`
-                  : "—"}
-              </td>
-              <td className="py-3 text-right font-metric text-lg tabular-nums">
-                {race.targetSeconds ? formatDuration(race.targetSeconds) : "—"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

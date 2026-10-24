@@ -27,12 +27,13 @@ export default async function RacesPage({
   const [context, query] = await Promise.all([requireAthlete(), searchParams]);
   const view = parseRacesView(query.view);
   const today = localToday(new Date());
-  const { upcoming, past, featured, calendar, workspace } =
-    await readRacesOverview(context, today);
+  const overview = await readRacesOverview(context, today);
+  const { upcoming, past, featured, calendar, phases, roadGoals, results } =
+    overview;
   const counts = { upcoming: upcoming.length, past: past.length };
   const showUpcoming = view !== "past";
   const showPast = view !== "upcoming";
-  const timeline = seasonTimeline(upcoming, today);
+  const timeline = seasonTimeline(upcoming, today, phases);
   const showSlot =
     featured?.priority === "A" &&
     !calendar.some((race) => race.priority === "B");
@@ -55,18 +56,13 @@ export default async function RacesPage({
         </EmptyState>
       )}
       {showUpcoming && timeline && <SeasonCard timeline={timeline} />}
-      {showUpcoming && featured && workspace && (
+      {showUpcoming && featured && overview.plan && (
         <FeaturedRace
           race={featured}
           today={today}
-          plan={workspace.plan}
-          course={workspace.course}
-          rows={workspace.rows}
-          progress={workspace.progress}
-          elevation={workspace.elevation}
-          nightRanges={workspace.nightRanges}
-          nightSeconds={workspace.nightSeconds}
-          stationDistances={workspace.stationDistances}
+          plan={overview.plan}
+          course={overview.course ?? null}
+          onTrack={overview.onTrack}
         />
       )}
       {showUpcoming && featured && (calendar.length > 0 || showSlot) && (
@@ -79,7 +75,12 @@ export default async function RacesPage({
             </span>
           </div>
           {calendar.map((race) => (
-            <CalendarRow key={race.id} race={race} today={today} />
+            <CalendarRow
+              key={race.id}
+              race={race}
+              today={today}
+              goal={roadGoals[race.id] ?? null}
+            />
           ))}
           {showSlot && <OpenSlot priority="B" />}
         </section>
@@ -87,7 +88,7 @@ export default async function RacesPage({
       {showPast && past.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="text-xl font-semibold">Courses passées</h2>
-          <PastRaces races={past} />
+          <PastRaces races={past} results={results} />
         </section>
       )}
       {view === "past" && past.length === 0 && upcoming.length > 0 && (

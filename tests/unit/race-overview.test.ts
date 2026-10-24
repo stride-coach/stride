@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   countdownLabel,
   parseRacesView,
+  planPhases,
   preparationProgress,
   preparationRows,
   seasonTimeline,
@@ -101,30 +102,71 @@ describe("races overview", () => {
     ]);
   });
 
-  it("cycles indicative phases toward each A race", () => {
-    const timeline = seasonTimeline(
-      [
-        race({ id: "a1", date: "2027-03-20" }),
-        race({ id: "c", priority: "C", date: "2026-11-22" }),
-        race({ id: "a2", date: "2027-07-08" }),
-      ],
-      today,
-    )!;
-    expect(timeline.phases.map((phase) => phase.key)).toEqual([
-      "a1-0",
-      "a1-1",
-      "a1-2",
-      "a1-3",
-      "a2-1",
-      "a2-2",
-      "a2-3",
+  it("draws the active plan blocks and no phase without a plan", () => {
+    const races = [
+      race({ id: "a1", date: "2027-03-20" }),
+      race({ id: "c", priority: "C", date: "2026-11-22" }),
+    ];
+    const week = (weekStart: string) => ({ weekStart });
+    const phases = planPhases(
+      {
+        blocks: [
+          {
+            blockKey: "lead",
+            name: "Reprise",
+            weeks: [week("2026-10-05"), week("2026-10-12")],
+          },
+          {
+            blockKey: "build",
+            name: "Volume",
+            weeks: [week("2026-10-19"), week("2027-01-04")],
+          },
+          { blockKey: "empty", name: "Vide", weeks: [] },
+          {
+            blockKey: "taper",
+            name: "Affûtage",
+            weeks: [week("2027-03-08"), week("2027-03-15")],
+          },
+        ],
+      } as unknown as Parameters<typeof planPhases>[0],
+      { lead: "lead_in", build: "build", taper: "taper" },
+    );
+    expect(phases).toEqual([
+      {
+        key: "lead",
+        label: "Reprise",
+        kind: "lead_in",
+        start: "2026-10-05",
+        end: "2026-10-19",
+      },
+      {
+        key: "build",
+        label: "Volume",
+        kind: "build",
+        start: "2026-10-19",
+        end: "2027-01-11",
+      },
+      {
+        key: "taper",
+        label: "Affûtage",
+        kind: "taper",
+        start: "2027-03-08",
+        end: "2027-03-22",
+      },
+    ]);
+    const timeline = seasonTimeline(races, today, phases)!;
+    expect(timeline.phases.map((phase) => [phase.key, phase.stage])).toEqual([
+      ["lead", 0],
+      ["build", 1],
+      ["taper", 3],
     ]);
     expect(timeline.phases[0].left).toBe(0);
     const a1 = timeline.markers.find((marker) => marker.id === "a1")!;
-    const taper = timeline.phases[3];
-    expect(taper.left + taper.width).toBeCloseTo(a1.left, 5);
-    expect(timeline.phases[4].left).toBeCloseTo(a1.left, 5);
-    expect(timeline.months[0].key).toBe("2026-11");
+    const taper = timeline.phases[2];
+    expect(taper.left).toBeLessThan(a1.left);
+    expect(taper.left + taper.width).toBeGreaterThan(a1.left);
+    expect(seasonTimeline(races, today)!.phases).toEqual([]);
+    expect(planPhases(null, {})).toEqual([]);
   });
 
   it("stacks close race labels on separate lanes", () => {
