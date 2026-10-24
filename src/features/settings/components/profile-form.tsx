@@ -54,12 +54,14 @@ export function ProfileForm({
   observedMaximum,
   providerThreshold,
   zones,
+  children,
 }: {
   snapshot: SettingsProfileSnapshot;
   metrics: ProfileMetric[];
   observedMaximum: number | null;
   providerThreshold: number | null;
   zones: HeartRateZones | null;
+  children?: React.ReactNode;
 }) {
   const [saved, setSaved] = useState(snapshot);
   const [draft, setDraft] = useState<Draft>(() => profileDraft(snapshot));
@@ -532,6 +534,7 @@ export function ProfileForm({
           })}
         </div>
       </section>
+      {children}
       {attempted && !valid && (
         <p role="alert" className="text-sm text-danger">
           Vérifie le prénom, la date de naissance, la taille (100 à 250 cm) et
