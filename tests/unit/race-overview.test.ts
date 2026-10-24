@@ -160,7 +160,10 @@ describe("races overview", () => {
       ["build", 1],
       ["taper", 3],
     ]);
-    expect(timeline.phases[0].left).toBe(0);
+    expect(timeline.months[0]).toMatchObject({ key: "2026-10", left: 0 });
+    expect(timeline.phases[0].left).toBeGreaterThan(0);
+    expect(timeline.today).toBeGreaterThan(timeline.phases[0].left);
+    expect(timeline.range).toBe("d’octobre à avril");
     const a1 = timeline.markers.find((marker) => marker.id === "a1")!;
     const taper = timeline.phases[2];
     expect(taper.left).toBeLessThan(a1.left);

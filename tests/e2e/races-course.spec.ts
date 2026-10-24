@@ -23,13 +23,12 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     await expect(
       page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
     ).toBeVisible();
-    await expect(
-      page.getByText("parcours-test.gpx").nth(viewport.width < 500 ? 1 : 0),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /^4 points/ })).toHaveAttribute(
+      "href",
+      "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/waypoints",
+    );
     const pace = page.locator("dl > div", { hasText: "Allure moy" });
     await expect(pace).toContainText("12:00 /km");
-    if (viewport.width > 500)
-      await expect(pace).toContainText("11:46 hors ravitos");
     const onTrack = page.getByRole("region", {
       name: "Suis-je dans les temps ?",
     });
@@ -38,9 +37,9 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       onTrack.getByText("pas de prévision fiable en ultra"),
     ).toBeVisible();
     await expect(page.getByText("Météo du jour J")).toHaveCount(0);
-    await expect(page.locator("dl > div", { hasText: "Barrière" })).toHaveCount(
-      0,
-    );
+    const margin = page.locator("dl > div", { hasText: "Marge barrière" });
+    if (viewport.width < 500) await expect(margin).toContainText("2h");
+    else await expect(margin).toBeHidden();
     await expect(
       page.getByRole("link", { name: "Poser une question" }).first(),
     ).toHaveAttribute(
@@ -118,8 +117,13 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     });
     const expand = page.getByRole("button", { name: "Plein écran" });
     await expand.click();
-    const fullscreen = page.getByRole("dialog", { name: /Carte$/ });
+    const fullscreen = page.getByRole("dialog", {
+      name: "Carte plein écran · EcoTrail Paris 120K",
+    });
     await expect(fullscreen).toBeVisible();
+    await expect(
+      fullscreen.getByRole("button", { name: "Passages" }),
+    ).toHaveAttribute("aria-pressed", "true");
     await expect(
       fullscreen.getByRole("img", { name: /^Carte du parcours/ }),
     ).toBeVisible();
@@ -127,8 +131,15 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       fullscreen.getByRole("complementary", { name: "Tronçons" }),
     ).toContainText("T1");
     const frame = await fullscreen.boundingBox();
-    expect(frame?.width).toBe(viewport.width);
-    expect(frame?.height).toBe(viewport.height);
+    if (viewport.width < 500) {
+      expect(frame?.width).toBe(viewport.width);
+      expect(frame?.height).toBe(viewport.height);
+    } else {
+      expect(frame?.x).toBeGreaterThan(0);
+      await expect(
+        page.getByRole("navigation", { name: "Fil d’Ariane" }),
+      ).toContainText("Carte");
+    }
     await page.screenshot({
       path: `test-results/race-map-fullscreen-${viewport.width}.png`,
     });
@@ -204,7 +215,6 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
   await expect(
     page.locator("dl > div", { hasText: "Allure moy" }),
   ).toContainText("3:54 /km");
-  await expect(page.getByText("sur l’objectif")).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Suis-je dans les temps ?" }),
   ).toBeVisible();
@@ -223,7 +233,7 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
   await expect(profile).toHaveAttribute("aria-label", /passage estimé/);
 
   await page
-    .getByRole("button", { name: "Modifier les réglages de la course" })
+    .getByRole("button", { name: /modifier le départ et l’objectif/ })
     .first()
     .click();
   await page.getByRole("textbox", { name: "Heure de départ" }).fill("09:00");

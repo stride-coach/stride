@@ -1,8 +1,9 @@
 "use client";
 
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { fullscreenMapParam } from "../map";
 
 export const raceSections = [
   { path: "", label: "Course", crumb: null },
@@ -49,10 +50,13 @@ export function RaceBreadcrumb({
   kind: "road" | "trail";
 }) {
   const pathname = usePathname();
+  const fullscreenMap = useSearchParams().has(fullscreenMapParam);
   const base = `/races/${raceId}`;
   const { crumb } = sectionOf(pathname, base, kind);
   const label =
-    crumb === "Ajouter le GPX" && replacing ? "Remplacer le GPX" : crumb;
+    crumb === "Ajouter le GPX" && replacing
+      ? "Remplacer le GPX"
+      : (crumb ?? (fullscreenMap ? "Carte" : null));
   return (
     <nav
       aria-label="Fil d’Ariane"
@@ -105,7 +109,7 @@ export function RaceTabs({
   return (
     <nav
       aria-label="Sections de la course"
-      className="-mx-5 flex [scrollbar-width:none] gap-6 overflow-x-auto border-b border-border px-5 sm:mx-0 sm:px-0 print:hidden"
+      className="-mx-5 flex [scrollbar-width:none] gap-4.5 overflow-x-auto border-b border-border px-5 sm:mx-0 sm:gap-7 sm:px-0 print:hidden"
     >
       {sections.map((section) => {
         const current = section.path === tab;

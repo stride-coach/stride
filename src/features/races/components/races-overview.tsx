@@ -1,9 +1,7 @@
-import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { SourceMark } from "@/components/stride/marks";
-import { StrideMark } from "@/components/stride/stride-mark";
 import { Button } from "@/components/ui/button";
 import {
   formatClock,
@@ -21,6 +19,8 @@ import {
 } from "../results";
 import {
   defaultStartMinutes,
+  formatCompactDate,
+  formatDayDate,
   formatRaceDate,
   formatShortDate,
   type RacePlan,
@@ -28,7 +28,6 @@ import {
   type StoredCourse,
 } from "../race";
 import { OnTrack } from "./on-track";
-import { RaceCard } from "./race-ui";
 
 export function PriorityBadge({
   priority,
@@ -51,7 +50,7 @@ export function PriorityBadge({
           ? "bg-accent text-accent-foreground"
           : cn(
               "border-[1.5px] text-muted",
-              planned ? "border-border-strong" : "border-dashed",
+              planned ? "border-border-strong" : "border-dashed border-dim",
             ),
       )}
     >
@@ -60,130 +59,158 @@ export function PriorityBadge({
   );
 }
 
-const phaseTones = [
-  "bg-surface-raised",
-  "bg-accent/12",
-  "bg-accent/22",
-  "bg-surface-raised",
-];
+const phaseTones = ["bg-border", "bg-accent/12", "bg-accent/22", "bg-border"];
 
-const laneHeight = 28;
-const labelsTop = 20;
+function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex items-center justify-center font-metric leading-none font-bold",
+        priority === "A"
+          ? "size-5.5 rounded-control bg-accent text-sm text-accent-foreground"
+          : "size-5 rounded-tag border-[1.5px] border-dim bg-background text-meta text-muted",
+      )}
+    >
+      {priority}
+    </span>
+  );
+}
+
+function SeasonGraphic({
+  timeline,
+  compact,
+}: {
+  timeline: SeasonTimeline;
+  compact: boolean;
+}) {
+  const lanes = compact ? 1 : timeline.lanes;
+  const laneHeight = 24;
+  const bandTop = compact ? 64 : 48 + lanes * laneHeight;
+  const badgeTop = bandTop - 33;
+  const lineHeight = bandTop + 24;
+  const monthTop = lineHeight + 4;
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("relative", compact ? "md:hidden" : "max-md:hidden")}
+      style={{ height: monthTop + 14 }}
+    >
+      {timeline.months.map((month) => (
+        <span
+          key={month.key}
+          className="absolute top-0 border-l border-border-subtle"
+          style={{ left: `${month.left}%`, height: lineHeight }}
+        >
+          <MonoLabel
+            size={compact ? "nano" : "micro"}
+            className="absolute left-0.75"
+            style={{ top: monthTop }}
+          >
+            {month.label}
+          </MonoLabel>
+        </span>
+      ))}
+      {timeline.phases.map((phase) => (
+        <span
+          key={phase.key}
+          className={cn(
+            "absolute flex h-4 items-center overflow-hidden rounded-tag border-r-2 border-surface px-1.5 whitespace-nowrap text-muted",
+            compact ? "text-micro" : "text-label",
+            "tracking-normal",
+            phaseTones[phase.stage],
+          )}
+          style={{
+            left: `${phase.left}%`,
+            width: `${phase.width}%`,
+            top: bandTop,
+          }}
+        >
+          {(compact
+            ? (phase.width / 100) * 350 >= phase.label.length * 5.5 + 12
+            : phase.labelled) && phase.label}
+        </span>
+      ))}
+      <span
+        className="absolute top-1.5 border-l border-foreground"
+        style={{ left: `${timeline.today}%`, height: lineHeight - 6 }}
+      >
+        <MonoLabel
+          size="nano"
+          tone="foreground"
+          className="absolute -top-1.5 left-1"
+        >
+          Auj.
+        </MonoLabel>
+      </span>
+      {timeline.markers.map((marker) => {
+        const end = marker.align === "end";
+        const label = compact ? marker.short : marker.label;
+        const showLabel = !compact || marker.priority === "A";
+        return (
+          <div
+            key={marker.id}
+            className="absolute -translate-x-1/2"
+            style={{ left: `${marker.left}%`, top: badgeTop }}
+          >
+            <TimelineBadge priority={marker.priority} />
+            {showLabel && (
+              <span
+                className={cn(
+                  "absolute leading-4 whitespace-nowrap text-foreground",
+                  compact ? "text-[11px]" : "text-xs",
+                  compact
+                    ? "-top-5 right-0"
+                    : end
+                      ? "top-0.75 right-full mr-1.25"
+                      : marker.align === "start"
+                        ? "left-0"
+                        : "left-1/2 -translate-x-1/2",
+                )}
+                style={
+                  compact || end
+                    ? undefined
+                    : { top: -20 - marker.lane * laneHeight }
+                }
+              >
+                {label}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
-  const phaseTop = labelsTop + timeline.lanes * laneHeight + 18;
-  const monthTop = phaseTop + 16 + 10;
-  const label = `Saison : ${timeline.markers
+  const label = `Saison ${timeline.range} : ${timeline.markers
     .map((marker) => `${marker.name} le ${formatShortDate(marker.date)}`)
     .join(", ")}`;
   return (
-    <RaceCard className="gap-3 pb-3">
+    <section className="flex min-w-0 flex-col gap-1.5 rounded-panel border border-border bg-surface px-3.5 pt-3.5 pb-2 md:gap-2 md:px-5.5 md:pt-4.5 md:pb-2.5">
       <div className="flex items-baseline gap-3">
-        <MonoLabel>Ta saison</MonoLabel>
-        <span className="text-xs text-muted-foreground max-sm:hidden">
+        <MonoLabel size="nano" className="md:text-micro">
+          Ta saison
+        </MonoLabel>
+        <span className="text-xs text-muted-foreground max-md:hidden">
           {timeline.phases.length
-            ? "Phases du plan et courses à venir"
-            : "Courses à venir"}
+            ? `Phases du plan et courses, ${timeline.range}`
+            : `Courses à venir, ${timeline.range}`}
         </span>
         <Link
           href="/plan"
-          className="ml-auto text-meta text-accent hover:text-foreground"
+          className="ml-auto text-xs text-accent hover:text-foreground md:text-meta"
         >
-          Voir le plan →
+          <span className="md:hidden">Plan →</span>
+          <span className="max-md:hidden">Voir le plan →</span>
         </Link>
       </div>
-      <div className="-mx-1 overflow-x-auto overflow-y-hidden px-1">
-        <div
-          role="img"
-          aria-label={label}
-          className="relative min-w-224"
-          style={{ height: monthTop + 18 }}
-        >
-          {timeline.months.map((month) => (
-            <span
-              key={month.key}
-              aria-hidden="true"
-              className="absolute top-0 border-l border-border-subtle"
-              style={{ left: `${month.left}%`, height: phaseTop + 16 }}
-            />
-          ))}
-          <span
-            aria-hidden="true"
-            className="absolute top-0 left-0 border-l border-foreground"
-            style={{ height: phaseTop + 16 }}
-          />
-          <MonoLabel
-            size="nano"
-            tone="foreground"
-            className="absolute top-0 left-1.5"
-          >
-            Auj.
-          </MonoLabel>
-          {timeline.markers.map((marker) => {
-            const top = labelsTop + marker.lane * laneHeight;
-            return (
-              <div key={marker.id}>
-                <span
-                  className={cn(
-                    "absolute flex w-max items-center gap-1.5 text-meta leading-5.5 whitespace-nowrap",
-                    marker.align === "center" && "-translate-x-1/2",
-                    marker.align === "end" && "-translate-x-full",
-                    marker.priority === "A" ? "text-foreground" : "text-muted",
-                  )}
-                  style={{ left: `${marker.left}%`, top }}
-                >
-                  <PriorityBadge priority={marker.priority} small />
-                  {marker.label}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="absolute border-l border-dashed border-border-strong"
-                  style={{
-                    left: `${marker.left}%`,
-                    top: top + 24,
-                    height: phaseTop - top - 32,
-                  }}
-                />
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute z-10 size-2 -translate-x-1/2 rounded-full ring-2 ring-surface",
-                    marker.priority === "A" ? "bg-accent" : "bg-muted",
-                  )}
-                  style={{ left: `${marker.left}%`, top: phaseTop - 10 }}
-                />
-              </div>
-            );
-          })}
-          {timeline.phases.map((phase) => (
-            <span
-              key={phase.key}
-              className={cn(
-                "absolute flex h-4 items-center overflow-hidden rounded-tag border-r-2 border-surface px-1.5 text-micro whitespace-nowrap text-muted",
-                phaseTones[phase.stage],
-              )}
-              style={{
-                left: `${phase.left}%`,
-                width: `${phase.width}%`,
-                top: phaseTop,
-              }}
-            >
-              {phase.labelled && phase.label}
-            </span>
-          ))}
-          {timeline.months.map((month) => (
-            <MonoLabel
-              key={month.key}
-              size="micro"
-              className="absolute pl-1.5"
-              style={{ left: `${month.left}%`, top: monthTop }}
-            >
-              {month.label}
-            </MonoLabel>
-          ))}
-        </div>
+      <div role="img" aria-label={label}>
+        <SeasonGraphic timeline={timeline} compact={false} />
+        <SeasonGraphic timeline={timeline} compact />
       </div>
-    </RaceCard>
+    </section>
   );
 }
 
@@ -212,20 +239,28 @@ export function FeaturedRace({
     distance,
     gain !== null ? `${formatInteger(gain)} m D+` : null,
     `départ ${formatClock(start)}`,
-    race.targetSeconds
-      ? `objectif ${formatDuration(race.targetSeconds)}`
-      : null,
   ].filter(Boolean);
+  const objective = race.targetSeconds
+    ? `objectif ${formatDuration(race.targetSeconds)}`
+    : null;
   return (
     <section
       aria-label={race.name}
-      className="flex flex-col gap-4 rounded-panel border border-accent/30 bg-surface px-4.5 py-4.5 sm:gap-5 sm:px-7 sm:py-6.5"
+      className="flex flex-col gap-4 rounded-[16px] border border-accent/30 bg-surface p-4.5 sm:gap-5 sm:px-7 sm:py-6.5"
     >
       <div className="flex items-center gap-3">
         <PriorityBadge priority={race.priority} />
-        <MonoLabel className="min-w-0 truncate">
+        <MonoLabel size="nano" className="min-w-0 truncate md:text-label">
           {race.priority === "A" ? "Objectif" : `Course ${race.priority}`}
-          {race.date ? ` · ${formatRaceDate(race.date)}` : ""}
+          {race.date && (
+            <>
+              <span className="md:hidden"> · {formatDayDate(race.date)}</span>
+              <span className="max-md:hidden">
+                {" "}
+                · {formatRaceDate(race.date)}
+              </span>
+            </>
+          )}
         </MonoLabel>
         {countdown && (
           <span className="ml-auto shrink-0 font-metric text-[22px] leading-none font-semibold tabular-nums sm:text-[28px]">
@@ -237,8 +272,9 @@ export function FeaturedRace({
         <h2 className="text-[26px] leading-[1.05] font-semibold tracking-[-0.02em] text-balance sm:text-[32px]">
           {race.name}
         </h2>
-        <span className="text-meta text-muted-foreground sm:text-sm">
+        <span className="text-meta text-muted-foreground max-sm:basis-full sm:text-sm">
           {meta.join(" · ")}
+          {objective && <span className="max-sm:hidden"> · {objective}</span>}
         </span>
         <Button
           asChild
@@ -256,7 +292,7 @@ export function FeaturedRace({
   );
 }
 
-export function CalendarRow({
+export function CalendarCard({
   race,
   today,
   goal = null,
@@ -266,103 +302,118 @@ export function CalendarRow({
   goal?: GoalCard | null;
 }) {
   const label = countdownLabel(race.date, today);
-  const terrain = [
-    race.distanceKm ? `${formatInteger(race.distanceKm)} km` : null,
-    race.elevationGainM ? `D+ ${formatInteger(race.elevationGainM)} m` : null,
-  ].filter(Boolean);
+  const distance = race.distanceKm
+    ? `${formatInteger(race.distanceKm)} km`
+    : null;
+  const gain = race.elevationGainM
+    ? `${formatInteger(race.elevationGainM)} m D+`
+    : null;
+  const cells = goal?.road
+    ? [
+        { label: "Objectif", value: goal.target ?? "—", tone: null },
+        {
+          label: "Prévision",
+          value: goal.road.prediction ?? "—",
+          tone: null,
+          provider: true,
+        },
+        {
+          label: "Écart",
+          value: goal.gap?.label ?? "—",
+          tone: goal.gap?.tone ?? null,
+        },
+      ]
+    : [
+        {
+          label: "Objectif",
+          value: race.targetSeconds ? formatDuration(race.targetSeconds) : "—",
+          tone: null,
+        },
+      ];
   return (
     <Link
       href={`/races/${race.id}`}
       prefetch={false}
-      className="grid items-center gap-x-5 gap-y-3 rounded-card border border-border bg-surface px-4 py-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:grid-cols-[2rem_minmax(0,1fr)_10rem_9rem_auto_1rem] sm:px-5"
+      className="flex min-w-0 flex-col gap-2.5 rounded-panel border border-border bg-surface p-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring md:gap-3.5 md:px-6 md:py-5.5"
     >
-      <PriorityBadge priority={race.priority} />
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-base font-semibold">{race.name}</span>
-        <span className="text-meta text-muted">
-          {race.kind === "road" ? "Route" : "Trail"}
-        </span>
-      </span>
-      <span className="flex flex-col gap-0.5">
-        <span className="text-sm">
-          {race.date ? formatRaceDate(race.date) : "Date à définir"}
+      <span className="flex items-center gap-2.5">
+        <PriorityBadge priority={race.priority} small />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-[15px] font-semibold md:text-base">
+            {race.name}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {race.date && (
+              <>
+                <span className="md:hidden">
+                  {formatCompactDate(race.date)}
+                </span>
+                <span className="max-md:hidden">
+                  {formatCompactDate(race.date, true)}
+                </span>
+              </>
+            )}
+            {!race.date && "Date à définir"}
+            {[distance, gain]
+              .filter(Boolean)
+              .map((item) => ` · ${item}`)
+              .join("")}
+          </span>
         </span>
         {label && (
-          <span className="font-metric text-xl leading-none font-semibold">
+          <span className="shrink-0 font-metric text-xl leading-none font-semibold tabular-nums md:text-[22px]">
             {label}
           </span>
         )}
       </span>
-      <span className="font-metric text-xl leading-none font-semibold">
-        {terrain.length ? terrain.join(" · ") : "—"}
-      </span>
-      {goal?.road ? (
-        <span className="grid grid-cols-3 gap-4">
-          {[
-            { label: "Objectif", value: goal.target ?? "—", tone: null },
-            {
-              label: "Prévision",
-              value: goal.road.prediction ?? "—",
-              tone: null,
-              provider: true,
-            },
-            {
-              label: "Écart",
-              value: goal.gap?.label ?? "—",
-              tone: goal.gap?.tone,
-            },
-          ].map((item) => (
-            <span key={item.label} className="flex flex-col gap-0.5">
-              <span
-                className={cn(
-                  "font-metric text-xl leading-none font-semibold tabular-nums",
-                  item.tone === "success" && "text-success",
-                  item.tone === "warning" && "text-warning",
-                )}
-              >
-                {item.value}
-              </span>
-              <MonoLabel size="nano" className="flex items-center gap-1.5">
-                {item.provider && <SourceMark source="provider" />}
-                {item.label}
-              </MonoLabel>
+      <span className="grid grid-cols-3 gap-2 border-t border-border pt-2 md:pt-3">
+        {cells.map((item) => (
+          <span key={item.label} className="flex flex-col md:gap-0.5">
+            <MonoLabel
+              size="nano"
+              className="flex items-center gap-1.5 md:text-micro"
+            >
+              {"provider" in item && (
+                <SourceMark source="provider" className="max-md:hidden" />
+              )}
+              {item.label}
+            </MonoLabel>
+            <span
+              className={cn(
+                "font-metric text-lg leading-tight font-semibold tabular-nums md:text-[22px]",
+                item.tone === "success" && "text-success",
+                item.tone === "warning" && "text-warning",
+              )}
+            >
+              {item.value}
             </span>
-          ))}
-        </span>
-      ) : (
-        <span className="flex flex-col gap-0.5">
-          <span className="font-metric text-xl leading-none font-semibold">
-            {race.targetSeconds ? formatDuration(race.targetSeconds) : "—"}
           </span>
-          <MonoLabel size="nano">Objectif</MonoLabel>
-        </span>
-      )}
-      <ChevronRightIcon
-        aria-hidden="true"
-        className="size-4 text-muted-foreground max-sm:hidden"
-      />
+        ))}
+      </span>
     </Link>
   );
 }
 
 export function OpenSlot({ priority }: { priority: "B" }) {
   return (
-    <div className="grid items-center gap-x-5 gap-y-3 rounded-card border border-dashed border-border-strong px-4 py-4 sm:grid-cols-[2rem_minmax(0,1fr)_auto] sm:px-5">
-      <PriorityBadge priority={priority} planned={false} />
-      <span className="flex min-w-0 flex-col gap-1.5">
-        <span className="text-base font-semibold">
-          Aucune course B au calendrier
-        </span>
-        <span className="flex items-start gap-2.5 text-meta leading-normal text-pretty text-muted">
-          <StrideMark className="mt-0.5 size-3.5 shrink-0" />
-          Une course B sert de répétition générale avant l’objectif : départ,
-          nutrition et équipement testés dans les conditions réelles.
-        </span>
-      </span>
-      <Button asChild variant="outline" size="md" className="rounded-surface">
+    <section className="flex min-w-0 flex-col gap-3 rounded-panel border border-dashed border-dim px-6 py-5.5">
+      <div className="flex items-center gap-2.5">
+        <PriorityBadge priority={priority} planned={false} small />
+        <h3 className="text-[15px] font-semibold">Place pour une course B</h3>
+      </div>
+      <p className="text-meta leading-relaxed text-pretty text-muted">
+        Une course B sert de répétition générale avant l’objectif : départ,
+        nutrition et équipement testés dans les conditions réelles.
+      </p>
+      <Button
+        asChild
+        variant="outline"
+        size="md"
+        className="self-start rounded-surface"
+      >
         <Link href="/settings/goals">Ajouter une course B</Link>
       </Button>
-    </div>
+    </section>
   );
 }
 
@@ -385,30 +436,31 @@ export function PastRaces({
         return (
           <li
             key={race.id}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1 border-t border-border py-3.25 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_6rem_minmax(0,1fr)_8rem] sm:gap-x-4"
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.75 border-t border-border py-3.25 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_90px_minmax(0,1fr)_110px] md:gap-x-4"
           >
             <Link
               href={`/races/${race.id}`}
               prefetch={false}
-              className="flex min-w-0 items-center gap-2.5 text-body font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
+              className="min-w-0 truncate text-[15px] font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
             >
-              <span className="font-metric text-muted">{race.priority}</span>
-              <span className="truncate">{race.name}</span>
+              {race.name}
             </Link>
-            <span className="text-xs text-muted-foreground max-sm:order-3 sm:text-meta">
-              {[race.date ? formatRaceDate(race.date) : null, distance]
+            <span className="text-xs text-muted-foreground max-md:order-3 md:text-meta">
+              {[race.date ? formatCompactDate(race.date) : null, distance]
                 .filter(Boolean)
                 .join(" · ")}
             </span>
-            <span className="text-right font-metric text-xl leading-none font-semibold tabular-nums max-sm:order-2 sm:text-left">
+            <span className="font-metric text-xl leading-none font-semibold tabular-nums max-md:order-2 max-md:text-right">
               {result ? formatResultTime(result.seconds) : "—"}
             </span>
-            <span className="text-xs max-sm:order-4 max-sm:text-right sm:text-meta">
+            <span className="text-xs max-md:order-4 max-md:text-right md:text-meta">
               {result ? (
                 race.targetSeconds && result.deltaSeconds !== null ? (
                   <>
                     <span className="text-muted-foreground">
-                      objectif {formatDuration(race.targetSeconds)} ·{" "}
+                      <span className="md:hidden">obj.</span>
+                      <span className="max-md:hidden">objectif</span>{" "}
+                      {formatDuration(race.targetSeconds)} ·{" "}
                     </span>
                     <span
                       className={
@@ -433,12 +485,12 @@ export function PastRaces({
               <Link
                 href={`/activities/${result.activityId}`}
                 prefetch={false}
-                className="text-xs text-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-sm:order-5 max-sm:col-span-2 sm:text-right sm:text-meta"
+                className="text-xs text-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-md:order-5 max-md:col-span-2 md:text-right md:text-meta"
               >
                 Voir l’activité ›
               </Link>
             ) : (
-              <span aria-hidden="true" className="max-sm:hidden" />
+              <span aria-hidden="true" className="max-md:hidden" />
             )}
           </li>
         );

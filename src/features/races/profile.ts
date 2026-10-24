@@ -32,7 +32,13 @@ export type ProfileData = {
   night: { fromM: number; toM: number; label: string | null }[];
   rain: { fromM: number; toM: number }[];
   markers: ProfileMarker[];
-  segments: { fromM: number; toM: number; km: string; detail: string }[];
+  segments: {
+    fromM: number;
+    toM: number;
+    km: string;
+    gainM: number | null;
+    detail: string;
+  }[];
   weather:
     | {
         distanceM: number;
@@ -109,6 +115,7 @@ export function profileData({
     fromM: segment.fromM,
     toM: segment.toM,
     km: `${formatKm(segment.toM - segment.fromM)} km`,
+    gainM: segment.gainM,
     detail: `${segment.gainM !== null ? `+${segment.gainM} m · ` : ""}${formatElapsed(segment.movingSeconds)}`,
   }));
   return {

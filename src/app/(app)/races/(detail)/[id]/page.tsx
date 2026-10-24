@@ -8,17 +8,14 @@ import {
   preparationRows,
 } from "@/features/races/overview";
 import { MapCard } from "@/features/races/components/map-card";
-import {
-  OtherRaces,
-  ProfileCard,
-} from "@/features/races/components/course-cards";
+import { ProfileCard } from "@/features/races/components/course-cards";
 import { CourseImport } from "@/features/races/components/course-import";
 import { OnTrack } from "@/features/races/components/on-track";
 import { RaceCard } from "@/features/races/components/race-ui";
 import { TargetMissing } from "@/features/races/components/target-missing";
 import { WalkCard } from "@/features/races/components/walk-card";
 import { requireAthlete } from "@/server/app/session";
-import { listRaces, type RaceWorkspaceData } from "@/server/races/races";
+import type { RaceWorkspaceData } from "@/server/races/races";
 import { loadRace } from "@/server/races/load";
 import { loadOnTrackInputs } from "@/server/races/on-track";
 import { chartViews, planFor, weatherFor } from "@/server/races/views";
@@ -27,7 +24,6 @@ import { listCourseActivities } from "@/server/races/activities";
 type Workspace = {
   data: RaceWorkspaceData;
   views: NonNullable<ReturnType<typeof planFor>>;
-  races: Awaited<ReturnType<typeof listRaces>>;
 };
 
 async function CourseWithWeather({
@@ -40,10 +36,8 @@ async function CourseWithWeather({
 function CourseWorkspace({
   data,
   views,
-  races,
   weather,
 }: Workspace & { weather: RaceWeather | null }) {
-  const course = data.course!;
   const { model, planned } = views;
   const { profile, map } = chartViews(model, planned, weather);
   const road = data.race.kind === "road";
@@ -78,10 +72,8 @@ function CourseWorkspace({
         data={map}
         segments={roadProfile.segments}
         title={data.race.name}
-        fileName={course.fileName ?? "parcours.gpx"}
         rainLabel={weather?.mode === "forecast" ? "Averses" : "Météo"}
         hasWeather={profile.rain.length > 0}
-        walkThreshold={data.plan.walkGradePercent}
         kind={data.race.kind}
       />
       <ProfileCard
@@ -103,7 +95,6 @@ function CourseWorkspace({
           applied={planned !== null}
         />
       )}
-      <OtherRaces races={races} currentId={data.race.id} />
     </>
   );
 }
@@ -140,9 +131,8 @@ export default async function RaceCoursePage({
     loadOnTrackInputs(context, localToday(new Date())),
   );
   const { id } = await params;
-  const [{ context, data }, races, inputs] = await Promise.all([
+  const [{ context, data }, inputs] = await Promise.all([
     loadRace(id),
-    requireAthlete().then((context) => listRaces(context)),
     inputsRead,
   ]);
   const onTrack = raceOnTrack(
@@ -160,12 +150,11 @@ export default async function RaceCoursePage({
           activities={activities}
           replacing={false}
         />
-        <OtherRaces races={races} currentId={data.race.id} />
       </>
     );
   }
   const views = planFor(data)!;
-  const props = { data, views, races };
+  const props = { data, views };
   const { planned } = views;
   if (!planned || !data.race.date || planned.startEpochMs === null)
     return (

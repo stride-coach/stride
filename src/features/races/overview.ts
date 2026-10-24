@@ -109,6 +109,16 @@ const monthLabel = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "UTC",
 });
 
+const monthName = new Intl.DateTimeFormat("fr-FR", {
+  month: "long",
+  timeZone: "UTC",
+});
+
+function fromMonth(time: number) {
+  const name = monthName.format(new Date(time));
+  return /^[aeiou]/.test(name) ? `d’${name}` : `de ${name}`;
+}
+
 export const timelineWidthPx = 896;
 
 const lanePaddingPx = 16;
@@ -123,12 +133,15 @@ export type TimelineMarker = {
   priority: RaceSummary["priority"];
   date: string;
   label: string;
+  short: string;
   left: number;
   lane: number;
   align: "start" | "center" | "end";
 };
 
 export type SeasonTimeline = {
+  range: string;
+  today: number;
   months: { key: string; label: string; left: number }[];
   phases: {
     key: string;
@@ -172,18 +185,18 @@ export function seasonTimeline(
     )
     .sort((a, b) => a.date.localeCompare(b.date));
   if (dated.length === 0) return null;
-  const start = epoch(today);
+  const now = new Date(epoch(today));
+  const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
   const lastDay = new Date(epoch(dated[dated.length - 1].date));
   const end = Math.max(
-    Date.UTC(lastDay.getUTCFullYear(), lastDay.getUTCMonth() + 1, 1),
-    start + 60 * dayMs,
+    Date.UTC(lastDay.getUTCFullYear(), lastDay.getUTCMonth() + 1, 15),
+    epoch(today) + 60 * dayMs,
   );
   const span = end - start;
   const at = (time: number) =>
     Math.min(100, Math.max(0, ((time - start) / span) * 100));
   const months: SeasonTimeline["months"] = [];
-  const cursor = new Date(start);
-  let month = Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1);
+  let month = start;
   while (month < end) {
     months.push({
       key: new Date(month).toISOString().slice(0, 7),
@@ -217,10 +230,13 @@ export function seasonTimeline(
       priority: race.priority,
       date: race.date,
       label: `${race.name} · ${formatShortDate(race.date)}`,
+      short: formatShortDate(race.date),
       left: at(epoch(race.date)),
     })),
   );
   return {
+    range: `${fromMonth(start)} à ${monthName.format(new Date(end - dayMs))}`,
+    today: at(epoch(today)),
     months,
     phases,
     markers,

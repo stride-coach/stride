@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { formatDecimal, formatPace } from "../format";
@@ -28,6 +29,7 @@ export function WalkCard({
   applied: boolean;
 }) {
   const [value, setValue] = useState(threshold);
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const current = rows.find((row) => row.threshold === value) ?? rows[0];
   const around = [value - 2, value, value + 2]
@@ -52,75 +54,100 @@ export function WalkCard({
     });
   }
 
+  const distance = `${formatDecimal(current.distanceM / 1000)} km`;
   return (
-    <RaceCard aria-busy={pending}>
-      <div className="flex items-center justify-between">
-        <CardLabel>Marche rapide</CardLabel>
-        {applied && (
-          <StatusPill tone="accent">Appliquée à la simulation</StatusPill>
-        )}
+    <RaceCard aria-busy={pending} className="gap-2.5">
+      <div className="flex flex-col gap-2 border-t border-border pt-2 md:flex-row md:items-center md:gap-3 md:pt-1.5">
+        <p className="text-meta">
+          Marche dès <b>{value} %</b>
+          <span className="max-md:hidden"> de pente</span> à{" "}
+          <b>{formatPace(paceSecondsPerKm)} /km</b> · {distance}
+          <span className="max-md:hidden"> marchés</span> au total
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="md"
+          aria-expanded={open}
+          aria-controls="walk-settings"
+          onClick={() => setOpen((current) => !current)}
+          className="rounded-surface text-meta max-md:min-h-11 md:ml-auto"
+        >
+          Régler la marche
+        </Button>
       </div>
-      <label htmlFor="walk-grade" className="text-body">
-        Je marche dès{" "}
-        <b className="font-metric text-[1.375rem] font-semibold text-accent">
-          {value} %
-        </b>{" "}
-        de pente
-      </label>
-      <Slider
-        id="walk-grade"
-        min={5}
-        max={20}
-        step={1}
-        value={[value]}
-        onValueChange={([next]) => setValue(next)}
-        onValueCommit={([next]) => commit(next)}
-        aria-valuetext={`${value} %`}
-        disabled={pending}
-      />
-      <div className="flex justify-between">
-        <MonoLabel size="nano">5 %</MonoLabel>
-        <MonoLabel size="nano">20 %</MonoLabel>
-      </div>
-      <div className="flex gap-6">
-        <Figure
-          value={current.count}
-          label={current.count > 1 ? "portions" : "portion"}
+      <div
+        id="walk-settings"
+        className={cn("flex flex-col gap-4 pt-2", !open && "hidden")}
+      >
+        <div className="flex items-center justify-between">
+          <CardLabel>Marche rapide</CardLabel>
+          {applied && (
+            <StatusPill tone="accent">Appliquée à la simulation</StatusPill>
+          )}
+        </div>
+        <label htmlFor="walk-grade" className="text-body">
+          Je marche dès{" "}
+          <b className="font-metric text-[1.375rem] font-semibold text-accent">
+            {value} %
+          </b>{" "}
+          de pente
+        </label>
+        <Slider
+          id="walk-grade"
+          min={5}
+          max={20}
+          step={1}
+          value={[value]}
+          onValueChange={([next]) => setValue(next)}
+          onValueCommit={([next]) => commit(next)}
+          aria-valuetext={`${value} %`}
+          disabled={pending}
         />
-        <Figure
-          value={`${formatDecimal(current.distanceM / 1000)} km`}
-          label="à la marche"
-        />
-        <Figure
-          value={`~${minutes} min`}
-          label={`à ${formatPace(paceSecondsPerKm)} /km`}
-        />
+        <div className="flex justify-between">
+          <MonoLabel size="nano">5 %</MonoLabel>
+          <MonoLabel size="nano">20 %</MonoLabel>
+        </div>
+        <div className="flex gap-6">
+          <Figure
+            value={current.count}
+            label={current.count > 1 ? "portions" : "portion"}
+          />
+          <Figure
+            value={`${formatDecimal(current.distanceM / 1000)} km`}
+            label="à la marche"
+          />
+          <Figure
+            value={`~${minutes} min`}
+            label={`à ${formatPace(paceSecondsPerKm)} /km`}
+          />
+        </div>
+        <div>
+          {around.map((row) => (
+            <div
+              key={row.threshold}
+              className={cn(
+                "grid grid-cols-[52px_1fr_auto] gap-2.5 border-t border-border-subtle py-1.5 text-meta",
+                row.threshold === value
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              <span className="font-metric text-base">{row.threshold} %</span>
+              <span>
+                {row.count} {row.count > 1 ? "portions" : "portion"}
+              </span>
+              <span className="font-metric text-base">
+                {formatDecimal(row.distanceM / 1000)} km
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="text-meta text-muted-foreground">
+          Pente mesurée sur 100 m glissants du GPX. Marche comptée à{" "}
+          {formatPace(paceSecondsPerKm)} /km dans la simulation.
+        </p>
       </div>
-      <div>
-        {around.map((row) => (
-          <div
-            key={row.threshold}
-            className={cn(
-              "grid grid-cols-[52px_1fr_auto] gap-2.5 border-t border-border-subtle py-1.5 text-meta",
-              row.threshold === value
-                ? "text-foreground"
-                : "text-muted-foreground",
-            )}
-          >
-            <span className="font-metric text-base">{row.threshold} %</span>
-            <span>
-              {row.count} {row.count > 1 ? "portions" : "portion"}
-            </span>
-            <span className="font-metric text-base">
-              {formatDecimal(row.distanceM / 1000)} km
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="text-meta text-muted-foreground">
-        Pente mesurée sur 100 m glissants du GPX. Marche comptée à{" "}
-        {formatPace(paceSecondsPerKm)} /km dans la simulation.
-      </p>
     </RaceCard>
   );
 }

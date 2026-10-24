@@ -3,7 +3,13 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
-import { ExpandIcon, MaximizeIcon, MinusIcon, PlusIcon } from "lucide-react";
+import {
+  ExpandIcon,
+  MaximizeIcon,
+  MinusIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/features/theme/components/theme-store";
 import type { ResolvedTheme } from "@/features/theme/model";
@@ -113,6 +119,10 @@ function RaceMapView({
   onPick,
   onFullscreen,
   fullscreenRef,
+  onClose,
+  closeRef,
+  overlay,
+  controlsClassName,
   cooperative = true,
   label,
   className,
@@ -125,10 +135,15 @@ function RaceMapView({
   onPick?: (distanceM: number) => void;
   onFullscreen?: () => void;
   fullscreenRef?: React.Ref<HTMLButtonElement>;
+  onClose?: () => void;
+  closeRef?: React.Ref<HTMLButtonElement>;
+  overlay?: React.ReactNode;
+  controlsClassName?: string;
   cooperative?: boolean;
   label: string;
   className?: string;
 }) {
+  const framed = Boolean(onFullscreen || onClose);
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -414,7 +429,7 @@ function RaceMapView({
           />
         </svg>
       )}
-      {ready && (
+      {ready && !framed && (
         <div className="absolute top-3 right-3 flex flex-col overflow-hidden rounded-surface border border-border bg-surface/90">
           <Button
             variant="ghost"
@@ -436,31 +451,80 @@ function RaceMapView({
           >
             <MinusIcon className="size-3.5" />
           </Button>
-          {onFullscreen ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            type="button"
+            aria-label="Voir tout le parcours"
+            onClick={() =>
+              mapRef.current?.fitBounds(bounds, { padding, duration: 400 })
+            }
+            className="rounded-none"
+          >
+            <MaximizeIcon className="size-3.5" />
+          </Button>
+        </div>
+      )}
+      {overlay && (
+        <div className="absolute top-3 left-3 z-10 flex max-w-[calc(100%-4.5rem)] flex-wrap gap-1.5">
+          {overlay}
+        </div>
+      )}
+      {framed && (
+        <div
+          className={cn(
+            "absolute top-3 right-3 z-10 flex flex-col gap-1.5",
+            controlsClassName,
+          )}
+        >
+          {onClose ? (
             <Button
-              variant="ghost"
-              size="icon-sm"
+              variant="outline"
+              size="icon"
+              type="button"
+              ref={closeRef}
+              aria-label="Quitter le plein écran"
+              onClick={onClose}
+              className="size-10 bg-surface-inset md:size-9"
+            >
+              <XIcon className="size-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="icon"
               type="button"
               ref={fullscreenRef}
               aria-label="Plein écran"
               onClick={onFullscreen}
-              className="rounded-none"
+              className="size-9 bg-surface-inset max-md:size-11"
             >
               <ExpandIcon className="size-3.5" />
             </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              type="button"
-              aria-label="Voir tout le parcours"
-              onClick={() =>
-                mapRef.current?.fitBounds(bounds, { padding, duration: 400 })
-              }
-              className="rounded-none"
-            >
-              <MaximizeIcon className="size-3.5" />
-            </Button>
+          )}
+          {ready && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                aria-label="Zoom avant"
+                onClick={() => mapRef.current?.zoomIn()}
+                className="size-9 bg-surface-inset max-md:hidden"
+              >
+                <PlusIcon className="size-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                aria-label="Zoom arrière"
+                onClick={() => mapRef.current?.zoomOut()}
+                className="size-9 bg-surface-inset max-md:hidden"
+              >
+                <MinusIcon className="size-3.5" />
+              </Button>
+            </>
           )}
         </div>
       )}
@@ -494,19 +558,27 @@ function RaceMapView({
       {failed && !ready && (
         <span
           role="status"
-          className="absolute top-3 left-3 rounded-control bg-surface px-2 py-1 text-xs text-muted"
+          className={cn(
+            "absolute left-3 rounded-control bg-surface px-2 py-1 text-xs text-muted",
+            framed ? "bottom-7" : "top-3",
+          )}
         >
           Carte indisponible · tracé affiché
         </span>
       )}
-      <span className="absolute right-2.5 bottom-2 font-mono text-nano text-muted-foreground uppercase">
+      <span
+        className={cn(
+          "absolute bottom-2 font-mono text-nano text-muted-foreground uppercase",
+          framed ? "left-3" : "right-2.5",
+        )}
+      >
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noreferrer"
           className="hover:text-foreground"
         >
-          © OpenStreetMap
+          {framed ? "© OSM" : "© OpenStreetMap"}
         </a>
         {" · "}
         <a
@@ -515,9 +587,9 @@ function RaceMapView({
           rel="noreferrer"
           className="hover:text-foreground"
         >
-          © CARTO
+          {framed ? "CARTO" : "© CARTO"}
         </a>
-        {" · MapLibre"}
+        {framed ? " · noms en français" : " · MapLibre"}
       </span>
     </div>
   );

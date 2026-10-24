@@ -93,3 +93,6 @@ export function showFrenchNames(
       map.setLayoutProperty(layer.id, "text-field", frenchName);
   }
 }
+
+export const raceWorkspaceId = "race-workspace";
+export const fullscreenMapParam = "carte";

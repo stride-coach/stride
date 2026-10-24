@@ -213,6 +213,25 @@ const shortDate = new Intl.DateTimeFormat("fr-FR", {
   month: "short",
   timeZone: "UTC",
 });
+const dayDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const compactDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const compactDay = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
 const longDay = new Intl.DateTimeFormat("fr-FR", {
   weekday: "long",
   timeZone: "UTC",
@@ -220,6 +239,16 @@ const longDay = new Intl.DateTimeFormat("fr-FR", {
 
 export function formatRaceDate(date: string) {
   return raceDate.format(new Date(`${date}T00:00:00Z`));
+}
+
+export function formatDayDate(date: string) {
+  return dayDate.format(new Date(`${date}T00:00:00Z`));
+}
+
+export function formatCompactDate(date: string, weekday = false) {
+  return (weekday ? compactDay : compactDate).format(
+    new Date(`${date}T00:00:00Z`),
+  );
 }
 
 export function formatShortDate(date: string) {

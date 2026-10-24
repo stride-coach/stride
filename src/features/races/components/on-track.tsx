@@ -72,7 +72,7 @@ function PhaseBar({ phase }: { phase: GoalPhase }) {
 
 function PlanCell({ goal }: { goal: GoalCard }) {
   return (
-    <Cell label="Plan" detail={goal.phase ? goal.phase.taper : goal.planNote}>
+    <Cell label="Plan" detail={goal.phase ? null : goal.planNote}>
       <span className="text-base font-semibold">{goal.phaseShort ?? "—"}</span>
       {goal.phase && <PhaseBar phase={goal.phase} />}
     </Cell>
