@@ -57,12 +57,21 @@ async function seed(userId: string, currentStep = "about") {
           });
     if (response.error) throw response.error;
   }
+  await consentFor(userId);
   const row = await read(userId);
   const response = await client.rpc("set_onboarding_current_step", {
     p_step: currentStep,
     p_expected_revision: row.revision,
   });
   if (response.error) throw response.error;
+}
+async function consentFor(userId: string) {
+  const consent = await clients.get(userId)!.from("athlete_consents").insert({
+    user_id: userId,
+    purpose: "health_data",
+    policy_version: "2026-10-24",
+  });
+  if (consent.error) throw consent.error;
 }
 async function read(userId: string) {
   const response = await clients
@@ -263,6 +272,7 @@ test("completed athletes reach the application and second athletes cannot read p
     p_expected_revision: row.revision,
   });
   expect(completed.error).toBeNull();
+  await consentFor(user.id);
   await page.goto("/onboarding/garmin");
   await expect(page).toHaveURL("http://127.0.0.1:3110/today");
   await page.reload();
@@ -386,6 +396,14 @@ async function atGarminStep(page: Page) {
   ).toBeVisible();
   return user;
 }
+async function acceptHealthData(page: Page) {
+  await page
+    .getByRole("main")
+    .getByRole("checkbox", {
+      name: /J’accepte que Stride traite mes données de santé/,
+    })
+    .check();
+}
 function watchTraffic(page: Page) {
   const urls: string[] = [];
   const bodies: Promise<string>[] = [];
@@ -424,6 +442,7 @@ test("Garmin connects without MFA, recovers from invalid credentials and keeps s
   await page.setViewportSize({ width: 1440, height: 1000 });
   const user = await atGarminStep(page);
   const traffic = watchTraffic(page);
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin" })
@@ -488,6 +507,7 @@ test("Garmin MFA handles refresh, rejected and expired codes, then a pasted code
     ).toBeVisible();
     await expect(page.getByLabel("Code de vérification")).toBeFocused();
   };
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin" })
@@ -497,6 +517,7 @@ test("Garmin MFA handles refresh, rejected and expired codes, then a pasted code
   await expect(
     page.getByRole("heading", { name: "Connecter Garmin" }),
   ).toBeVisible();
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin" })
@@ -550,6 +571,7 @@ test("Garmin outages, rate limits and failed connections keep the athlete on sig
   page,
 }) => {
   const user = await atGarminStep(page);
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin" })
@@ -573,6 +595,7 @@ test("Garmin outages, rate limits and failed connections keep the athlete on sig
     page.getByRole("button", { name: /^Réessayer dans [12]:\d\d$/ }),
   ).toBeDisabled();
   await page.reload();
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin" })
@@ -596,6 +619,7 @@ test("a slow Garmin sign-in explains the wait after 15 seconds", async ({
 }) => {
   await page.clock.install();
   await atGarminStep(page);
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin" })
@@ -633,6 +657,7 @@ test("history import shows real sync states without estimates and continues imme
           });
     if (response.error) throw response.error;
   }
+  await consentFor(user.id);
   await page.goto("/onboarding/history");
   const content = page.getByRole("region", { name: "Contenu de l’étape" });
   await expect(
@@ -1206,6 +1231,7 @@ test("unseeded six-screen journey survives refresh, another device, Back edits a
     .not.toBeNull();
   await expect(page).toHaveURL(/\/onboarding\/garmin$/);
   await refresh(page, "garmin");
+  await acceptHealthData(page);
   await page
     .getByRole("main")
     .getByRole("button", { name: "Connecter Garmin", exact: true })

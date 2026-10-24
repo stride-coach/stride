@@ -77,7 +77,13 @@ const notificationUser = {
   id: "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd",
   email: "notifications@example.com",
 };
+const consentUser = {
+  ...user,
+  id: "efefefef-efef-4fef-8fef-efefefefefef",
+  email: "consent@example.com",
+};
 const recordsSessions = [
+  consentUser,
   notificationUser,
   watchUser,
   coachUser,
@@ -253,6 +259,16 @@ const planShoe = (id, brand, model, version, category, terrain, km) => ({
   updated_at: "2026-03-01T00:00:00Z",
 });
 const tables = {
+  athlete_consents: [user, ...recordsSessions.map((item) => item.user)]
+    .filter((identity) => identity.id !== consentUser.id)
+    .map((identity) => ({
+      id: randomUUID(),
+      user_id: identity.id,
+      purpose: "health_data",
+      policy_version: "2026-10-24",
+      granted_at: "2026-01-01T00:00:00Z",
+      withdrawn_at: null,
+    })),
   athlete_shoes: [
     planShoe(
       "d1000000-0000-4000-8000-000000000001",
@@ -2116,6 +2132,12 @@ createServer(async (request, response) => {
     if (request.method === "DELETE") return send(200, []);
   }
   if (url.pathname === "/__test__/events") return send(200, events);
+  if (url.pathname === "/__test__/consents" && request.method === "DELETE") {
+    tables.athlete_consents = tables.athlete_consents.filter(
+      (row) => row.user_id !== consentUser.id,
+    );
+    return send(204, undefined);
+  }
   if (url.pathname === "/__test__/rest-delay" && request.method === "POST") {
     restDelays.push({ match: String(body.match), ms: Number(body.ms) });
     return send(200, { delayed: restDelays.length });
@@ -3264,6 +3286,36 @@ createServer(async (request, response) => {
               item.session_key !== key,
           );
         return send(204, undefined);
+      }
+    }
+    if (url.pathname === "/rest/v1/athlete_consents") {
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        if (
+          tables.athlete_consents.some(
+            (row) => row.user_id === value.user_id && row.withdrawn_at === null,
+          )
+        )
+          return send(409, {
+            code: "23505",
+            message: "duplicate key value violates unique constraint",
+          });
+        tables.athlete_consents.push({
+          id: randomUUID(),
+          ...value,
+          granted_at: new Date().toISOString(),
+          withdrawn_at: null,
+        });
+        return send(201, undefined);
+      }
+      if (request.method === "PATCH") {
+        const rows = tables.athlete_consents.filter(
+          (row) =>
+            url.searchParams.get("user_id") === `eq.${row.user_id}` &&
+            row.withdrawn_at === null,
+        );
+        for (const row of rows) row.withdrawn_at = new Date().toISOString();
+        return send(200, rows);
       }
     }
     if (
