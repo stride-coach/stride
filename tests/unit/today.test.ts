@@ -66,6 +66,7 @@ const activity: Activity = {
   durationSeconds: 3_012,
   elevationGainMeters: null,
   averageHeartRate: 142,
+  garminFeeling: { rpe: null, feel: null },
 };
 
 function input(overrides: Partial<TodayInput> = {}): TodayInput {

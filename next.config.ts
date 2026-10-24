@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/activities/:id/details",
+        destination: "/activities/:id",
+        permanent: true,
+      },
+      {
         source: "/plan/historique",
         destination: "/plan/history",
         permanent: true,

@@ -4,9 +4,15 @@ import {
   activityNamePattern,
   activityNameRegex,
   parseActivitySearch,
+  activityGroupOf,
   activityKind,
-  activityPeriod,
   activityRowSchema,
+  activityWeekLabel,
+  formatWeekSpan,
+  planWeekLine,
+  weekSubline,
+  weekTotalItems,
+  weekTotals,
   activityTitle,
   detailMetrics,
   formatActivityDate,
@@ -66,6 +72,9 @@ describe("activity rows", () => {
   it("parses filters from the URL and falls back to all", () => {
     expect(parseActivityFilter("trail")).toBe("trail");
     expect(parseActivityFilter("road")).toBe("road");
+    expect(parseActivityFilter("strength")).toBe("strength");
+    expect(parseActivityFilter("cycling")).toBe("cycling");
+    expect(parseActivityFilter("other")).toBe("other");
     expect(parseActivityFilter(["trail"])).toBe("all");
     expect(parseActivityFilter("races")).toBe("all");
     expect(parseActivityFilter(undefined)).toBe("all");
@@ -76,6 +85,15 @@ describe("activity rows", () => {
     expect(activityKind("ultra_run")).toBe("trail");
     expect(activityKind("strength_training")).toBe("other");
     expect(activityKind(null)).toBe("other");
+  });
+
+  it("sorts every activity type into one sport filter", () => {
+    expect(activityGroupOf("treadmill_running")).toBe("road");
+    expect(activityGroupOf("ultra_run")).toBe("trail");
+    expect(activityGroupOf("strength_training")).toBe("strength");
+    expect(activityGroupOf("road_biking")).toBe("cycling");
+    expect(activityGroupOf("lap_swimming")).toBe("other");
+    expect(activityGroupOf(null)).toBe("other");
   });
 
   it("titles activities from their type and route", () => {
@@ -180,41 +198,97 @@ describe("activity metrics", () => {
   });
 });
 
-describe("activity periods", () => {
+describe("activity weeks", () => {
   it("formats short French dates and adds the year outside the current one", () => {
     expect(formatActivityDate("2026-10-06", today)).toBe("mar. 6 oct.");
     expect(formatActivityDate("2025-09-13", today)).toBe("sam. 13 sept. 2025");
   });
 
-  it("groups by Monday-based weeks, then by month", () => {
-    expect(activityPeriod("2026-10-05", today)).toBe("Cette semaine");
-    expect(activityPeriod("2026-10-04", today)).toBe("Semaine dernière");
-    expect(activityPeriod("2026-09-28", today)).toBe("Semaine dernière");
-    expect(activityPeriod("2026-09-27", today)).toBe("Septembre");
-    expect(activityPeriod("2025-12-31", today)).toBe("Décembre 2025");
+  it("labels Monday-based weeks with relative names, then their range", () => {
+    expect(activityWeekLabel("2026-10-05", today)).toBe("Cette semaine");
+    expect(activityWeekLabel("2026-09-28", today)).toBe("Semaine dernière");
+    expect(activityWeekLabel("2026-09-21", today)).toBe("21–27 sept.");
+    expect(activityWeekLabel("2026-08-31", today)).toBe("31 août–6 sept.");
+    expect(formatWeekSpan("2025-12-29", today)).toBe("29 déc.–4 janv.");
+    expect(formatWeekSpan("2025-12-22", today)).toBe("22–28 déc. 2025");
   });
 
-  it("keeps the newest-first order and merges consecutive periods", () => {
+  it("keeps the newest-first order and groups activities by week", () => {
     const groups = groupActivities(
       [
         activity({ id: "a", local_started_at: "2026-10-06 07:00:00" }),
         activity({ id: "b", local_started_at: "2026-10-04 08:00:00" }),
         activity({ id: "c", local_started_at: "2026-10-01 18:00:00" }),
         activity({ id: "d", local_started_at: "2026-09-13 06:00:00" }),
-        activity({ id: "e", local_started_at: "2026-09-02 06:00:00" }),
+        activity({ id: "e", local_started_at: "2026-09-08 06:00:00" }),
       ],
       today,
     );
     expect(
       groups.map((group) => [
+        group.weekStart,
         group.label,
         group.activities.map((item) => item.id),
       ]),
     ).toEqual([
-      ["Cette semaine", ["a"]],
-      ["Semaine dernière", ["b", "c"]],
-      ["Septembre", ["d", "e"]],
+      ["2026-10-05", "Cette semaine", ["a"]],
+      ["2026-09-28", "Semaine dernière", ["b", "c"]],
+      ["2026-09-07", "7–13 sept.", ["d", "e"]],
     ]);
+  });
+
+  it("sums the week and hides the measures it has none of", () => {
+    const totals = weekTotals([
+      activity(),
+      activity({
+        activity_type: "strength_training",
+        distance_meters: null,
+        elevation_gain_meters: null,
+        duration_seconds: 3300,
+      }),
+    ]);
+    expect(totals).toEqual({
+      count: 2,
+      distanceMeters: 8320,
+      elevationGainMeters: 42,
+      durationSeconds: 6314,
+    });
+    expect(
+      weekTotalItems(totals).map((item) => `${item.value}${item.unit ?? ""}`),
+    ).toEqual(["8,3km", "42m D+", "1:45"]);
+    expect(
+      weekTotalItems({
+        count: 1,
+        distanceMeters: 0,
+        elevationGainMeters: 0,
+        durationSeconds: 3300,
+      }).map((item) => item.key),
+    ).toEqual(["duration"]);
+  });
+
+  it("states plan completion and unplanned activities only when a plan covers the week", () => {
+    expect(planWeekLine({ planned: 3, done: 2 }, 1)).toBe(
+      "Plan : 2 séances sur 3 · 1 hors plan",
+    );
+    expect(planWeekLine({ planned: 4, done: 4 }, 0)).toBe(
+      "Plan : 4 séances sur 4",
+    );
+    expect(planWeekLine({ planned: 3, done: 1 }, 0)).toBe(
+      "Plan : 1 séance sur 3",
+    );
+    expect(planWeekLine({ planned: 0, done: 0 }, 2)).toBeNull();
+    expect(planWeekLine(null, 2)).toBeNull();
+    expect(
+      weekSubline({
+        weekStart: "2026-10-05",
+        today,
+        count: 3,
+        plan: "Plan : 2 séances sur 3",
+      }),
+    ).toBe("5–11 oct. · 3 activités · Plan : 2 séances sur 3");
+    expect(
+      weekSubline({ weekStart: "2026-09-21", today, count: 1, plan: null }),
+    ).toBe("1 activité");
   });
 });
 

@@ -7,6 +7,8 @@ import {
   activityNameRegex,
   activityRowSchema,
   activityTypesByFilter,
+  shiftDate,
+  typedActivityFilters,
   type Activity,
   type ActivityFilter,
 } from "@/features/activities/activities";
@@ -23,23 +25,51 @@ import {
 } from "@/features/onboarding/heart-rate-zones";
 import type { OnboardingContext } from "@/server/onboarding/context";
 
+const knownTypes = typedActivityFilters.flatMap((group) => [
+  ...activityTypesByFilter[group],
+]);
+
+type ActivityQuery<Query> = {
+  in(column: string, values: string[]): Query;
+  or(filters: string): Query;
+  filter(column: string, operator: "imatch", value: string): Query;
+  ilike(column: string, pattern: string): Query;
+};
+
+export function scopeActivities<Query extends ActivityQuery<Query>>(
+  query: Query,
+  filter: ActivityFilter,
+  search: string,
+): Query {
+  let scoped = query;
+  if (filter === "other")
+    scoped = scoped.or(
+      `activity_type.is.null,activity_type.not.in.(${knownTypes.join(",")})`,
+    );
+  else if (filter !== "all")
+    scoped = scoped.in("activity_type", [...activityTypesByFilter[filter]]);
+  if (search)
+    scoped = search.includes("*")
+      ? scoped.filter("activity_name", "imatch", activityNameRegex(search))
+      : scoped.ilike("activity_name", activityNamePattern(search));
+  return scoped;
+}
+
 export const listActivities = cache(async function listActivities(
   context: OnboardingContext,
   filter: ActivityFilter,
   limit: number,
   search = "",
 ): Promise<{ activities: Activity[]; total: number }> {
-  let query = context.client
-    .from("provider_activities")
-    .select(activityColumns, { count: "exact" })
-    .eq("user_id", context.userId)
-    .not("started_at", "is", null);
-  if (filter !== "all")
-    query = query.in("activity_type", [...activityTypesByFilter[filter]]);
-  if (search)
-    query = search.includes("*")
-      ? query.filter("activity_name", "imatch", activityNameRegex(search))
-      : query.ilike("activity_name", activityNamePattern(search));
+  const query = scopeActivities(
+    context.client
+      .from("provider_activities")
+      .select(activityColumns, { count: "exact" })
+      .eq("user_id", context.userId)
+      .not("started_at", "is", null),
+    filter,
+    search,
+  );
   const { data, error, count } = await query
     .order("started_at", { ascending: false })
     .order("id", { ascending: false })
@@ -47,6 +77,63 @@ export const listActivities = cache(async function listActivities(
   if (error) throw new Error("Unable to read activities");
   const activities = (data ?? []).map((row) => activityRowSchema.parse(row));
   return { activities, total: Math.max(count ?? 0, activities.length) };
+});
+
+export const countActivities = cache(async function countActivities(
+  context: OnboardingContext,
+  search = "",
+): Promise<Record<ActivityFilter, number>> {
+  const count = async (filter: ActivityFilter) => {
+    const { count, error } = await scopeActivities(
+      context.client
+        .from("provider_activities")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId)
+        .not("started_at", "is", null),
+      filter,
+      search,
+    );
+    if (error) throw new Error("Unable to count activities");
+    return count ?? 0;
+  };
+  const [all, ...groups] = await Promise.all(
+    (["all", ...typedActivityFilters] as const).map(count),
+  );
+  const typed = Object.fromEntries(
+    typedActivityFilters.map((filter, index) => [filter, groups[index]]),
+  ) as Record<(typeof typedActivityFilters)[number], number>;
+  return {
+    all,
+    ...typed,
+    other: Math.max(0, all - groups.reduce((sum, value) => sum + value, 0)),
+  };
+});
+
+export const readWeekActivities = cache(async function readWeekActivities(
+  context: OnboardingContext,
+  weekStart: string,
+  filter: ActivityFilter = "all",
+  search = "",
+): Promise<Activity[]> {
+  const weekEnd = shiftDate(weekStart, 6);
+  const { data, error } = await scopeActivities(
+    context.client
+      .from("provider_activities")
+      .select(activityColumns)
+      .eq("user_id", context.userId)
+      .gte("started_at", `${shiftDate(weekStart, -1)}T00:00:00Z`)
+      .lte("started_at", `${shiftDate(weekEnd, 1)}T23:59:59Z`),
+    filter,
+    search,
+  )
+    .order("started_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error("Unable to read the week activities");
+  return (data ?? [])
+    .map((row) => activityRowSchema.parse(row))
+    .filter(
+      (activity) => activity.date >= weekStart && activity.date <= weekEnd,
+    );
 });
 
 export const readActivity = cache(async function readActivity(

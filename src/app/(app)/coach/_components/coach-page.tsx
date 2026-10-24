@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { localToday } from "@/features/app-shell/shell";
 import { requireAthlete } from "@/server/app/session";
 import {
+  loadActivityOption,
   loadAttachmentOptions,
   loadRaceOption,
   loadSessionOption,
@@ -21,6 +22,7 @@ export async function CoachPage({
   request = null,
   sessionKey = null,
   raceId = null,
+  activityId = null,
   text = null,
 }: {
   threadId?: string | null;
@@ -28,6 +30,7 @@ export async function CoachPage({
   request?: string | null;
   sessionKey?: string | null;
   raceId?: string | null;
+  activityId?: string | null;
   text?: string | null;
 }) {
   const context = await requireAthlete();
@@ -43,6 +46,7 @@ export async function CoachPage({
     ? []
     : [
         ...(await loadSessionOption(context, attachmentOptions, sessionKey)),
+        ...(await loadActivityOption(context, attachmentOptions, activityId)),
         ...loadRaceOption(attachmentOptions, raceId),
       ];
   return (

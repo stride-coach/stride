@@ -477,7 +477,7 @@ for (const width of [1440, 390]) {
     if (width === 1440) {
       expect(
         await list.evaluate((element) => element.getBoundingClientRect().width),
-      ).toBe(320);
+      ).toBe(340);
       await expect(
         loading.getByRole("navigation", { name: "Fil d’Ariane" }),
       ).toBeVisible();
@@ -641,8 +641,8 @@ test("a superseding navigation cleans up its pending header thread", async ({
     await gate.requested;
     await expectHeaderThread(page);
     await page
-      .getByRole("navigation", { name: "Filtrer les activités" })
-      .getByRole("link", { name: "Route", exact: true })
+      .getByRole("navigation", { name: "Filtrer par sport" })
+      .getByRole("link", { name: /^Course/ })
       .click();
     await expect(page).toHaveURL(/activities\?filter=road$/);
   } finally {

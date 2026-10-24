@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { activityTitle } from "@/features/activities/activities";
+import { activityTitle, type Activity } from "@/features/activities/activities";
 import {
   attachmentRefs,
   coachAttachmentSchema,
@@ -337,6 +337,34 @@ export async function loadSessionOption(
     : [];
 }
 
+function activityOption(activity: Activity): AttachmentOption {
+  return {
+    kind: "activity",
+    id: activity.id,
+    title: activityTitle(activity),
+    date: activity.date,
+    distanceKm:
+      activity.distanceMeters === null ? null : activity.distanceMeters / 1000,
+    elevationGainM: activity.elevationGainMeters,
+  };
+}
+
+export async function loadActivityOption(
+  context: OnboardingContext,
+  options: AttachmentOptions,
+  activityId: string | null,
+): Promise<AttachmentOption[]> {
+  const ref = coachAttachmentSchema.safeParse({
+    kind: "activity",
+    id: activityId,
+  });
+  if (!ref.success) return [];
+  const listed = options.activity.find((option) => option.id === ref.data.id);
+  if (listed) return [listed];
+  const activity = await readActivity(context, ref.data.id).catch(() => null);
+  return activity ? [activityOption(activity)] : [];
+}
+
 export function loadRaceOption(
   options: AttachmentOptions,
   raceId: string | null,
@@ -355,15 +383,7 @@ async function activityOptions(
     "all",
     activityOptionCount,
   );
-  return activities.map((activity) => ({
-    kind: "activity",
-    id: activity.id,
-    title: activityTitle(activity),
-    date: activity.date,
-    distanceKm:
-      activity.distanceMeters === null ? null : activity.distanceMeters / 1000,
-    elevationGainM: activity.elevationGainMeters,
-  }));
+  return activities.map(activityOption);
 }
 
 async function raceOptions(

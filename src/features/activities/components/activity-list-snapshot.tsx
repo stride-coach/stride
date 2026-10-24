@@ -7,7 +7,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { Activity, ActivityFilter } from "../activities";
+import type {
+  Activity,
+  ActivityFilter,
+  ActivityWeekSummary,
+} from "../activities";
+import type { ActivityPill } from "../plan-status";
 
 export type ActivityListQuery = {
   filter: ActivityFilter;
@@ -19,6 +24,9 @@ export type ActivityListSnapshot = ActivityListQuery & {
   activities: Activity[];
   total: number;
   today: string;
+  counts: Record<ActivityFilter, number> | null;
+  weeks: Record<string, ActivityWeekSummary>;
+  pills: Record<string, ActivityPill[]>;
 };
 
 const ActivityListSnapshotContext = createContext<{

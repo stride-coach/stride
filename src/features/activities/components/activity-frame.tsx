@@ -14,7 +14,7 @@ import {
   type ActivityFilter,
 } from "../activities";
 import { ActivitySearch } from "./activity-search";
-import { ActivityFilters } from "./activity-list";
+import { ActivityFilters, filterChipClass } from "./activity-list";
 
 export function ActivitySplitFrame({
   current,
@@ -29,7 +29,7 @@ export function ActivitySplitFrame({
     <div className="flex min-h-0 flex-1">
       <div
         className={cn(
-          "min-h-0 w-full flex-col bg-surface-inset lg:flex lg:w-80 lg:shrink-0 lg:border-r lg:border-border-subtle",
+          "min-h-0 w-full flex-col bg-surface-inset lg:flex lg:w-85 lg:shrink-0 lg:border-r lg:border-border-subtle",
           current ? "hidden" : "flex",
         )}
       >
@@ -51,11 +51,13 @@ export function ActivityListHeader({
   current,
   filter = "all",
   search = "",
+  counts = null,
   loading = false,
 }: {
   current: boolean;
   filter?: ActivityFilter;
   search?: string;
+  counts?: Record<ActivityFilter, number> | null;
   loading?: boolean;
 }) {
   const Heading = current ? "h2" : "h1";
@@ -78,11 +80,17 @@ export function ActivityListHeader({
       {loading ? (
         <>
           <Skeleton className="h-11 w-full rounded-surface lg:h-8" />
-          <div aria-hidden="true" className="flex gap-1">
+          <div
+            aria-hidden="true"
+            className="-mx-5 flex gap-1.25 overflow-hidden px-5 lg:mx-0 lg:flex-wrap lg:px-0"
+          >
             {activityFilters.map((item) => (
               <span
                 key={item}
-                className="inline-flex min-h-11 items-center rounded-surface border border-border px-3.5 text-sm text-muted-foreground lg:min-h-7 lg:rounded-control lg:px-2.5 lg:text-xs"
+                className={cn(
+                  filterChipClass,
+                  "border-border text-muted-foreground",
+                )}
               >
                 {activityFilterLabels[item]}
               </span>
@@ -92,7 +100,7 @@ export function ActivityListHeader({
       ) : (
         <>
           <ActivitySearch filter={filter} search={search} />
-          <ActivityFilters filter={filter} search={search} />
+          <ActivityFilters filter={filter} search={search} counts={counts} />
         </>
       )}
       <DataActivityThread className="lg:hidden" />

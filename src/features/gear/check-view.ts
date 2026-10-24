@@ -18,6 +18,7 @@ export type ActivityPairView = {
   state: PairCheckState;
   name: string;
   line: string;
+  short: string | null;
   context: string;
   selectedId: string | null;
   options: PairChoice[];
@@ -111,11 +112,23 @@ export function activityPairView(
       "sortie hors séance",
     ],
   };
+  const short: Record<PairCheckState, string | null> = {
+    same: check.assignedByStride
+      ? "attribuée par Stride"
+      : check.plannedPairId !== null && check.pairId !== check.plannedPairId
+        ? "confirmée par toi"
+        : "Garmin",
+    different: "Garmin",
+    missing: planned ? `prévue : ${planned}` : null,
+    corrected: "corrigée par toi",
+    unplanned: check.pairId || check.garminName ? "Garmin" : null,
+  };
   return {
     activityId: check.activityId,
     state: check.state,
     name,
     line: parts[check.state].filter(Boolean).join(" · "),
+    short: short[check.state],
     context: context(check),
     selectedId: check.pairId,
     options: choices(shoes),

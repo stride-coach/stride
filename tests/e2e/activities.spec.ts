@@ -27,7 +27,7 @@ test("signed-out athletes are sent to sign-in", async ({ page }) => {
   await expect(page).toHaveURL(/\/sign-in$/);
 });
 
-test("activities are grouped, filtered through the URL and opened in place", async ({
+test("activities are grouped by week, filtered by sport through the URL and opened in place", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -44,26 +44,40 @@ test("activities are grouped, filtered through the URL and opened in place", asy
   await expect(
     sidebar.getByRole("link", { name: "Activités" }),
   ).toHaveAttribute("aria-current", "page");
-  const list = page.locator("ul").filter({ hasText: "Course à pied" }).first();
-  await expect(list).toBeVisible();
+  const list = page.getByRole("region", { name: "Liste des activités" });
+  const thisWeek = list.getByRole("heading", { level: 2 }).first();
+  await expect(thisWeek).toContainText(/Cette semaine|Semaine dernière/);
+  await expect(thisWeek).toContainText(/\d+ activités?/);
+  await expect(thisWeek).toContainText("km");
+  await expect(thisWeek).not.toContainText("Plan :");
   await expect(
     page.getByRole("heading", { level: 2, name: "Course à pied" }),
   ).toBeVisible();
   await expect(page.getByText("Tout vient de Garmin")).toBeVisible();
-  await expect(page.getByText("Trail · Fontainebleau")).toBeVisible();
-  await expect(page.getByText("Renforcement")).toBeVisible();
-
-  await page
-    .getByRole("navigation", { name: "Filtrer les activités" })
-    .getByRole("link", { name: "Trail" })
-    .click();
-  await expect(page).toHaveURL(/\/activities\?filter=trail$/);
+  await expect(list.getByText("Trail · Fontainebleau")).toBeVisible();
+  await expect(list.getByText("Renforcement")).toBeVisible();
+  await expect(list.getByText("Hors plan")).toHaveCount(0);
   await expect(
-    page
-      .getByRole("navigation", { name: "Filtrer les activités" })
-      .getByRole("link", { name: "Trail" }),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(page.getByText("Renforcement")).toHaveCount(0);
+    list
+      .getByRole("link", { name: /Course à pied/ })
+      .first()
+      .getByText("Ressenti à noter"),
+  ).toBeVisible();
+
+  const filters = page.getByRole("navigation", { name: "Filtrer par sport" });
+  await expect(filters.getByRole("link")).toHaveText([
+    "Tout75",
+    "Course72",
+    "Trail2",
+    "Renfo1",
+  ]);
+  await filters.getByRole("link", { name: /^Trail/ }).click();
+  await expect(page).toHaveURL(/\/activities\?filter=trail$/);
+  await expect(filters.getByRole("link", { name: /^Trail/ })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(list.getByText("Renforcement")).toHaveCount(0);
 
   await page.getByRole("link", { name: /Trail · Trail 80K/ }).click();
   await expect(page).toHaveURL(
@@ -80,6 +94,15 @@ test("activities are grouped, filtered through the URL and opened in place", asy
   await expect(
     page.getByRole("link", { name: /Trail · Trail 80K/ }),
   ).toHaveAttribute("aria-current", "true");
+
+  await page.goto("/activities?filter=cycling");
+  await expect(filters.getByRole("link", { name: /^Vélo/ })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(list).toContainText(
+    "Aucune sortie vélo importée pour l’instant.",
+  );
 });
 
 test("the selected preview expands and stays centered on a wide desktop", async ({
@@ -191,86 +214,211 @@ test("the list and the detail scroll independently inside a fixed-height shell",
   await expect(list.locator('[aria-current="true"]')).toBeInViewport();
 });
 
-test("the full detail shows laps, effort and provenance from stored rows", async ({
+test("the activity panel shows laps, effort and provenance, and the old detail URL redirects", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   await page.goto(
-    "/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004?filter=road",
+    "/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details?filter=road",
   );
-  await Promise.all([
-    page.waitForURL(
-      /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000000004\/details\?filter=road$/,
-    ),
-    page.getByRole("link", { name: /Détail complet/ }).click(),
-  ]);
   await expect(page).toHaveURL(
-    /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000000004\/details\?filter=road$/,
+    /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000000004\?filter=road$/,
   );
+  const article = page.getByRole("article");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Threshold 3 × 10 min" }),
+    article.getByRole("heading", { level: 1, name: "Threshold 3 × 10 min" }),
+  ).toBeVisible();
+  await expect(
+    article.getByRole("link", { name: /Détail complet/ }),
+  ).toHaveCount(0);
+  const metrics = article.locator("dl").first();
+  for (const label of [
+    "Distance",
+    "Temps",
+    "Allure",
+    "D+",
+    "FC moy.",
+    "Puissance",
+  ])
+    await expect(metrics.getByText(label, { exact: true })).toBeVisible();
+  await expect(metrics).toContainText("248");
+  await expect(
+    article.getByRole("region", { name: "Hors plan" }),
   ).toBeVisible();
   const table = page.getByRole("table", { name: "Tours" });
   await expect(table.getByRole("row")).toHaveCount(8);
+  await expect(table.getByRole("columnheader", { name: "D−" })).toBeVisible();
+  await expect(
+    table.getByRole("columnheader", { name: "Puiss." }),
+  ).toBeVisible();
   const rep = table.getByRole("row").nth(2);
   await expect(rep.getByRole("rowheader")).toHaveText("2");
   await expect(rep).toContainText("10:00");
   await expect(rep).toContainText("2,27");
   await expect(rep).toContainText("4:24");
   await expect(rep).toContainText("161");
+  await expect(rep).toContainText("286");
   const effort = page.getByRole("region", { name: "Effort" });
   await expect(effort).toContainText("Effet aérobie");
   await expect(effort).toContainText("3,4");
   await expect(effort).toContainText("FC max");
   await expect(effort).toContainText("176");
-  await expect(effort).not.toContainText("Puissance");
-  await expect(effort).not.toContainText("Garmin");
-  await expect(effort.locator('[data-slot="provenance"]')).toHaveCount(0);
+  await expect(effort).toContainText("Puissance max");
+  await expect(effort).toContainText("Sensations");
+  await expect(effort).toContainText("Bien");
   await expect(effort.locator("dd:empty")).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Temps dans les zones" }),
+  ).toContainText("Estimation Stride");
   await expect(page.getByText("détail importé le 07/10/2026")).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollHeight <= window.innerHeight,
-    ),
-  ).toBe(true);
-  await Promise.all([
-    page.waitForURL(/\/activities\?filter=road$/),
-    page
-      .getByRole("navigation", { name: "Fil d’Ariane" })
-      .getByRole("link", { name: "Activités" })
-      .click(),
-  ]);
-  await expect(page).toHaveURL(/\/activities\?filter=road$/);
+  await page.goto("/activities/cccccccc-cccc-4ccc-8ccc-cccccccccccc/details");
+  await expectNotFound(page);
 });
 
-test("the full detail says when Garmin sent no laps and stays within 320px", async ({
+test("the activity panel says nothing about laps Garmin did not send and stays within 320px", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   await signIn(page);
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000001/details");
-  await expect(
-    page
-      .getByRole("article")
-      .getByText("Garmin n’a transmis aucun tour pour cette activité."),
-  ).toBeVisible();
-  await expect(page.getByRole("table")).toHaveCount(0);
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details");
-  await expect(page.getByRole("table", { name: "Tours" })).toBeVisible();
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000001");
+  await expect(page.getByRole("article")).toBeVisible();
+  await expect(page.getByRole("table", { name: "Tours" })).toHaveCount(0);
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
+  const table = page.getByRole("table", { name: "Tours" });
+  await expect(table).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Cad." })).toBeHidden();
+  await expect(
+    table.getByRole("columnheader", { name: "D+/D−" }),
+  ).toBeVisible();
+  await expect(table.getByRole("columnheader", { name: "W" })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
   expect(
-    await page
-      .getByRole("table", { name: "Tours" })
-      .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    await table.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
   ).toBe(true);
-  await page.goto("/activities/cccccccc-cccc-4ccc-8ccc-cccccccccccc/details");
-  await expectNotFound(page);
+});
+
+test("an unplanned run takes a feeling and opens the coach with the activity attached", async ({
+  page,
+}) => {
+  const activityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000000001";
+  const reset = await fetch(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/activity-feelings?activity=${activityId}`,
+    { method: "DELETE" },
+  );
+  expect(reset.ok).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/activities/${activityId}`);
+  const card = page.getByRole("region", { name: "Hors plan" });
+  await expect(card).toBeVisible();
+  await expect(card).not.toContainText("Compte dans ta charge");
+  await card
+    .getByRole("radiogroup", { name: "Effort perçu, de 1 à 10" })
+    .getByRole("radio", { name: "6", exact: true })
+    .click();
+  await card
+    .getByRole("radiogroup", { name: "Sensations" })
+    .getByRole("radio", { name: "Bien", exact: true })
+    .click();
+  await expect(page.getByText("Ressenti enregistré.")).toBeVisible();
+  await expect(card).toContainText("Ressenti");
+  await expect(card).toContainText("6/10");
+  await expect(card.getByRole("button", { name: "Modifier" })).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "Liste des activités" })
+      .getByRole("link", { name: /Course à pied/ })
+      .first()
+      .getByText("Ressenti à noter"),
+  ).toHaveCount(0);
+
+  await card.getByRole("link", { name: "En parler au coach" }).click();
+  await expect(page).toHaveURL(`/coach/new?activity=${activityId}`, {
+    timeout: 20_000,
+  });
+  await expect(
+    page.getByRole("button", { name: /^Retirer Course à pied .*du contexte$/ }),
+  ).toBeVisible();
+});
+
+test("the chart shows any set of series and moves the map point with its cursor", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.route("https://basemaps.cartocdn.com/**", (route) =>
+    route.abort(),
+  );
+  await signIn(page);
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
+  const data = page.getByRole("region", { name: "Parcours et données" });
+  await expect(data.getByRole("img", { name: /Tracé GPS/ })).toBeVisible();
+  const toggles = data.getByRole("toolbar", { name: "Données affichées" });
+  const toggle = (name: string) =>
+    toggles.getByRole("button", { name, exact: true });
+  await expect(toggle("Allure")).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle("FC")).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle("Puissance")).toHaveAttribute("aria-pressed", "false");
+  await expect(
+    data.getByRole("img", { name: "Allure, FC selon le temps écoulé" }),
+  ).toBeVisible();
+
+  await toggle("Puissance").click();
+  await toggle("Allure").click();
+  await expect(toggle("Puissance")).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle("Allure")).toHaveAttribute("aria-pressed", "false");
+  const chart = data.getByRole("img", {
+    name: "FC, Puissance selon le temps écoulé",
+  });
+  await expect(chart).toBeVisible();
+  await toggle("FC").click();
+  await toggle("Puissance").click();
+  await expect(toggle("Puissance")).toHaveAttribute("aria-pressed", "true");
+
+  const map = data.locator("[data-marker]");
+  await expect(map).toHaveCount(0);
+  const plot = data.getByRole("img", {
+    name: "Puissance selon le temps écoulé",
+  });
+  const box = await plot.boundingBox();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  const inspection = data.getByRole("group", { name: /^Inspecter/ });
+  const status = inspection.getByRole("status");
+  await expect(status).toContainText("W");
+  await expect(status).toContainText("km");
+  const middle = Number(await map.getAttribute("data-marker"));
+  expect(middle).toBeGreaterThan(30);
+  expect(middle).toBeLessThan(70);
+  await page.mouse.move(box!.x + box!.width - 2, box!.y + box!.height / 2);
+  await expect
+    .poll(async () => Number(await map.getAttribute("data-marker")))
+    .toBeGreaterThan(90);
+
+  await inspection.focus();
+  await inspection.press("Home");
+  await expect(status).toContainText("0:00");
+  await inspection.press("End");
+  await expect(status).toContainText("58:40");
+  await inspection.press("Escape");
+  await expect(status).toHaveCount(0);
+  await data.getByRole("button", { name: "Carte en plein écran" }).click();
+  const fullscreen = page.getByRole("dialog", {
+    name: "Carte plein écran · Parcours",
+  });
+  await expect(fullscreen).toBeVisible();
+  expect((await fullscreen.boundingBox())?.width).toBe(1440);
+  await page.keyboard.press("Escape");
+  await expect(fullscreen).toHaveCount(0);
+  await expect(
+    data.getByRole("button", { name: "Carte en plein écran" }),
+  ).toBeVisible();
+  await page.screenshot({ path: "test-results/activity-data-desktop.png" });
 });
 
 test("an activity already shown in the detail pane is not loaded again", async ({
@@ -343,118 +491,24 @@ test("mobile shows the list, then the activity alone, without overflow", async (
   ).toBeVisible();
 });
 
-test("normalized tracks show real charts, zone time and a usable route fallback", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.route("https://basemaps.cartocdn.com/**", (route) =>
-    route.abort(),
-  );
-  await signIn(page);
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details");
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Threshold 3 × 10 min" }),
-  ).toBeVisible();
-  const route = page.getByRole("region", { name: "Parcours", exact: true });
-  await expect(route).toBeVisible();
-  await expect(route.getByRole("img", { name: /Tracé GPS/ })).toBeVisible();
-  const modes = route.getByRole("radiogroup", { name: "Colorer le tracé par" });
-  await modes.getByRole("radio", { name: "Allure", exact: true }).click();
-  await expect(
-    modes.getByRole("radio", { name: "Allure", exact: true }),
-  ).toHaveAttribute("aria-checked", "true");
-  await modes.getByRole("radio", { name: "FC", exact: true }).click();
-  await expect(
-    modes.getByRole("radio", { name: "FC", exact: true }),
-  ).toHaveAttribute("aria-checked", "true");
-  await expect(
-    page.getByText("Gris : tours plus rapides · estimation Stride"),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Bande jaune : Z4 estimée par Stride"),
-  ).toBeVisible();
-  await page.screenshot({
-    path: "test-results/activity-detail-desktop-top.png",
-  });
-  await page
-    .getByRole("region", { name: "Graphiques de l’activité" })
-    .scrollIntoViewIfNeeded();
-  await expect(
-    page.getByRole("img", {
-      name: "Fréquence cardiaque selon le temps écoulé",
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Temps dans les zones" }),
-  ).toBeVisible();
-  await page.getByRole("region", { name: "Effort" }).scrollIntoViewIfNeeded();
-  await expect(page.getByRole("region", { name: "Effort" })).toContainText(
-    "720",
-  );
-  await page.screenshot({
-    path: "test-results/activity-detail-desktop.png",
-    fullPage: true,
-  });
-});
-
-test("samples without GPS retain heart rate charts without running pace", async ({
+test("samples without GPS keep the chart without running pace", async ({
   page,
 }) => {
   await signIn(page);
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000003/details");
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000003");
+  const data = page.getByRole("region", { name: "Parcours et données" });
   await expect(
-    page.getByText("Aucun tracé GPS n’est disponible pour cette activité."),
+    data.getByText("Aucun tracé GPS n’est disponible pour cette activité."),
   ).toBeVisible();
   await expect(
-    page.getByRole("img", {
-      name: "Fréquence cardiaque selon le temps écoulé",
-      exact: true,
-    }),
+    data.getByRole("img", { name: "FC selon le temps écoulé" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("img", {
-      name: "Allure selon le temps écoulé",
-      exact: true,
-    }),
-  ).toHaveCount(0);
+  const toggles = data.getByRole("toolbar", { name: "Données affichées" });
+  await expect(toggles.getByRole("button")).toHaveText(["FC"]);
   await expect(
     page.getByRole("radiogroup", { name: "Colorer le tracé par" }),
   ).toHaveCount(0);
-});
-
-test("route controls and full detail fit narrow screens", async ({ page }) => {
-  await page.route("https://basemaps.cartocdn.com/**", (route) =>
-    route.abort(),
-  );
-  await signIn(page);
-  for (const width of [390, 320]) {
-    await page.setViewportSize({ width, height: 844 });
-    await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details");
-    const route = page.getByRole("region", { name: "Parcours", exact: true });
-    await expect(route).toBeVisible();
-    await route.getByRole("radio", { name: "Altitude", exact: true }).click();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-    const article = page.getByRole("article");
-    expect(
-      await article.evaluate(
-        (element) => element.scrollWidth <= element.clientWidth,
-      ),
-    ).toBe(true);
-    if (width === 390) {
-      await article.evaluate((element) => {
-        if (element.parentElement) element.parentElement.scrollTop = 0;
-      });
-      await page.screenshot({
-        path: "test-results/activity-detail-mobile.png",
-        fullPage: true,
-      });
-    }
-  }
+  await expect(page.getByRole("region", { name: "Chaussures" })).toHaveCount(0);
 });
 
 test("the bundled map worker renders a GPS route with map controls", async ({
@@ -477,156 +531,89 @@ test("the bundled map worker renders a GPS route with map controls", async ({
     }),
   );
   await signIn(page);
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details");
-  const route = page.getByRole("region", { name: "Parcours", exact: true });
-  await expect(route.getByRole("button", { name: "Zoom avant" })).toBeVisible({
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
+  const data = page.getByRole("region", { name: "Parcours et données" });
+  await expect(data.getByRole("button", { name: "Zoom avant" })).toBeVisible({
     timeout: 15000,
   });
-  await route.getByRole("button", { name: "Zoom avant" }).click();
-  await route.getByRole("button", { name: "Recentrer le tracé" }).click();
-  await expect(route.locator("canvas")).toBeVisible();
-  await page.screenshot({ path: "test-results/activity-detail-map.png" });
-});
-
-test("all four charts inspect recorded values on hover and with the keyboard", async ({
-  page,
-}) => {
-  await page.route("https://basemaps.cartocdn.com/**", (route) =>
-    route.abort(),
-  );
-  await signIn(page);
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details");
-  for (const [title, value] of [
-    ["Allure", "5:33 min/km"],
-    ["Fréquence cardiaque", "125 bpm"],
-    ["Cadence", "168 pas/min"],
-    ["Altitude", "42 m"],
-  ]) {
-    const chart = page.getByRole("region", { name: title, exact: true });
-    const plot = chart.getByRole("img");
-    await expect(async () => {
-      await page.mouse.move(0, 0);
-      await plot.hover({ position: { x: 1, y: 60 } });
-      await expect(chart.getByRole("status")).toContainText(value);
-    }).toPass({ timeout: 15_000 });
-    await expect(chart.getByRole("status")).toContainText(
-      "Temps écoulé · 0:00",
-    );
-    await page.mouse.move(0, 0);
-    await expect(chart.getByRole("status")).toHaveCount(0);
-    const inspection = chart.getByRole("group");
-    await inspection.focus();
-    await expect(chart.getByRole("status")).toContainText(value);
-    await inspection.press("ArrowRight");
-    await expect(chart.getByRole("status")).toContainText(
-      "Temps écoulé · 0:36",
-    );
-    await inspection.press("End");
-    await expect(chart.getByRole("status")).toContainText(
-      "Temps écoulé · 58:40",
-    );
-    await inspection.press("Home");
-    await expect(chart.getByRole("status")).toContainText(
-      "Temps écoulé · 0:00",
-    );
-    await inspection.press("Escape");
-    await expect(chart.getByRole("status")).toHaveCount(0);
-    await inspection.press("ArrowRight");
-    await inspection.press("Tab");
-    await expect(chart.getByRole("status")).toHaveCount(0);
-    await page
-      .getByRole("navigation", { name: "Fil d’Ariane" })
-      .getByRole("link", { name: "Activités" })
-      .focus();
-  }
+  await data.getByRole("button", { name: "Zoom avant" }).click();
+  await data.getByRole("button", { name: "Recentrer le tracé" }).click();
+  await expect(data.locator("canvas")).toBeVisible();
+  const modes = data.getByRole("radiogroup", { name: "Colorer le tracé par" });
+  await modes.getByRole("radio", { name: "FC", exact: true }).click();
+  await expect(
+    modes.getByRole("radio", { name: "FC", exact: true }),
+  ).toHaveAttribute("aria-checked", "true");
 });
 
 test.describe("touch chart inspection", () => {
   test.use({ hasTouch: true, viewport: { width: 320, height: 844 } });
-  test("keeps all chart annotations readable within a narrow screen", async ({
+  test("keeps the chart annotation readable within a narrow screen", async ({
     page,
   }) => {
     await page.route("https://basemaps.cartocdn.com/**", (route) =>
       route.abort(),
     );
     await signIn(page);
-    await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004/details");
-    for (const title of [
-      "Allure",
-      "Fréquence cardiaque",
-      "Cadence",
-      "Altitude",
-    ]) {
-      const chart = page.getByRole("region", { name: title, exact: true });
-      await chart.getByRole("img").tap();
-      const annotation = chart.getByRole("status");
+    await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
+    const data = page.getByRole("region", { name: "Parcours et données" });
+    const plot = data.getByRole("img", { name: /selon le temps écoulé$/ });
+    await plot.scrollIntoViewIfNeeded();
+    for (const position of [0.05, 0.5, 0.95]) {
+      const box = await plot.boundingBox();
+      await page.touchscreen.tap(
+        box!.x + box!.width * position,
+        box!.y + box!.height / 2,
+      );
+      const annotation = data
+        .getByRole("group", { name: /^Inspecter/ })
+        .getByRole("status");
       await expect(annotation).toBeVisible();
-      await expect(annotation).not.toContainText("Temps écoulé · 0:00");
       const bounds = await annotation.boundingBox();
       expect(bounds!.x).toBeGreaterThanOrEqual(0);
       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
-      ).toBe(true);
     }
-    await page.screenshot({
-      path: "test-results/activity-chart-inspection-mobile.png",
-    });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
   });
 });
 
-test("selected preview reuses the map, factual effort and two recorded charts", async ({
+test("a planned run shows its plan pill in the list and its session in the panel", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.route("https://basemaps.cartocdn.com/**", (route) =>
-    route.abort(),
-  );
-  await signIn(page);
+  await signInAs(page, "plan@example.com");
   await page.goto("/activities");
+  const list = page.getByRole("region", { name: "Liste des activités" });
   await expect(
-    page.getByRole("article").getByRole("heading", { name: "Course à pied" }),
+    list.getByText(/Plan : \d+ séances? sur \d+/).first(),
   ).toBeVisible();
-  await expect(page.getByRole("article")).toContainText("Aucun tracé GPS");
-  await page
-    .getByRole("button", { name: "Afficher ou masquer la barre latérale" })
-    .last()
-    .click();
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
-  const article = page.getByRole("article");
+  const planned = list
+    .getByRole("link")
+    .filter({ hasText: /Seuil 4 × 6’/ })
+    .first();
+  await expect(planned).toContainText(/Seuil · /);
+  await expect(list.getByText("Hors plan").first()).toBeVisible();
+  await planned.click();
+  await expect(page).toHaveURL(
+    /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000005002$/,
+  );
   await expect(
-    article
-      .getByRole("region", { name: "Parcours", exact: true })
-      .getByRole("img", { name: /Tracé GPS/ }),
-  ).toBeVisible();
+    page
+      .getByRole("article")
+      .getByRole("heading", { level: 1, name: /Seuil 4 × 6’/ }),
+  ).toBeVisible({ timeout: 20_000 });
+  const card = page.getByRole("region", { name: "Séance du plan" });
+  await expect(card.getByText("Seuil · écourtée")).toBeVisible();
   await expect(
-    article.getByRole("region", { name: "Effort enregistré" }),
-  ).toContainText("720");
-  await expect(
-    article.getByRole("region", { name: "Cadence", exact: true }),
-  ).toHaveCount(0);
-  await expect(
-    article.getByRole("region", { name: "Altitude", exact: true }),
-  ).toHaveCount(0);
-  await page.screenshot({
-    path: "test-results/activities-preview-desktop.png",
-  });
-  const heartRate = article.getByRole("region", {
-    name: "Fréquence cardiaque",
-    exact: true,
-  });
-  await heartRate.getByRole("group").focus();
-  await expect(heartRate.getByRole("status")).toContainText("125 bpm");
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000003");
-  await expect(article).toContainText("Aucun tracé GPS");
-  await expect(
-    article.getByRole("region", { name: "Fréquence cardiaque", exact: true }),
+    card.getByRole("link", { name: "Voir dans le plan" }),
   ).toBeVisible();
   await expect(
-    article.getByRole("region", { name: "Allure", exact: true }),
-  ).toHaveCount(0);
+    card.getByRole("link", { name: "En parler au coach" }),
+  ).toHaveAttribute("href", /\/coach\/new\?session=s-/);
 });
 
 test("name search filters before pagination and keeps context through drill-down", async ({
@@ -653,10 +640,9 @@ test("name search filters before pagination and keeps context through drill-down
   await expect(
     page.getByRole("article").getByRole("heading", { name: /Threshold/ }),
   ).toBeVisible();
-  await Promise.all([
-    page.waitForURL(/\/details\?filter=road&q=THRESHOLD$/),
-    page.getByRole("link", { name: /Détail complet/ }).click(),
-  ]);
+  await page.goto(
+    "/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004?filter=road&q=THRESHOLD",
+  );
   const breadcrumb = page.getByRole("navigation", { name: "Fil d’Ariane" });
   await expect(
     breadcrumb.getByRole("link", { name: "Activités", exact: true }),
@@ -664,10 +650,15 @@ test("name search filters before pagination and keeps context through drill-down
   await breadcrumb
     .getByRole("link", { name: "Activités", exact: true })
     .click();
-  await page
-    .getByRole("navigation", { name: "Filtrer les activités" })
-    .getByRole("link", { name: "Trail", exact: true })
-    .click();
+  const filters = page.getByRole("navigation", { name: "Filtrer par sport" });
+  await expect(filters.getByRole("link")).toHaveText(["Tout1", "Course1"]);
+  await filters.getByRole("link", { name: /^Tout/ }).click();
+  await expect(page).toHaveURL(/\/activities\?q=THRESHOLD$/);
+  await page.goto("/activities?filter=trail&q=THRESHOLD");
+  await expect(filters.getByRole("link", { name: /^Trail/ })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
   await expect(page).toHaveURL(/filter=trail&q=THRESHOLD$/);
   await expect(
     page
@@ -682,6 +673,7 @@ test("name search filters before pagination and keeps context through drill-down
 test("name search treats wildcard and punctuation literally before pagination", async ({
   page,
 }) => {
+  test.slow();
   await signIn(page);
   for (const search of [
     "été",
@@ -766,7 +758,7 @@ test("mobile list and GPS preview fit 390 and 320 pixels", async ({ page }) => {
     const article = page.getByRole("article");
     await expect(article).toBeVisible();
     await expect(
-      article.getByRole("region", { name: "Parcours", exact: true }),
+      article.getByRole("region", { name: "Parcours et données" }),
     ).toBeVisible();
     expect(
       await page.evaluate(

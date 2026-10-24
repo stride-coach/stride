@@ -1,53 +1,71 @@
 import {
+  nearestIndex,
   paceFromSpeed,
   type ActivityTrack,
   type RouteBand,
-  type ZoneBounds,
 } from "./track";
 
 export const chartWidth = 900;
-const topPadding = 22;
-const bottomPadding = 20;
+export const chartHeight = 160;
+const topPadding = 14;
+const bottomPadding = 10;
+const reliefTop = 0.72;
+
+export const dataSeriesKeys = [
+  "pace",
+  "heartRate",
+  "power",
+  "cadence",
+  "elevation",
+] as const;
+export type DataSeriesKey = (typeof dataSeriesKeys)[number];
+
+export const dataSeriesLabels: Record<DataSeriesKey, string> = {
+  pace: "Allure",
+  heartRate: "FC",
+  power: "Puissance",
+  cadence: "Cadence",
+  elevation: "Altitude",
+};
+
+export const defaultDataSeries: readonly DataSeriesKey[] = [
+  "pace",
+  "heartRate",
+];
 
 export type ChartBand = { x: number; width: number; label: string };
-export type InspectionSample = {
-  x: number;
-  y: number | null;
-  value: string | null;
-  position: string;
-};
-export type LineChart = {
-  samples: InspectionSample[];
-  height: number;
+
+export type DataSeries = {
+  key: DataSeriesKey;
+  label: string;
+  unit: string;
   path: string;
-  minLabel: string;
-  maxLabel: string;
+  ys: (number | null)[];
+  values: (string | null)[];
 };
-export type HeartRateChart = LineChart & {
-  zoneBand: { y: number; height: number } | null;
-  peak: { x: number; y: number; value: number } | null;
-};
-export type ScatterChart = {
-  height: number;
-  points: { x: number; y: number }[];
-  paceLabels: [string, string];
-  heartRateLabels: [string, string];
-};
+
 export type ChartsView = {
-  duration: number | null;
   axis: "elapsed time" | "sample position";
   timeLabels: [string, string, string];
   bands: ChartBand[];
-  pace: LineChart | null;
-  heartRate: HeartRateChart | null;
-  cadence: LineChart | null;
-  elevation: LineChart | null;
-  scatter: ScatterChart | null;
+  relief: string | null;
+  xs: number[];
+  positions: string[];
+  routeIndex: (number | null)[];
+  series: DataSeries[];
 };
 
 export function formatClock(seconds: number) {
   const total = Math.max(0, Math.round(seconds));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
+function formatElapsed(seconds: number) {
+  const total = Math.max(0, Math.round(seconds));
+  const hours = Math.floor(total / 3600);
+  return hours > 0
+    ? `${hours}:${formatClock(total % 3600).padStart(5, "0")}`
+    : formatClock(total);
 }
 
 function percentile(sorted: readonly number[], ratio: number) {
@@ -69,43 +87,46 @@ function round(value: number) {
   return Math.round(value * 10) / 10;
 }
 
-function path(
-  xs: readonly number[],
-  values: readonly (number | null)[],
+function scale(
+  value: number,
   domain: { min: number; max: number },
-  height: number,
+  range: { top: number; bottom: number },
   invert: boolean,
 ) {
+  const ratio =
+    (Math.min(domain.max, Math.max(domain.min, value)) - domain.min) /
+    (domain.max - domain.min || 1);
+  return range.top + (invert ? ratio : 1 - ratio) * (range.bottom - range.top);
+}
+
+function pathOf(xs: readonly number[], ys: readonly (number | null)[]) {
   let drawing = false;
   let data = "";
-  values.forEach((value, index) => {
-    if (value === null) {
+  ys.forEach((y, index) => {
+    if (y === null) {
       drawing = false;
       return;
     }
-    const y = yOf(value, domain, height, invert);
-    data += `${drawing ? "L" : "M"}${round(xs[index])},${round(y)}`;
+    data += `${drawing ? "L" : "M"}${round(xs[index])},${y}`;
     drawing = true;
   });
   return data;
 }
 
-function yOf(
-  value: number,
-  domain: { min: number; max: number },
-  height: number,
-  invert: boolean,
-) {
-  const usable = height - topPadding - bottomPadding;
-  const ratio =
-    (Math.min(domain.max, Math.max(domain.min, value)) - domain.min) /
-    (domain.max - domain.min || 1);
-  return topPadding + (invert ? ratio : 1 - ratio) * usable;
-}
+const integer = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const kilometers = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 export function buildChartsView(
   track: ActivityTrack,
-  options: { zones: ZoneBounds | null; bands: RouteBand[]; running?: boolean },
+  options: {
+    bands: RouteBand[];
+    running?: boolean;
+    cycling?: boolean;
+    routeFractions?: readonly number[] | null;
+  },
 ): ChartsView | null {
   if (track.length < 2) return null;
   const elapsed = track.series.elapsed_s;
@@ -120,7 +141,6 @@ export function buildChartsView(
     );
   const duration =
     completeElapsed && elapsed.at(-1)! > elapsed[0] ? elapsed.at(-1)! : null;
-  const axis = duration !== null ? "elapsed time" : "sample position";
   const xs = Array.from(
     { length: track.length },
     (_, index) =>
@@ -128,188 +148,122 @@ export function buildChartsView(
         ? elapsed![index]! / duration
         : index / (track.length - 1)) * chartWidth,
   );
-  const samplesOf = (
-    values: readonly (number | null)[],
-    domain: { min: number; max: number },
-    height: number,
-    invert: boolean,
-    format: (value: number) => string,
-  ): InspectionSample[] =>
-    xs.map((x, index) => {
-      const value = values[index] ?? null;
-      return {
-        x: round(x),
-        y: value === null ? null : round(yOf(value, domain, height, invert)),
-        value: value === null ? null : format(value),
-        position:
-          duration !== null
-            ? `Temps écoulé · ${formatClock(elapsed![index]!)}`
-            : `Échantillon ${index + 1} sur ${track.length}`,
-      };
-    });
-  const measurement = (value: number) =>
-    value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
-  const bands = (duration !== null ? options.bands : []).map((band) => ({
-    x: round(band.from * chartWidth),
-    width: round((band.to - band.from) * chartWidth),
-    label: band.label,
-  }));
-  const paceValues = (
-    options.running === false ? [] : (track.series.speed_mps ?? [])
-  ).map(paceFromSpeed);
-  const paceDomain = domainOf(paceValues, true);
-  const paceHeight = 140;
-  const pace: LineChart | null = paceDomain
-    ? {
-        samples: samplesOf(
-          paceValues,
-          paceDomain,
-          paceHeight,
-          true,
-          (value) => `${formatClock(value)} min/km`,
-        ),
-        height: paceHeight,
-        path: path(xs, paceValues, paceDomain, paceHeight, true),
-        minLabel: formatClock(paceDomain.min),
-        maxLabel: formatClock(paceDomain.max),
-      }
-    : null;
-
-  const heartRates = track.series.heart_rate ?? [];
-  const heartDomain = domainOf(heartRates, false);
-  const heartHeight = 120;
-  let heartRate: HeartRateChart | null = null;
-  if (heartDomain) {
-    let peakIndex = -1;
-    heartRates.forEach((value, index) => {
-      if (
-        value !== null &&
-        (peakIndex === -1 || value > (heartRates[peakIndex] ?? 0))
-      )
-        peakIndex = index;
-    });
-    const zone = options.zones?.[3];
-    const top = zone ? yOf(zone.upper + 1, heartDomain, heartHeight, false) : 0;
-    const bottom = zone ? yOf(zone.lower, heartDomain, heartHeight, false) : 0;
-    heartRate = {
-      samples: samplesOf(
-        heartRates,
-        heartDomain,
-        heartHeight,
-        false,
-        (value) => `${measurement(value)} bpm`,
-      ),
-      height: heartHeight,
-      path: path(xs, heartRates, heartDomain, heartHeight, false),
-      minLabel: String(Math.round(heartDomain.min)),
-      maxLabel: String(Math.round(heartDomain.max)),
-      zoneBand:
-        zone && bottom > top
-          ? { y: round(top), height: round(bottom - top) }
-          : null,
-      peak:
-        peakIndex >= 0
-          ? {
-              x: round(xs[peakIndex]),
-              y: round(
-                yOf(heartRates[peakIndex]!, heartDomain, heartHeight, false),
-              ),
-              value: Math.round(heartRates[peakIndex]!),
-            }
-          : null,
-    };
-  }
-
-  const lineOf = (
+  const distance = track.series.distance_m;
+  let lastDistance = 0;
+  const covered = Array.from({ length: track.length }, (_, index) => {
+    const value = distance?.[index] ?? null;
+    if (value !== null && value >= lastDistance) lastDistance = value;
+    return distance ? lastDistance : null;
+  });
+  const totalDistance = lastDistance;
+  const positions = xs.map((_, index) =>
+    [
+      duration !== null
+        ? formatElapsed(elapsed![index]!)
+        : `Échantillon ${index + 1} sur ${track.length}`,
+      covered[index] !== null
+        ? `${kilometers.format(covered[index]! / 1000)} km`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  );
+  const route = options.routeFractions;
+  const routeIndex = xs.map((_, index) => {
+    if (!route || route.length === 0) return null;
+    const fraction =
+      totalDistance > 0 && covered[index] !== null
+        ? covered[index]! / totalDistance
+        : index / (track.length - 1);
+    return nearestIndex(route, fraction);
+  });
+  const range = { top: topPadding, bottom: chartHeight - bottomPadding };
+  const seriesOf = (
+    key: DataSeriesKey,
     values: (number | null)[] | undefined,
-    height: number,
-    format: (value: number) => string,
     unit: string,
-  ): LineChart | null => {
+    format: (value: number) => string,
+    { trim = false, invert = false } = {},
+  ): DataSeries | null => {
     if (!values) return null;
-    const domain = domainOf(values, false);
+    const domain = domainOf(values, trim);
     if (!domain) return null;
+    const ys = values.map((value) =>
+      value === null ? null : round(scale(value, domain, range, invert)),
+    );
     return {
-      samples: samplesOf(
-        values,
-        domain,
-        height,
-        false,
-        (value) => `${measurement(value)} ${unit}`,
-      ),
-      height,
-      path: path(xs, values, domain, height, false),
-      minLabel: format(domain.min),
-      maxLabel: format(domain.max),
+      key,
+      label: dataSeriesLabels[key],
+      unit,
+      path: pathOf(xs, ys),
+      ys,
+      values: values.map((value) => (value === null ? null : format(value))),
     };
   };
-
-  const scatterHeight = 260;
-  const scatterPoints = track.series.heart_rate
-    ? paceValues
-        .map((value, index) => ({ pace: value, heartRate: heartRates[index] }))
-        .filter(
-          (point): point is { pace: number; heartRate: number } =>
-            point.pace !== null && point.heartRate !== null,
-        )
-    : [];
-  const scatterPace = domainOf(
-    scatterPoints.map((point) => point.pace),
-    true,
-  );
-  const scatterHeart = domainOf(
-    scatterPoints.map((point) => point.heartRate),
-    false,
-  );
-  const scatter: ScatterChart | null =
-    scatterPace && scatterHeart && scatterPoints.length >= 5
-      ? {
-          height: scatterHeight,
-          points: scatterPoints.map((point) => ({
-            x: round(
-              ((Math.min(
-                scatterPace.max,
-                Math.max(scatterPace.min, point.pace),
-              ) -
-                scatterPace.min) /
-                (scatterPace.max - scatterPace.min || 1)) *
-                chartWidth,
-            ),
-            y: round(yOf(point.heartRate, scatterHeart, scatterHeight, false)),
-          })),
-          paceLabels: [
-            formatClock(scatterPace.min),
-            formatClock(scatterPace.max),
-          ],
-          heartRateLabels: [
-            String(Math.round(scatterHeart.min)),
-            String(Math.round(scatterHeart.max)),
-          ],
-        }
+  const paceValues =
+    options.running === false || !track.series.speed_mps
+      ? undefined
+      : track.series.speed_mps.map(paceFromSpeed);
+  const elevation = track.series.elevation_m;
+  const reliefDomain = elevation ? domainOf(elevation, false) : null;
+  const relief =
+    elevation && reliefDomain
+      ? (() => {
+          const ys = elevation.map((value) =>
+            value === null
+              ? null
+              : round(
+                  scale(
+                    value,
+                    reliefDomain,
+                    { top: chartHeight * reliefTop, bottom: chartHeight },
+                    false,
+                  ),
+                ),
+          );
+          const line = pathOf(xs, ys);
+          const first = ys.findIndex((y) => y !== null);
+          const last = ys.findLastIndex((y) => y !== null);
+          return line && first !== last
+            ? `${line}L${round(xs[last])},${chartHeight}L${round(xs[first])},${chartHeight}Z`
+            : null;
+        })()
       : null;
-
+  const series = [
+    seriesOf("pace", paceValues, "/km", formatClock, {
+      trim: true,
+      invert: true,
+    }),
+    seriesOf("heartRate", track.series.heart_rate, "bpm", (value) =>
+      integer.format(value),
+    ),
+    seriesOf("power", track.series.power_w, "W", (value) =>
+      integer.format(value),
+    ),
+    seriesOf(
+      "cadence",
+      track.series.cadence,
+      options.cycling ? "tr/min" : "pas/min",
+      (value) => integer.format(value),
+    ),
+    seriesOf("elevation", elevation, "m", (value) => integer.format(value)),
+  ].filter((item): item is DataSeries => item !== null);
+  if (series.length === 0) return null;
   return {
-    duration,
-    axis,
+    axis: duration !== null ? "elapsed time" : "sample position",
     timeLabels:
       duration !== null
-        ? ["0:00", formatClock(duration / 2), formatClock(duration)]
-        : ["0%", "50%", "100%"],
-    bands,
-    pace,
-    heartRate,
-    cadence: lineOf(
-      track.series.cadence,
-      140,
-      (value) => String(Math.round(value)),
-      "pas/min",
-    ),
-    elevation: lineOf(
-      track.series.elevation_m,
-      140,
-      (value) => `${Math.round(value)} m`,
-      "m",
-    ),
-    scatter,
+        ? ["0:00", formatElapsed(duration / 2), formatElapsed(duration)]
+        : ["0 %", "50 %", "100 %"],
+    bands: (duration !== null ? options.bands : []).map((band) => ({
+      x: round(band.from * chartWidth),
+      width: round((band.to - band.from) * chartWidth),
+      label: band.label,
+    })),
+    relief,
+    xs: xs.map(round),
+    positions,
+    routeIndex,
+    series,
   };
 }

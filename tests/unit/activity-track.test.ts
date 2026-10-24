@@ -10,7 +10,11 @@ import {
 } from "../../src/features/activities/activities";
 import { activityDetailRowSchema } from "../../src/features/activities/detail";
 import { buildActivityView } from "../../src/features/activities/activity-view";
-import { buildChartsView } from "../../src/features/activities/charts";
+import {
+  buildChartsView,
+  type ChartsView,
+  type DataSeriesKey,
+} from "../../src/features/activities/charts";
 import {
   gradientStops,
   lineGradient,
@@ -84,6 +88,10 @@ function track(values: Record<string, unknown> = {}) {
   return parsed;
 }
 
+function series(view: ChartsView | null, key: DataSeriesKey) {
+  return view?.series.find((item) => item.key === key) ?? null;
+}
+
 describe("normalized activity tracks", () => {
   it("reads the latitude/longitude contract and preserves aligned samples", () => {
     const parsed = track();
@@ -101,8 +109,8 @@ describe("normalized activity tracks", () => {
     const parsed = track({ route: null, bounds: null });
     expect(buildRouteView(parsed, { zones, bands: [] })).toBeNull();
     expect(
-      buildChartsView(parsed, { zones, bands: [] })?.heartRate?.peak?.value,
-    ).toBe(170);
+      series(buildChartsView(parsed, { bands: [] }), "heartRate")?.values,
+    ).toEqual(["130", "155", "170"]);
   });
 
   it("returns safe unavailable states for missing or malformed rows", () => {
@@ -173,9 +181,9 @@ describe("normalized activity tracks", () => {
   });
 
   it("starts a new chart path after missing samples instead of bridging the gap", () => {
-    const chart = buildChartsView(track(), { zones, bands: [] });
-    expect(chart?.pace?.path.match(/M/g)).toHaveLength(2);
-    expect(chart?.heartRate?.peak?.value).toBe(170);
+    const chart = buildChartsView(track(), { bands: [] });
+    expect(series(chart, "pace")?.path.match(/M/g)).toHaveLength(2);
+    expect(series(chart, "heartRate")?.path.match(/M/g)).toHaveLength(1);
   });
 
   it("never displays running pace for cycling tracks", () => {
@@ -185,10 +193,18 @@ describe("normalized activity tracks", () => {
       track: track(),
       zones,
     });
-    expect(view.charts?.pace).toBeNull();
-    expect(view.charts?.scatter).toBeNull();
+    expect(series(view.charts, "pace")).toBeNull();
     expect(view.route?.pace.every((value) => value === null)).toBe(true);
-    expect(view.charts?.heartRate).not.toBeNull();
+    expect(series(view.charts, "heartRate")).not.toBeNull();
+    expect(
+      series(
+        buildChartsView(track({ series: { cadence: [80, 90, 85] } }), {
+          bands: [],
+          cycling: true,
+        }),
+        "cadence",
+      )?.unit,
+    ).toBe("tr/min");
   });
 
   it("keeps existing detail working without a track", () => {
@@ -248,62 +264,76 @@ describe("chart and map regressions", () => {
       },
     });
     const view = buildChartsView(parsed, {
-      zones,
       bands: [{ from: 0.2, to: 0.5, label: "T1" }],
     });
     expect(view?.timeLabels.join(" ")).not.toContain("0:00");
     expect(view?.bands).toEqual([]);
     const xs = Array.from(
-      view!.heartRate!.path.matchAll(/[ML]([\d.]+),/g),
+      series(view, "heartRate")!.path.matchAll(/[ML]([\d.]+),/g),
       (match) => Number(match[1]),
     );
     expect(xs).toEqual([...xs].sort((a, b) => a - b));
     const absent = buildChartsView(
       track({ series: { heart_rate: [110, 120, 130] } }),
-      { zones, bands: [] },
+      { bands: [] },
     );
     expect(absent?.timeLabels.join(" ")).not.toContain("0:00");
   });
 });
 
 describe("chart sample inspection", () => {
-  it("aligns recorded values, plotted points and actual elapsed times for every unit", () => {
+  it("aligns recorded values, plotted points and actual elapsed times for every series", () => {
     const view = buildChartsView(
       track({
         route: null,
         series: {
           elapsed_s: [10, 20, 60],
+          distance_m: [0, 1000, 2500],
           speed_mps: [4, null, 3],
           heart_rate: [130, null, 170],
           cadence: [168, null, 172.5],
           elevation_m: [20, null, 25.75],
+          power_w: [240, null, 286],
         },
       }),
-      { zones, bands: [] },
+      { bands: [] },
     );
-    expect(view?.pace?.samples[0]).toMatchObject({
-      value: "4:10 min/km",
-      position: "Temps écoulé · 0:10",
-      x: 150,
-    });
-    expect(view?.heartRate?.samples[2].value).toBe("170 bpm");
-    expect(view?.cadence?.samples[2].value).toBe("172,5 pas/min");
-    expect(view?.elevation?.samples[2].value).toBe("25,75 m");
-    for (const chart of [
-      view?.pace,
-      view?.heartRate,
-      view?.cadence,
-      view?.elevation,
-    ]) {
-      expect(chart?.samples).toHaveLength(3);
-      expect(chart?.samples[1]).toEqual({
-        x: 300,
-        y: null,
-        value: null,
-        position: "Temps écoulé · 0:20",
-      });
-      expect(chart?.samples[2].y).not.toBeNull();
+    expect(view?.xs).toEqual([150, 300, 900]);
+    expect(view?.positions).toEqual([
+      "0:10 · 0,0 km",
+      "0:20 · 1,0 km",
+      "1:00 · 2,5 km",
+    ]);
+    expect(series(view, "pace")?.values).toEqual(["4:10", null, "5:33"]);
+    expect(series(view, "heartRate")?.values[2]).toBe("170");
+    expect(series(view, "cadence")?.values[2]).toBe("173");
+    expect(series(view, "elevation")?.values[2]).toBe("26");
+    expect(series(view, "power")?.values).toEqual(["240", null, "286"]);
+    for (const item of view?.series ?? []) {
+      expect(item.ys).toHaveLength(3);
+      expect(item.ys[1]).toBeNull();
+      expect(item.ys[2]).not.toBeNull();
     }
+    expect(view?.relief).toMatch(/Z$/);
+  });
+
+  it("maps every chart sample to the nearest route point for the map cursor", () => {
+    const view = buildChartsView(
+      track({
+        series: {
+          elapsed_s: [0, 300, 600, 900],
+          distance_m: [0, 500, 1500, 2000],
+          heart_rate: [120, 130, 140, 150],
+        },
+      }),
+      { bands: [], routeFractions: [0, 0.5, 1] },
+    );
+    expect(view?.routeIndex).toEqual([0, 1, 2, 2]);
+    expect(
+      buildChartsView(track(), { bands: [] })?.routeIndex.every(
+        (index) => index === null,
+      ),
+    ).toBe(true);
   });
 
   it("reports true outlier pace even when its plotted position is trimmed", () => {
@@ -312,13 +342,10 @@ describe("chart sample inspection", () => {
     );
     const view = buildChartsView(
       track({ route: null, series: { speed_mps: speeds } }),
-      { zones, bands: [] },
+      { bands: [] },
     );
-    expect(view?.pace?.samples[50]).toMatchObject({
-      value: "16:40 min/km",
-      y: 120,
-      position: "Échantillon 51 sur 100",
-    });
+    expect(series(view, "pace")?.values[50]).toBe("16:40");
+    expect(view?.positions[50]).toBe("Échantillon 51 sur 100");
   });
 
   it.each([
@@ -334,11 +361,13 @@ describe("chart sample inspection", () => {
           route: null,
           series: { elapsed_s: elapsed, heart_rate: [110, 120, 130] },
         }),
-        { zones, bands: [] },
+        { bands: [] },
       );
-      expect(view?.heartRate?.samples.map((sample) => sample.position)).toEqual(
-        ["Échantillon 1 sur 3", "Échantillon 2 sur 3", "Échantillon 3 sur 3"],
-      );
+      expect(view?.positions).toEqual([
+        "Échantillon 1 sur 3",
+        "Échantillon 2 sur 3",
+        "Échantillon 3 sur 3",
+      ]);
     },
   );
 });

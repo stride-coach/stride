@@ -350,6 +350,8 @@ const tables = {
       average_heart_rate: 152,
       max_heart_rate: 176,
       average_cadence: 168,
+      average_power_watts: 248,
+      max_power_watts: 412,
       aerobic_training_effect: 3.4,
       anaerobic_training_effect: 1.8,
       detail_imported_at: "2026-10-07T04:12:00Z",
@@ -383,28 +385,33 @@ const tables = {
     ),
   ],
   provider_activity_segments: [
-    [900, 2570, 5.5, 134, 168, 6],
-    [600, 2270, 4.4, 161, 182, 4],
-    [120, 320, 6.2, 141, 164, 0],
-    [600, 2230, 4.49, 167, 181, 3],
-    [120, 320, 6.18, 146, 163, 0],
-    [440, 1600, 4.36, 171, 180, 2],
-    [740, 1990, 6.12, 136, 158, 1],
+    [900, 2570, 5.5, 134, 168, 6, 4, 221],
+    [600, 2270, 4.4, 161, 182, 4, 5, 286],
+    [120, 320, 6.2, 141, 164, 0, 1, 198],
+    [600, 2230, 4.49, 167, 181, 3, 3, 281],
+    [120, 320, 6.18, 146, 163, 0, 0, 196],
+    [440, 1600, 4.36, 171, 180, 2, 4, 274],
+    [740, 1990, 6.12, 136, 158, 1, 2, 209],
   ]
-    .map(([duration, distance, , heartRate, cadence, gain], index) => ({
-      activity_id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000004",
-      user_id: user.id,
-      segment_type: "lap",
-      segment_index: index,
-      started_at: null,
-      distance_meters: distance,
-      duration_seconds: duration,
-      average_heart_rate: heartRate,
-      average_cadence: cadence,
-      average_power_watts: null,
-      elevation_gain_meters: gain,
-      elevation_loss_meters: null,
-    }))
+    .map(
+      (
+        [duration, distance, , heartRate, cadence, gain, loss, power],
+        index,
+      ) => ({
+        activity_id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000004",
+        user_id: user.id,
+        segment_type: "lap",
+        segment_index: index,
+        started_at: null,
+        distance_meters: distance,
+        duration_seconds: duration,
+        average_heart_rate: heartRate,
+        average_cadence: cadence,
+        average_power_watts: power,
+        elevation_gain_meters: gain || null,
+        elevation_loss_meters: loss || null,
+      }),
+    )
     .concat(progressLaps),
   provider_activity_tracks: [
     {
@@ -462,6 +469,10 @@ const tables = {
         cadence: Array.from(
           { length: 100 },
           (_, index) => 168 + Math.round(Math.sin(index / 8) * 12),
+        ),
+        power_w: Array.from(
+          { length: 100 },
+          (_, index) => 248 + Math.round(Math.sin(index / 8) * 40),
         ),
       },
       heart_rate_histogram: {
@@ -1924,6 +1935,15 @@ function selectRows(table, params) {
     );
   else if (owner)
     rows = rows.filter((row) => `eq.${row.activity_id}` === owner);
+  const others = params
+    .get("or")
+    ?.match(/^\(activity_type\.is\.null,activity_type\.not\.in\.\((.*)\)\)$/);
+  if (others) {
+    const known = others[1].split(",");
+    rows = rows.filter(
+      (row) => !row.activity_type || !known.includes(row.activity_type),
+    );
+  }
   const types = params.get("activity_type")?.match(/^in\.\((.*)\)$/);
   if (types) {
     const allowed = types[1].split(",").map((type) => type.replace(/"/g, ""));
