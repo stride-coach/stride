@@ -2386,9 +2386,93 @@ createServer(async (request, response) => {
       revision: 1,
     }));
     tables.race_strategies = [];
+    tables.race_nutrition_plans = [];
+    const product = (index, values) => ({
+      id: `cccccccc-cccc-4ccc-8ccc-0000000000b${index}`,
+      user_id: user.id,
+      brand: null,
+      sodium_mg: 0,
+      caffeine_mg: 0,
+      serving_ml: null,
+      tested: false,
+      tested_note: null,
+      archived_at: null,
+      revision: 1,
+      created_at: new Date(Date.now() + index).toISOString(),
+      ...values,
+    });
+    tables.athlete_nutrition_products = road
+      ? []
+      : [
+          product(1, {
+            catalogue_key: "maurten-gel-100",
+            name: "Gel 100",
+            brand: "Maurten",
+            kind: "gel",
+            carbs_g: 25,
+            sodium_mg: 20,
+            serving_label: "40 g",
+            tested: true,
+            tested_note: "sortie 3h, 12 oct.",
+          }),
+          product(2, {
+            catalogue_key: "naak-ultra-energy-drink",
+            name: "Ultra Energy",
+            brand: "Näak",
+            kind: "drink",
+            carbs_g: 40,
+            sodium_mg: 500,
+            serving_label: "500 ml",
+            serving_ml: 500,
+            tested: true,
+          }),
+          product(3, {
+            catalogue_key: "overstims-compote",
+            name: "Compote énergétique",
+            brand: "Overstims",
+            kind: "compote",
+            carbs_g: 25,
+            serving_label: "90 g",
+          }),
+        ];
+    const nutritionProposal = {
+      id: "cccccccc-cccc-4ccc-8ccc-0000000000a2",
+      user_id: user.id,
+      race_id: race.id,
+      kind: "nutrition",
+      base_revision: 0,
+      title: "Plan nutrition de Léa",
+      summary: "70 g/h et une compote sur le deuxième tronçon.",
+      payload: {
+        targets: { carbsPerHourG: 70 },
+        plan: {
+          products: {},
+          segments: {
+            "cccccccc-cccc-4ccc-8ccc-000000000003": {
+              items: [
+                {
+                  productId: "cccccccc-cccc-4ccc-8ccc-0000000000b1",
+                  count: 3,
+                },
+                {
+                  productId: "cccccccc-cccc-4ccc-8ccc-0000000000b3",
+                  count: 1,
+                },
+              ],
+              note: "Compote au km 15.",
+            },
+          },
+        },
+      },
+      status: "ready",
+      coach_session_id: null,
+      decided_at: null,
+      created_at: new Date().toISOString(),
+    };
     tables.race_proposals = road
       ? []
       : [
+          nutritionProposal,
           {
             id: "cccccccc-cccc-4ccc-8ccc-0000000000a1",
             user_id: user.id,
@@ -2552,6 +2636,47 @@ createServer(async (request, response) => {
       const accept = url.pathname.endsWith("accept_race_proposal");
       proposal.status = accept ? "accepted" : "rejected";
       proposal.decided_at = new Date().toISOString();
+      if (accept && proposal.kind === "nutrition") {
+        const { plan, targets } = proposal.payload;
+        if (plan) {
+          const current = tables.race_nutrition_plans.find(
+            (row) => row.race_id === proposal.race_id,
+          );
+          const updated_at = new Date().toISOString();
+          if (current)
+            Object.assign(current, {
+              plan,
+              revision: current.revision + 1,
+              updated_at,
+            });
+          else
+            tables.race_nutrition_plans.push({
+              race_id: proposal.race_id,
+              user_id: proposal.user_id,
+              plan,
+              revision: 1,
+              updated_at,
+            });
+        }
+        const racePlan = tables.race_plans.find(
+          (row) => row.race_id === proposal.race_id,
+        );
+        if (targets && racePlan) {
+          const columns = {
+            carbsPerHourG: "carbs_per_hour_g",
+            waterMlPerHour: "water_ml_per_hour",
+            sodiumMgPerHour: "sodium_mg_per_hour",
+            caffeineMaxMg: "caffeine_max_mg",
+            nightCaffeine: "night_caffeine",
+            flaskMl: "flask_ml",
+            flaskCount: "flask_count",
+            bladderMl: "bladder_ml",
+          };
+          for (const [key, value] of Object.entries(targets))
+            racePlan[columns[key]] = value;
+          racePlan.revision += 1;
+        }
+      }
       if (accept && proposal.kind === "strategy") {
         const current = tables.race_strategies.find(
           (row) => row.race_id === proposal.race_id,
@@ -2776,6 +2901,52 @@ createServer(async (request, response) => {
         updated_at: new Date().toISOString(),
       });
       return send(200, [goal]);
+    }
+    if (url.pathname === "/rest/v1/athlete_nutrition_products") {
+      const rows = tables.athlete_nutrition_products;
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        if (
+          value.catalogue_key &&
+          rows.some(
+            (row) =>
+              row.user_id === value.user_id &&
+              row.catalogue_key === value.catalogue_key,
+          )
+        )
+          return send(409, {
+            code: "23505",
+            message: "duplicate key value violates unique constraint",
+          });
+        const row = {
+          id: randomUUID(),
+          catalogue_key: null,
+          brand: null,
+          sodium_mg: 0,
+          caffeine_mg: 0,
+          serving_label: null,
+          serving_ml: null,
+          tested: false,
+          tested_note: null,
+          archived_at: null,
+          ...value,
+          revision: 1,
+          created_at: new Date().toISOString(),
+        };
+        rows.push(row);
+        return send(201, [row]);
+      }
+      if (request.method === "PATCH") {
+        const matches = rows.filter((row) =>
+          ["id", "catalogue_key", "revision", "user_id"].every((key) => {
+            const filter = url.searchParams.get(key);
+            return !filter || filter === `eq.${row[key]}`;
+          }),
+        );
+        for (const row of matches)
+          Object.assign(row, body, { revision: row.revision + 1 });
+        return send(200, matches);
+      }
     }
     if (request.method === "PATCH" && url.pathname === "/rest/v1/race_plans") {
       const plan = tables.race_plans.find(

@@ -8,7 +8,7 @@ Claude Managed Agents definitions for the coaching runtime, chosen by the [#128]
 | `agents/medical.md`          | Stride Medical, brought in by the Coach, then talks to the athlete       |
 | `agents/director.md`         | Stride Sports Director: season calendar, race roles, spacing             |
 | `agents/strategist.md`       | Stride Course Strategist: one race on its course, scenarios and pacing   |
-| `agents/nutritionist.md`     | Stride Nutritionist: daily targets from the nutrition calculator         |
+| `agents/nutritionist.md`     | Stride Nutritionist: daily targets and race nutrition plans              |
 | `skills/*/SKILL.md`          | Coaching knowledge loaded on demand (plan format, periodization, races…) |
 | `environments/coaching.yaml` | Cloud environment, limited networking, MCP servers only                  |
 | `claude-lock.json`           | Resource IDs written by `ant apply`, committed                           |
@@ -24,6 +24,8 @@ The Coach and the specialists run on Claude Sonnet 5.5, except the Nutritionist 
 - `propose_race_strategy` (Course Strategist): stores a race strategy proposal (instructions, and per segment a note and a pace factor that keeps the target time) through `submit_race_proposal`. Nothing changes until the athlete accepts it on the race's Plan de course tab;
 - `read_gear` (Coach, Course Strategist): the athlete's active pairs with mileage, wear, longest run and replacement date, the pair Stride recommends or the athlete chose for each running session of a date range with reason codes, and each upcoming race's pair with its break-in status, from the deterministic rules in `src/features/gear`;
 - `read_nutrition_targets` (Nutritionist): daily energy and macro targets from the deterministic calculator in `src/features/nutrition/calculator.ts`, with the light-deficit verdict and missing profile fields;
+- `read_race_nutrition` (Nutritionist): the race fueling targets, the athlete's nutrition products, the accepted race nutrition plan, any waiting nutrition proposal and Stride's allocation on the target scenario (start setup, items per segment by arrival waypoint id, station refills, drop bag, shopping list), from `src/features/fueling/allocation.ts`;
+- `propose_race_nutrition` (Nutritionist): stores a race nutrition proposal (targets to change, product per role, start setup, exact items per segment and drop bag extras) through `submit_race_proposal`. Nothing changes until the athlete accepts it on the race's Nutrition tab;
 - `ask_athlete` (Coach and every specialist), which asks one question, with optional answer options, and pauses the turn until the athlete answers. The answer goes back to the agent that asked.
 
 The custom tool entries in `agents/*.md` are generated from the registry between the `# stride-tools:start` and `# stride-tools:end` markers. Never edit them by hand: change the tool module, run `npm run agents:tools`, and commit both. `npm run agents:tools:check` and `npm test` fail when a block drifts. The agent files are excluded from Prettier so the generated lines stay intact.

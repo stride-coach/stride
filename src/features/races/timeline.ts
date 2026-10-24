@@ -1,7 +1,7 @@
 import { formatDuration } from "./format";
 import type { ProfileData } from "./profile";
 import { isNightAt, nightOverlap } from "./night";
-import { describeItems } from "./nutrition";
+import type { RaceNutritionAllocation } from "@/features/fueling/allocation";
 import type { RaceStrategy } from "./proposals";
 import { glyphFor, iconFor, type Glyph, type RaceWeather } from "./weather";
 import {
@@ -194,39 +194,23 @@ function sentence(parts: (string | null | undefined | false)[]) {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : null;
 }
 
-export function genericFueling(
-  model: CourseModel,
-  planned: RacePlanModel,
+export function timelineFueling(
+  allocation: RaceNutritionAllocation,
 ): TimelineFueling {
-  const segments: TimelineFueling["segments"] = {};
-  const stations: TimelineFueling["stations"] = {};
-  const { simulation } = planned;
-  simulation.segments.forEach((segment, index) => {
-    const nutrition = planned.nutrition[index];
-    segments[segment.toId] = {
-      carbsG: nutrition?.carbsG ?? 0,
-      items: nutrition ? describeItems(nutrition.items) || null : null,
-    };
-  });
-  for (const waypoint of model.waypoints) {
-    if (!isSegmentBoundary(waypoint.kind) || waypoint.kind === "finish")
-      continue;
-    const next = simulation.segments.findIndex(
-      (segment) => segment.fromId === waypoint.id,
-    );
-    const items = next >= 0 ? describeItems(planned.nutrition[next].items) : "";
-    stations[waypoint.id] =
-      waypoint.kind === "start"
-        ? items
-          ? `${items} en poche`
-          : null
-        : waypoint.kind === "water"
-          ? "remplis les flasques d’eau"
-          : items
-            ? `reprends ${items}`
-            : null;
-  }
-  return { segments, stations };
+  return {
+    segments: Object.fromEntries(
+      allocation.segments.map((segment) => [
+        segment.id,
+        { carbsG: segment.carbsG, items: segment.text },
+      ]),
+    ),
+    stations: Object.fromEntries(
+      Object.values(allocation.stations).map((station) => [
+        station.id,
+        station.text,
+      ]),
+    ),
+  };
 }
 
 export function raceTimeline({

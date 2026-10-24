@@ -45,13 +45,21 @@ export type RaceWorkspaceData = {
   waypoints: Waypoint[];
   checklist: ChecklistItem[];
   strategy: StoredStrategy | null;
-  nutritionPlan: { plan: RaceNutritionPlan; revision: number } | null;
+  nutritionPlan: {
+    plan: RaceNutritionPlan;
+    revision: number;
+    updatedAt: string;
+  } | null;
 };
 
-function nutritionPlanOf(row: { plan: unknown; revision: number } | null) {
+function nutritionPlanOf(
+  row: { plan: unknown; revision: number; updated_at: string } | null,
+) {
   if (!row) return null;
   const plan = raceNutritionPlanSchema.safeParse(row.plan);
-  return plan.success ? { plan: plan.data, revision: row.revision } : null;
+  return plan.success
+    ? { plan: plan.data, revision: row.revision, updatedAt: row.updated_at }
+    : null;
 }
 
 function summary(row: unknown): RaceSummary {
@@ -140,7 +148,7 @@ export const readWorkspace = cache(
           .maybeSingle(),
         context.client
           .from("race_nutrition_plans")
-          .select("plan, revision")
+          .select("plan, revision, updated_at")
           .eq("user_id", context.userId)
           .eq("race_id", raceId)
           .maybeSingle(),

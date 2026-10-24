@@ -265,6 +265,92 @@ test("the plan de course follows the timeline and applies a strategy proposal", 
   });
 });
 
+test("the nutrition plan allocates the products and applies a nutritionist proposal", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/nutrition");
+
+  const banner = page.getByRole("region", { name: "Plan de nutrition" });
+  await expect(banner).toContainText("Léa, ta nutritionniste");
+  await expect(banner).toContainText("2 changements proposés");
+  const plan = page.getByRole("region", { name: "Plan par tronçon" });
+  const first = plan.getByRole("row", { name: /Départ → Ravito du Bois/ });
+  await expect(first).toContainText("gels Maurten");
+  await expect(first).toContainText("1 flasque iso (1 dose)");
+  await expect(first).toContainText(
+    "Flasque 1 iso (1 dose) · flasque 2 eau · reprends",
+  );
+  await expect(
+    plan.getByRole("row", { name: /Ravito du Bois → Point d’eau/ }),
+  ).toContainText("Flasque 2 eau seulement");
+  await expect(page.getByRole("region", { name: "Au départ" })).toContainText(
+    "Iso Näak · 1 dose",
+  );
+  await expect(
+    page.getByRole("complementary", { name: "Liste de courses" }),
+  ).toContainText("Näak Ultra Energy · doses");
+  await page.screenshot({
+    path: "test-results/race-nutrition-1440.png",
+    fullPage: true,
+  });
+
+  const products = page.getByRole("region", { name: "Mes produits" });
+  await products.getByRole("button", { name: "Ajouter un produit" }).click();
+  const dialog = page.getByRole("dialog", { name: "Ajouter un produit" });
+  await expect(
+    dialog.getByRole("button", { name: "Maurten Gel 100 déjà ajouté" }),
+  ).toBeDisabled();
+  await dialog
+    .getByRole("button", { name: "Ajouter Näak Barre Ultra Energy" })
+    .click();
+  await expect(
+    page.getByText("Näak Barre Ultra Energy ajouté à tes produits."),
+  ).toBeVisible();
+  await dialog.getByRole("tab", { name: "Saisie libre" }).click();
+  await dialog.getByLabel("Nom").fill("Gel maison");
+  await dialog.getByLabel("Glucides par portion (g)").fill("22");
+  await dialog.getByRole("button", { name: "Ajouter le produit" }).click();
+  await expect(page.getByText("Produit ajouté.")).toBeVisible();
+  await expect(dialog).toBeHidden();
+  await expect(
+    products.getByRole("button", { name: /^Näak Barre Ultra Energy/ }),
+  ).toBeVisible();
+  await expect(
+    products.getByRole("button", { name: /^Gel maison/ }),
+  ).toBeVisible();
+
+  await banner.getByRole("link", { name: "Examiner" }).click();
+  const sheet = page.getByRole("dialog", { name: "Plan nutrition de Léa" });
+  await expect(sheet).toContainText("Glucides par heure");
+  await expect(sheet).toContainText("70 g/h");
+  await sheet.getByRole("button", { name: "Accepter" }).click();
+  await expect(page.getByText("Proposition appliquée.")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+  await expect(page).not.toHaveURL(/proposal=/);
+  await expect(banner).toContainText("a préparé ce plan avec toi");
+  await expect(banner).not.toContainText("changements proposés");
+  await expect(
+    page.getByRole("button", { name: /^Glucides 70 g\/h/ }),
+  ).toBeVisible();
+  await expect(
+    plan.getByRole("row", { name: /Ravito du Bois → Point d’eau/ }),
+  ).toContainText("Compote au km 15.");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(plan.getByText(/^Au ravito : /).first()).toBeVisible();
+  await page.screenshot({
+    path: "test-results/race-nutrition-390.png",
+    fullPage: true,
+  });
+});
+
 test("a road 10 km shows only the course and accepts a new start time", async ({
   page,
   request,

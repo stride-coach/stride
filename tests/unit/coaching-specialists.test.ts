@@ -72,6 +72,10 @@ describe("specialist tool access", () => {
     expect(agentTools.director).toContain("read_season_calendar");
     expect(agentTools.strategist).toContain("read_race_strategy");
     expect(agentTools.nutritionist).toContain("read_nutrition_targets");
+    expect(agentTools.nutritionist).toEqual(
+      expect.arrayContaining(["read_race_nutrition", "propose_race_nutrition"]),
+    );
+    expect(agentTools.coach).not.toContain("propose_race_nutrition");
     for (const agent of ["director", "strategist", "nutritionist"] as const) {
       expect(agentTools[agent]).toEqual(
         expect.arrayContaining(["ask_athlete", "message_athlete"]),

@@ -298,8 +298,8 @@ export function nutritionChanges(
         after: [...after, ...(noteAfter ? [noteAfter] : [])],
       });
   }
-  const bagBefore = servingsText(current.plan.dropBag, names);
-  const bagAfter = servingsText(plan.dropBag, names);
+  const bagBefore = current.plan.dropBag ?? [];
+  const bagAfter = plan.dropBag ?? [];
   if (!sameList(bagBefore, bagAfter))
     changes.push({
       key: "drop-bag",

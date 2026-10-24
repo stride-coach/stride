@@ -7,10 +7,11 @@ import {
   type StoredCourse,
 } from "@/features/races/race";
 import { simulate } from "@/features/races/simulation";
+import { raceAllocation } from "@/features/races/race-nutrition";
 import {
-  genericFueling,
   raceTimeline,
   stationWeather,
+  timelineFueling,
 } from "@/features/races/timeline";
 import type { Waypoint } from "@/features/races/waypoints";
 import type { RaceWeather, WeatherSlot } from "@/features/races/weather";
@@ -153,7 +154,15 @@ describe("race timeline", () => {
       consignes: ["Pars lentement."],
       segments: { [ids.aid]: { note: "Reste sous 150 bpm." } },
     },
-    fueling: genericFueling(model, model5h),
+    fueling: timelineFueling(
+      raceAllocation({
+        model,
+        planned: model5h,
+        plan,
+        nutritionPlan: null,
+        products: [],
+      }),
+    ),
     stops: plan,
     walkPaceSecondsPerKm: plan.walkPaceSecondsPerKm,
   });
@@ -190,9 +199,11 @@ describe("race timeline", () => {
     const aid = timeline.stations[1];
     expect(aid.cutoffMinutes).toBe(11 * 60);
     expect(aid.marginSeconds).toBe(5 * 3600 - aid.elapsedSeconds);
-    expect(aid.refill).toMatch(/^Reprends .* · Recharge la frontale$/);
+    expect(aid.refill).toMatch(
+      /^Flasque 1 eau.* · reprends .* · Recharge la frontale$/,
+    );
     expect(aid.stopSeconds).toBe(300);
-    expect(timeline.stations[2].refill).toBe("Remplis les flasques d’eau");
+    expect(timeline.stations[2].refill).toMatch(/^Flasque .*eau seulement$/);
     expect(timeline.stations[0].refill).toMatch(/en poche$/);
   });
 

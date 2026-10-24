@@ -286,6 +286,7 @@ const proposalTools = new Set([
 
 const raceProposalScopes: Record<string, "race_strategy" | "race_nutrition"> = {
   propose_race_strategy: "race_strategy",
+  propose_race_nutrition: "race_nutrition",
 };
 
 const raceProposalInputSchema = z.object({

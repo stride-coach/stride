@@ -27,17 +27,20 @@ import {
   strategyChanges,
   type RaceProposal,
 } from "@/features/races/proposals";
+import { raceAllocation } from "@/features/races/race-nutrition";
 import { raceStrategy } from "@/features/races/reading";
 import {
-  genericFueling,
   planProfile,
   raceTimeline,
+  timelineFueling,
   type PlanProfileData,
   type TimelineTotals,
 } from "@/features/races/timeline";
 import { isStation } from "@/features/races/waypoints";
 import type { RaceWeather } from "@/features/races/weather";
 import type { Scenario, ScenarioKey } from "@/features/races/workspace";
+import type { NutritionProduct } from "@/features/fueling/products";
+import { readNutritionProducts } from "@/server/fueling/products";
 import { loadRace } from "@/server/races/load";
 import {
   loadRaceProposalReview,
@@ -299,6 +302,7 @@ type BodyProps = {
   views: Views;
   planned: Planned;
   proposal: StrategyProposal | null;
+  products: NutritionProduct[];
 };
 
 function PlanBody({
@@ -306,6 +310,7 @@ function PlanBody({
   views,
   planned,
   proposal,
+  products,
   weather,
 }: BodyProps & { weather: RaceWeather | null }) {
   const base = `/races/${data.race.id}`;
@@ -314,7 +319,15 @@ function PlanBody({
     planned,
     weather,
     strategy: data.strategy,
-    fueling: genericFueling(views.model, planned),
+    fueling: timelineFueling(
+      raceAllocation({
+        model: views.model,
+        planned,
+        plan: data.plan,
+        nutritionPlan: data.nutritionPlan?.plan ?? null,
+        products,
+      }),
+    ),
     stops: data.plan,
     walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
   });
@@ -432,13 +445,14 @@ export default async function RoadbookPage({
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const { context, data } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
-  const [review, proposals] = await Promise.all([
+  const [review, proposals, products] = await Promise.all([
     loadRaceProposalReview(
       context,
       data,
       typeof query.proposal === "string" ? query.proposal : undefined,
     ),
     readReadyRaceProposals(context, data.race.id),
+    readNutritionProducts(context),
   ]);
   const sheet = review && <RaceProposalSheet key={review.id} review={review} />;
   const base = `/races/${id}`;
@@ -479,7 +493,7 @@ export default async function RoadbookPage({
         />
       </>
     );
-  const props = { data, views, planned, proposal };
+  const props = { data, views, planned, proposal, products };
   if (!data.race.date || planned.startEpochMs === null)
     return (
       <>

@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { z } from "zod";
+import { productName } from "@/features/fueling/products";
 import { emptyNutritionPlan } from "@/features/fueling/race-plan";
 import {
   raceProposalReview,
@@ -59,12 +60,7 @@ export async function readProductNames(context: OnboardingContext) {
     .select("id, name, brand")
     .eq("user_id", context.userId);
   if (error) throw new Error("Unable to read the nutrition products");
-  return new Map(
-    (data ?? []).map((row) => [
-      row.id,
-      row.brand ? `${row.name} ${row.brand}` : row.name,
-    ]),
-  );
+  return new Map((data ?? []).map((row) => [row.id, productName(row)]));
 }
 
 export async function loadRaceProposalReview(

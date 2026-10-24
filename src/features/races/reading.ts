@@ -1,12 +1,10 @@
 import {
   formatClock,
   formatDecimal,
-  formatDuration,
   formatElapsed,
   formatKm,
   formatPace,
 } from "./format";
-import { productCarbs } from "./nutrition";
 import { isStation } from "./waypoints";
 import type { CourseModel, RacePlanModel } from "./workspace";
 
@@ -95,27 +93,4 @@ export function raceStrategy({
     });
   }
   return items.slice(0, 4);
-}
-
-export function nutritionReading(
-  planned: RacePlanModel,
-  carbsPerHourG: number,
-) {
-  const moving = planned.nutrition.reduce(
-    (sum, segment) => sum + segment.movingSeconds,
-    0,
-  );
-  const night = planned.nutrition.filter(
-    (segment) => segment.items.caffeineGels > 0,
-  ).length;
-  return [
-    `Pour ${formatDuration(moving)} d’effort en mouvement, ${carbsPerHourG} g/h représentent ${planned.nutritionTotals.carbsG} g de glucides, soit l’équivalent de ${planned.nutritionTotals.gelEquivalents} gels de ${productCarbs.gel} g.`,
-    "Les quantités suivent la durée prévue de chaque tronçon : un tronçon plus long demande plus de réserves.",
-    night > 0
-      ? `Sur ${plural(night, "tronçon")} de nuit, un gel est remplacé par un gel caféiné.`
-      : null,
-    "Teste ce rythme sur tes sorties longues avant le jour J.",
-  ]
-    .filter(Boolean)
-    .join(" ");
 }

@@ -344,6 +344,22 @@ function inputFor(name: string) {
       consignes: ["Pars lentement."],
       segments: [],
     },
+    read_race_nutrition: { raceId: a.raceId },
+    propose_race_nutrition: {
+      raceId: a.raceId,
+      title: "Nutrition de course",
+      summary: null,
+      targets: {
+        carbsPerHourG: 70,
+        waterMlPerHour: null,
+        sodiumMgPerHour: null,
+        caffeineMaxMg: null,
+        nightCaffeine: null,
+        flaskMl: null,
+        flaskCount: null,
+      },
+      plan: null,
+    },
     read_gear: { from: null, to: null },
     read_nutrition_targets: {
       from: isoDay(0),
@@ -475,6 +491,19 @@ describe("coaching tools run as athlete A", () => {
       },
     );
     expect(raceProposal.content).toMatchObject({ code: "not_found" });
+    const nutrition = await runCustomTool(a.context, "read_race_nutrition", {
+      raceId: b.raceId,
+    });
+    expect(nutrition.content).toMatchObject({ code: "not_found" });
+    const nutritionProposal = await runCustomTool(
+      a.context,
+      "propose_race_nutrition",
+      {
+        ...(inputFor("propose_race_nutrition") as object),
+        raceId: b.raceId,
+      },
+    );
+    expect(nutritionProposal.content).toMatchObject({ code: "not_found" });
   });
 
   it("reads A's pairs, session pair and race pair break-in", async () => {

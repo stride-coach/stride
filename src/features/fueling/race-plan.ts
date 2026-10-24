@@ -44,7 +44,7 @@ export const raceNutritionPlanSchema = z.strictObject({
       }),
     )
     .default({}),
-  dropBag: z.array(servingSchema).max(20).optional(),
+  dropBag: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
 });
 export type RaceNutritionPlan = z.infer<typeof raceNutritionPlanSchema>;
 
