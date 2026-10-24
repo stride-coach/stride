@@ -24,15 +24,6 @@ export const itemStatuses = [
 ] as const;
 export type ItemStatus = (typeof itemStatuses)[number];
 
-export const statusLabels: Record<ItemStatus, string> = {
-  ready: "Prêt",
-  check: "À vérifier",
-  buy: "À acheter",
-  test: "À tester",
-  weather: "Selon météo",
-  forbidden: "Interdit",
-};
-
 export const gearLists = [
   "gear_mandatory",
   "gear_night",
@@ -47,11 +38,16 @@ export const prepLists = [
   "prep_race_day",
 ] as const satisfies readonly ChecklistList[];
 
+export const trailChecklistLists = [
+  ...gearLists,
+  ...prepLists,
+] as const satisfies readonly ChecklistList[];
+
 export const listTitles: Record<ChecklistList, string> = {
-  gear_mandatory: "Obligatoire",
-  gear_night: "Pour la nuit",
+  gear_mandatory: "Matériel obligatoire",
+  gear_night: "Nuit",
   gear_weather: "Selon la météo",
-  gear_kit: "Chaussures et sac",
+  gear_kit: "Chaussures",
   gear_forbidden: "Interdit",
   nutrition_tested: "Ce que tu as déjà testé",
   key_sessions: "Séances clés pour cette course",
@@ -204,15 +200,64 @@ export function gearReadiness(items: ChecklistItem[]) {
   };
 }
 
-export function gearSummary(items: ChecklistItem[]) {
-  const missing = items.filter(
-    (item) => item.status === "buy" && !item.checked,
+export const chipStatuses = [
+  "ready",
+  "check",
+  "buy",
+  "test",
+] as const satisfies readonly ItemStatus[];
+export type ChipStatus = (typeof chipStatuses)[number] | "todo";
+
+export const chipLabels: Record<ChipStatus, string> = {
+  ready: "Prêt",
+  check: "À vérifier",
+  buy: "À acheter",
+  test: "À tester",
+  todo: "À faire",
+};
+
+export function isPrepList(list: ChecklistList) {
+  return prepLists.some((entry) => entry === list);
+}
+
+export function itemChip(
+  item: Pick<ChecklistItem, "list" | "status" | "checked">,
+): ChipStatus {
+  if (item.checked) return "ready";
+  if (
+    item.status === "check" ||
+    item.status === "buy" ||
+    item.status === "test"
+  )
+    return item.status;
+  return isPrepList(item.list) ? "todo" : "check";
+}
+
+export function raceReadiness(
+  items: readonly ChecklistItem[],
+  lists: readonly ChecklistList[],
+) {
+  const counted = items.filter(
+    (item) => item.list !== "gear_forbidden" && lists.includes(item.list),
   );
-  const testing = items.filter(
-    (item) => item.status === "test" && !item.checked,
-  );
-  const checking = items.filter(
-    (item) => item.status === "check" && !item.checked,
-  );
-  return { missing, testing, checking };
+  const chips = counted.map(itemChip);
+  return {
+    ready: chips.filter((chip) => chip === "ready").length,
+    total: counted.length,
+    buy: chips.filter((chip) => chip === "buy").length,
+    test: chips.filter((chip) => chip === "test").length,
+  };
+}
+
+export function readinessDetail(
+  readiness: ReturnType<typeof raceReadiness>,
+  { short = false } = {},
+) {
+  return [
+    short ? "prêts" : "éléments prêts",
+    readiness.buy > 0 && `${readiness.buy} à acheter`,
+    !short && readiness.test > 0 && `${readiness.test} à tester`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }

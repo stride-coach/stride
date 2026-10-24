@@ -351,6 +351,80 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
   });
 });
 
+test("the gear page edits statuses and the drop bag", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?base=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/gear");
+
+  const readiness = page.getByRole("region", { name: "Préparation" });
+  await expect(readiness).toContainText("9 / 17");
+  await expect(readiness).toContainText(
+    "éléments prêts · 1 à acheter · 1 à tester",
+  );
+  await expect(
+    readiness.getByRole("button", { name: "Imprimer la check-list" }),
+  ).toBeVisible();
+  const prep = page.getByRole("region", { name: "J-7" });
+  await expect(
+    prep.getByRole("button", {
+      name: "Statut de Tester la tenue complète : À faire",
+    }),
+  ).toBeVisible();
+
+  const mandatory = page.getByRole("region", { name: "Matériel obligatoire" });
+  await mandatory
+    .getByRole("button", { name: "Statut de Veste imperméable : À vérifier" })
+    .click();
+  await page.getByRole("menuitemradio", { name: "Prêt" }).click();
+  await expect(page.getByText("Statut : Prêt.")).toBeVisible();
+  await expect(readiness).toContainText("10 / 17");
+  await expect(
+    mandatory.getByRole("checkbox", { name: "Veste imperméable" }),
+  ).toBeChecked();
+
+  const bag = page.getByRole("region", { name: "Sac d’allègement" });
+  await expect(bag).toContainText("base de vie km 20,0");
+  await expect(bag).toContainText("depuis le plan nutrition");
+  await bag
+    .getByRole("button", { name: "Ajouter un élément à Sac d’allègement" })
+    .click();
+  await bag
+    .getByRole("textbox", { name: "Nouvel élément · Sac d’allègement" })
+    .fill("Chaussettes de rechange");
+  await bag.getByRole("button", { name: "Ajouter à Sac d’allègement" }).click();
+  await expect(page.getByText("Ajouté au sac d’allègement.")).toBeVisible();
+  await page.reload();
+  await expect(bag).toContainText("Chaussettes de rechange");
+  await page.screenshot({
+    path: "test-results/race-gear-1440.png",
+    fullPage: true,
+  });
+  await bag
+    .getByRole("button", {
+      name: "Retirer Chaussettes de rechange du sac d’allègement",
+    })
+    .click();
+  await expect(page.getByText("Retiré du sac d’allègement.")).toBeVisible();
+  await expect(bag).not.toContainText("Chaussettes de rechange");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(readiness).toContainText("prêts · 1 à acheter");
+  await expect(bag.getByRole("heading")).toHaveAccessibleName(
+    "Sac d’allègement · km 20,0",
+  );
+  await page.screenshot({
+    path: "test-results/race-gear-390.png",
+    fullPage: true,
+  });
+});
+
 test("a road 10 km shows only the course and accepts a new start time", async ({
   page,
   request,

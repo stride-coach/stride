@@ -2364,7 +2364,9 @@ createServer(async (request, response) => {
         : [
             ["start", "Départ", 0],
             ["aid", "Ravito du Bois", 10000],
-            ["water", "Point d’eau", 20000],
+            url.searchParams.get("base")
+              ? ["base", "Base de vie", 20000]
+              : ["water", "Point d’eau", 20000],
             ["finish", "Arrivée", 30000],
           ]
     ).map(([kind, name, distance], index) => ({
@@ -2375,9 +2377,9 @@ createServer(async (request, response) => {
       name,
       distance_m: distance,
       cutoff_time: null,
-      services: kind === "aid" || kind === "water" ? ["water"] : [],
+      services: ["aid", "water", "base"].includes(kind) ? ["water"] : [],
       watch_label: null,
-      alert_distance_m: kind === "aid" || kind === "water" ? 500 : 0,
+      alert_distance_m: ["aid", "water", "base"].includes(kind) ? 500 : 0,
       voice_note: null,
       todo: null,
       nutrition_note: null,
@@ -2387,6 +2389,68 @@ createServer(async (request, response) => {
     }));
     tables.race_strategies = [];
     tables.race_nutrition_plans = [];
+    const checklistItem = (index, list, label, values = {}) => ({
+      id: `e2000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+      race_id: race.id,
+      user_id: user.id,
+      list,
+      label,
+      detail: null,
+      status: null,
+      checked: false,
+      start_date: null,
+      end_date: null,
+      position: index,
+      revision: 1,
+      shoe_id: null,
+      ...values,
+    });
+    const ready = { status: "ready", checked: true };
+    tables.race_checklist_items = road
+      ? []
+      : [
+          checklistItem(1, "gear_kit", "Chaussures de course", {
+            detail: "Plan B : Hoka Speedgoat 7.",
+            status: "test",
+            shoe_id: "d1000000-0000-4000-8000-000000000004",
+          }),
+          checklistItem(2, "gear_mandatory", "Frontale + piles de rechange", {
+            detail: "200 lumens mini",
+            ...ready,
+          }),
+          checklistItem(3, "gear_mandatory", "Couverture de survie", ready),
+          checklistItem(4, "gear_mandatory", "Réserve d’eau 0,5 L", {
+            detail: "flasques 2 × 500 ml",
+            ...ready,
+          }),
+          checklistItem(5, "gear_mandatory", "Gobelet", ready),
+          checklistItem(6, "gear_mandatory", "Téléphone chargé", {
+            detail: "numéro de l’organisation enregistré",
+            ...ready,
+          }),
+          checklistItem(7, "gear_mandatory", "Veste imperméable", {
+            detail: "coutures étanches",
+            status: "check",
+          }),
+          checklistItem(8, "gear_night", "Frontale de secours", {
+            status: "buy",
+          }),
+          checklistItem(9, "gear_night", "Gilet réfléchissant", ready),
+          checklistItem(10, "gear_weather", "Gants fins", {
+            detail: "si moins de 5 °C",
+            ...ready,
+          }),
+          checklistItem(11, "gear_weather", "Buff", ready),
+          checklistItem(12, "gear_forbidden", "Bâtons"),
+          checklistItem(13, "prep_week", "Dernière sortie longue de 1h30"),
+          checklistItem(14, "prep_week", "Tester la tenue complète"),
+          checklistItem(15, "prep_eve", "Retrait du dossard"),
+          checklistItem(16, "prep_eve", "Parcours .fit chargé sur la montre", {
+            ...ready,
+          }),
+          checklistItem(17, "prep_race_day", "Petit-déjeuner avant 06:00"),
+          checklistItem(18, "prep_race_day", "Frontale allumée au départ"),
+        ];
     const product = (index, values) => ({
       id: `cccccccc-cccc-4ccc-8ccc-0000000000b${index}`,
       user_id: user.id,
@@ -3102,6 +3166,69 @@ createServer(async (request, response) => {
         )
         .concat(decision);
       return send(201, undefined);
+    }
+    if (
+      url.pathname === "/rest/v1/race_checklist_items" &&
+      request.method === "POST"
+    ) {
+      const rows = (Array.isArray(body) ? body : [body]).map((value) => ({
+        id: randomUUID(),
+        detail: null,
+        status: null,
+        checked: false,
+        start_date: null,
+        end_date: null,
+        position: 0,
+        shoe_id: null,
+        ...value,
+        revision: 1,
+      }));
+      tables.race_checklist_items.push(...rows);
+      return send(201, rows);
+    }
+    if (
+      url.pathname === "/rest/v1/race_checklist_items" &&
+      request.method === "DELETE"
+    ) {
+      tables.race_checklist_items = tables.race_checklist_items.filter(
+        (row) => url.searchParams.get("id") !== `eq.${row.id}`,
+      );
+      return send(204, undefined);
+    }
+    if (url.pathname === "/rest/v1/race_nutrition_plans") {
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        if (
+          tables.race_nutrition_plans.some(
+            (row) => row.race_id === value.race_id,
+          )
+        )
+          return send(409, {
+            code: "23505",
+            message: "duplicate key value violates unique constraint",
+          });
+        const row = {
+          ...value,
+          revision: 1,
+          updated_at: new Date().toISOString(),
+        };
+        tables.race_nutrition_plans.push(row);
+        return send(201, [row]);
+      }
+      if (request.method === "PATCH") {
+        const matches = tables.race_nutrition_plans.filter((row) =>
+          ["race_id", "user_id", "revision"].every((key) => {
+            const filter = url.searchParams.get(key);
+            return !filter || filter === `eq.${row[key]}`;
+          }),
+        );
+        for (const row of matches)
+          Object.assign(row, body, {
+            revision: row.revision + 1,
+            updated_at: new Date().toISOString(),
+          });
+        return send(200, matches);
+      }
     }
     if (
       url.pathname === "/rest/v1/race_checklist_items" &&
