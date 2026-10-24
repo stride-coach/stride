@@ -266,13 +266,31 @@ export async function readThreadProposalStatuses(
     coachSessionIds.map((id) => [id, {}]),
   );
   if (!coachSessionIds.length) return statuses;
-  const { data, error } = await context.client
-    .from("plan_proposals")
-    .select("id, status, coach_session_id")
-    .eq("user_id", context.userId)
-    .in("coach_session_id", [...coachSessionIds]);
-  if (error) throw new Error("Unable to read the thread proposals");
-  for (const row of z.array(proposalStatusSchema).parse(data ?? [])) {
+  const [plans, races] = await Promise.all([
+    context.client
+      .from("plan_proposals")
+      .select("id, status, coach_session_id")
+      .eq("user_id", context.userId)
+      .in("coach_session_id", [...coachSessionIds]),
+    context.client
+      .from("race_proposals")
+      .select("id, status, coach_session_id")
+      .eq("user_id", context.userId)
+      .in("coach_session_id", [...coachSessionIds]),
+  ]);
+  if (plans.error || races.error)
+    throw new Error("Unable to read the thread proposals");
+  const rows = [
+    ...z.array(proposalStatusSchema).parse(plans.data ?? []),
+    ...z
+      .array(proposalStatusSchema)
+      .parse(races.data ?? [])
+      .map((row) => ({
+        ...row,
+        status: row.status === "accepted" ? "applied" : row.status,
+      })),
+  ];
+  for (const row of rows) {
     const record = statuses.get(row.coach_session_id);
     if (record) record[row.id] = row.status;
   }
@@ -290,19 +308,21 @@ export async function countCoachAttention(context: OnboardingContext) {
     .array(z.object({ id: z.uuid(), status: z.string() }))
     .parse(sessions.data ?? []);
   if (!rows.length) return { questions: 0, proposals: 0 };
-  const proposals = await context.client
-    .from("plan_proposals")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", context.userId)
-    .eq("status", "ready")
-    .in(
-      "coach_session_id",
-      rows.map((row) => row.id),
-    );
-  if (proposals.error) return null;
+  const ids = rows.map((row) => row.id);
+  const [plans, races] = await Promise.all(
+    (["plan_proposals", "race_proposals"] as const).map((table) =>
+      context.client
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId)
+        .eq("status", "ready")
+        .in("coach_session_id", ids),
+    ),
+  );
+  if (plans.error || races.error) return null;
   return {
     questions: rows.filter((row) => row.status === "awaiting_athlete").length,
-    proposals: proposals.count ?? 0,
+    proposals: (plans.count ?? 0) + (races.count ?? 0),
   };
 }
 

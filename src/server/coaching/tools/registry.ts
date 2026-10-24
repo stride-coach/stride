@@ -17,6 +17,7 @@ import { messageAthleteTool } from "./message-athlete";
 import { extendPlanTool } from "./extend-plan";
 import { createPlanProposalTool } from "./plan-proposal";
 import { readNutritionTargetsTool } from "./nutrition-targets";
+import { proposeRaceStrategyTool } from "./race-proposal";
 import { readRaceStrategyTool } from "./race-strategy";
 import { rewritePlanRangeTool } from "./rewrite-plan-range";
 import { readSeasonCalendarTool } from "./season-calendar";
@@ -42,6 +43,7 @@ export const coachingTools = [
   updateConditionReportTool,
   readSeasonCalendarTool,
   readRaceStrategyTool,
+  proposeRaceStrategyTool,
   readNutritionTargetsTool,
   readGearTool,
 ] as const satisfies readonly RegisteredTool[];
@@ -82,6 +84,7 @@ export const agentTools = {
   strategist: [
     "read_athlete_context",
     "read_race_strategy",
+    "propose_race_strategy",
     "read_gear",
     "read_health_reports",
     "ask_athlete",

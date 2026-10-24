@@ -284,6 +284,20 @@ const proposalTools = new Set([
   "rewrite_plan_range",
 ]);
 
+const raceProposalScopes: Record<string, "race_strategy" | "race_nutrition"> = {
+  propose_race_strategy: "race_strategy",
+};
+
+const raceProposalInputSchema = z.object({
+  title: z.string().catch(""),
+  summary: z.string().nullable().catch(null),
+});
+
+const raceProposalOutputSchema = z.object({
+  proposalId: z.uuid(),
+  raceId: z.uuid(),
+});
+
 const proposalInputSchema = z.object({
   title: z.string().catch(""),
   summary: z.string().nullable().catch(null),
@@ -313,8 +327,31 @@ function proposalItem(
   name: string,
   input: unknown,
   outcome: ToolOutcome,
+  agent: StaffAgent,
 ): ThreadItem | null {
-  if (!outcome.ok || !proposalTools.has(name)) return null;
+  if (!outcome.ok) return null;
+  const raceScope = raceProposalScopes[name];
+  if (raceScope) {
+    const output = raceProposalOutputSchema.safeParse(outcome.content);
+    if (!output.success) return null;
+    const value = raceProposalInputSchema.parse(input ?? {});
+    return {
+      kind: "proposal",
+      at: new Date().toISOString(),
+      proposalId: output.data.proposalId,
+      scope: raceScope,
+      raceId: output.data.raceId,
+      agent,
+      title:
+        value.title ||
+        (raceScope === "race_strategy"
+          ? "Stratégie de course"
+          : "Nutrition de course"),
+      summary: value.summary,
+      opinions: [],
+    };
+  }
+  if (!proposalTools.has(name)) return null;
   const id = proposalIdSchema.safeParse(outcome.content);
   if (!id.success) return null;
   const at = new Date().toISOString();
@@ -609,7 +646,12 @@ export async function* streamCoachTurn(
               tool: event.name,
               label,
             });
-          const proposal = proposalItem(event.name, event.input, outcome);
+          const proposal = proposalItem(
+            event.name,
+            event.input,
+            outcome,
+            caller,
+          );
           if (proposal) yield persist(proposal);
           await client.beta.sessions.events.send(id, {
             events: [

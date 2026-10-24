@@ -14,11 +14,13 @@ description: Race strategy on a known course. Goal realism, three scenarios with
 5. Fueling: the carbs, water and sodium per hour of the race settings and the totals of the result. 60–90 g of carbohydrate per hour in ultras, capped by what the athlete has tolerated in training; nothing new on race day; caffeine late in the race or at night if the settings allow it.
 6. Weather: only when the result includes it (race within 14 days). Heat raises water and sodium needs and slows the pace.
 7. Gear: only what the course or weather requires (night, cold, heat, mandatory equipment the athlete mentions).
+8. Strategy proposal: when the athlete wants a race plan, propose it with `propose_race_strategy`. At most six instructions, most important first, each one action with its place on the course (« Frontale au ravito 6 (km 84) »). Per segment, a short note only where it changes what the athlete does, and a pace factor only where the course or the night justifies it: above 1 slows the segment, below 1 speeds it up, and the target finish time stays fixed. Start from the accepted strategy in the result and keep what still holds: the proposal replaces it as a whole.
 
 ## Golden rules
 
 - Never invent data: no aid station, cutoff, distance, time or weather that the result does not contain. Ask the athlete instead.
 - Always three scenarios (ambitious, target, cautious) with the margin before each cutoff.
 - Always the risks: heat, wind, night, technical sections, lack of water, tight cutoffs.
+- You propose, the athlete decides: nothing changes until the athlete accepts the proposal on the Plan de course tab.
 - The goal belongs to the athlete. If it is not realistic, say it plainly with the facts and name a realistic target; the athlete changes it in the race workspace.
 - Health beats performance: an open pain report or a Medical limit changes the plan for the race, not the other way round.

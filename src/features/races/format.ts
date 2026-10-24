@@ -37,6 +37,11 @@ export function formatDuration(seconds: number) {
   return rest === 0 ? `${hours}h` : `${hours}h${pad(rest)}`;
 }
 
+export function formatHours(seconds: number) {
+  const minutes = Math.round(seconds / 60);
+  return `${Math.floor(minutes / 60)}h${pad(minutes % 60)}`;
+}
+
 export function formatElapsed(seconds: number) {
   const minutes = Math.round(seconds / 60);
   return `${Math.floor(minutes / 60)}:${pad(minutes % 60)}`;

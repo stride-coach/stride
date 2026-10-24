@@ -164,12 +164,14 @@ export function planModel({
   plan,
   scenario,
   timeZone,
+  paceFactors,
 }: {
   model: CourseModel;
   race: RaceSummary;
   plan: RacePlan;
   scenario: Scenario;
   timeZone: string;
+  paceFactors?: Readonly<Record<string, number>>;
 }): RacePlanModel {
   const startMinutes = plan.startMinutes ?? defaultStartMinutes;
   const simulation = simulate(
@@ -183,6 +185,7 @@ export function planModel({
       aidStopSeconds: race.kind === "road" ? 0 : plan.aidStopSeconds,
       waterStopSeconds: race.kind === "road" ? 0 : plan.waterStopSeconds,
       startMinutes,
+      paceFactors: race.kind === "road" ? undefined : paceFactors,
     },
   );
   const start = positionAt(model.course, 0);

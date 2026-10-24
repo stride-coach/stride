@@ -8,6 +8,8 @@ import {
   scenariosOf,
   type RacePlanModel,
 } from "@/features/races/workspace";
+import { emptyStrategy, paceFactorsOf } from "@/features/races/proposals";
+import { readReadyRaceProposals } from "@/server/races/proposals";
 import { readWorkspace } from "@/server/races/races";
 import { weatherFor } from "@/server/races/views";
 import { defineTool } from "./define";
@@ -48,9 +50,12 @@ function scenarioView(
           ? null
           : Math.round(passage.marginSeconds),
     })),
-    segments: simulation.segments.map((segment) => ({
+    segments: simulation.segments.map((segment, index) => ({
+      segment: `T${index + 1}`,
+      arrivalWaypointId: segment.toId,
       from: names.get(segment.fromId) ?? segment.fromId,
       to: names.get(segment.toId) ?? segment.toId,
+      movingSeconds: Math.round(segment.movingSeconds),
       km: km(segment.toM - segment.fromM),
       gainM: segment.gainM,
       lossM: segment.lossM,
@@ -68,7 +73,7 @@ function scenarioView(
 export const readRaceStrategyTool = defineTool({
   name: "read_race_strategy",
   description:
-    "Read Stride's race workspace analysis for one of the athlete's races, by race id from read_athlete_context: the course (distance, elevation, walking sections), waypoints with services and cutoffs, the athlete's race settings (start time, walk grade, stops, carbs, water and sodium per hour), and the three scenarios (ambitious, target, cautious) simulated on this course with passage times, margins before each cutoff, segment paces, night sections and fueling totals. Weather is included when the race is at most 14 days away. Returns hasCourse false when no GPX or activity course is imported. Never compute paces, times or margins yourself: quote this result.",
+    "Read Stride's race workspace analysis for one of the athlete's races, by race id from read_athlete_context: the course (distance, elevation, walking sections), waypoints with their ids, services and cutoffs, the athlete's race settings (start time, walk grade, stops, carbs, water and sodium per hour), the race strategy the athlete accepted (instructions, and per segment a note and a pace factor keyed by the arrival waypoint id), any strategy proposal still waiting for the athlete, and the three scenarios (ambitious, target, cautious) simulated on this course with the accepted pace factors: passage times, margins before each cutoff, segments T1, T2… with their arrival waypoint id, moving time and pace, night sections and fueling totals. Weather is included when the race is at most 14 days away. Returns hasCourse false when no GPX or activity course is imported. Never compute paces, times or margins yourself: quote this result.",
   class: "compute",
   dataClasses: ["training"],
   input: z.strictObject({
@@ -81,14 +86,34 @@ export const readRaceStrategyTool = defineTool({
     daysToRace: z.number().nullable(),
     course: z.unknown().nullable(),
     settings: z.unknown(),
+    strategy: z.unknown(),
+    pendingProposal: z.unknown().nullable(),
     waypoints: z.array(z.unknown()),
     scenarios: z.array(z.unknown()),
     weather: z.unknown().nullable(),
   }),
   run: async (context, { raceId }) => {
     if (!z.uuid().safeParse(raceId).success) throw toolError("not_found");
-    const data = await readWorkspace(context, raceId);
+    const [data, pending] = await Promise.all([
+      readWorkspace(context, raceId),
+      readReadyRaceProposals(context, raceId),
+    ]);
     if (!data) throw toolError("not_found");
+    const accepted = data.strategy ?? { ...emptyStrategy, revision: 0 };
+    const strategy = {
+      revision: accepted.revision,
+      consignes: accepted.consignes,
+      segments: accepted.segments,
+    };
+    const waiting = pending.find((proposal) => proposal.kind === "strategy");
+    const pendingProposal = waiting
+      ? {
+          title: waiting.title,
+          summary: waiting.summary,
+          createdAt: waiting.createdAt,
+          payload: waiting.payload,
+        }
+      : null;
     const today = localToday(data.course?.timeZone ?? "Europe/Paris");
     const daysToRace = data.race.date ? daysUntil(data.race.date, today) : null;
     const { plan, race } = data;
@@ -113,6 +138,8 @@ export const readRaceStrategyTool = defineTool({
         daysToRace,
         course: null,
         settings,
+        strategy,
+        pendingProposal,
         waypoints: [],
         scenarios: [],
         weather: null,
@@ -128,6 +155,7 @@ export const readRaceStrategyTool = defineTool({
         plan,
         scenario,
         timeZone: data.course!.timeZone,
+        paceFactors: paceFactorsOf(strategy),
       }),
     );
     const target =
@@ -153,7 +181,10 @@ export const readRaceStrategyTool = defineTool({
         timeZone: data.course.timeZone,
       },
       settings,
+      strategy,
+      pendingProposal,
       waypoints: model.waypoints.map((waypoint) => ({
+        id: waypoint.id,
         name: waypoint.name,
         kind: waypoint.kind,
         km: km(waypoint.distanceM),

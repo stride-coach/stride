@@ -28,6 +28,7 @@ import {
   type ThreadEntry,
 } from "@/features/coach/thread";
 import { ProposalLink } from "../../plan/_components/proposal-sheet";
+import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 
 function StaffName({ agent }: { agent: StaffAgent }) {
   const staff = useStaff();
@@ -146,6 +147,16 @@ const proposalStatus: Record<
   closed: { label: "Plus applicable", tone: "muted" },
 };
 
+const proposalKickers: Record<
+  Extract<StaffBlock, { type: "proposal" }>["scope"],
+  string
+> = {
+  new_plan: "Proposition · Nouveau plan",
+  session: "Proposition · Plan",
+  race_strategy: "Proposition · Stratégie de course",
+  race_nutrition: "Proposition · Nutrition de course",
+};
+
 function ProposalCard({
   block,
 }: {
@@ -156,11 +167,7 @@ function ProposalCard({
   return (
     <div className="flex flex-col gap-3.5 rounded-panel border border-border bg-surface p-4 sm:p-4.5">
       <div className="flex items-center gap-2">
-        <MonoLabel tone="foreground">
-          {block.scope === "new_plan"
-            ? "Proposition · Nouveau plan"
-            : "Proposition · Plan"}
-        </MonoLabel>
+        <MonoLabel tone="foreground">{proposalKickers[block.scope]}</MonoLabel>
         <MonoLabel
           tone={status.tone}
           className={cn(
@@ -201,12 +208,23 @@ function ProposalCard({
           size="md"
           variant={block.status === "pending" ? "default" : "outline"}
         >
-          <ProposalLink
-            href={`/plan?proposal=${block.proposalId}`}
-            data-proposal-id={block.proposalId}
-          >
-            {block.status === "pending" ? "Examiner" : "Voir la proposition"}
-          </ProposalLink>
+          {block.raceId &&
+          (block.scope === "race_strategy" ||
+            block.scope === "race_nutrition") ? (
+            <Link
+              href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "roadbook" : "nutrition"}?proposal=${block.proposalId}`}
+              data-proposal-id={block.proposalId}
+            >
+              {block.status === "pending" ? "Examiner" : "Voir la proposition"}
+            </Link>
+          ) : (
+            <ProposalLink
+              href={`/plan?proposal=${block.proposalId}`}
+              data-proposal-id={block.proposalId}
+            >
+              {block.status === "pending" ? "Examiner" : "Voir la proposition"}
+            </ProposalLink>
+          )}
         </Button>
       </div>
     </div>

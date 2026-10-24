@@ -1,5 +1,5 @@
 import type { SentAttachment } from "./attachments";
-import type { ProposalOpinion, ThreadItem } from "./items";
+import type { ProposalOpinion, ProposalScope, ThreadItem } from "./items";
 import type { StaffAgent, StaffMember } from "./staff";
 
 export type ProposalCardStatus =
@@ -22,7 +22,8 @@ export type StaffBlock =
   | {
       type: "proposal";
       proposalId: string;
-      scope: "new_plan" | "session";
+      scope: ProposalScope;
+      raceId: string | null;
       title: string;
       summary: string | null;
       opinions: ProposalOpinion[];
@@ -222,10 +223,11 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         return;
       }
       case "proposal":
-        speak("coach", item.at, index).blocks.push({
+        speak(item.agent ?? "coach", item.at, index).blocks.push({
           type: "proposal",
           proposalId: item.proposalId,
           scope: item.scope,
+          raceId: item.raceId ?? null,
           title: item.title,
           summary: item.summary,
           opinions: item.opinions,

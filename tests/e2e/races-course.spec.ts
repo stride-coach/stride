@@ -188,6 +188,83 @@ test("a populated race opens every workspace section on desktop and mobile", asy
   }
 });
 
+test("the plan de course follows the timeline and applies a strategy proposal", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/roadbook");
+
+  const timeline = page.getByRole("list", {
+    name: "Plan de course par tronçon",
+  });
+  await expect(
+    timeline.getByRole("heading", { name: "Ravito du Bois" }),
+  ).toBeVisible();
+  await expect(timeline.getByRole("article")).toHaveCount(3);
+  await expect(
+    timeline.getByRole("article", { name: /^Tronçon T1, Départ → Ravito/ }),
+  ).toContainText("Allure en courant");
+  await expect(
+    page.getByRole("button", { name: "Imprimer le roadbook" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /^Cible · 6h00/ }),
+  ).toHaveAttribute("aria-current", "true");
+  const arrival = page.getByRole("complementary", {
+    name: "Résumé du plan de course",
+  });
+  await expect(arrival).toContainText("14:00");
+  await expect(arrival).toContainText("barrière 16:00 · marge 2h00");
+  const strategy = page.getByRole("region", { name: "Consignes du stratège" });
+  await expect(strategy).toContainText("3 changements proposés");
+
+  await strategy
+    .getByRole("link", { name: "Examiner les changements" })
+    .click();
+  const sheet = page.getByRole("dialog", { name: "Stratégie du stratège" });
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText("Consignes du stratège");
+  await expect(sheet).toContainText("T1 · Départ → Ravito du Bois · allure");
+  await expect(sheet).toContainText("5 % plus prudent");
+  await page.screenshot({ path: "test-results/race-plan-proposal-1440.png" });
+  await sheet.getByRole("button", { name: "Accepter" }).click();
+  await expect(page.getByText("Proposition appliquée.")).toBeVisible();
+  await expect(sheet).toContainText("Acceptée");
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+  await expect(page).not.toHaveURL(/proposal=/);
+  await expect(strategy).toContainText(
+    "Aucune avance avant le Ravito du Bois : sous 150 bpm.",
+  );
+  await expect(strategy).not.toContainText("changements proposés");
+  await expect(
+    timeline.getByRole("article", { name: /^Tronçon T1/ }),
+  ).toContainText("Ne prends aucune avance, même si ça te paraît lent.");
+  await expect(arrival).toContainText("14:00");
+  await page.screenshot({
+    path: "test-results/race-plan-1440.png",
+    fullPage: true,
+  });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    timeline.getByRole("heading", { name: "Ravito du Bois" }),
+  ).toBeVisible();
+  await expect(arrival).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: "Imprimer le roadbook" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/race-plan-390.png",
+    fullPage: true,
+  });
+});
+
 test("a road 10 km shows only the course and accepts a new start time", async ({
   page,
   request,

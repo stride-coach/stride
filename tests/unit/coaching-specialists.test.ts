@@ -21,6 +21,9 @@ vi.mock("../../src/server/races/races", () => ({
 vi.mock("../../src/server/races/views", () => ({
   weatherFor: sources.weatherFor,
 }));
+vi.mock("../../src/server/races/proposals", () => ({
+  readReadyRaceProposals: vi.fn(async () => []),
+}));
 vi.mock("../../src/server/plans/health", () => ({
   readPlanningHealth: sources.readPlanningHealth,
 }));
@@ -189,6 +192,8 @@ describe("read_race_strategy", () => {
       hasCourse: false,
       scenarios: [],
       weather: null,
+      strategy: { revision: 0, consignes: [], segments: {} },
+      pendingProposal: null,
     });
     expect(sources.weatherFor).not.toHaveBeenCalled();
   });

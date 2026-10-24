@@ -60,7 +60,7 @@ function ChangeList({
           ))}
         </ul>
       ) : (
-        <span className="text-meta text-muted-foreground">Rien</span>
+        <span className="text-meta text-muted-foreground">Aucun</span>
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import {
   scenariosOf,
 } from "@/features/races/workspace";
 import { getOnboardingContext } from "@/server/onboarding/context";
+import { paceFactorsOf } from "@/features/races/proposals";
 import { readWorkspace } from "@/server/races/races";
 import { json } from "@/server/races/request";
 
@@ -46,6 +47,7 @@ export async function GET(
         plan: data.plan,
         scenario,
         timeZone: data.course.timeZone,
+        paceFactors: data.strategy ? paceFactorsOf(data.strategy) : undefined,
       })
     : null;
   const headers = {

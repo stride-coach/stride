@@ -75,7 +75,11 @@ export async function loadRaceProposalReview(
   const proposal = await readRaceProposal(context, data.race.id, proposalId);
   if (!proposal) return null;
   const views = planFor(data);
-  const segments = views ? reviewSegments(views.model, views.planned) : [];
+  const proposed =
+    proposal.kind === "strategy" ? planFor(data, null, proposal.payload) : null;
+  const segments = views
+    ? reviewSegments(views.model, views.planned, proposed?.planned ?? null)
+    : [];
   return raceProposalReview(proposal, {
     strategy: data.strategy ?? emptyStrategy,
     plan: data.plan,

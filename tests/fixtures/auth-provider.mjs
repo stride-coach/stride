@@ -312,6 +312,10 @@ const tables = {
       shoe_id: null,
     },
   ],
+  race_strategies: [],
+  race_proposals: [],
+  race_nutrition_plans: [],
+  athlete_nutrition_products: [],
   activity_shoe_decisions: [],
   activity_feelings: [],
   athlete_wellness_checkins: [],
@@ -1852,6 +1856,12 @@ function selectRows(table, params) {
   }
   const id = params.get("id");
   if (id?.startsWith("eq.")) rows = rows.filter((row) => `eq.${row.id}` === id);
+  if (table === "race_proposals")
+    for (const key of ["race_id", "status"]) {
+      const filter = params.get(key);
+      if (filter?.startsWith("eq."))
+        rows = rows.filter((row) => `eq.${row[key]}` === filter);
+    }
   if (table.startsWith("plan_") || table === "session_activity_matches") {
     for (const key of ["plan_id", "version"]) {
       const filter = params.get(key);
@@ -2375,6 +2385,36 @@ createServer(async (request, response) => {
       needs_review: false,
       revision: 1,
     }));
+    tables.race_strategies = [];
+    tables.race_proposals = road
+      ? []
+      : [
+          {
+            id: "cccccccc-cccc-4ccc-8ccc-0000000000a1",
+            user_id: user.id,
+            race_id: race.id,
+            kind: "strategy",
+            base_revision: 0,
+            title: "Stratégie du stratège",
+            summary: "Un départ plus prudent jusqu’au Ravito du Bois.",
+            payload: {
+              consignes: [
+                "Aucune avance avant le Ravito du Bois : sous 150 bpm.",
+                "Point d’eau en 2 min maximum.",
+              ],
+              segments: {
+                "cccccccc-cccc-4ccc-8ccc-000000000002": {
+                  note: "Ne prends aucune avance, même si ça te paraît lent.",
+                  paceFactor: 1.05,
+                },
+              },
+            },
+            status: "ready",
+            coach_session_id: null,
+            decided_at: null,
+            created_at: new Date().toISOString(),
+          },
+        ];
     return send(200, { ready: true });
   }
   if (url.pathname === "/") return send(200, { ready: true });
@@ -2496,6 +2536,40 @@ createServer(async (request, response) => {
       url.pathname === "/rest/v1/provider_activity_tracks"
     )
       return send(503, { message: "Records fixture read failure" });
+    if (
+      request.method === "POST" &&
+      [
+        "/rest/v1/rpc/accept_race_proposal",
+        "/rest/v1/rpc/reject_race_proposal",
+      ].includes(url.pathname)
+    ) {
+      const proposal = tables.race_proposals.find(
+        (row) => row.id === body.p_proposal_id,
+      );
+      if (!proposal) return send(400, { message: "not_found" });
+      if (proposal.status !== "ready")
+        return send(400, { message: "not_ready" });
+      const accept = url.pathname.endsWith("accept_race_proposal");
+      proposal.status = accept ? "accepted" : "rejected";
+      proposal.decided_at = new Date().toISOString();
+      if (accept && proposal.kind === "strategy") {
+        const current = tables.race_strategies.find(
+          (row) => row.race_id === proposal.race_id,
+        );
+        if (current)
+          Object.assign(current, proposal.payload, {
+            revision: current.revision + 1,
+          });
+        else
+          tables.race_strategies.push({
+            race_id: proposal.race_id,
+            user_id: proposal.user_id,
+            ...proposal.payload,
+            revision: 1,
+          });
+      }
+      return send(200, accept ? "accepted" : null);
+    }
     if (
       request.method === "POST" &&
       [
