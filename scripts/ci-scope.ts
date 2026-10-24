@@ -79,7 +79,7 @@ export function areaOf(path: string): string | undefined {
   if (path.startsWith("src/app/settings/")) return "settings";
   if (path.startsWith("src/app/onboarding/")) return "onboarding";
   if (path.startsWith("src/app/(internal)/")) return "internal";
-  if (path === "src/app/page.tsx" || path.startsWith("src/app/(legal)/"))
+  if (/^src\/app\/(?:page\.tsx$|(?:privacy|terms|legal)\/)/.test(path))
     return "home";
   if (path === "src/app/not-found.tsx") return "not-found";
   return undefined;

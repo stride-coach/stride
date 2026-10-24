@@ -60,7 +60,7 @@ describe("CI scope", () => {
     expect(
       areaOf("src/app/(app)/@panel/(.)plan/sessions/[sessionKey]/page.tsx"),
     ).toBe("plans");
-    expect(areaOf("src/app/(legal)/privacy/page.tsx")).toBe("home");
+    expect(areaOf("src/app/privacy/page.tsx")).toBe("home");
     expect(areaOf("src/features/public/legal/terms.tsx")).toBe("home");
   });
 
