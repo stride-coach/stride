@@ -3,6 +3,8 @@ import { signInAs } from "./support/session";
 
 const authUrl = `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}`;
 
+test.describe.configure({ mode: "serial" });
+
 function lastMonday() {
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Paris",
@@ -48,4 +50,32 @@ test("an imported run marks its missed session as done on the next render", asyn
       .filter({ visible: true })
       .first(),
   ).toContainText(/Fait|Partiel/);
+});
+
+test("a session done in two imported runs shows their sum and lists both", async ({
+  page,
+}) => {
+  await fetch(`${authUrl}/__test__/plan-import`, { method: "DELETE" });
+  const response = await fetch(`${authUrl}/__test__/plan-import?split=1`, {
+    method: "POST",
+  });
+  expect(response.ok).toBe(true);
+  const { sessionKey } = (await response.json()) as { sessionKey: string };
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/plan/sessions/${sessionKey}`);
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible({ timeout: 20_000 });
+  await expect(dialog.getByText(/^Cumul des \d activités$/)).toBeVisible();
+  const activities = dialog.getByRole("region", { name: "Activités Garmin" });
+  await expect(
+    activities.getByRole("link", { name: /Footing importé/ }),
+  ).toBeVisible();
+  await expect(
+    activities.getByRole("link", { name: /Retour au calme/ }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByRole("link", { name: "Voir l’activité Garmin" }),
+  ).toHaveCount(0);
+  await fetch(`${authUrl}/__test__/plan-import`, { method: "DELETE" });
 });

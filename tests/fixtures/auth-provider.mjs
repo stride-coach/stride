@@ -915,6 +915,7 @@ const planDebriefSession = planMatchedSessions.find(
 const planDebriefActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005002";
 const planMissedSession = pastPlanSessions[2];
 const planImportedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005001";
+const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
 const planDoneStart = Date.parse(`${planDoneSession.scheduled_on}T17:12:00Z`);
 tables.provider_activities.push({
   ...activity(5000, 0, {
@@ -2240,6 +2241,23 @@ createServer(async (request, response) => {
         imported_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
+    if (
+      url.searchParams.has("split") &&
+      !tables.provider_activities.some((row) => row.id === planSplitActivityId)
+    )
+      tables.provider_activities.push({
+        ...activity(5101, 0, {
+          activity_name: "Retour au calme",
+          distance_meters: 690,
+          duration_seconds: 176,
+          average_heart_rate: 152,
+        }),
+        user_id: planUser.id,
+        started_at: `${planMissedSession.scheduled_on}T06:30:00Z`,
+        local_started_at: `${planMissedSession.scheduled_on} 08:30:00`,
+        imported_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
     return send(200, { sessionKey: planMissedSession.session_key });
   }
   if (
@@ -2254,7 +2272,8 @@ createServer(async (request, response) => {
   }
   if (url.pathname === "/__test__/plan-import" && request.method === "DELETE") {
     tables.provider_activities = tables.provider_activities.filter(
-      (row) => row.id !== planImportedActivityId,
+      (row) =>
+        row.id !== planImportedActivityId && row.id !== planSplitActivityId,
     );
     tables.session_activity_matches = structuredClone(
       planMatchesSnapshot.matches,
