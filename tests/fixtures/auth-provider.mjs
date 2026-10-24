@@ -964,7 +964,9 @@ const planDebriefActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005002";
 const planMissedSession = pastPlanSessions[2];
 const planImportedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005001";
 const planStrengthSession = planMatchedSessions.findLast(
-  (session) => session.kind === "strength",
+  (session) =>
+    session.kind === "strength" &&
+    session.scheduled_on < planDoneSession.scheduled_on,
 );
 const planStrengthActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005003";
 const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
