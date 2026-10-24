@@ -398,6 +398,10 @@ function PlanBody({
           </Button>
         </div>
       </section>
+      <p className="hidden text-sm font-semibold print:block">
+        Scénario {scenarioNames[planned.scenario.key].toLowerCase()} ·{" "}
+        {formatHours(planned.scenario.seconds)}
+      </p>
       <section className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_340px] print:block">
         <div className="flex min-w-0 flex-col">
           <StrategistCard
@@ -416,6 +420,19 @@ function PlanBody({
         </div>
         <Aside data={data} totals={totals} profile={profile} />
       </section>
+      <p className="flex flex-wrap items-baseline gap-x-1.5 text-meta text-muted lg:hidden print:hidden">
+        Arrêts prévus ·
+        <span className="font-metric text-[0.9375rem] font-semibold text-foreground tabular-nums">
+          <StopsEditor
+            raceId={data.race.id}
+            revision={data.plan.revision}
+            aidStopSeconds={data.plan.aidStopSeconds}
+            waterStopSeconds={data.plan.waterStopSeconds}
+          >
+            {formatHours(totals.stopSeconds)}
+          </StopsEditor>
+        </span>
+      </p>
       <div className="flex flex-col gap-2 md:hidden print:hidden">
         <PrintSheetButton
           label="Imprimer le roadbook"

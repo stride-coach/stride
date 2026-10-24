@@ -77,6 +77,7 @@ export function racePairView({
 }
 
 export type DropBagView = {
+  stationId: string;
   km: string;
   nutrition: string | null;
 };
@@ -84,15 +85,19 @@ export type DropBagView = {
 export function dropBagView(
   waypoints: readonly Waypoint[],
   allocation: RaceNutritionAllocation | null,
-): DropBagView | null {
-  const base =
-    waypoints.find(
-      (point) => point.id === allocation?.dropBags[0]?.stationId,
-    ) ?? waypoints.find((point) => point.kind === "base");
-  if (!base) return null;
-  const items = allocation?.dropBags[0]?.items ?? [];
-  return {
+): DropBagView[] {
+  const byId = new Map(waypoints.map((point) => [point.id, point]));
+  const bags = allocation?.dropBags.length
+    ? allocation.dropBags.flatMap((bag) => {
+        const base = byId.get(bag.stationId);
+        return base ? [{ base, items: bag.items }] : [];
+      })
+    : waypoints
+        .filter((point) => point.kind === "base")
+        .map((base) => ({ base, items: [] }));
+  return bags.map(({ base, items }) => ({
+    stationId: base.id,
     km: formatCourseKm(base.distanceM),
     nutrition: items.length ? plainPortions(items, ", ") : null,
-  };
+  }));
 }

@@ -53,6 +53,7 @@ const chipTones: Record<ChipStatus, string> = {
   buy: "text-danger border-danger/35",
   test: "text-provider border-provider/35",
   todo: "text-muted-foreground border-muted-foreground/35",
+  weather: "text-provider border-provider/35",
 };
 
 export function GroupCard({
@@ -100,7 +101,7 @@ function StatusChip({
   const chip = itemChip(item);
   const options: ChipStatus[] = isPrepList(item.list)
     ? ["todo", ...chipStatuses]
-    : [...chipStatuses];
+    : [...chipStatuses, "weather"];
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -446,10 +447,11 @@ export function DropBagCard({
   raceId: string;
   km: string;
   nutrition: string | null;
-  extras: string[];
+  extras: string[] | null;
   revision: number | null;
 }) {
-  const [extras, setExtras] = useState(initial);
+  const editable = initial !== null;
+  const [extras, setExtras] = useState(initial ?? []);
   const [pending, start] = useTransition();
 
   function save(next: string[], success: string) {
@@ -513,7 +515,7 @@ export function DropBagCard({
           Rien dans le sac pour le moment.
         </p>
       )}
-      {extras.length < 20 && (
+      {editable && extras.length < 20 && (
         <AddForm
           label="Sac d’allègement"
           pending={pending}

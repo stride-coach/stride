@@ -206,7 +206,7 @@ export const chipStatuses = [
   "buy",
   "test",
 ] as const satisfies readonly ItemStatus[];
-export type ChipStatus = (typeof chipStatuses)[number] | "todo";
+export type ChipStatus = (typeof chipStatuses)[number] | "todo" | "weather";
 
 export const chipLabels: Record<ChipStatus, string> = {
   ready: "Prêt",
@@ -214,6 +214,7 @@ export const chipLabels: Record<ChipStatus, string> = {
   buy: "À acheter",
   test: "À tester",
   todo: "À faire",
+  weather: "Selon météo",
 };
 
 export function isPrepList(list: ChecklistList) {
@@ -227,7 +228,8 @@ export function itemChip(
   if (
     item.status === "check" ||
     item.status === "buy" ||
-    item.status === "test"
+    item.status === "test" ||
+    item.status === "weather"
   )
     return item.status;
   return isPrepList(item.list) ? "todo" : "check";
@@ -238,7 +240,10 @@ export function raceReadiness(
   lists: readonly ChecklistList[],
 ) {
   const counted = items.filter(
-    (item) => item.list !== "gear_forbidden" && lists.includes(item.list),
+    (item) =>
+      item.list !== "gear_forbidden" &&
+      item.status !== "weather" &&
+      lists.includes(item.list),
   );
   const chips = counted.map(itemChip);
   return {

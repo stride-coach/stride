@@ -7,6 +7,7 @@ import { pairSummaries, type ShoeInput } from "@/features/gear/view";
 import {
   type ChecklistItem,
   type ChecklistList,
+  checklistTemplateFor,
   prepLists,
   raceReadiness,
   readinessDetail,
@@ -24,7 +25,7 @@ import {
   type RacePairView,
 } from "@/features/races/gear-view";
 import { raceAllocation } from "@/features/races/race-nutrition";
-import { readNutritionProducts } from "@/server/fueling/products";
+import { readNutritionLibrary } from "@/server/fueling/products";
 import { loadGear } from "@/server/gear/load";
 import { readRaceFacts } from "@/server/gear/planned";
 import { loadRace } from "@/server/races/load";
@@ -124,18 +125,13 @@ function PairLead({ pair }: { pair: RacePairView | null }) {
   );
 }
 
-async function shoesFor(
-  context: Awaited<ReturnType<typeof loadRace>>["context"],
+function shoesFor(
+  shoes: ShoeInput[],
+  races: Awaited<ReturnType<typeof readRaceFacts>>,
   data: RaceWorkspaceData,
   today: string,
   dropBag: boolean,
 ) {
-  const [shoes, races] = await Promise.all([
-    loadGear(context)
-      .then((gear): ShoeInput[] => gear.shoes)
-      .catch((): ShoeInput[] => []),
-    readRaceFacts(context),
-  ]);
   const linked = data.checklist
     .filter((item) => item.list === "gear_kit" && item.shoeId)
     .map((item) => item.shoeId as string);
@@ -207,7 +203,19 @@ export default async function RaceGearPage({
       </>
     );
 
-  const products = await readNutritionProducts(context).catch(() => []);
+  const libraryRead = readNutritionLibrary(context).catch(() => ({
+    active: [],
+    archived: [],
+  }));
+  const shoesRead = loadGear(context)
+    .then((gear): ShoeInput[] => gear.shoes)
+    .catch((): ShoeInput[] => []);
+  const racesRead = readRaceFacts(context).catch(() => []);
+  const [library, shoes, races] = await Promise.all([
+    libraryRead,
+    shoesRead,
+    racesRead,
+  ]);
   const views = planFor(data, "target");
   const allocation = views?.planned
     ? raceAllocation({
@@ -216,11 +224,19 @@ export default async function RaceGearPage({
         plan: data.plan,
         nutritionPlan: data.nutritionPlan?.plan ?? null,
         dropBagExtras: data.dropBag?.extras ?? [],
-        products,
+        products: library.active,
+        archivedProducts: library.archived,
       })
     : null;
-  const bag = dropBagView(data.waypoints, allocation);
-  const { pairs, pair } = await shoesFor(context, data, today, bag !== null);
+  const bags = dropBagView(data.waypoints, allocation);
+  const { pairs, pair } = shoesFor(shoes, races, data, today, bags.length > 0);
+  const mandatory = data.checklist.filter(
+    (item) => item.list === "gear_mandatory",
+  );
+  const templateLabels = new Set(
+    checklistTemplateFor("trail", "gear_mandatory")?.map((item) => item.label),
+  );
+  const fromTemplate = mandatory.some((item) => templateLabels.has(item.label));
 
   return (
     <>
@@ -241,7 +257,7 @@ export default async function RaceGearPage({
             empty: null,
           })}
           {group("gear_mandatory", {
-            aside: (
+            aside: fromTemplate && (
               <span className="max-md:hidden">
                 à vérifier avec le règlement
               </span>
@@ -252,16 +268,16 @@ export default async function RaceGearPage({
           {group("gear_forbidden")}
         </div>
         <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
-          {bag && (
+          {bags.map((bag, index) => (
             <DropBagCard
-              key={data.dropBag?.revision ?? 0}
+              key={`${bag.stationId}-${data.dropBag?.revision ?? 0}`}
               raceId={id}
               km={bag.km}
               nutrition={bag.nutrition}
-              extras={data.dropBag?.extras ?? []}
+              extras={index === 0 ? (data.dropBag?.extras ?? []) : null}
               revision={data.dropBag?.revision ?? null}
             />
-          )}
+          ))}
           {prepLists.map((list) => group(list))}
         </div>
       </div>

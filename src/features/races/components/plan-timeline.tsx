@@ -100,7 +100,7 @@ function Station({ station }: { station: TimelineStation }) {
   );
   return (
     <li className="break-inside-avoid">
-      <div className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 py-3.5 max-md:hidden">
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 py-3.5 max-md:hidden print:grid">
         <span className="flex justify-center pt-0.75 [&>span]:size-4">
           {dot}
         </span>
@@ -125,7 +125,7 @@ function Station({ station }: { station: TimelineStation }) {
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-0.75 py-3 md:hidden">
+      <div className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-0.75 py-3 md:hidden print:hidden">
         <span className="pt-0.75 [&>span]:size-3.5">{dot}</span>
         <h3 className="text-[0.9375rem] font-semibold">{station.name}</h3>
         <span className="font-metric text-xl font-semibold tabular-nums">
@@ -164,8 +164,8 @@ function Value({
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <MonoLabel size="nano" className="max-md:text-[8px]">
-        <span className="max-md:hidden">{label}</span>
-        <span className="md:hidden">{short}</span>
+        <span className="max-md:hidden print:inline">{label}</span>
+        <span className="md:hidden print:hidden">{short}</span>
       </MonoLabel>
       <span className="font-metric text-[1.0625rem] font-semibold tabular-nums md:text-xl">
         {value}
@@ -173,7 +173,7 @@ function Value({
           <span
             className={cn(
               "text-xs text-muted-foreground max-md:text-[1.0625rem] max-md:text-foreground",
-              unit === "/km" && "max-md:hidden",
+              unit === "/km" && "max-md:hidden print:inline",
             )}
           >
             {" "}
@@ -198,7 +198,7 @@ function Segment({
     raceId,
   );
   return (
-    <li className="grid break-inside-avoid grid-cols-[20px_minmax(0,1fr)] gap-2.5 md:grid-cols-[28px_minmax(0,1fr)] md:gap-3.5">
+    <li className="grid break-inside-avoid grid-cols-[20px_minmax(0,1fr)] gap-2.5 md:grid-cols-[28px_minmax(0,1fr)] md:gap-3.5 print:grid-cols-[28px_minmax(0,1fr)] print:gap-3.5">
       <span aria-hidden="true" className="flex justify-center">
         <span
           className={cn(
@@ -224,12 +224,12 @@ function Segment({
           </span>
           <span className="text-xs text-muted md:text-meta">
             +{formatInteger(segment.gainM ?? 0)}
-            <span className="max-md:hidden"> m</span> · −
+            <span className="max-md:hidden print:inline"> m</span> · −
             {formatInteger(segment.lossM ?? 0)}
-            <span className="max-md:hidden"> m</span>
+            <span className="max-md:hidden print:inline"> m</span>
           </span>
           {segment.night && (
-            <span className="inline-flex items-center gap-1.25 rounded-full border border-night/35 px-2.25 py-0.5 text-xs text-night max-md:hidden">
+            <span className="inline-flex items-center gap-1.25 rounded-full border border-night/35 px-2.25 py-0.5 text-xs text-night max-md:hidden print:inline-flex">
               <WeatherIcon glyph="moon" className="size-3" />
               de nuit
             </span>
@@ -264,7 +264,10 @@ function Segment({
         </div>
         {segment.items && (
           <div className="flex items-start gap-2 text-xs text-muted md:text-meta">
-            <MonoLabel size="nano" className="shrink-0 pt-0.5 max-md:hidden">
+            <MonoLabel
+              size="nano"
+              className="shrink-0 pt-0.5 max-md:hidden print:inline"
+            >
               À manger
             </MonoLabel>
             <span>{segment.items}</span>

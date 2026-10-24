@@ -100,10 +100,10 @@ describe("race checklist readiness", () => {
     item("prep_race_day", { status: "buy" }),
   ];
 
-  it("counts gear and preparation items, never forbidden ones", () => {
+  it("counts gear and preparation items, never forbidden or weather ones", () => {
     expect(raceReadiness(items, trailChecklistLists)).toEqual({
       ready: 2,
-      total: 8,
+      total: 7,
       buy: 2,
       test: 1,
     });
@@ -118,7 +118,9 @@ describe("race checklist readiness", () => {
   it("shows À faire for unchecked preparation items and À vérifier for gear", () => {
     expect(itemChip(item("prep_week"))).toBe("todo");
     expect(itemChip(item("gear_night"))).toBe("check");
-    expect(itemChip(item("gear_weather", { status: "weather" }))).toBe("check");
+    expect(itemChip(item("gear_weather", { status: "weather" }))).toBe(
+      "weather",
+    );
     expect(itemChip(item("prep_eve", { status: "test" }))).toBe("test");
     expect(itemChip(item("gear_night", { status: "buy", checked: true }))).toBe(
       "ready",
@@ -194,17 +196,23 @@ describe("drop bag", () => {
       plan: emptyNutritionPlan,
       dropBagExtras: ["Veste chaude"],
     });
-    const view = dropBagView(waypoints, allocation);
-    expect(view?.km).toBe("56,0");
-    expect(view?.nutrition).toMatch(/^\d+ gels?/);
+    const [view, ...others] = dropBagView(waypoints, allocation);
+    expect(others).toEqual([]);
+    expect(view).toMatchObject({ stationId: "base", km: "56,0" });
+    expect(view.nutrition).toMatch(/^\d+ gels?/);
   });
 
   it("keeps the base without a nutrition plan and hides it without a base", () => {
-    expect(dropBagView(waypoints, null)).toEqual({
-      km: "56,0",
-      nutrition: null,
-    });
-    expect(dropBagView(waypoints.slice(0, 2), null)).toBeNull();
+    expect(dropBagView(waypoints, null)).toEqual([
+      { stationId: "base", km: "56,0", nutrition: null },
+    ]);
+    expect(
+      dropBagView([...waypoints, waypoint("base-2", "base", 70_000)], null),
+    ).toEqual([
+      { stationId: "base", km: "56,0", nutrition: null },
+      { stationId: "base-2", km: "70,0", nutrition: null },
+    ]);
+    expect(dropBagView(waypoints.slice(0, 2), null)).toEqual([]);
   });
 });
 
