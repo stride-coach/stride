@@ -1,3 +1,4 @@
+import { sessionPanelHref } from "../view/session-href";
 import { formatClock, formatPace } from "@/features/progress/format";
 import type { PlanSession } from "../model/plan";
 import { flatten } from "../model/structure";
@@ -253,6 +254,6 @@ export function buildDebriefView(input: DebriefViewInput): DebriefView | null {
     steps: debrief.steps.map(stepView),
     feeling: debrief.feeling ? feelingView(debrief.feeling) : null,
     coachHref: `/coach/new?session=${encodeURIComponent(input.session.sessionKey)}`,
-    planHref: `/plan?session=${encodeURIComponent(input.session.sessionKey)}`,
+    planHref: sessionPanelHref(input.session.sessionKey),
   };
 }

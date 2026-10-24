@@ -108,7 +108,7 @@ test("today shows the pair of a running session", async ({ page }) => {
     name: /^Paire (conseillée|choisie) : /,
   });
   test.skip((await chip.count()) === 0, "No running session today");
-  await expect(chip).toHaveAttribute("href", /^\/plan\?session=s-/);
+  await expect(chip).toHaveAttribute("href", /^\/plan\/sessions\/s-/);
   await page.screenshot({ path: "test-results/gear-today-desktop.png" });
 });
 

@@ -222,7 +222,7 @@ describe("Corps actions", () => {
       title: "Seuil",
       hard: true,
     };
-    expect(sessionHref(session)).toBe("/plan?session=2026-10-14%3Aseuil%201");
+    expect(sessionHref(session)).toBe("/plan/sessions/2026-10-14%3Aseuil%201");
     const url = new URL(lighterSessionHref(session), "https://stride.test");
     expect(url.pathname).toBe("/coach/new");
     expect(url.searchParams.get("text")).toBe(

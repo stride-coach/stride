@@ -1,7 +1,8 @@
 "use client";
 
+import { useShellPathname } from "./shell-pathname";
 import { useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -141,7 +142,7 @@ export function PlanSidebarGroup({
   nav: ProgramNav | null;
   historyCount?: number | null;
 }) {
-  const pathname = usePathname();
+  const pathname = useShellPathname();
   const params = useSearchParams();
   if (!nav || (pathname !== "/plan" && !pathname.startsWith("/plan/")))
     return null;
@@ -201,7 +202,7 @@ export function PlanSidebarGroup({
 }
 
 export function PlanSidebarGroupLoading() {
-  const pathname = usePathname();
+  const pathname = useShellPathname();
   if (pathname !== "/plan" && !pathname.startsWith("/plan/")) return null;
   return (
     <SidebarGroup

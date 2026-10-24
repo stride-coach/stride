@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useShellPathname } from "./shell-pathname";
 import {
   TabActivitiesIcon,
   TabPlanIcon,
@@ -25,7 +25,7 @@ export function AppMobileTabBar({
 }: {
   attention: CoachAttention | null;
 }) {
-  const pathname = usePathname();
+  const pathname = useShellPathname();
   if (!mobileTabBarVisible(pathname)) return null;
   const waiting = coachWaiting(attention);
   const tab = (href: string, icon: React.ReactNode, label: string) => (

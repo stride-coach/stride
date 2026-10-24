@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  areaOf,
   browserMatrix,
   browserScope,
   changedPathsBetween,
@@ -55,6 +56,12 @@ const sources = new Map([
 const changes = (...paths: string[]) => `${paths.join("\0")}\0`;
 
 describe("CI scope", () => {
+  it("maps the intercepted session panel to the plans area", () => {
+    expect(
+      areaOf("src/app/(app)/@panel/(.)plan/sessions/[sessionKey]/page.tsx"),
+    ).toBe("plans");
+  });
+
   it.each([
     "docs/testing.md",
     "docs/design/runner notes.md",

@@ -1,3 +1,4 @@
+import { sessionPanelHref } from "@/features/plans/view/session-href";
 import { z } from "zod";
 
 export const attachmentKinds = ["session", "activity", "race"] as const;
@@ -99,10 +100,10 @@ export function attachmentRefs(items: readonly AttachmentRef[]) {
 }
 
 export function attachmentHref(item: AttachmentRef) {
+  if (item.kind === "session") return sessionPanelHref(item.id);
   const id = encodeURIComponent(item.id);
   if (item.kind === "activity") return `/activities/${id}`;
-  if (item.kind === "race") return `/races/${id}`;
-  return `/plan?session=${id}`;
+  return `/races/${id}`;
 }
 
 export function attachmentDate(date: string | null) {

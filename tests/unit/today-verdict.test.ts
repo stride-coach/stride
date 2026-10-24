@@ -60,7 +60,7 @@ const quality = {
   sessionKey: "s-1",
   title: "Seuil · 4 × 6’",
   quality: true,
-  href: "/plan?session=s-1",
+  href: "/plan/sessions/s-1",
 } as const;
 
 function verdict(overrides: Partial<VerdictInput> = {}) {

@@ -1,3 +1,4 @@
+import { sessionPanelHref } from "@/features/plans/view/session-href";
 import { coachRequestHref } from "@/features/coach/request";
 import { formatDecimal, formatInteger } from "./format";
 import { loadZone, type HealthDay, type HealthModel } from "./health";
@@ -28,7 +29,7 @@ export type TodaySession = {
 };
 
 export function sessionHref(session: TodaySession) {
-  return `/plan?session=${encodeURIComponent(session.sessionKey)}`;
+  return sessionPanelHref(session.sessionKey);
 }
 
 export function lighterSessionHref(session: TodaySession) {

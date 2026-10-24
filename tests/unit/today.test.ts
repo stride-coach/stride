@@ -151,7 +151,7 @@ describe("today view", () => {
     ]);
     expect(session.terrain).toBe("Route");
     expect(session.quality).toBe(true);
-    expect(session.href).toBe("/plan?session=s-2026-10-22-1");
+    expect(session.href).toBe("/plan/sessions/s-2026-10-22-1");
   });
 
   it("weighs today's quality session against the day's form", () => {
@@ -179,7 +179,7 @@ describe("today view", () => {
       next: {
         title: "Footing",
         when: "dim. 25/10/2026",
-        href: "/plan?session=s-2026-10-25-1",
+        href: "/plan/sessions/s-2026-10-25-1",
       },
     });
   });
