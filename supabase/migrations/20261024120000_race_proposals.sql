@@ -114,16 +114,6 @@ alter table public.race_plans
   add column bladder_ml integer check (bladder_ml between 250 and 3000),
   add column caffeine_max_mg integer not null default 200 check (caffeine_max_mg between 0 and 600);
 
-alter table public.race_checklist_items
-  drop constraint race_checklist_items_list_check,
-  add constraint race_checklist_items_list_check check (
-    list in (
-      'gear_mandatory', 'gear_night', 'gear_weather', 'gear_kit', 'gear_forbidden',
-      'nutrition_tested', 'key_sessions', 'prep_week', 'prep_eve', 'prep_race_day',
-      'drop_bag'
-    )
-  );
-
 create trigger race_strategies_revision before update on public.race_strategies
   for each row execute function public.advance_revision();
 create trigger athlete_nutrition_products_revision before update on public.athlete_nutrition_products

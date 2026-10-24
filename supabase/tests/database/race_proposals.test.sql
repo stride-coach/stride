@@ -68,11 +68,11 @@ select throws_ok(
   $$update public.athlete_nutrition_products set user_id = 'b6000000-0000-4000-8000-00000000000b'$$,
   '42501', null, 'athlete cannot move a product to another owner');
 
-select lives_ok(
+select throws_ok(
   $$insert into public.race_checklist_items (race_id, user_id, list, label)
     values ('a6000000-0000-4000-8000-0000000000c1', 'a6000000-0000-4000-8000-00000000000a',
       'drop_bag', 'Chaussettes de rechange')$$,
-  'the drop bag list is accepted');
+  '23514', null, 'checklist lists stay those the production release parses');
 select lives_ok(
   $$insert into public.race_plans (race_id, user_id, flask_ml, flask_count, bladder_ml, caffeine_max_mg)
     values ('a6000000-0000-4000-8000-0000000000c1', 'a6000000-0000-4000-8000-00000000000a',
