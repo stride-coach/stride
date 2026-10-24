@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.3.0](https://github.com/Julestblt/Stride/compare/v1.2.0...v1.3.0) (2026-10-24)
+
+
+### Features
+
+* **299:** Today answers what to do with the session and the form ([#304](https://github.com/Julestblt/Stride/issues/304)) ([3c795d4](https://github.com/Julestblt/Stride/commit/3c795d410666b7e18ffce479ad2a89dccd78d9ae))
+* **300:** Races V2 with Plan de course, Nutrition and Équipement ([#311](https://github.com/Julestblt/Stride/issues/311)) ([574fee7](https://github.com/Julestblt/Stride/commit/574fee7c11a8216df60bec2b6549e4610956831a))
+* **301:** Activités V2 with weekly totals, plan status and one activity panel ([#324](https://github.com/Julestblt/Stride/issues/324)) ([ae10750](https://github.com/Julestblt/Stride/commit/ae1075055b943b2a4e103ed35340394626328923))
+* **302:** nutrition day timeline around the session and one fueling model ([#328](https://github.com/Julestblt/Stride/issues/328)) ([9dff988](https://github.com/Julestblt/Stride/commit/9dff9889259d4b87b7fe531a6aab0e02bd8bd637))
+* **303:** visible zones, concrete athlete model and no fake settings controls ([#322](https://github.com/Julestblt/Stride/issues/322)) ([52d7357](https://github.com/Julestblt/Stride/commit/52d7357309cda12c61bafedf8b4c0506f31bfdd1))
+* **305:** open sessions in a panel over the current page ([#307](https://github.com/Julestblt/Stride/issues/307)) ([62ce954](https://github.com/Julestblt/Stride/commit/62ce9543482b6b32ea0b2e4cc92085713fae75de))
+* **316:** show every activity matched to a session with cumulative figures ([#317](https://github.com/Julestblt/Stride/issues/317)) ([59af8f9](https://github.com/Julestblt/Stride/commit/59af8f9a8f17ee97e45550f92c75d6f4dd07b57f))
+* **318:** public landing page and legal pages ([#321](https://github.com/Julestblt/Stride/issues/321)) ([53c5cbf](https://github.com/Julestblt/Stride/commit/53c5cbf2f7f604f3b000077488455d238f0ec00b))
+* **323:** collect explicit health-data consent at the Garmin step ([#326](https://github.com/Julestblt/Stride/issues/326)) ([#327](https://github.com/Julestblt/Stride/issues/327)) ([a63d9ac](https://github.com/Julestblt/Stride/commit/a63d9ac949cecd8d7fc282e857867cf92fe6746f))
+
+
+### Bug Fixes
+
+* **312:** keep the notification filter row at full height ([#313](https://github.com/Julestblt/Stride/issues/313)) ([c98dada](https://github.com/Julestblt/Stride/commit/c98dada43aacfb78e96c714ab1fad2311a3374d7))
+* **314:** let athletes insert updated_at on pair decisions and choices ([#315](https://github.com/Julestblt/Stride/issues/315)) ([6f56ab9](https://github.com/Julestblt/Stride/commit/6f56ab9dbae1e8f5c89418231c3caa0f9ca3d26f))
+* **319:** run roadbook extraction and onboarding insights on Claude ([#320](https://github.com/Julestblt/Stride/issues/320)) ([d25bf44](https://github.com/Julestblt/Stride/commit/d25bf446faa292a651cc54bb547a77855c6c53a4))
+
 ## [1.2.0](https://github.com/Julestblt/Stride/compare/v1.1.0...v1.2.0) (2026-10-24)
 
 
