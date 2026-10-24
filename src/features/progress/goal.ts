@@ -1,9 +1,10 @@
-import type { PlanBlock } from "@/features/plans/model/plan";
+import type { PlanBlock, PlanSession } from "@/features/plans/model/plan";
 import type { ProgramOverview } from "@/features/plans/view/program";
 import type { RaceSummary } from "@/features/races/race";
 import {
   formatClock,
   formatDayMonth,
+  formatDayMonthShort,
   formatHoursMinutes,
   formatInteger,
 } from "./format";
@@ -57,7 +58,26 @@ export type GoalCard = {
   note: string | null;
   phase: GoalPhase | null;
   planNote: string | null;
+  verdict: string;
+  gap: { label: string; tone: "success" | "warning" } | null;
+  phaseShort: string | null;
+  longestDay: string | null;
+  raceGain: string | null;
+  gainCovered: boolean | null;
 };
+
+export type GoalInputs = {
+  today: string;
+  predictions: GarminPrediction[];
+  longestRunMeters: number | null;
+  longestRunDay?: string | null;
+  maxWeeklyGainMeters: number | null;
+  preparation: { done: number; total: number } | null;
+  program: ProgramOverview | null;
+  blockKinds: Record<string, PlanBlock["kind"]>;
+};
+
+export type KeySession = { sessionKey: string; title: string; date: string };
 
 export const noPlanNote =
   "Pas de plan actif : la phase d’entraînement apparaîtra avec ton plan.";
@@ -201,31 +221,112 @@ function phase(
   };
 }
 
-export function goalCard({
-  races,
-  primaryRaceId,
-  today,
-  predictions,
-  longestRunMeters,
-  maxWeeklyGainMeters,
-  preparation,
-  program,
-  blockKinds,
+export function nextKeySession(
+  sessions: Pick<
+    PlanSession,
+    "sessionKey" | "title" | "scheduledOn" | "isKey" | "kind" | "sport"
+  >[],
+  today: string,
+): KeySession | null {
+  const next = sessions
+    .filter(
+      (session) =>
+        session.isKey &&
+        session.kind !== "rest" &&
+        session.sport !== "rest" &&
+        session.scheduledOn >= today,
+    )
+    .sort((a, b) => a.scheduledOn.localeCompare(b.scheduledOn))[0];
+  return next
+    ? {
+        sessionKey: next.sessionKey,
+        title: next.title,
+        date: formatDayMonthShort(next.scheduledOn),
+      }
+    : null;
+}
+
+export function preparationVerdict({
+  longestMeters,
+  distanceKm,
+  weeklyGainMeters,
+  raceGainM,
 }: {
-  races: RaceSummary[];
-  primaryRaceId: string | null;
-  today: string;
-  predictions: GarminPrediction[];
-  longestRunMeters: number | null;
-  maxWeeklyGainMeters: number | null;
-  preparation: { done: number; total: number } | null;
-  program: ProgramOverview | null;
-  blockKinds: Record<string, PlanBlock["kind"]>;
-}): GoalCard | null {
-  const race = pickGoalRace(races, primaryRaceId, today);
-  if (!race) return null;
+  longestMeters: number | null;
+  distanceKm: number | null;
+  weeklyGainMeters: number | null;
+  raceGainM: number | null;
+}) {
+  if (longestMeters === null && weeklyGainMeters === null)
+    return "Pas encore assez de sorties récentes pour juger ta préparation.";
+  const distance =
+    distanceKm === null || longestMeters === null
+      ? null
+      : longestMeters >= distanceKm * 1000;
+  const gain =
+    raceGainM === null || raceGainM === 0 || weeklyGainMeters === null
+      ? null
+      : weeklyGainMeters >= raceGainM;
+  if (gain === null)
+    return distance
+      ? "Sur la bonne voie. La distance de la course est déjà couverte à l’entraînement."
+      : "La distance de la course reste à construire d’ici le jour J.";
+  if (gain && distance)
+    return "Sur la bonne voie. La distance et le D+ de la course sont déjà couverts à l’entraînement.";
+  if (gain)
+    return "Sur la bonne voie. Le D+ de la course est déjà couvert en une semaine ; c’est la distance qu’il reste à construire.";
+  if (distance)
+    return "Sur la bonne voie. La distance est déjà couverte ; c’est le D+ qu’il reste à construire.";
+  return "La distance et le D+ de la course restent à construire d’ici le jour J.";
+}
+
+function roadVerdict(
+  prediction: GarminPrediction | undefined,
+  target: number | null,
+) {
+  if (!prediction)
+    return "Pas encore de prévision Garmin pour cette distance : ton objectif reste le repère.";
+  const predicted = formatClock(prediction.seconds);
+  if (target === null)
+    return `Prévision Garmin ${predicted}, sans temps objectif pour comparer.`;
+  const gap = prediction.seconds - target;
+  return gap <= 0
+    ? `Dans les temps. La prévision Garmin (${predicted}) est sous ton objectif.`
+    : `${signedClock(gap)} sur ton objectif. La prévision Garmin (${predicted}) reste au-dessus de ${formatClock(target)}.`;
+}
+
+function phaseShort(program: ProgramOverview | null) {
+  const current = program?.weeks.find(
+    (week) => week.weekKey === program.currentWeekKey,
+  );
+  return current && program
+    ? `${current.blockName} · S${formatInteger(current.number)} / ${formatInteger(program.weeks.length)}`
+    : null;
+}
+
+export function raceGoalCard(
+  race: RaceSummary & { date: string },
+  {
+    today,
+    predictions,
+    longestRunMeters,
+    longestRunDay = null,
+    maxWeeklyGainMeters,
+    preparation,
+    program,
+    blockKinds,
+  }: GoalInputs,
+): GoalCard {
   const key = roadPredictionKey(race);
   const days = daysBetween(today, race.date);
+  const prediction = key
+    ? predictions.find((item) => item.key === key)
+    : undefined;
+  const gap =
+    prediction && race.targetSeconds !== null
+      ? prediction.seconds - race.targetSeconds
+      : null;
+  const raceGain = race.elevationGainM;
   return {
     id: race.id,
     name: race.name,
@@ -233,12 +334,7 @@ export function goalCard({
     date: formatDayMonth(race.date),
     countdown: days === 0 ? "Jour J" : `J-${formatInteger(days)}`,
     target: race.targetSeconds ? formatTarget(race.targetSeconds) : null,
-    road: key
-      ? roadCard(
-          predictions.find((item) => item.key === key),
-          race.targetSeconds,
-        )
-      : null,
+    road: key ? roadCard(prediction, race.targetSeconds) : null,
     preparation: key
       ? null
       : {
@@ -257,7 +353,44 @@ export function goalCard({
     note: race.kind === "trail" ? ultraNote : null,
     phase: phase(program, blockKinds, today),
     planNote: planNote(program, today),
+    verdict: key
+      ? roadVerdict(prediction, race.targetSeconds)
+      : preparationVerdict({
+          longestMeters: longestRunMeters,
+          distanceKm: race.distanceKm,
+          weeklyGainMeters: maxWeeklyGainMeters,
+          raceGainM: raceGain,
+        }),
+    gap:
+      gap === null
+        ? null
+        : {
+            label: gap === 0 ? "0:00" : signedClock(gap),
+            tone: gap <= 0 ? "success" : "warning",
+          },
+    phaseShort: phaseShort(program),
+    longestDay:
+      longestRunMeters !== null && longestRunDay
+        ? formatDayMonthShort(longestRunDay)
+        : null,
+    raceGain: raceGain ? formatInteger(raceGain) : null,
+    gainCovered:
+      key || !raceGain || maxWeeklyGainMeters === null
+        ? null
+        : maxWeeklyGainMeters >= raceGain,
   };
+}
+
+export function goalCard({
+  races,
+  primaryRaceId,
+  ...inputs
+}: GoalInputs & {
+  races: RaceSummary[];
+  primaryRaceId: string | null;
+}): GoalCard | null {
+  const race = pickGoalRace(races, primaryRaceId, inputs.today);
+  return race ? raceGoalCard(race, inputs) : null;
 }
 
 export function goalSummary(goal: GoalCard) {

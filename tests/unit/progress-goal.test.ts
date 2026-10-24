@@ -8,7 +8,10 @@ import {
 import {
   goalCard,
   goalSummary,
+  nextKeySession,
   noPlanNote,
+  preparationVerdict,
+  raceGoalCard,
   ultraNote,
 } from "@/features/progress/goal";
 import { addDays } from "@/features/progress/period";
@@ -212,5 +215,153 @@ describe("goal card", () => {
       phase: null,
       planNote: "Ton plan est terminé.",
     });
+  });
+});
+
+describe("race goal card", () => {
+  const inputs = {
+    today,
+    predictions,
+    longestRunMeters: 80_400,
+    longestRunDay: "2026-09-27",
+    maxWeeklyGainMeters: 3_240,
+    preparation: { done: 3, total: 6 },
+    program: program(),
+    blockKinds: { lead: "lead_in", volume: "build", taper: "taper" } as const,
+  };
+
+  it("matches the goal card picked for Progression", () => {
+    const goal = race();
+    expect(raceGoalCard({ ...goal, date: goal.date! }, inputs)).toEqual(
+      goalCard({ ...inputs, races: [goal], primaryRaceId: null }),
+    );
+  });
+
+  it("reads a trail race without inventing a finish time", () => {
+    const goal = race({ elevationGainM: 1_585 });
+    const card = raceGoalCard({ ...goal, date: goal.date! }, inputs);
+    expect(card).toMatchObject({
+      target: "19:00",
+      road: null,
+      gap: null,
+      phaseShort: "Volume · S3 / 8",
+      longestDay: "27 sept.",
+      raceGain: "1\u202f585",
+      gainCovered: true,
+      verdict:
+        "Sur la bonne voie. Le D+ de la course est déjà couvert en une semaine ; c’est la distance qu’il reste à construire.",
+    });
+  });
+
+  it("states the signed gap between a road target and the prediction", () => {
+    const road = race({
+      kind: "road",
+      distanceKm: 10,
+      targetSeconds: 2_670,
+      date: "2026-11-22",
+    });
+    const card = raceGoalCard({ ...road, date: road.date! }, inputs);
+    expect(card.gap).toEqual({ label: "+0:32", tone: "warning" });
+    expect(card.verdict).toBe(
+      "+0:32 sur ton objectif. La prévision Garmin (45:02) reste au-dessus de 44:30.",
+    );
+    const ahead = raceGoalCard(
+      { ...road, date: road.date!, targetSeconds: 2_760 },
+      inputs,
+    );
+    expect(ahead.gap).toEqual({ label: "−0:58", tone: "success" });
+    expect(ahead.verdict).toMatch(/^Dans les temps\./);
+    const half = raceGoalCard(
+      { ...road, date: road.date!, distanceKm: 21.1 },
+      inputs,
+    );
+    expect(half.gap).toBeNull();
+    expect(half.verdict).toBe(
+      "Pas encore de prévision Garmin pour cette distance : ton objectif reste le repère.",
+    );
+  });
+
+  it("shows no plan phase without an active plan", () => {
+    const goal = race();
+    const card = raceGoalCard(
+      { ...goal, date: goal.date! },
+      { ...inputs, program: null },
+    );
+    expect(card).toMatchObject({
+      phase: null,
+      phaseShort: null,
+      planNote: noPlanNote,
+    });
+  });
+});
+
+describe("preparation verdict", () => {
+  const base = {
+    longestMeters: 80_000,
+    distanceKm: 120,
+    weeklyGainMeters: 3_000,
+    raceGainM: 1_600,
+  };
+
+  it("names what is covered and what remains to build", () => {
+    expect(preparationVerdict(base)).toMatch(
+      /D\+ de la course est déjà couvert/,
+    );
+    expect(preparationVerdict({ ...base, longestMeters: 125_000 })).toBe(
+      "Sur la bonne voie. La distance et le D+ de la course sont déjà couverts à l’entraînement.",
+    );
+    expect(
+      preparationVerdict({
+        ...base,
+        longestMeters: 125_000,
+        weeklyGainMeters: 900,
+      }),
+    ).toBe(
+      "Sur la bonne voie. La distance est déjà couverte ; c’est le D+ qu’il reste à construire.",
+    );
+    expect(preparationVerdict({ ...base, weeklyGainMeters: 900 })).toBe(
+      "La distance et le D+ de la course restent à construire d’ici le jour J.",
+    );
+    expect(preparationVerdict({ ...base, raceGainM: null })).toBe(
+      "La distance de la course reste à construire d’ici le jour J.",
+    );
+    expect(
+      preparationVerdict({
+        ...base,
+        longestMeters: null,
+        weeklyGainMeters: null,
+      }),
+    ).toBe("Pas encore assez de sorties récentes pour juger ta préparation.");
+  });
+});
+
+describe("next key session", () => {
+  const session = (
+    sessionKey: string,
+    scheduledOn: string,
+    isKey: boolean,
+    kind = "long_run",
+  ) => ({
+    sessionKey,
+    title: sessionKey,
+    scheduledOn,
+    isKey,
+    kind,
+    sport: "running",
+  });
+
+  it("picks the earliest key session from today on", () => {
+    const sessions = [
+      session("later", "2026-10-30", true),
+      session("past", "2026-10-10", true),
+      session("easy", "2026-10-15", false),
+      session("next", "2026-10-14", true),
+    ] as Parameters<typeof nextKeySession>[0];
+    expect(nextKeySession(sessions, today)).toEqual({
+      sessionKey: "next",
+      title: "next",
+      date: "14 oct.",
+    });
+    expect(nextKeySession(sessions.slice(1, 3), today)).toBeNull();
   });
 });
