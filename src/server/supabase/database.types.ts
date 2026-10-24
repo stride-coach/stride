@@ -2772,7 +2772,6 @@ export type Database = {
         Args: { p_activity_id: string };
         Returns: boolean;
       };
-      race_owned: { Args: { p_race_id: string }; Returns: boolean };
       race_drop_bag_extras_valid: {
         Args: { p_extras: string[] };
         Returns: boolean;
@@ -2781,6 +2780,7 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: boolean;
       };
+      race_owned: { Args: { p_race_id: string }; Returns: boolean };
       race_strategy_valid: {
         Args: { p_consignes: Json; p_segments: Json };
         Returns: boolean;
