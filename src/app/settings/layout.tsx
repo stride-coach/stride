@@ -3,7 +3,7 @@ import { StaffProvider } from "@/features/coach/components/staff-context";
 import { NotificationsProvider } from "@/features/notifications/components/notifications-context";
 import { SettingsShell } from "@/features/settings/components/settings-shell";
 import { getShellIdentity, getShellNotifications } from "@/server/app/shell";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export default async function SettingsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAthlete();
+  await requireAthleteAccount();
   const notifications = getShellNotifications();
   const identity = await getShellIdentity();
   return (

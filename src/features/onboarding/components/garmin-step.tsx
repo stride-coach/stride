@@ -32,14 +32,17 @@ const garminPhases: Record<GarminScreen, GarminPhase> = {
 export function GarminStep({
   revision,
   initialScreen,
+  initialConsent,
 }: {
   revision: number;
   initialScreen: GarminScreen;
+  initialConsent: boolean;
 }) {
   const router = useRouter();
   const completion = useOnboardingTransition();
   const [screen, setScreen] = useState(initialScreen);
   useReportGarminPhase(garminPhases[screen]);
+  const [consent, setConsent] = useState(initialConsent);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -140,7 +143,13 @@ export function GarminStep({
     [run, revision],
   );
   if (screen === "intro")
-    return <GarminIntro onStart={() => showCredentials(true)} />;
+    return (
+      <GarminIntro
+        consent={consent}
+        onConsentChange={setConsent}
+        onStart={() => showCredentials(true)}
+      />
+    );
   if (screen === "credentials")
     return (
       <GarminCredentials
@@ -154,7 +163,11 @@ export function GarminStep({
         slow={slow}
         onSubmit={() =>
           submit("credentials", () =>
-            startGarminConnection({ email: email.trim(), password }),
+            startGarminConnection({
+              email: email.trim(),
+              password,
+              healthConsent: consent,
+            }),
           )
         }
         onBack={() => {

@@ -22,7 +22,7 @@ import {
   splitRaces,
 } from "@/features/settings/goals-view";
 import { cn } from "@/lib/utils";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 import { readGoals } from "@/server/onboarding/goals";
 import { readRaceCourses } from "@/server/races/courses";
 import { saveSettingsGoal } from "@/server/settings/actions";
@@ -82,7 +82,10 @@ export default async function GoalsSettingsPage({
     priorite?: string;
   }>;
 }) {
-  const [context, query] = await Promise.all([requireAthlete(), searchParams]);
+  const [context, query] = await Promise.all([
+    requireAthleteAccount(),
+    searchParams,
+  ]);
   const [goals, courses] = await Promise.all([
     readGoals(context),
     readRaceCourses(context),

@@ -6,7 +6,7 @@ import {
   SettingsGroup,
   SettingsHeading,
 } from "@/features/settings/components/settings-shell";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 import {
   readSettingsConnection,
   readStoredCounts,
@@ -15,7 +15,7 @@ import {
 export const metadata: Metadata = { title: "Connexions · Réglages" };
 
 export default async function ConnexionsSettingsPage() {
-  const context = await requireAthlete();
+  const context = await requireAthleteAccount();
   const [state, counts] = await Promise.all([
     readSettingsConnection(context),
     readStoredCounts(context),

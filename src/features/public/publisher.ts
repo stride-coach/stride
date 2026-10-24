@@ -8,6 +8,7 @@ export const publisher = {
 } as const;
 
 export const legalUpdatedOn = "24/10/2026";
+export const privacyPolicyVersion = "2026-10-24";
 
 export const legalPages = [
   { href: "/privacy", label: "Confidentialité", short: "Confidentialité" },

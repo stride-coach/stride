@@ -7,7 +7,7 @@ import {
   WeekdayField,
 } from "@/features/settings/components/preferences";
 import { SettingsNotice } from "@/features/settings/components/settings-notice";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 import { readProfile } from "@/server/onboarding/profile";
 import {
   addSettingsUnavailability,
@@ -47,7 +47,10 @@ export default async function TrainingSettingsPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  const [context, query] = await Promise.all([requireAthlete(), searchParams]);
+  const [context, query] = await Promise.all([
+    requireAthleteAccount(),
+    searchParams,
+  ]);
   const [profile, planning, push] = await Promise.all([
     readProfile(context),
     readPlanningConstraints(context),

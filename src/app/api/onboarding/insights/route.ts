@@ -1,6 +1,7 @@
 import { buildInsightFacts } from "@/features/insights/facts";
 import { loadHistoryContext } from "@/server/ai/context/history";
 import { phraseHistoryInsights } from "@/server/ai/skills/history-insights";
+import { holdsHealthConsent } from "@/server/consent/health-consent";
 import { getGarminClient } from "@/server/garmin/session";
 import { getOnboardingContext } from "@/server/onboarding/context";
 import { onboardingEnabled } from "@/server/onboarding/environment";
@@ -14,6 +15,11 @@ export async function GET() {
       return Response.json(
         { code: "session-expired" },
         { status: 401, headers },
+      );
+    if (!(await holdsHealthConsent(context)))
+      return Response.json(
+        { code: "consent-required" },
+        { status: 403, headers },
       );
     const today = new Date();
     const [sync, history] = await Promise.all([

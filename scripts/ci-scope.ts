@@ -78,6 +78,7 @@ export function areaOf(path: string): string | undefined {
   if (/^src\/app\/(?:\(auth\)|auth)\//.test(path)) return "auth";
   if (path.startsWith("src/app/settings/")) return "settings";
   if (path.startsWith("src/app/onboarding/")) return "onboarding";
+  if (path.startsWith("src/app/consent/")) return "consent";
   if (path.startsWith("src/app/(internal)/")) return "internal";
   if (/^src\/app\/(?:page\.tsx$|(?:privacy|terms|legal)\/)/.test(path))
     return "home";

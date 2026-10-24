@@ -1,15 +1,19 @@
 "use server";
 
 import type { SyncRequestResult } from "@/features/garmin/sync";
-import { getGarminClient, getGarminRequestContext } from "./session";
+import { holdsHealthConsent } from "@/server/consent/health-consent";
+import { getOnboardingContext } from "@/server/onboarding/context";
+import { getGarminClient } from "./session";
 
 const reconnectCodes = new Set(["reconnect_required", "disconnected"]);
 
 export async function requestGarminSync(): Promise<SyncRequestResult> {
-  const context = await getGarminRequestContext();
+  const context = await getOnboardingContext().catch(() => null);
   if (!context) return { status: "session-expired" };
+  if (!(await holdsHealthConsent(context).catch(() => false)))
+    return { status: "unavailable" };
   const result = await getGarminClient()
-    .requestSync(context)
+    .requestSync({ accessToken: context.accessToken })
     .catch(() => null);
   if (!result) return { status: "unavailable" };
   if (result.ok) return { status: "requested", sync: result.value };

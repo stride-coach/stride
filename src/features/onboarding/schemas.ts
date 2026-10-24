@@ -41,6 +41,7 @@ export type OnboardingActionResult =
 export const garminCredentialsSchema = z.strictObject({
   email: z.email().max(254),
   password: z.string().min(1).max(256),
+  healthConsent: z.literal(true),
 });
 export const garminCodeSchema = z.strictObject({
   challengeId: z.uuid(),

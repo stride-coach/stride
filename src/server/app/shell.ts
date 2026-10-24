@@ -22,7 +22,7 @@ import { athleteProfileColumns } from "@/server/onboarding/profile";
 import { countActiveShoes } from "@/server/gear/load";
 import { readNotificationFeed } from "@/server/notifications/feed";
 import { reconcileGarminNotificationsAfterResponse } from "@/server/notifications/garmin";
-import { requireAthlete } from "./session";
+import { requireAthlete, requireAthleteAccount } from "./session";
 
 async function readTodayReadiness(context: OnboardingContext, now: Date) {
   const { data, error } = await context.client
@@ -105,7 +105,7 @@ export async function loadShellNavigation(
 }
 
 export const getShellIdentity = cache(async () =>
-  loadShellIdentity(await requireAthlete(), new Date()),
+  loadShellIdentity(await requireAthleteAccount(), new Date()),
 );
 
 export const getShellNavigation = cache(async () =>
@@ -113,7 +113,7 @@ export const getShellNavigation = cache(async () =>
 );
 
 export const getShellNotifications = cache(async () => {
-  const context = await requireAthlete();
+  const context = await requireAthleteAccount();
   reconcileGarminNotificationsAfterResponse(context);
   return readNotificationFeed(context, new Date()).catch(() => null);
 });
