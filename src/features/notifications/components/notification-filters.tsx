@@ -35,7 +35,7 @@ export function NotificationFilters({
       role="group"
       aria-label="Filtrer les notifications"
       className={cn(
-        "flex [scrollbar-width:none] gap-1.5 overflow-x-auto",
+        "flex shrink-0 [scrollbar-width:none] gap-1.5 overflow-x-auto",
         className,
       )}
     >
