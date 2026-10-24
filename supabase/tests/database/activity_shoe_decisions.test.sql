@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(11);
 
 insert into auth.users (id, aud, role, email) values
   ('a4000000-0000-4000-8000-00000000000a', 'authenticated', 'authenticated', 'decisions-a@example.com'),
@@ -44,6 +44,30 @@ select lives_ok(
       provider_activity_id = excluded.provider_activity_id,
       decision = excluded.decision, shoe_id = excluded.shoe_id, updated_at = now()$$,
   'the athlete corrects the pair of the same activity'
+);
+select lives_ok(
+  $$insert into public.activity_shoe_decisions
+      (user_id, provider_activity_id, decision, shoe_id, updated_at)
+    values ('a4000000-0000-4000-8000-00000000000a', '21894512345', 'confirmed',
+      'a4000000-0000-4000-8000-0000000000a1', now())
+    on conflict (user_id, provider_activity_id)
+    do update set user_id = excluded.user_id,
+      provider_activity_id = excluded.provider_activity_id,
+      decision = excluded.decision, shoe_id = excluded.shoe_id,
+      updated_at = excluded.updated_at$$,
+  'the athlete saves a decision with its update time'
+);
+select lives_ok(
+  $$insert into public.activity_shoe_decisions
+      (user_id, provider_activity_id, decision, shoe_id, updated_at)
+    values ('a4000000-0000-4000-8000-00000000000a', '21894512345', 'corrected',
+      'a4000000-0000-4000-8000-0000000000a1', now())
+    on conflict (user_id, provider_activity_id)
+    do update set user_id = excluded.user_id,
+      provider_activity_id = excluded.provider_activity_id,
+      decision = excluded.decision, shoe_id = excluded.shoe_id,
+      updated_at = excluded.updated_at$$,
+  'the athlete corrects a decision with its update time'
 );
 select throws_ok(
   $$insert into public.activity_shoe_decisions (user_id, provider_activity_id, decision, shoe_id)
