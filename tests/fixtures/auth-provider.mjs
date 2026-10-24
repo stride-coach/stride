@@ -315,6 +315,7 @@ const tables = {
   race_strategies: [],
   race_proposals: [],
   race_nutrition_plans: [],
+  race_drop_bags: [],
   athlete_nutrition_products: [],
   activity_shoe_decisions: [],
   activity_feelings: [],
@@ -2389,6 +2390,7 @@ createServer(async (request, response) => {
     }));
     tables.race_strategies = [];
     tables.race_nutrition_plans = [];
+    tables.race_drop_bags = [];
     const checklistItem = (index, list, label, values = {}) => ({
       id: `e2000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       race_id: race.id,
@@ -3195,14 +3197,14 @@ createServer(async (request, response) => {
       );
       return send(204, undefined);
     }
-    if (url.pathname === "/rest/v1/race_nutrition_plans") {
+    const raceRowTable = {
+      "/rest/v1/race_nutrition_plans": "race_nutrition_plans",
+      "/rest/v1/race_drop_bags": "race_drop_bags",
+    }[url.pathname];
+    if (raceRowTable) {
       if (request.method === "POST") {
         const value = Array.isArray(body) ? body[0] : body;
-        if (
-          tables.race_nutrition_plans.some(
-            (row) => row.race_id === value.race_id,
-          )
-        )
+        if (tables[raceRowTable].some((row) => row.race_id === value.race_id))
           return send(409, {
             code: "23505",
             message: "duplicate key value violates unique constraint",
@@ -3212,11 +3214,11 @@ createServer(async (request, response) => {
           revision: 1,
           updated_at: new Date().toISOString(),
         };
-        tables.race_nutrition_plans.push(row);
+        tables[raceRowTable].push(row);
         return send(201, [row]);
       }
       if (request.method === "PATCH") {
-        const matches = tables.race_nutrition_plans.filter((row) =>
+        const matches = tables[raceRowTable].filter((row) =>
           ["race_id", "user_id", "revision"].every((key) => {
             const filter = url.searchParams.get(key);
             return !filter || filter === `eq.${row[key]}`;

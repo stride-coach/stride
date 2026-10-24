@@ -14,6 +14,7 @@ import type { OnboardingContext } from "@/server/onboarding/context";
 import { loadPlanOverview, readPlanRaces } from "@/server/plans/overview";
 import { readActivePlan } from "@/server/plans/stored";
 import { loadOnTrackInputs } from "@/server/races/on-track";
+import { readProductNames } from "@/server/races/proposals";
 import { listRaces } from "@/server/races/races";
 
 vi.mock("server-only", () => ({}));
@@ -107,6 +108,7 @@ const reads: Record<string, (context: OnboardingContext) => Promise<unknown>> =
     loadPlanOverview: (context) => loadPlanOverview(context),
     readActivityDetail: (context) => readActivityDetail(context, "activity-1"),
     loadOnTrackInputs: (context) => loadOnTrackInputs(context, "2026-10-23"),
+    readProductNames: (context) => readProductNames(context),
   };
 
 describe("request-scoped server reads", () => {

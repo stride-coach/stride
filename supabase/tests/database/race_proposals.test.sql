@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(38);
+select plan(39);
 
 insert into auth.users (id, aud, role, email) values
   ('a6000000-0000-4000-8000-00000000000a', 'authenticated', 'authenticated', 'race-proposal-a@example.com'),
@@ -22,7 +22,8 @@ select ok(rowsecurity, tablename || ' has RLS enabled')
 from pg_tables
 where schemaname = 'public'
   and tablename in (
-    'race_strategies', 'athlete_nutrition_products', 'race_nutrition_plans', 'race_proposals'
+    'race_strategies', 'athlete_nutrition_products', 'race_nutrition_plans', 'race_proposals',
+    'race_drop_bags'
   );
 
 set local role anon;

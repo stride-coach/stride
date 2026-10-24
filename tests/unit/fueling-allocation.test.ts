@@ -85,7 +85,8 @@ function allocate(
     segments,
     products,
     targets,
-    plan: { ...emptyNutritionPlan, dropBag: ["Veste chaude"] },
+    plan: emptyNutritionPlan,
+    dropBagExtras: ["Veste chaude"],
     ...overrides,
   });
 }

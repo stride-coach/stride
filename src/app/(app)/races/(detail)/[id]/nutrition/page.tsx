@@ -82,6 +82,7 @@ export default async function NutritionPage({
       context,
       data,
       typeof query.proposal === "string" ? query.proposal : undefined,
+      scenarioSchema.parse(query.scenario),
     ),
     readReadyRaceProposals(context, data.race.id),
     readNutritionProducts(context),
@@ -134,7 +135,12 @@ export default async function NutritionPage({
             plan: data.nutritionPlan?.plan ?? emptyNutritionPlan,
           },
           waiting.payload,
-          reviewSegments(views.model, planned),
+          reviewSegments(
+            views.model,
+            planned,
+            null,
+            data.plan.walkPaceSecondsPerKm,
+          ),
           names,
         ).length,
       }

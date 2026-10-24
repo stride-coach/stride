@@ -40,6 +40,7 @@ export function reviewSegments(
   model: CourseModel,
   current: RacePlanModel | null,
   proposed: RacePlanModel | null = null,
+  walkPaceSecondsPerKm = 0,
 ): ReviewSegment[] {
   const names = new Map(model.waypoints.map((point) => [point.id, point.name]));
   const reference = current ?? proposed;
@@ -48,7 +49,9 @@ export function reviewSegments(
     const after = proposed?.simulation.segments[index] ?? null;
     const runPace = (item: typeof segment) => {
       const runKm = (item.toM - item.fromM - item.walkM) / 1000;
-      return runKm > 0.05 ? item.movingSeconds / runKm : null;
+      const runSeconds =
+        item.movingSeconds - (item.walkM / 1000) * walkPaceSecondsPerKm;
+      return runKm > 0.05 && runSeconds > 0 ? runSeconds / runKm : null;
     };
     return {
       id: segment.toId,

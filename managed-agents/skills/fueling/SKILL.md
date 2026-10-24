@@ -19,4 +19,4 @@ The race's Nutrition tab shows the plan Stride allocates from the race targets a
 - Allocation: Stride counts whole servings per segment from the moving time, fills the flasks at each station that has water (drink flask first, then water), keeps caffeinated products for night segments within the caffeine maximum, and packs everything after the first base into the drop bag.
 - Change a segment only when the allocation misses something the athlete needs: a product they tolerate better, solid food on a long climb, a compote before a hard section. Give exact counts by product id.
 - Race day uses products tested in training. Name the untested ones and the long session where to try them.
-- The drop bag extras are things to leave at the base besides food, such as a warm jacket, dry socks or a spare headlamp.
+- The drop bag extras (warm jacket, dry socks, spare headlamp) are the athlete's own list on the Équipement tab: suggest them in your message, never in a proposal.

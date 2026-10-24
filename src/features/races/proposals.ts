@@ -298,15 +298,6 @@ export function nutritionChanges(
         after: [...after, ...(noteAfter ? [noteAfter] : [])],
       });
   }
-  const bagBefore = current.plan.dropBag ?? [];
-  const bagAfter = plan.dropBag ?? [];
-  if (!sameList(bagBefore, bagAfter))
-    changes.push({
-      key: "drop-bag",
-      label: "Sac d’allègement",
-      before: bagBefore,
-      after: bagAfter,
-    });
   return changes;
 }
 

@@ -293,12 +293,14 @@ export function allocateRaceNutrition({
   products,
   targets,
   plan,
+  dropBagExtras = [],
 }: {
   stations: readonly AllocationStation[];
   segments: readonly AllocationSegment[];
   products: readonly NutritionProduct[];
   targets: AllocationTargets;
   plan: RaceNutritionPlan;
+  dropBagExtras?: readonly string[];
 }): RaceNutritionAllocation {
   const usable = products.filter(
     (product) => product.carbsG > 0 || product.kind === "drink",
@@ -455,7 +457,7 @@ export function allocateRaceNutrition({
   );
   const dropItems =
     baseIndex >= 0 ? merge(fueled.slice(baseIndex).flatMap(eatenOf)) : [];
-  const extras = plan.dropBag ?? [];
+  const extras = [...dropBagExtras];
   const dropBag: DropBag | null =
     baseIndex >= 0
       ? {

@@ -8,6 +8,7 @@ import { nutritionTargetsOf } from "@/features/races/proposal-review";
 import { nutritionProposalSchema } from "@/features/races/proposals";
 import { daysUntil } from "@/features/races/race";
 import { raceAllocation } from "@/features/races/race-nutrition";
+import { segmentNight } from "@/features/races/workspace";
 import { temperatureRange } from "@/features/races/weather";
 import { readNutritionProducts } from "@/server/fueling/products";
 import { readReadyRaceProposals } from "@/server/races/proposals";
@@ -158,6 +159,7 @@ export const readRaceNutritionTool = defineTool({
       planned,
       plan: data.plan,
       nutritionPlan: data.nutritionPlan?.plan ?? null,
+      dropBagExtras: data.dropBag?.extras ?? [],
       products,
     });
     const weather =
@@ -191,7 +193,7 @@ const serving = z.strictObject({
 export const proposeRaceNutritionTool = defineTool({
   name: "propose_race_nutrition",
   description:
-    "Propose a race nutrition plan to the athlete for one race, by race id. Stride stores it as a proposal: nothing changes until the athlete accepts it on the race's Nutrition tab. Give the targets you change (others stay as they are) and, optionally, the plan: which product to use for each role (gel, drink, compote, solid, caffeine), the start flask contents and pockets, per segment by its arrival waypoint id the exact items to take and a note, and the drop bag extras such as clothes. Segments you leave out keep Stride's allocation. The plan replaces the accepted one as a whole. Use only product ids and arrival waypoint ids from read_race_nutrition, keep caffeine for the night and within the caffeine maximum. A new proposal replaces the one still waiting. Call read_race_nutrition first and quote its numbers in the summary.",
+    "Propose a race nutrition plan to the athlete for one race, by race id. Stride stores it as a proposal: nothing changes until the athlete accepts it on the race's Nutrition tab. Give the targets you change (others stay as they are) and, optionally, the plan: which product to use for each role (gel, drink, compote, solid, caffeine), the start flask contents and pockets, per segment by its arrival waypoint id the exact items to take and a note. Segments you leave out keep Stride's allocation. The plan replaces the accepted one as a whole. Use only product ids and arrival waypoint ids from read_race_nutrition, keep caffeine for the night and within the caffeine maximum. A new proposal replaces the one still waiting. Call read_race_nutrition first and quote its numbers in the summary.",
   class: "propose",
   dataClasses: ["training"],
   input: z.strictObject({
@@ -244,10 +246,6 @@ export const proposeRaceNutritionTool = defineTool({
           )
           .max(40)
           .describe("Segments with exact items; others keep the allocation."),
-        dropBagExtras: z
-          .array(text(80))
-          .max(20)
-          .describe("Drop bag extras in French, such as clothes."),
       })
       .nullable()
       .describe("The nutrition plan, or null to change only targets."),
@@ -278,9 +276,20 @@ export const proposeRaceNutritionTool = defineTool({
       : [];
     const unknownProducts = referenced.filter((id) => !productIds.has(id));
     const views = planFor(data);
+    const planned = views?.planned ?? null;
     const arrivals = new Set(
-      views?.planned?.simulation.segments.map((segment) => segment.toId) ?? [],
+      planned?.simulation.segments.map((segment) => segment.toId) ?? [],
     );
+    const ids = (plan?.segments ?? []).map(
+      (segment) => segment.arrivalWaypointId,
+    );
+    const duplicated = ids.filter((id, index) => ids.indexOf(id) !== index);
+    if (duplicated.length)
+      throw toolError("validation_failed", {
+        reason: "duplicate_segment",
+        message: "Each arrival waypoint id may appear only once.",
+        arrivalWaypointIds: [...new Set(duplicated)],
+      });
     const unknownSegments = (plan?.segments ?? [])
       .map((segment) => segment.arrivalWaypointId)
       .filter((id) => !arrivals.has(id));
@@ -290,6 +299,50 @@ export const proposeRaceNutritionTool = defineTool({
         productIds: unknownProducts,
         arrivalWaypointIds: unknownSegments,
       });
+    if (plan && planned) {
+      const caffeine = new Map(
+        products.map((product) => [product.id, product.caffeineMg]),
+      );
+      const night = new Map(
+        planned.simulation.segments.map((segment, index) => [
+          segment.toId,
+          segmentNight(planned, index),
+        ]),
+      );
+      const caffeineOf = (items: { productId: string; count: number }[]) =>
+        items.reduce(
+          (sum, item) => sum + (caffeine.get(item.productId) ?? 0) * item.count,
+          0,
+        );
+      const byDay = plan.segments
+        .filter(
+          (segment) =>
+            caffeineOf(segment.items) > 0 &&
+            !night.get(segment.arrivalWaypointId),
+        )
+        .map((segment) => segment.arrivalWaypointId);
+      if (byDay.length)
+        throw toolError("validation_failed", {
+          reason: "caffeine_by_day",
+          message:
+            "Caffeinated products are allowed only in night segments (night true in read_race_nutrition).",
+          arrivalWaypointIds: byDay,
+        });
+      const total =
+        caffeineOf(plan.startPocket ?? []) +
+        plan.segments.reduce(
+          (sum, segment) => sum + caffeineOf(segment.items),
+          0,
+        );
+      const maximum = input.targets.caffeineMaxMg ?? data.plan.caffeineMaxMg;
+      if (total > maximum)
+        throw toolError("validation_failed", {
+          reason: "caffeine_above_maximum",
+          message: `The plan holds ${total} mg of caffeine, above the ${maximum} mg maximum.`,
+          caffeineMg: total,
+          caffeineMaxMg: maximum,
+        });
+    }
     const targets = nutritionTargetsSchema.parse(
       Object.fromEntries(
         Object.entries(input.targets).filter(([, value]) => value !== null),
@@ -320,9 +373,6 @@ export const proposeRaceNutritionTool = defineTool({
                   },
                 ]),
               ),
-              ...(plan.dropBagExtras.length && {
-                dropBag: plan.dropBagExtras,
-              }),
             },
           }
         : {}),

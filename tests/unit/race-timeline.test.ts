@@ -117,6 +117,17 @@ describe("pace factors", () => {
   const grades = gradesOf(course);
   const portions = walkPortions(course, 10, grades);
 
+  it("refuses a pace factor that pushes one segment under 2:30/km", () => {
+    const fast = { ...settings, targetSeconds: 40 * 175 + 420 };
+    const even = simulate(course, grades, portions, model.waypoints, fast);
+    expect(even.feasible).toBe(true);
+    const pushed = simulate(course, grades, portions, model.waypoints, {
+      ...fast,
+      paceFactors: { [ids.aid]: 0.8 },
+    });
+    expect(pushed.feasible).toBe(false);
+  });
+
   it("slows one segment and keeps the target finish time", () => {
     const base = simulate(course, grades, portions, model.waypoints, settings);
     const slower = simulate(course, grades, portions, model.waypoints, {

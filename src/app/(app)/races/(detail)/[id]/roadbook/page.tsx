@@ -132,7 +132,12 @@ function StrategistCard({
     ? strategyChanges(
         data.strategy ?? emptyStrategy,
         proposal.payload,
-        reviewSegments(views.model, planned),
+        reviewSegments(
+          views.model,
+          planned,
+          null,
+          data.plan.walkPaceSecondsPerKm,
+        ),
       ).length
     : 0;
   const base = `/races/${data.race.id}/roadbook`;
@@ -325,6 +330,7 @@ function PlanBody({
         planned,
         plan: data.plan,
         nutritionPlan: data.nutritionPlan?.plan ?? null,
+        dropBagExtras: data.dropBag?.extras ?? [],
         products,
       }),
     ),
@@ -450,6 +456,7 @@ export default async function RoadbookPage({
       context,
       data,
       typeof query.proposal === "string" ? query.proposal : undefined,
+      scenarioSchema.parse(query.scenario),
     ),
     readReadyRaceProposals(context, data.race.id),
     readNutritionProducts(context),

@@ -254,8 +254,15 @@ export function simulate(
         arrival: passage,
       };
     });
+  const segmentsFeasible = segments.every((segment) => {
+    const runKm = (segment.toM - segment.fromM - segment.walkM) / 1000;
+    const runSeconds =
+      segment.movingSeconds -
+      (segment.walkM / 1000) * settings.walkPaceSecondsPerKm;
+    return runKm <= 0.05 || runSeconds / runKm >= minimumRunPaceSecondsPerKm;
+  });
   return {
-    feasible,
+    feasible: feasible && segmentsFeasible,
     fade,
     movingElapsed,
     stops,

@@ -45,6 +45,7 @@ export type NutritionBodyProps = {
     checklist: ChecklistItem[];
     strategy: RaceStrategy | null;
     nutritionPlan: { plan: RaceNutritionPlan; updatedAt: string } | null;
+    dropBag: { extras: string[] } | null;
   };
   model: CourseModel;
   planned: RacePlanModel;
@@ -243,6 +244,7 @@ export function NutritionBody({
     planned,
     plan,
     nutritionPlan: data.nutritionPlan?.plan ?? null,
+    dropBagExtras: data.dropBag?.extras ?? [],
     products,
   });
   const timeline = raceTimeline({

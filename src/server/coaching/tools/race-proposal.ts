@@ -95,6 +95,14 @@ export const proposeRaceStrategyTool = defineTool({
             .map((waypoint) => waypoint.id)
         : [],
     );
+    const ids = input.segments.map((segment) => segment.arrivalWaypointId);
+    const duplicated = ids.filter((id, index) => ids.indexOf(id) !== index);
+    if (duplicated.length)
+      throw toolError("validation_failed", {
+        reason: "duplicate_segment",
+        message: "Each arrival waypoint id may appear only once.",
+        arrivalWaypointIds: [...new Set(duplicated)],
+      });
     const unknown = input.segments
       .map((segment) => segment.arrivalWaypointId)
       .filter((id) => !arrivals.has(id));

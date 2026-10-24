@@ -8,11 +8,7 @@ import {
   checklistLists,
   checklistTemplateFor,
 } from "@/features/races/checklists";
-import {
-  emptyNutritionPlan,
-  raceNutritionPlanSchema,
-  type RaceNutritionPlan,
-} from "@/features/fueling/race-plan";
+import { dropBagExtrasSchema } from "@/features/fueling/race-plan";
 import { clockToSql } from "@/features/races/format";
 import { planInputSchema } from "@/features/races/race";
 import { raceValueSchemas, type RaceKind } from "@/features/onboarding/goals";
@@ -421,53 +417,46 @@ export async function applyChecklistTemplate(
   return { status: "saved" };
 }
 
-const dropBagSchema = raceNutritionPlanSchema.shape.dropBag.unwrap();
-
 export async function saveDropBagExtras(
   raceId: string,
   revision: number | null,
   input: unknown,
 ): Promise<ActionResult> {
   const race = idSchema.safeParse(raceId);
-  const extras = dropBagSchema.safeParse(input);
+  const extras = dropBagExtrasSchema.safeParse(input);
   if (!race.success || !extras.success) return { status: "invalid" };
   const current = await context();
   if (!current) return { status: "session-expired" };
-  const stored = await current.client
-    .from("race_nutrition_plans")
-    .select("plan, revision")
-    .eq("user_id", current.userId)
-    .eq("race_id", race.data)
-    .maybeSingle();
-  if (stored.error) return { status: "error" };
-  if ((stored.data?.revision ?? null) !== revision)
-    return { status: "conflict" };
-  const plan = stored.data
-    ? raceNutritionPlanSchema.safeParse(stored.data.plan)
-    : { success: true as const, data: emptyNutritionPlan };
-  if (!plan.success) return { status: "error" };
-  const next: RaceNutritionPlan = { ...plan.data };
-  delete next.dropBag;
-  if (extras.data.length) next.dropBag = extras.data;
-  if (stored.data) {
-    const { data, error } = await current.client
-      .from("race_nutrition_plans")
-      .update({ plan: next })
-      .eq("user_id", current.userId)
-      .eq("race_id", race.data)
-      .eq("revision", stored.data.revision)
-      .select("race_id")
-      .maybeSingle();
-    if (error) return { status: "error" };
-    if (!data) return { status: "conflict" };
-  } else {
-    const { error } = await current.client
-      .from("race_nutrition_plans")
-      .insert({ race_id: race.data, user_id: current.userId, plan: next });
-    if (error) return { status: error.code === "23505" ? "conflict" : "error" };
+  try {
+    const response =
+      revision === null
+        ? await current.client
+            .from("race_drop_bags")
+            .insert({
+              race_id: race.data,
+              user_id: current.userId,
+              extras: extras.data,
+            })
+            .select("race_id")
+            .maybeSingle()
+        : await current.client
+            .from("race_drop_bags")
+            .update({ extras: extras.data })
+            .eq("user_id", current.userId)
+            .eq("race_id", race.data)
+            .eq("revision", revision)
+            .select("race_id")
+            .maybeSingle();
+    if (response.error)
+      return response.error.code === "23505"
+        ? { status: "conflict" }
+        : { status: "error" };
+    if (!response.data) return { status: "conflict" };
+    refresh(race.data);
+    return { status: "saved" };
+  } catch {
+    return { status: "error" };
   }
-  refresh(race.data);
-  return { status: "saved" };
 }
 
 export async function importCourseFromActivity(

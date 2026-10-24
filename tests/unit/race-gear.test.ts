@@ -191,7 +191,8 @@ describe("drop bag", () => {
         flaskCount: 2,
         bladderMl: null,
       },
-      plan: { ...emptyNutritionPlan, dropBag: ["Veste chaude"] },
+      plan: emptyNutritionPlan,
+      dropBagExtras: ["Veste chaude"],
     });
     const view = dropBagView(waypoints, allocation);
     expect(view?.km).toBe("56,0");

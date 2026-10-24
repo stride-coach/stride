@@ -38,6 +38,67 @@ as $$
     );
 $$;
 
+create function public.race_drop_bag_extras_valid(p_extras text[])
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select not exists (
+    select 1 from unnest(p_extras) as extra (value)
+    where char_length(btrim(extra.value)) not between 1 and 80
+  );
+$$;
+
+create function public.race_nutrition_payload_valid(p_payload jsonb)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  with targets as (
+    select coalesce(p_payload -> 'targets', '{}') as value
+  ),
+  ranges (name, low, high) as (
+    values
+      ('carbsPerHourG', 20, 120),
+      ('waterMlPerHour', 100, 1500),
+      ('sodiumMgPerHour', 0, 2000),
+      ('caffeineMaxMg', 0, 600),
+      ('flaskMl', 100, 1500),
+      ('flaskCount', 0, 6),
+      ('bladderMl', 250, 3000)
+  )
+  select jsonb_typeof(p_payload) = 'object'
+    and (p_payload ? 'plan' or p_payload ? 'targets')
+    and not exists (
+      select 1 from jsonb_object_keys(p_payload) as field (name)
+      where field.name not in ('plan', 'targets')
+    )
+    and (not p_payload ? 'plan' or jsonb_typeof(p_payload -> 'plan') = 'object')
+    and jsonb_typeof((select value from targets)) = 'object'
+    and not exists (
+      select 1 from jsonb_each((select value from targets)) as target (name, value)
+      where not (
+        (
+          target.name = 'nightCaffeine'
+          and jsonb_typeof(target.value) = 'boolean'
+        )
+        or (
+          target.name = 'bladderMl' and jsonb_typeof(target.value) = 'null'
+        )
+        or exists (
+          select 1 from ranges
+          where ranges.name = target.name
+            and jsonb_typeof(target.value) = 'number'
+            and (target.value #>> '{}')::numeric
+              = trunc((target.value #>> '{}')::numeric)
+            and (target.value #>> '{}')::numeric between ranges.low and ranges.high
+        )
+      )
+    );
+$$;
+
 create table public.race_strategies (
   race_id uuid primary key references public.athlete_races (id) on delete cascade,
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -88,6 +149,8 @@ create table public.race_proposals (
   race_id uuid not null references public.athlete_races (id) on delete cascade,
   kind text not null check (kind in ('strategy', 'nutrition')),
   base_revision integer not null default 0 check (base_revision >= 0),
+  base_plan_revision integer check (base_plan_revision >= 0),
+  waypoint_signature text check (char_length(waypoint_signature) = 32),
   title text not null check (char_length(btrim(title)) between 1 and 120),
   summary text check (char_length(summary) <= 2000),
   payload jsonb not null check (jsonb_typeof(payload) = 'object'),
@@ -95,6 +158,19 @@ create table public.race_proposals (
     check (status in ('ready', 'accepted', 'rejected', 'superseded', 'stale')),
   coach_session_id uuid references public.coach_sessions (id) on delete set null,
   decided_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.race_drop_bags (
+  race_id uuid primary key references public.athlete_races (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  extras text[] not null default '{}' check (
+    cardinality(extras) <= 20
+    and array_position(extras, null) is null
+    and public.race_drop_bag_extras_valid(extras)
+  ),
+  revision integer not null default 1 check (revision > 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -125,6 +201,23 @@ alter table public.race_strategies enable row level security;
 alter table public.athlete_nutrition_products enable row level security;
 alter table public.race_nutrition_plans enable row level security;
 alter table public.race_proposals enable row level security;
+alter table public.race_drop_bags enable row level security;
+
+create trigger race_drop_bags_revision before update on public.race_drop_bags
+  for each row execute function public.advance_revision();
+create index race_drop_bags_user_id_idx on public.race_drop_bags (user_id);
+
+create policy race_drop_bags_owner_select on public.race_drop_bags
+  for select to authenticated using ((select auth.uid()) = user_id);
+create policy race_drop_bags_owner_insert on public.race_drop_bags
+  for insert to authenticated
+  with check ((select auth.uid()) = user_id and public.race_owned(race_id));
+create policy race_drop_bags_owner_update on public.race_drop_bags
+  for update to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id and public.race_owned(race_id));
+create policy race_drop_bags_owner_delete on public.race_drop_bags
+  for delete to authenticated using ((select auth.uid()) = user_id);
 
 create policy race_strategies_owner_select on public.race_strategies
   for select to authenticated using ((select auth.uid()) = user_id);
@@ -169,6 +262,15 @@ revoke all on public.race_strategies, public.athlete_nutrition_products,
   from anon, authenticated;
 revoke all on function public.race_strategy_valid(jsonb, jsonb) from public, anon;
 grant execute on function public.race_strategy_valid(jsonb, jsonb) to authenticated;
+revoke all on public.race_drop_bags from anon, authenticated;
+revoke all on function public.race_drop_bag_extras_valid(text[]) from public, anon;
+grant execute on function public.race_drop_bag_extras_valid(text[]) to authenticated;
+revoke all on function public.race_nutrition_payload_valid(jsonb) from public, anon;
+grant execute on function public.race_nutrition_payload_valid(jsonb) to authenticated;
+grant select on public.race_drop_bags to authenticated;
+grant insert (race_id, user_id, extras) on public.race_drop_bags to authenticated;
+grant update (extras) on public.race_drop_bags to authenticated;
+grant delete on public.race_drop_bags to authenticated;
 
 grant select on public.race_strategies, public.athlete_nutrition_products,
   public.race_nutrition_plans, public.race_proposals
@@ -193,6 +295,44 @@ grant insert (flask_ml, flask_count, bladder_ml, caffeine_max_mg)
 grant update (flask_ml, flask_count, bladder_ml, caffeine_max_mg)
   on public.race_plans to authenticated;
 
+
+create function private.race_waypoint_signature(p_race_id uuid)
+returns text
+language sql
+stable
+set search_path = ''
+as $$
+  select md5(coalesce(
+    string_agg(id::text || ':' || distance_m::text, ',' order by distance_m, id),
+    ''
+  ))
+  from public.race_waypoints
+  where race_id = p_race_id;
+$$;
+
+create function private.race_proposal_keyed(p_kind text, p_payload jsonb)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select case p_kind
+    when 'strategy' then
+      coalesce(p_payload -> 'segments', '{}') <> '{}'::jsonb
+    else
+      coalesce(p_payload #> '{plan,segments}', '{}') <> '{}'::jsonb
+  end;
+$$;
+
+create function private.race_proposal_tracks_plan(p_kind text, p_payload jsonb)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select p_kind = 'strategy' or p_payload ? 'plan';
+$$;
+
 create function private.race_proposal_base(p_race_id uuid, p_kind text)
 returns integer
 language sql
@@ -207,6 +347,17 @@ as $$
         (select revision from public.race_nutrition_plans where race_id = p_race_id)
     end,
     0
+  );
+$$;
+
+create function private.race_plan_revision(p_race_id uuid)
+returns integer
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(
+    (select revision from public.race_plans where race_id = p_race_id), 0
   );
 $$;
 
@@ -245,11 +396,8 @@ begin
   ), false) then
     raise exception 'invalid_proposal' using errcode = 'PT400';
   end if;
-  if p_kind = 'nutrition' and (
-    (p_payload ? 'plan' and jsonb_typeof(p_payload -> 'plan') <> 'object')
-    or (p_payload ? 'targets' and jsonb_typeof(p_payload -> 'targets') <> 'object')
-    or not (p_payload ? 'plan' or p_payload ? 'targets')
-  ) then
+  if p_kind = 'nutrition'
+    and not coalesce(public.race_nutrition_payload_valid(p_payload), false) then
     raise exception 'invalid_proposal' using errcode = 'PT400';
   end if;
   if p_coach_session_id is not null and not exists (
@@ -264,9 +412,15 @@ begin
   where race_id = p_race_id and kind = p_kind and user_id = v_user_id and status = 'ready';
 
   insert into public.race_proposals (
-    user_id, race_id, kind, base_revision, title, summary, payload, coach_session_id
+    user_id, race_id, kind, base_revision, base_plan_revision, waypoint_signature,
+    title, summary, payload, coach_session_id
   ) values (
-    v_user_id, p_race_id, p_kind, private.race_proposal_base(p_race_id, p_kind),
+    v_user_id, p_race_id, p_kind,
+    private.race_proposal_base(p_race_id, p_kind),
+    case when p_kind = 'nutrition' and p_payload ? 'targets'
+      then private.race_plan_revision(p_race_id) end,
+    case when private.race_proposal_keyed(p_kind, p_payload)
+      then private.race_waypoint_signature(p_race_id) end,
     p_title, p_summary, p_payload, p_coach_session_id
   )
   returning id into v_id;
@@ -299,8 +453,19 @@ begin
     raise exception 'not_ready' using errcode = 'PT409';
   end if;
 
-  if private.race_proposal_base(v_proposal.race_id, v_proposal.kind)
-    <> v_proposal.base_revision then
+  if (
+    private.race_proposal_tracks_plan(v_proposal.kind, v_proposal.payload)
+    and private.race_proposal_base(v_proposal.race_id, v_proposal.kind)
+      <> v_proposal.base_revision
+  ) or (
+    v_proposal.base_plan_revision is not null
+    and private.race_plan_revision(v_proposal.race_id)
+      <> v_proposal.base_plan_revision
+  ) or (
+    v_proposal.waypoint_signature is not null
+    and private.race_waypoint_signature(v_proposal.race_id)
+      <> v_proposal.waypoint_signature
+  ) then
     update public.race_proposals
     set status = 'stale', decided_at = now(), updated_at = now()
     where id = v_proposal.id;
@@ -356,20 +521,36 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_status text;
 begin
   if auth.uid() is null then
     raise exception 'not_authenticated' using errcode = 'PT401';
   end if;
-  update public.race_proposals
-  set status = 'rejected', decided_at = now(), updated_at = now()
-  where id = p_proposal_id and user_id = auth.uid() and status = 'ready';
+  select status into v_status from public.race_proposals
+  where id = p_proposal_id and user_id = auth.uid()
+  for update;
   if not found then
     raise exception 'not_found' using errcode = 'PT404';
   end if;
+  if v_status <> 'ready' then
+    raise exception 'not_ready' using errcode = 'PT409';
+  end if;
+  update public.race_proposals
+  set status = 'rejected', decided_at = now(), updated_at = now()
+  where id = p_proposal_id;
 end;
 $$;
 
+revoke all on function private.race_waypoint_signature(uuid)
+  from public, anon, authenticated, service_role;
+revoke all on function private.race_proposal_keyed(text, jsonb)
+  from public, anon, authenticated, service_role;
+revoke all on function private.race_proposal_tracks_plan(text, jsonb)
+  from public, anon, authenticated, service_role;
 revoke all on function private.race_proposal_base(uuid, text)
+  from public, anon, authenticated, service_role;
+revoke all on function private.race_plan_revision(uuid)
   from public, anon, authenticated, service_role;
 revoke all on function public.submit_race_proposal(uuid, text, text, jsonb, text, uuid)
   from public, anon, authenticated, service_role;

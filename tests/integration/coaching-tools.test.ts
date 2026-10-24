@@ -568,8 +568,10 @@ describe("coaching tools run as athlete A", () => {
     expect(foreign.count).toBe(1);
     const races = await sql<{ user_id: string; kind: string }[]>`
       select user_id, kind from public.race_proposals
-      where user_id in (${a.context.userId}, ${b.context.userId})`;
+      where user_id in (${a.context.userId}, ${b.context.userId})
+      order by kind`;
     expect([...races]).toEqual([
+      { user_id: a.context.userId, kind: "nutrition" },
       { user_id: a.context.userId, kind: "strategy" },
     ]);
   });

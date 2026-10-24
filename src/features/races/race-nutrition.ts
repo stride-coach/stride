@@ -20,12 +20,14 @@ export function raceAllocation({
   plan,
   nutritionPlan,
   products,
+  dropBagExtras = [],
 }: {
   model: CourseModel;
   planned: RacePlanModel;
   plan: RacePlan;
   nutritionPlan: RaceNutritionPlan | null;
   products: readonly NutritionProduct[];
+  dropBagExtras?: readonly string[];
 }) {
   const waypoints = new Map(model.waypoints.map((point) => [point.id, point]));
   const segments = planned.simulation.segments;
@@ -64,5 +66,6 @@ export function raceAllocation({
       bladderMl: plan.bladderMl,
     },
     plan: nutritionPlan ?? emptyNutritionPlan,
+    dropBagExtras,
   });
 }

@@ -215,6 +215,7 @@ export default async function RaceGearPage({
         planned: views.planned,
         plan: data.plan,
         nutritionPlan: data.nutritionPlan?.plan ?? null,
+        dropBagExtras: data.dropBag?.extras ?? [],
         products,
       })
     : null;
@@ -253,12 +254,12 @@ export default async function RaceGearPage({
         <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
           {bag && (
             <DropBagCard
-              key={data.nutritionPlan?.revision ?? 0}
+              key={data.dropBag?.revision ?? 0}
               raceId={id}
               km={bag.km}
               nutrition={bag.nutrition}
-              extras={data.nutritionPlan?.plan.dropBag ?? []}
-              revision={data.nutritionPlan?.revision ?? null}
+              extras={data.dropBag?.extras ?? []}
+              revision={data.dropBag?.revision ?? null}
             />
           )}
           {prepLists.map((list) => group(list))}

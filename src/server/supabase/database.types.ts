@@ -2008,6 +2008,42 @@ export type Database = {
           },
         ];
       };
+      race_drop_bags: {
+        Row: {
+          created_at: string;
+          extras: string[];
+          race_id: string;
+          revision: number;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          extras?: string[];
+          race_id: string;
+          revision?: number;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          extras?: string[];
+          race_id?: string;
+          revision?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_drop_bags_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: true;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       race_nutrition_plans: {
         Row: {
           created_at: string;
@@ -2139,6 +2175,7 @@ export type Database = {
       };
       race_proposals: {
         Row: {
+          base_plan_revision: number | null;
           base_revision: number;
           coach_session_id: string | null;
           created_at: string;
@@ -2152,9 +2189,11 @@ export type Database = {
           title: string;
           updated_at: string;
           user_id: string;
+          waypoint_signature: string | null;
         };
         ComputedFields: never;
         Insert: {
+          base_plan_revision?: number | null;
           base_revision?: number;
           coach_session_id?: string | null;
           created_at?: string;
@@ -2168,8 +2207,10 @@ export type Database = {
           title: string;
           updated_at?: string;
           user_id: string;
+          waypoint_signature?: string | null;
         };
         Update: {
+          base_plan_revision?: number | null;
           base_revision?: number;
           coach_session_id?: string | null;
           created_at?: string;
@@ -2183,6 +2224,7 @@ export type Database = {
           title?: string;
           updated_at?: string;
           user_id?: string;
+          waypoint_signature?: string | null;
         };
         Relationships: [
           {
@@ -2731,6 +2773,14 @@ export type Database = {
         Returns: boolean;
       };
       race_owned: { Args: { p_race_id: string }; Returns: boolean };
+      race_drop_bag_extras_valid: {
+        Args: { p_extras: string[] };
+        Returns: boolean;
+      };
+      race_nutrition_payload_valid: {
+        Args: { p_payload: Json };
+        Returns: boolean;
+      };
       race_strategy_valid: {
         Args: { p_consignes: Json; p_segments: Json };
         Returns: boolean;

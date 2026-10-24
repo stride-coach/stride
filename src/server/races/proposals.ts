@@ -13,6 +13,7 @@ import {
   raceProposalRowSchema,
   type RaceProposal,
 } from "@/features/races/proposals";
+import type { ScenarioKey } from "@/features/races/workspace";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import type { RaceWorkspaceData } from "./races";
 import { planFor } from "./views";
@@ -54,27 +55,35 @@ export async function readRaceProposal(
   return data ? (parseRows([data])[0] ?? null) : null;
 }
 
-export async function readProductNames(context: OnboardingContext) {
+export const readProductNames = cache(async (context: OnboardingContext) => {
   const { data, error } = await context.client
     .from("athlete_nutrition_products")
     .select("id, name, brand")
     .eq("user_id", context.userId);
   if (error) throw new Error("Unable to read the nutrition products");
   return new Map((data ?? []).map((row) => [row.id, productName(row)]));
-}
+});
 
 export async function loadRaceProposalReview(
   context: OnboardingContext,
   data: RaceWorkspaceData,
   proposalId: string | undefined,
+  scenario: ScenarioKey | null = null,
 ) {
   const proposal = await readRaceProposal(context, data.race.id, proposalId);
   if (!proposal) return null;
-  const views = planFor(data);
+  const views = planFor(data, scenario);
   const proposed =
-    proposal.kind === "strategy" ? planFor(data, null, proposal.payload) : null;
+    proposal.kind === "strategy"
+      ? planFor(data, scenario, proposal.payload)
+      : null;
   const segments = views
-    ? reviewSegments(views.model, views.planned, proposed?.planned ?? null)
+    ? reviewSegments(
+        views.model,
+        views.planned,
+        proposed?.planned ?? null,
+        data.plan.walkPaceSecondsPerKm,
+      )
     : [];
   return raceProposalReview(proposal, {
     strategy: data.strategy ?? emptyStrategy,
