@@ -25,7 +25,11 @@ import {
   type SessionFamily,
 } from "@/features/plans/view/program";
 import type { SessionPanel } from "@/features/plans/view/session-panel";
-import { formatInteger } from "@/features/progress/format";
+import {
+  activityCountLabel,
+  activityTotals,
+} from "@/features/plans/view/session-activities";
+import { formatClock, formatInteger } from "@/features/progress/format";
 import {
   readinessTones,
   type Readiness,
@@ -150,6 +154,7 @@ export type TodayInput = {
   panel: SessionPanel | null;
   recovery: RecoveryModel;
   latest: Activity | null;
+  latestGroup?: Activity[];
   debrief?: DebriefView | null;
   pairQuestion?: PairQuestion | null;
   pain?: boolean;
@@ -409,11 +414,18 @@ function latest(input: TodayInput): TodayActivity | null {
       ? `${formatActivityPace(activity.distanceMeters, activity.durationSeconds)} /km`
       : null;
   const title = session ? session.title : activityTitle(activity);
+  const group =
+    match && session && (input.latestGroup?.length ?? 0) > 1
+      ? (input.latestGroup ?? [])
+      : null;
+  const totals = group ? activityTotals(group) : null;
   return {
     heading,
-    title: activity.durationSeconds
-      ? `${title} · ${formatDuration(activity.durationSeconds)}`
-      : title,
+    title: group
+      ? title
+      : activity.durationSeconds
+        ? `${title} · ${formatDuration(activity.durationSeconds)}`
+        : title,
     family: session
       ? sessionFamilyOf(session)
       : kind === "trail"
@@ -421,16 +433,24 @@ function latest(input: TodayInput): TodayActivity | null {
         : kind === "road"
           ? "easy"
           : "cross",
-    detail:
-      [
-        activity.distanceMeters !== null &&
-          `${formatActivityDistance(activity.distanceMeters)} km`,
-        pace,
-        activity.averageHeartRate !== null &&
-          `FC ${formatInteger(activity.averageHeartRate)}`,
-      ]
-        .filter(Boolean)
-        .join(" · ") || formatTodayDate(activity.date),
+    detail: group
+      ? [
+          activityCountLabel(group.length),
+          totals?.durationSeconds && formatClock(totals.durationSeconds),
+          totals?.distanceMeters &&
+            `${formatActivityDistance(totals.distanceMeters)} km`,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : [
+          activity.distanceMeters !== null &&
+            `${formatActivityDistance(activity.distanceMeters)} km`,
+          pace,
+          activity.averageHeartRate !== null &&
+            `FC ${formatInteger(activity.averageHeartRate)}`,
+        ]
+          .filter(Boolean)
+          .join(" · ") || formatTodayDate(activity.date),
     compliance:
       match && (match.status === "completed" || match.status === "partial")
         ? {
@@ -441,7 +461,10 @@ function latest(input: TodayInput): TodayActivity | null {
             partial: match.status === "partial",
           }
         : null,
-    href: `/activities/${activity.id}`,
+    href:
+      group && match
+        ? sessionPanelHref(match.sessionKey)
+        : `/activities/${activity.id}`,
   };
 }
 
@@ -455,15 +478,15 @@ function queue(input: TodayInput): TodayQueueItem[] {
         ? " du jour"
         : "";
   const debrief =
-    input.latest && input.debrief?.activityId === input.latest.id
+    input.latest && input.debrief?.activityIds.includes(input.latest.id)
       ? input.debrief
       : null;
   if (activity && input.latest && debrief && !debrief.feeling)
     items.push({
       kind: "feeling",
-      key: `feeling-${input.latest.id}`,
+      key: `feeling-${debrief.activityId}`,
       label: `ton ressenti${suffix}`,
-      activityId: input.latest.id,
+      activityId: debrief.activityId,
       activity,
     });
   const question = input.pairQuestion ?? null;

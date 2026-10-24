@@ -2,7 +2,8 @@ import "server-only";
 import { localToday } from "@/features/app-shell/shell";
 import { buildProgram } from "@/features/plans/view/program";
 import { buildToday, todaySessionKey } from "@/features/today/today";
-import { listActivities } from "@/server/activities/activities";
+import type { Activity } from "@/features/activities/activities";
+import { listActivities, readActivity } from "@/server/activities/activities";
 import { pairQuestion } from "@/features/gear/check-view";
 import { loadWatchView } from "@/server/garmin/watch";
 import { loadPairChecks } from "@/server/gear/checks";
@@ -13,11 +14,32 @@ import {
   programInput,
   readPlanRaces,
 } from "@/server/plans/overview";
+import type { SessionMatch } from "@/server/plans/matches";
 import { loadIntensityPaces } from "@/server/plans/paces";
+import { sessionActivityIds } from "@/server/plans/session-activities";
 import { loadSessionDebrief } from "@/server/plans/debrief";
 import { loadSessionPanel } from "@/server/plans/session-panel";
 import { readConditionReports } from "@/server/plans/health";
 import { loadRecovery } from "@/server/progress/recovery";
+
+async function loadLatestGroup(
+  context: OnboardingContext,
+  matches: SessionMatch[],
+  latest: Activity | null,
+) {
+  const sessionKey = latest
+    ? matches.find((match) => match.activityId === latest.id)?.sessionKey
+    : undefined;
+  if (!latest || !sessionKey) return [];
+  const ids = sessionActivityIds(matches, sessionKey);
+  if (ids.length < 2) return [];
+  const activities = await Promise.all(
+    ids.map((id) =>
+      id === latest.id ? latest : readActivity(context, id).catch(() => null),
+    ),
+  );
+  return activities.filter((activity) => activity !== null);
+}
 
 export async function loadToday(context: OnboardingContext, now: Date) {
   const overviewRead = loadPlanOverview(context);
@@ -35,6 +57,7 @@ export async function loadToday(context: OnboardingContext, now: Date) {
     checks,
     debrief,
     conditions,
+    latestGroup,
   ] = await Promise.all([
     overviewRead,
     loadIntensityPaces(context),
@@ -62,6 +85,9 @@ export async function loadToday(context: OnboardingContext, now: Date) {
         : null,
     ),
     readConditionReports(context, null).catch(() => []),
+    Promise.all([overviewRead, latestRead]).then(([overview, latest]) =>
+      loadLatestGroup(context, overview?.matches ?? [], latest),
+    ),
   ]);
   const today = overview?.today ?? localToday(now);
   const plan = overview?.plan.state ?? null;
@@ -77,6 +103,7 @@ export async function loadToday(context: OnboardingContext, now: Date) {
       panel,
       recovery,
       latest,
+      latestGroup,
       debrief,
       pairQuestion:
         latestCheck && checks ? pairQuestion(latestCheck, checks.shoes) : null,

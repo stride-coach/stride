@@ -13,10 +13,22 @@ function input(overrides: Partial<SessionPanelInput> = {}): SessionPanelInput {
     sessionKey: "s-2026-10-22-1",
     matches: [],
     proposals: [],
-    activity: null,
-    laps: [],
-    series: null,
+    activities: [],
     ...overrides,
+  };
+}
+
+function lap(
+  index: number,
+  durationSeconds: number,
+  secondsPerKm: number,
+  averageHeartRate: number | null = null,
+) {
+  return {
+    index,
+    durationSeconds,
+    distanceMeters: (durationSeconds / secondsPerKm) * 1000,
+    averageHeartRate,
   };
 }
 
@@ -105,16 +117,22 @@ describe("session panel", () => {
             compliance: { duration: 0.98, distance: null },
           },
         ],
-        activity: {
-          id: "activity-1",
-          startedAt: "2026-10-20T17:12:00Z",
-          date: "2026-10-20",
-          localTime: "19:12",
-          durationSeconds: 3012,
-          distanceMeters: 8320,
-          averageHeartRate: 142,
-          detailImportedAt: "2026-10-20T18:05:12Z",
-        },
+        activities: [
+          {
+            activity: {
+              id: "activity-1",
+              startedAt: "2026-10-20T17:12:00Z",
+              date: "2026-10-20",
+              localTime: "19:12",
+              durationSeconds: 3012,
+              distanceMeters: 8320,
+              averageHeartRate: 142,
+              detailImportedAt: "2026-10-20T18:05:12Z",
+            },
+            laps: [],
+            series: null,
+          },
+        ],
       }),
     )!;
     expect(panel.status).toBe("done");
@@ -147,17 +165,6 @@ describe("session panel", () => {
   });
 
   it("debriefs an aligned structured run step by step", () => {
-    const lap = (
-      index: number,
-      durationSeconds: number,
-      secondsPerKm: number,
-      averageHeartRate: number | null = null,
-    ) => ({
-      index,
-      durationSeconds,
-      distanceMeters: (durationSeconds / secondsPerKm) * 1000,
-      averageHeartRate,
-    });
     const panel = buildSessionPanel(
       input({
         sessionKey: "s-2026-10-15-1",
@@ -169,29 +176,34 @@ describe("session panel", () => {
             compliance: { duration: 0.92, distance: null, intensity: 0.97 },
           },
         ],
-        activity: {
-          id: "activity-2",
-          startedAt: "2026-10-15T16:40:00Z",
-          date: "2026-10-15",
-          localTime: "18:40",
-          durationSeconds: 2_760,
-          distanceMeters: 9_800,
-          averageHeartRate: 158,
-          detailImportedAt: null,
-          perceivedEffort: 80,
-          feel: 25,
-        },
-        laps: [
-          lap(0, 904, 320),
-          lap(1, 360, 262, 167),
-          lap(2, 90, 400),
-          lap(3, 360, 271, 169),
-          lap(4, 90, 400),
-          lap(5, 360, 280, 170),
-          lap(6, 90, 400),
-          lap(7, 310, 281, 174),
-          lap(8, 90, 400),
-          lap(9, 570, 330),
+        activities: [
+          {
+            activity: {
+              id: "activity-2",
+              startedAt: "2026-10-15T16:40:00Z",
+              date: "2026-10-15",
+              localTime: "18:40",
+              durationSeconds: 2_760,
+              distanceMeters: 9_800,
+              averageHeartRate: 158,
+              detailImportedAt: null,
+              perceivedEffort: 80,
+              feel: 25,
+            },
+            laps: [
+              lap(0, 904, 320),
+              lap(1, 360, 262, 167),
+              lap(2, 90, 400),
+              lap(3, 360, 271, 169),
+              lap(4, 90, 400),
+              lap(5, 360, 280, 170),
+              lap(6, 90, 400),
+              lap(7, 310, 281, 174),
+              lap(8, 90, 400),
+              lap(9, 570, 330),
+            ],
+            series: null,
+          },
         ],
       }),
     )!;
@@ -223,6 +235,7 @@ describe("session panel", () => {
     expect(debrief.feeling).toEqual({
       source: "garmin",
       sourceLabel: "Saisi sur ta montre",
+      sessionWide: false,
       effort: "8 / 10",
       effortLabel: "Effort perçu · difficile",
       feel: "Mal",
@@ -242,16 +255,22 @@ describe("session panel", () => {
             compliance: { duration: 1, distance: null },
           },
         ],
-        activity: {
-          id: "activity-1",
-          startedAt: "2026-10-20T17:12:00Z",
-          date: "2026-10-20",
-          localTime: "19:12",
-          durationSeconds: 3012,
-          distanceMeters: null,
-          averageHeartRate: null,
-          detailImportedAt: null,
-        },
+        activities: [
+          {
+            activity: {
+              id: "activity-1",
+              startedAt: "2026-10-20T17:12:00Z",
+              date: "2026-10-20",
+              localTime: "19:12",
+              durationSeconds: 3012,
+              distanceMeters: null,
+              averageHeartRate: null,
+              detailImportedAt: null,
+            },
+            laps: [],
+            series: null,
+          },
+        ],
       }),
     )!;
     expect(panel.completion!.debrief).toBeNull();
@@ -270,5 +289,131 @@ describe("pace by minute", () => {
 
   it("is empty without distance", () => {
     expect(paceByMinute({ elapsed_s: [0, 60] })).toEqual([]);
+  });
+  it("sums every activity matched to the session, listed by start time", () => {
+    const panel = buildSessionPanel(
+      input({
+        sessionKey: "s-2026-10-20-1",
+        matches: ["activity-2", "activity-1"].map((activityId) => ({
+          sessionKey: "s-2026-10-20-1",
+          activityId,
+          status: "completed" as const,
+          compliance: { duration: 0.66, distance: null },
+        })),
+        activities: [
+          {
+            activity: {
+              id: "activity-2",
+              name: "Paris Course à pied",
+              startedAt: "2026-10-20T15:21:13Z",
+              date: "2026-10-20",
+              localTime: "17:21",
+              durationSeconds: 176,
+              distanceMeters: 687,
+              averageHeartRate: 159,
+              detailImportedAt: null,
+            },
+            laps: [lap(0, 176, 256)],
+            series: null,
+          },
+          {
+            activity: {
+              id: "activity-1",
+              name: "Paris Course à pied",
+              startedAt: "2026-10-20T14:44:43Z",
+              date: "2026-10-20",
+              localTime: "16:44",
+              durationSeconds: 1800,
+              distanceMeters: 5080,
+              averageHeartRate: 146,
+              detailImportedAt: null,
+              perceivedEffort: 40,
+            },
+            laps: [lap(0, 900, 354), lap(1, 900, 354)],
+            series: null,
+          },
+        ],
+      }),
+    )!;
+    const completion = panel.completion!;
+    expect(completion).toMatchObject({
+      activityId: "activity-1",
+      detail:
+        "mar. 20 oct. · 2 activités, 16:44 et 17:21 · importées de Garmin",
+      totalsLabel: "Cumul des 2 activités",
+      pace: [],
+    });
+    expect(completion.rows.map((row) => [row.label, row.actual])).toEqual([
+      ["Durée", "32:56"],
+      ["Distance", "5,77 km"],
+      ["Allure", "5:43 /km"],
+      ["FC moyenne", "147 bpm"],
+    ]);
+    expect(
+      completion.activities.map((item) => [
+        item.time,
+        item.title,
+        item.detail,
+        item.duration,
+        item.href,
+      ]),
+    ).toEqual([
+      [
+        "16:44",
+        "Paris Course à pied",
+        "5,08 km · 5:54 /km · FC 146",
+        "30:00",
+        "/activities/activity-1",
+      ],
+      [
+        "17:21",
+        "Paris Course à pied",
+        "0,69 km · 4:16 /km · FC 159",
+        "2:56",
+        "/activities/activity-2",
+      ],
+    ]);
+    expect(completion.debrief).toMatchObject({
+      activityId: "activity-1",
+      activityIds: ["activity-1", "activity-2"],
+      feeling: { sourceLabel: "Pour toute la séance", sessionWide: true },
+    });
+  });
+
+  it("keeps a single activity without a list or cumulative label", () => {
+    const panel = buildSessionPanel(
+      input({
+        sessionKey: "s-2026-10-20-1",
+        matches: [
+          {
+            sessionKey: "s-2026-10-20-1",
+            activityId: "activity-1",
+            status: "completed",
+            compliance: { duration: 1, distance: null },
+          },
+        ],
+        activities: [
+          {
+            activity: {
+              id: "activity-1",
+              startedAt: "2026-10-20T17:12:00Z",
+              date: "2026-10-20",
+              localTime: "19:12",
+              durationSeconds: 3000,
+              distanceMeters: 8300,
+              averageHeartRate: 142,
+              detailImportedAt: null,
+            },
+            laps: [],
+            series: null,
+          },
+        ],
+      }),
+    )!;
+    expect(panel.completion).toMatchObject({
+      totalsLabel: null,
+      activities: [],
+      detail: "mar. 20 oct. · 19:12 · importé de Garmin",
+    });
   });
 });

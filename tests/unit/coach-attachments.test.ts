@@ -223,6 +223,7 @@ describe("attachment resolution", () => {
     const debrief: DebriefView = {
       sessionKey: session.sessionKey,
       activityId: activity.id,
+      activityIds: [activity.id],
       sessionTitle: "Seuil 3 × 10 min",
       aligned: true,
       verdict: {

@@ -5,12 +5,15 @@ import {
   type DebriefView,
 } from "@/features/plans/debrief/view";
 import type { ActivitySegment } from "@/features/activities/detail";
-import { readActivityDetail } from "@/server/activities/activities";
-import { readActivityFeeling } from "@/server/activities/feelings";
+import {
+  activityTotals,
+  mergeLaps,
+} from "@/features/plans/view/session-activities";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import type { SessionMatch } from "./matches";
 import { loadPlanOverview } from "./overview";
 import { loadIntensityPaceRanges } from "./paces";
+import { readSessionActivities } from "./session-activities";
 
 export type DebriefTarget = { sessionKey: string } | { activityId: string };
 
@@ -50,23 +53,24 @@ export async function loadSessionDebrief(
     (item) => item.sessionKey === match.sessionKey,
   );
   if (!session) return null;
-  const [detail, paceRanges, athlete] = await Promise.all([
-    readActivityDetail(context, match.activityId).catch(() => null),
+  const [{ reads, main, feeling }, paceRanges] = await Promise.all([
+    readSessionActivities(context, overview.matches, match.sessionKey),
     loadIntensityPaceRanges(context),
-    readActivityFeeling(context, match.activityId),
   ]);
-  if (!detail) return null;
+  if (!main) return null;
+  const activities = reads.map((read) => read.activity);
   return buildDebriefView({
     session,
-    activityId: match.activityId,
-    laps: debriefLaps(detail.segments),
+    activityId: main.id,
+    activityIds: activities.map((activity) => activity.id),
+    laps: mergeLaps(reads.map((read) => debriefLaps(read.segments))),
     paceRanges,
     match,
     garmin: {
-      rpe: detail.activity.perceivedEffort,
-      feel: detail.activity.feel,
+      rpe: main.perceivedEffort,
+      feel: main.feel,
     },
-    athlete,
-    averageHeartRate: detail.activity.averageHeartRate,
+    athlete: feeling,
+    averageHeartRate: activityTotals(activities).averageHeartRate,
   });
 }

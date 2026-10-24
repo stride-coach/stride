@@ -102,9 +102,7 @@ function input(overrides: Partial<TodayInput> = {}): TodayInput {
           sessionKey,
           matches: [],
           proposals: [],
-          activity: null,
-          laps: [],
-          series: null,
+          activities: [],
         })
       : null,
     recovery: recoveryModel({
@@ -337,5 +335,55 @@ describe("today view", () => {
       }),
     );
     expect(noted.queue).toEqual([]);
+  });
+  it("shows a session done in several activities as one cumulative row", () => {
+    const second = {
+      ...activity,
+      id: "activity-2",
+      distanceMeters: 687,
+      durationSeconds: 176,
+      averageHeartRate: 159,
+    };
+    const debrief = buildDebriefView({
+      session: planState().sessions.find(
+        (item) => item.sessionKey === "s-2026-10-20-1",
+      )!,
+      activityId: "activity-1",
+      activityIds: ["activity-1", "activity-2"],
+      laps: [],
+      paceRanges: null,
+      match: {
+        status: "completed",
+        compliance: { duration: 0.98, intensity: 0.9 },
+      },
+      garmin: { rpe: null, feel: null },
+      athlete: null,
+    });
+    const { queue } = buildToday(
+      input({
+        today: "2026-10-21",
+        panel: null,
+        matches: ["activity-1", "activity-2"].map((activityId) => ({
+          sessionKey: "s-2026-10-20-1",
+          activityId,
+          status: "completed" as const,
+          compliance: { duration: 0.98 },
+        })),
+        latest: second,
+        latestGroup: [activity, second],
+        debrief,
+      }),
+    );
+    expect(queue[0]).toMatchObject({
+      kind: "feeling",
+      key: "feeling-activity-1",
+      activityId: "activity-1",
+      activity: {
+        title: "Footing",
+        detail: "2 activités · 53:08 · 9,01 km",
+        compliance: { pct: 98, partial: false },
+        href: "/plan/sessions/s-2026-10-20-1",
+      },
+    });
   });
 });

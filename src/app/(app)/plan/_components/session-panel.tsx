@@ -1,5 +1,5 @@
 import { useSearchParams } from "next/navigation";
-import { CheckIcon, InfoIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, InfoIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
 import { SheetTitle } from "@/components/ui/sheet";
@@ -436,11 +436,18 @@ function Completion({ completion }: { completion: PanelCompletion }) {
       )}
       {!debrief?.aligned &&
         completion.rows.length > 0 &&
-        (debrief ? (
+        (debrief || completion.totalsLabel ? (
           <section aria-label="Sur l’ensemble" className="flex flex-col">
-            <Dk className="pb-1.5" asChild>
-              <h3>Sur l’ensemble</h3>
-            </Dk>
+            <div className="flex items-baseline gap-2.5 pb-1.5">
+              <Dk asChild>
+                <h3>Sur l’ensemble</h3>
+              </Dk>
+              {completion.totalsLabel && (
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {completion.totalsLabel}
+                </span>
+              )}
+            </div>
             {rows}
           </section>
         ) : (
@@ -471,18 +478,56 @@ function Completion({ completion }: { completion: PanelCompletion }) {
           </div>
         </section>
       )}
+      {completion.activities.length > 0 && (
+        <section aria-labelledby="panel-activities" className="flex flex-col">
+          <Dk id="panel-activities" className="pb-2" asChild>
+            <h3>Activités Garmin</h3>
+          </Dk>
+          <ul className="flex flex-col">
+            {completion.activities.map((activity) => (
+              <li key={activity.id} className="border-t border-border">
+                <Link
+                  href={activity.href}
+                  className="grid min-h-13 grid-cols-[44px_minmax(0,1fr)_auto_12px] items-center gap-2.5 py-1.5 sm:grid-cols-[48px_minmax(0,1fr)_auto_12px] sm:gap-3"
+                >
+                  <span className="font-metric text-base font-semibold tabular-nums">
+                    {activity.time}
+                  </span>
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span className="truncate text-[13px] font-semibold">
+                      {activity.title}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {activity.detail}
+                    </span>
+                  </span>
+                  <span className="font-metric text-base font-semibold tabular-nums">
+                    {activity.duration}
+                  </span>
+                  <ChevronRightIcon
+                    aria-hidden="true"
+                    className="size-3 text-muted-foreground"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {debrief?.feeling && feeling}
       {debrief && <DebriefCoach href={debrief.coachHref} />}
-      <Button
-        asChild
-        variant="outline"
-        size="md"
-        className="min-h-9.5 self-start rounded-control text-[13px]"
-      >
-        <Link href={`/activities/${completion.activityId}`}>
-          Voir l’activité Garmin
-        </Link>
-      </Button>
+      {completion.activities.length === 0 && (
+        <Button
+          asChild
+          variant="outline"
+          size="md"
+          className="min-h-9.5 self-start rounded-control text-[13px]"
+        >
+          <Link href={`/activities/${completion.activityId}`}>
+            Voir l’activité Garmin
+          </Link>
+        </Button>
+      )}
     </>
   );
 }

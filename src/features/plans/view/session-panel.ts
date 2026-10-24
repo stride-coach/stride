@@ -7,6 +7,7 @@ import {
   formatPace,
 } from "@/features/progress/format";
 import { cardiacDrift } from "@/features/progress/measures";
+import { activityTitle } from "@/features/activities/activities";
 import type { AthleteFeeling } from "../debrief/debrief";
 import { buildDebriefView, type DebriefView } from "../debrief/view";
 import type { MatchStatus } from "../matching/adherence";
@@ -28,6 +29,14 @@ import {
   type StepView,
 } from "./plan-view";
 import { familyLabels, sessionFamilyOf, type SessionFamily } from "./program";
+import {
+  activityCountLabel,
+  activityTotals,
+  byStartTime,
+  mainActivity,
+  mergeLaps,
+  startTimesLabel,
+} from "./session-activities";
 
 export type PanelMatch = {
   sessionKey: string;
@@ -50,6 +59,9 @@ export type PanelProposal = {
 
 export type PanelActivity = {
   id: string;
+  type?: string | null;
+  name?: string | null;
+  routeName?: string | null;
   startedAt: string;
   date: string;
   localTime: string | null;
@@ -68,15 +80,19 @@ export type PanelLap = {
   averageHeartRate: number | null;
 };
 
+export type PanelActivityRead = {
+  activity: PanelActivity;
+  laps: PanelLap[];
+  series: Series | null;
+};
+
 export type SessionPanelInput = {
   state: PlanState;
   today: string;
   sessionKey: string;
   matches: PanelMatch[];
   proposals: PanelProposal[];
-  activity: PanelActivity | null;
-  laps: PanelLap[];
-  series: Series | null;
+  activities: PanelActivityRead[];
   paceRanges?: IntensityPaceRanges | null;
   shoes?: SessionShoesView | null;
   feeling?: AthleteFeeling | null;
@@ -97,12 +113,23 @@ export type PanelRow = {
   tone: PanelTone;
 };
 
+export type PanelActivityItem = {
+  id: string;
+  href: string;
+  time: string | null;
+  title: string;
+  detail: string;
+  duration: string | null;
+};
+
 export type PanelCompletion = {
   activityId: string;
   pct: number | null;
   headline: string;
   detail: string;
   rows: PanelRow[];
+  totalsLabel: string | null;
+  activities: PanelActivityItem[];
   pace: number[];
   paceLabel: string | null;
   debrief: DebriefView | null;
@@ -250,40 +277,76 @@ export function paceByMinute(series: Series | null) {
   }).filter((value): value is number => value !== null);
 }
 
+function activityItem(activity: PanelActivity): PanelActivityItem {
+  const pace =
+    activity.distanceMeters && activity.durationSeconds
+      ? `${formatPace(activity.durationSeconds / (activity.distanceMeters / 1000))} /km`
+      : null;
+  return {
+    id: activity.id,
+    href: `/activities/${activity.id}`,
+    time: activity.localTime,
+    title: activityTitle({
+      name: activity.name ?? null,
+      type: activity.type ?? null,
+      routeName: activity.routeName ?? null,
+    }),
+    detail: [
+      activity.distanceMeters !== null &&
+        `${kilometers.format(activity.distanceMeters / 1000)} km`,
+      pace,
+      activity.averageHeartRate !== null &&
+        `FC ${Math.round(activity.averageHeartRate)}`,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    duration:
+      activity.durationSeconds !== null
+        ? formatClock(activity.durationSeconds)
+        : null,
+  };
+}
+
 function completion(
   input: SessionPanelInput,
   session: PlanSession,
   match: PanelMatch,
   paces: IntensityPaces | null,
 ): PanelCompletion | null {
-  const { activity } = input;
-  if (!activity || !match.activityId) return null;
+  const reads = [...input.activities].sort((first, second) =>
+    byStartTime(first.activity, second.activity),
+  );
+  const activities = reads.map((read) => read.activity);
+  const main = mainActivity(activities);
+  if (!main || !match.activityId) return null;
+  const multiple = reads.length > 1;
+  const totals = activityTotals(activities);
+  const laps = mergeLaps(reads.map((read) => read.laps));
   const durationRatio = match.compliance.duration;
   const pct = durationRatio !== null ? Math.round(durationRatio * 100) : null;
   const distance = sessionDistance(session, paces);
   const planned = distance?.meters ?? null;
   const rows: PanelRow[] = [];
-  if (activity.durationSeconds !== null)
+  if (totals.durationSeconds !== null)
     rows.push({
       key: "duration",
       label: "Durée",
       planned: formatDuration(session.targets.durationSeconds),
-      actual: formatClock(activity.durationSeconds),
-      tone: tone(activity.durationSeconds / session.targets.durationSeconds),
+      actual: formatClock(totals.durationSeconds),
+      tone: tone(totals.durationSeconds / session.targets.durationSeconds),
     });
-  if (activity.distanceMeters !== null)
+  if (totals.distanceMeters !== null)
     rows.push({
       key: "distance",
       label: "Distance",
       planned: distance
         ? `${distance.estimated ? "≈ " : ""}${formatDistance(distance.meters)}`
         : "–",
-      actual: `${kilometers.format(activity.distanceMeters / 1000)} km`,
-      tone: tone(planned !== null ? activity.distanceMeters / planned : null),
+      actual: `${kilometers.format(totals.distanceMeters / 1000)} km`,
+      tone: tone(planned !== null ? totals.distanceMeters / planned : null),
     });
-  if (activity.distanceMeters && activity.durationSeconds) {
-    const actualPace =
-      activity.durationSeconds / (activity.distanceMeters / 1000);
+  if (totals.distanceMeters && totals.durationSeconds) {
+    const actualPace = totals.durationSeconds / (totals.distanceMeters / 1000);
     const plannedPace =
       planned !== null
         ? session.targets.durationSeconds / (planned / 1000)
@@ -296,31 +359,33 @@ function completion(
       tone: tone(plannedPace !== null ? actualPace / plannedPace : null),
     });
   }
-  if (activity.averageHeartRate !== null)
+  if (totals.averageHeartRate !== null)
     rows.push({
       key: "heart-rate",
       label: "FC moyenne",
       planned: "–",
-      actual: `${Math.round(activity.averageHeartRate)} bpm`,
+      actual: `${Math.round(totals.averageHeartRate)} bpm`,
       tone: "muted",
     });
-  const drift = cardiacDrift(
-    input.laps.flatMap((lap) =>
-      lap.durationSeconds !== null && lap.distanceMeters !== null
-        ? [
-            {
-              activityId: activity.id,
-              index: lap.index,
-              duration: lap.durationSeconds,
-              distance: lap.distanceMeters,
-              heartRate: lap.averageHeartRate,
-              gain: null,
-              loss: null,
-            },
-          ]
-        : [],
-    ),
-  );
+  const drift = multiple
+    ? null
+    : cardiacDrift(
+        laps.flatMap((lap) =>
+          lap.durationSeconds !== null && lap.distanceMeters !== null
+            ? [
+                {
+                  activityId: main.id,
+                  index: lap.index,
+                  duration: lap.durationSeconds,
+                  distance: lap.distanceMeters,
+                  heartRate: lap.averageHeartRate,
+                  gain: null,
+                  loss: null,
+                },
+              ]
+            : [],
+        ),
+      );
   if (drift !== null)
     rows.push({
       key: "drift",
@@ -330,20 +395,21 @@ function completion(
       tone: "muted",
     });
   const end =
-    activity.durationSeconds !== null
-      ? Date.parse(activity.startedAt) + activity.durationSeconds * 1000
+    main.durationSeconds !== null
+      ? Date.parse(main.startedAt) + main.durationSeconds * 1000
       : null;
   const delay =
-    end !== null && activity.detailImportedAt
-      ? Math.round((Date.parse(activity.detailImportedAt) - end) / 60_000)
+    end !== null && main.detailImportedAt
+      ? Math.round((Date.parse(main.detailImportedAt) - end) / 60_000)
       : null;
-  const pace = paceByMinute(input.series);
+  const pace = multiple ? [] : paceByMinute(reads[0].series);
   const debrief =
     match.status === "completed" || match.status === "partial"
       ? buildDebriefView({
           session,
-          activityId: activity.id,
-          laps: input.laps,
+          activityId: main.id,
+          activityIds: activities.map((activity) => activity.id),
+          laps,
           paceRanges: input.paceRanges ?? null,
           match: {
             status: match.status,
@@ -353,30 +419,42 @@ function completion(
             },
           },
           garmin: {
-            rpe: activity.perceivedEffort ?? null,
-            feel: activity.feel ?? null,
+            rpe: main.perceivedEffort ?? null,
+            feel: main.feel ?? null,
           },
           athlete: input.feeling ?? null,
-          averageHeartRate: activity.averageHeartRate,
+          averageHeartRate: totals.averageHeartRate,
         })
       : null;
+  const times = startTimesLabel(activities.map((item) => item.localTime));
   return {
-    activityId: activity.id,
+    activityId: main.id,
     pct,
     headline:
       match.status === "partial"
         ? `Fait en partie${pct !== null ? ` · ${pct} % conforme` : ""}`
         : `Fait${pct !== null ? ` · ${pct} % conforme` : ""}`,
-    detail: [
-      formatLongDay(activity.date),
-      activity.localTime,
-      delay !== null && delay >= 0 && delay < 24 * 60
-        ? `importé de Garmin ${minutes(delay * 60)} après l’arrêt`
-        : "importé de Garmin",
-    ]
+    detail: (multiple
+      ? [
+          formatLongDay(activities[0].date),
+          `${activityCountLabel(activities.length)}${times ? `, ${times}` : ""}`,
+          "importées de Garmin",
+        ]
+      : [
+          formatLongDay(main.date),
+          main.localTime,
+          delay !== null && delay >= 0 && delay < 24 * 60
+            ? `importé de Garmin ${minutes(delay * 60)} après l’arrêt`
+            : "importé de Garmin",
+        ]
+    )
       .filter(Boolean)
       .join(" · "),
     rows,
+    totalsLabel: multiple
+      ? `Cumul des ${activityCountLabel(activities.length)}`
+      : null,
+    activities: multiple ? activities.map(activityItem) : [],
     pace,
     paceLabel:
       pace.length > 0
