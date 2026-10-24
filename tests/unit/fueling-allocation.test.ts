@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   allocateRaceNutrition,
   shoppingName,
+  waterPerHour,
   type AllocationSegment,
   type AllocationStation,
   type AllocationTargets,
@@ -142,7 +143,8 @@ describe("race nutrition allocation", () => {
   });
 
   it("packs the drop bag at the base with what follows it", () => {
-    const bag = allocation.dropBag!;
+    expect(allocation.dropBags).toHaveLength(1);
+    const bag = allocation.dropBags[0];
     expect(bag.stationId).toBe(uuid(4));
     const after = allocation.segments.slice(3);
     const count = (id: string) =>
@@ -190,6 +192,139 @@ describe("race nutrition allocation", () => {
     });
   });
 
+  it("packs one drop bag per base de vie", () => {
+    const twoBases = allocate({
+      stations: stations.map((station, index) =>
+        index === 5 ? { ...station, kind: "base" } : station,
+      ),
+    });
+    expect(twoBases.dropBags.map((bag) => bag.stationId)).toEqual([
+      uuid(4),
+      uuid(6),
+    ]);
+    const eaten = (from: number, to: number) =>
+      twoBases.segments
+        .slice(from, to)
+        .flatMap((segment) => [
+          ...segment.items,
+          ...(segment.drink ? [segment.drink] : []),
+        ])
+        .reduce((total, item) => total + item.count, 0);
+    const counted = (index: number) =>
+      twoBases.dropBags[index].items.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+    expect(counted(0)).toBe(eaten(3, 5));
+    expect(counted(1)).toBe(eaten(5, 6));
+    expect(twoBases.dropBags[0].extras).toEqual(["Veste chaude"]);
+    expect(twoBases.dropBags[1].extras).toEqual([]);
+  });
+
+  it("uses caffeinated products only in the caffeine role at night", () => {
+    const cafDrink = { ...drink, id: uuid(201), caffeineMg: 80 };
+    const cafBar = { ...bar, id: uuid(202), caffeineMg: 50 };
+    const mixed = allocate({
+      products: [cafDrink, cafBar, gel, compote],
+      plan: { ...emptyNutritionPlan, products: { caffeine: cafBar.id } },
+    });
+    expect(mixed.roles.drink).toBeUndefined();
+    expect(mixed.roles.solid).toBeUndefined();
+    for (const segment of mixed.segments) {
+      if (!segment.night) expect(segment.caffeineMg).toBe(0);
+      expect(segment.drink).toBeNull();
+    }
+    expect(mixed.totals.caffeineMg).toBeLessThanOrEqual(200);
+  });
+
+  it("drops daytime caffeine and caps caffeine in planned segments", () => {
+    const planned = allocate({
+      plan: {
+        ...emptyNutritionPlan,
+        segments: {
+          [uuid(2)]: {
+            items: [
+              { productId: caffeineGel.id, count: 2 },
+              { productId: gel.id, count: 3 },
+            ],
+          },
+          [uuid(6)]: { items: [{ productId: caffeineGel.id, count: 5 }] },
+          [uuid(7)]: { items: [{ productId: caffeineGel.id, count: 5 }] },
+        },
+      },
+    });
+    expect(planned.segments[0].items).toEqual([{ product: gel, count: 3 }]);
+    expect(planned.segments[4].items).toEqual([
+      { product: caffeineGel, count: 2 },
+    ]);
+    expect(planned.totals.caffeineMg).toBe(200);
+    expect(planned.segments[5].custom).toBe(false);
+    expect(planned.segments[5].caffeineMg).toBe(0);
+  });
+
+  it("keeps archived and sodium-only products of a planned segment", () => {
+    const salt = {
+      ...gel,
+      id: uuid(203),
+      kind: "other" as const,
+      name: "Pastille de sel",
+      brand: null,
+      carbsG: 0,
+      sodiumMg: 300,
+    };
+    const archived = { ...compote, id: uuid(204) };
+    const planned = allocate({
+      products: [...products, salt],
+      archivedProducts: [archived],
+      plan: {
+        ...emptyNutritionPlan,
+        segments: {
+          [uuid(2)]: {
+            items: [
+              { productId: archived.id, count: 1 },
+              { productId: salt.id, count: 2 },
+            ],
+          },
+          [uuid(3)]: { items: [{ productId: uuid(999), count: 2 }] },
+        },
+      },
+    });
+    expect(planned.segments[0].items).toEqual([
+      { product: archived, count: 1 },
+      { product: salt, count: 2 },
+    ]);
+    expect(planned.segments[0].sodiumMg).toBeGreaterThanOrEqual(600);
+    expect(planned.segments[1].custom).toBe(false);
+    expect(planned.segments[1].items.length).toBeGreaterThan(0);
+  });
+
+  it("adds the start pocket to the shopping list", () => {
+    const pocket = allocate({
+      plan: {
+        ...emptyNutritionPlan,
+        start: { pocket: [{ productId: bar.id, count: 3 }] },
+      },
+    });
+    const bars = (value: typeof allocation) =>
+      value.shopping.find((item) => item.product.id === bar.id)?.count ?? 0;
+    expect(bars(pocket)).toBe(bars(allocation) + 3);
+  });
+
+  it("drinks more in the heat from the nearest temperature", () => {
+    expect(waterPerHour(500, null)).toBe(500);
+    expect(waterPerHour(500, 15)).toBe(500);
+    expect(waterPerHour(500, 17)).toBe(500);
+    expect(waterPerHour(500, 18)).toBe(550);
+    expect(waterPerHour(500, 24)).toBe(650);
+    expect(waterPerHour(500, 40)).toBe(750);
+    const hot = allocate({
+      segments: segments.map((segment) => ({ ...segment, temperatureC: 27 })),
+    });
+    expect(hot.segments[0].waterMlPerHour).toBe(700);
+    expect(hot.segments[0].waterMl).toBe(1400);
+    expect(allocation.segments[0].waterMlPerHour).toBe(500);
+  });
+
   it("falls back to generic portions without products", () => {
     const generic = allocate({ products: [] });
     expect(generic.generic).toBe(true);
@@ -205,7 +340,7 @@ describe("race nutrition allocation", () => {
         station.kind === "base" ? { ...station, kind: "aid" } : station,
       ),
     });
-    expect(withoutBase.dropBag).toBeNull();
+    expect(withoutBase.dropBags).toEqual([]);
   });
 });
 

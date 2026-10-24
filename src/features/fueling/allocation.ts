@@ -14,6 +14,7 @@ export type AllocationSegment = {
   movingSeconds: number;
   startElapsedSeconds: number;
   night: boolean;
+  temperatureC?: number | null;
 };
 
 export type AllocationTargets = {
@@ -41,6 +42,7 @@ export type SegmentFueling = {
   movingSeconds: number;
   night: boolean;
   carbsTargetG: number;
+  waterMlPerHour: number;
   carbsG: number;
   sodiumMg: number;
   caffeineMg: number;
@@ -80,7 +82,7 @@ export type RaceNutritionAllocation = {
   };
   segments: SegmentFueling[];
   stations: Record<string, StationFueling>;
-  dropBag: DropBag | null;
+  dropBags: DropBag[];
   shopping: Portion[];
   totals: {
     carbsG: number;
@@ -132,13 +134,36 @@ function isGeneric(product: NutritionProduct) {
 }
 
 function caffeinated(product: NutritionProduct) {
-  return product.caffeineMg > 0 && product.kind !== "drink";
+  return product.caffeineMg > 0;
 }
 
 function roleFits(role: NutritionRole, product: NutritionProduct) {
   if (role === "caffeine") return caffeinated(product);
-  if (role === "gel") return product.kind === "gel" && !caffeinated(product);
-  return product.kind === role;
+  return product.kind === role && !caffeinated(product);
+}
+
+export const waterRule = {
+  baseTemperatureC: 15,
+  stepC: 3,
+  stepIncrease: 0.1,
+  maxIncrease: 0.5,
+} as const;
+
+export function waterPerHour(
+  targetMlPerHour: number,
+  temperatureC: number | null | undefined,
+) {
+  if (temperatureC === null || temperatureC === undefined)
+    return targetMlPerHour;
+  const steps = Math.max(
+    0,
+    Math.floor((temperatureC - waterRule.baseTemperatureC) / waterRule.stepC),
+  );
+  const increase = Math.min(
+    waterRule.maxIncrease,
+    steps * waterRule.stepIncrease,
+  );
+  return Math.round((targetMlPerHour * (1 + increase)) / 10) * 10;
 }
 
 function preferred(products: readonly NutritionProduct[]) {
@@ -184,9 +209,9 @@ function plural(count: number, singular: string, pluralForm: string) {
   return count > 1 ? pluralForm : singular;
 }
 
-function noun(product: NutritionProduct, count: number) {
-  if (caffeinated(product) && product.kind === "gel")
-    return plural(count, "gel caféine", "gels caféine");
+function noun(product: NutritionProduct, count: number): string {
+  if (caffeinated(product))
+    return `${noun({ ...product, caffeineMg: 0 }, count)} caféine`;
   switch (product.kind) {
     case "gel":
       return plural(count, "gel", "gels");
@@ -202,7 +227,7 @@ function noun(product: NutritionProduct, count: number) {
 }
 
 function namedPortion({ product, count }: Portion) {
-  if (isGeneric(product) || (caffeinated(product) && product.kind === "gel"))
+  if (isGeneric(product) || caffeinated(product))
     return `${count} ${noun(product, count)}`;
   if (product.brand) return `${count} ${noun(product, count)} ${product.brand}`;
   return `${count} × ${product.name}`;
@@ -294,6 +319,7 @@ export function allocateRaceNutrition({
   targets,
   plan,
   dropBagExtras = [],
+  archivedProducts = [],
 }: {
   stations: readonly AllocationStation[];
   segments: readonly AllocationSegment[];
@@ -301,6 +327,7 @@ export function allocateRaceNutrition({
   targets: AllocationTargets;
   plan: RaceNutritionPlan;
   dropBagExtras?: readonly string[];
+  archivedProducts?: readonly NutritionProduct[];
 }): RaceNutritionAllocation {
   const usable = products.filter(
     (product) => product.carbsG > 0 || product.kind === "drink",
@@ -315,8 +342,16 @@ export function allocateRaceNutrition({
     roles.gel ??
     roles.compote ??
     roles.solid ??
-    catalogue.find((product) => product.kind === "other" && product.carbsG > 0);
-  const byId = new Map(catalogue.map((product) => [product.id, product]));
+    catalogue.find(
+      (product) =>
+        product.kind === "other" && product.carbsG > 0 && !caffeinated(product),
+    );
+  const byId = new Map(
+    [...archivedProducts, ...products, ...catalogue].map((product) => [
+      product.id,
+      product,
+    ]),
+  );
   const pattern = flaskPattern(plan, targets.flaskCount, roles.drink);
   const dosesPerFlask = roles.drink?.servingMl
     ? Math.max(1, Math.round(targets.flaskMl / roles.drink.servingMl))
@@ -326,7 +361,11 @@ export function allocateRaceNutrition({
   const fueled = segments.map((segment, index): SegmentFueling => {
     const departure = stations[index];
     const hours = segment.movingSeconds / 3600;
-    const waterMl = hours * targets.waterMlPerHour;
+    const segmentWater = waterPerHour(
+      targets.waterMlPerHour,
+      segment.temperatureC,
+    );
+    const waterMl = hours * segmentWater;
     const carbsTargetG = hours * targets.carbsPerHourG;
     const needed =
       targets.flaskCount > 0 && waterMl > 0
@@ -363,14 +402,25 @@ export function allocateRaceNutrition({
     const drink =
       roles.drink && doses > 0 ? { product: roles.drink, count: doses } : null;
     const override = generic ? undefined : plan.segments[segment.id];
-    let items: Portion[];
-    if (override) {
-      items = override.items.flatMap((serving) => {
+    let items: Portion[] = [];
+    if (override)
+      for (const serving of override.items) {
         const product = byId.get(serving.productId);
-        return product ? [{ product, count: serving.count }] : [];
-      });
-      caffeineBudget -= sum(items, "caffeineMg");
-    } else {
+        if (!product) continue;
+        let count = serving.count;
+        if (caffeinated(product)) {
+          if (!segment.night) continue;
+          count = Math.min(
+            count,
+            Math.floor(caffeineBudget / product.caffeineMg),
+          );
+          if (count <= 0) continue;
+          caffeineBudget -= count * product.caffeineMg;
+        }
+        items.push({ product, count });
+      }
+    const custom = items.length > 0;
+    if (!custom) {
       items = [];
       let remaining = carbsTargetG - (drink ? sum([drink], "carbsG") : 0);
       const add = (product: NutritionProduct, count: number) => {
@@ -436,6 +486,7 @@ export function allocateRaceNutrition({
       movingSeconds: segment.movingSeconds,
       night: segment.night,
       carbsTargetG: Math.round(carbsTargetG),
+      waterMlPerHour: segmentWater,
       carbsG: sum(eaten, "carbsG"),
       sodiumMg: sum(eaten, "sodiumMg"),
       caffeineMg: sum(eaten, "caffeineMg"),
@@ -444,7 +495,7 @@ export function allocateRaceNutrition({
       drink,
       fills,
       bladder,
-      custom: Boolean(override),
+      custom,
       note,
       text: named || null,
     };
@@ -452,23 +503,21 @@ export function allocateRaceNutrition({
 
   const eatenOf = (segment: SegmentFueling) =>
     segment.drink ? [...segment.items, segment.drink] : segment.items;
-  const baseIndex = stations.findIndex(
-    (station, index) => station.kind === "base" && index < fueled.length,
+  const baseIndexes = stations.flatMap((station, index) =>
+    station.kind === "base" && index < fueled.length ? [index] : [],
   );
-  const dropItems =
-    baseIndex >= 0 ? merge(fueled.slice(baseIndex).flatMap(eatenOf)) : [];
-  const extras = [...dropBagExtras];
-  const dropBag: DropBag | null =
-    baseIndex >= 0
-      ? {
-          stationId: stations[baseIndex].id,
-          items: dropItems,
-          extras,
-          text: [plainPortions(dropItems, ", "), ...extras]
-            .filter(Boolean)
-            .join(", "),
-        }
-      : null;
+  const dropBags: DropBag[] = baseIndexes.map((baseIndex, order) => {
+    const until = baseIndexes[order + 1] ?? fueled.length;
+    const items = merge(fueled.slice(baseIndex, until).flatMap(eatenOf));
+    const extras = order === 0 ? [...dropBagExtras] : [];
+    return {
+      stationId: stations[baseIndex].id,
+      items,
+      extras,
+      text: [plainPortions(items, ", "), ...extras].filter(Boolean).join(", "),
+    };
+  });
+  const bagAt = new Map(dropBags.map((bag) => [bag.stationId, bag] as const));
 
   const pickups = stations.map((station, index) => {
     if (index >= fueled.length || !providesFood(station)) return [];
@@ -506,8 +555,9 @@ export function allocateRaceNutrition({
     const carried = plainPortions(pickup);
     let text: string | null = null;
     if (segment) {
-      if (index === baseIndex && dropBag)
-        text = [`sac d’allègement : ${dropBag.text}`, flasks]
+      const bag = bagAt.get(station.id);
+      if (bag)
+        text = [`sac d’allègement : ${bag.text}`, flasks]
           .filter(Boolean)
           .join(" · ");
       else if (station.kind === "start")
@@ -543,8 +593,8 @@ export function allocateRaceNutrition({
     },
     segments: fueled,
     stations: stationRecords,
-    dropBag,
-    shopping: merge(all),
+    dropBags,
+    shopping: merge(startOverride ? [...all, ...pocket] : all),
     totals: {
       carbsG: sum(all, "carbsG"),
       sodiumMg: sum(all, "sodiumMg"),

@@ -43,7 +43,9 @@ export function NutritionistBanner({
     : `${name}, ${role}, peut ajuster ce plan avec toi`;
   const detail = generic
     ? "Ajoute tes produits dans Mes produits : en attendant, Stride compte en gels, compotes et barres génériques."
-    : `${accepted ? "Basé sur" : "Stride répartit"} tes ${products}${accepted ? `, ${carbsPerHourG} g/h` : ` à ${carbsPerHourG} g/h`}${weatherText ? ` et ${weatherText}` : ""}.${accepted && updatedOn ? ` Dernière mise à jour le ${updatedOn}.` : ""}`;
+    : accepted
+      ? `Basé sur tes ${products}, ${carbsPerHourG} g/h${weatherText ? ` et ${weatherText}` : ""}.${updatedOn ? ` Dernière mise à jour le ${updatedOn}.` : ""}`
+      : `Stride répartit tes ${products} sur les tronçons à ${carbsPerHourG} g/h${weatherText ? `, selon ${weatherText}` : ""}.`;
   const mobileTitle = accepted
     ? `Plan préparé avec ${name}`
     : "Plan calculé par Stride";

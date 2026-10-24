@@ -151,10 +151,42 @@ describe("race nutrition proposals", () => {
         after: ["75 g/h"],
       },
       {
+        key: "product-gel",
+        label: "Produit · gel",
+        before: ["Choix de Stride"],
+        after: ["Gel 100 Maurten"],
+      },
+      {
         key: `segment-${first}`,
         label: "T1 · Départ → Ravito 1",
         before: [],
         after: ["3 × Gel 100 Maurten"],
+      },
+    ]);
+  });
+
+  it("lists the start flasks", () => {
+    const changes = nutritionChanges(
+      {
+        targets,
+        plan: { products: {}, segments: {}, start: { flasks: ["water"] } },
+      },
+      {
+        plan: {
+          products: {},
+          segments: {},
+          start: { flasks: ["drink", "water"] },
+        },
+      },
+      [],
+      new Map(),
+    );
+    expect(changes).toEqual([
+      {
+        key: "start-flasks",
+        label: "Flasques au départ",
+        before: ["Flasque 1 : eau"],
+        after: ["Flasque 1 : iso", "Flasque 2 : eau"],
       },
     ]);
   });

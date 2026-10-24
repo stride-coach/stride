@@ -25,7 +25,7 @@ import {
   type RaceProposal,
 } from "@/features/races/proposals";
 import type { RaceWeather } from "@/features/races/weather";
-import { readNutritionProducts } from "@/server/fueling/products";
+import { readNutritionLibrary } from "@/server/fueling/products";
 import { readActivePlan } from "@/server/plans/stored";
 import { loadRace } from "@/server/races/load";
 import {
@@ -85,14 +85,16 @@ export default async function NutritionPage({
       scenarioSchema.parse(query.scenario),
     ),
     readReadyRaceProposals(context, data.race.id),
-    readNutritionProducts(context),
+    readNutritionLibrary(context),
     readActivePlan(context).catch(() => null),
     readProductNames(context),
   ]);
   const sheet = review && <RaceProposalSheet key={review.id} review={review} />;
   const sessions = upcomingSessions(stored, today, data.race.date);
   const views = planFor(data, scenarioSchema.parse(query.scenario));
-  const productsCard = <ProductsCard products={products} sessions={sessions} />;
+  const productsCard = (
+    <ProductsCard products={products.active} sessions={sessions} />
+  );
 
   if (!views?.planned)
     return (
@@ -149,7 +151,8 @@ export default async function NutritionPage({
     data,
     model: views.model,
     planned,
-    products,
+    products: products.active,
+    archivedProducts: products.archived,
     sessions,
     proposal,
   };

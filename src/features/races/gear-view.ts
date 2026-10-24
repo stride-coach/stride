@@ -86,10 +86,11 @@ export function dropBagView(
   allocation: RaceNutritionAllocation | null,
 ): DropBagView | null {
   const base =
-    waypoints.find((point) => point.id === allocation?.dropBag?.stationId) ??
-    waypoints.find((point) => point.kind === "base");
+    waypoints.find(
+      (point) => point.id === allocation?.dropBags[0]?.stationId,
+    ) ?? waypoints.find((point) => point.kind === "base");
   if (!base) return null;
-  const items = allocation?.dropBag?.items ?? [];
+  const items = allocation?.dropBags[0]?.items ?? [];
   return {
     km: formatCourseKm(base.distanceM),
     nutrition: items.length ? plainPortions(items, ", ") : null,

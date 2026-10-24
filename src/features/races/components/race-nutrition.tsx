@@ -50,6 +50,7 @@ export type NutritionBodyProps = {
   model: CourseModel;
   planned: RacePlanModel;
   products: NutritionProduct[];
+  archivedProducts: NutritionProduct[];
   sessions: UpcomingSession[];
   proposal: { id: string; changes: number } | null;
 };
@@ -233,6 +234,7 @@ export function NutritionBody({
   model,
   planned,
   products,
+  archivedProducts,
   sessions,
   proposal,
   weather,
@@ -246,6 +248,8 @@ export function NutritionBody({
     nutritionPlan: data.nutritionPlan?.plan ?? null,
     dropBagExtras: data.dropBag?.extras ?? [],
     products,
+    archivedProducts,
+    weather,
   });
   const timeline = raceTimeline({
     model,
@@ -276,7 +280,10 @@ export function NutritionBody({
     sessions,
   });
   const shopping = shoppingRows(allocation);
-  const bagNote = dropBagNote(allocation);
+  const bagNote = dropBagNote(
+    allocation,
+    new Map(timeline.stations.map((station) => [station.id, station.name])),
+  );
   const rows = segmentRows(allocation, timeline);
   const tile = { raceId, revision: plan.revision };
   return (
@@ -300,6 +307,7 @@ export function NutritionBody({
         className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5"
       >
         <NutritionTargetTile
+          key={`carbs-${plan.revision}`}
           {...tile}
           label="Glucides"
           value={tiles.carbs.value}
@@ -317,6 +325,7 @@ export function NutritionBody({
           ]}
         />
         <NutritionTargetTile
+          key={`water-${plan.revision}`}
           {...tile}
           label="Eau"
           value={tiles.water.value}
@@ -356,6 +365,7 @@ export function NutritionBody({
           ]}
         />
         <NutritionTargetTile
+          key={`sodium-${plan.revision}`}
           {...tile}
           label="Sodium"
           value={tiles.sodium.value}
@@ -372,6 +382,7 @@ export function NutritionBody({
           ]}
         />
         <NutritionTargetTile
+          key={`caffeine-${plan.revision}`}
           {...tile}
           label="Caféine"
           value={tiles.caffeine.value}
@@ -390,6 +401,7 @@ export function NutritionBody({
           nightCaffeine={plan.nightCaffeine}
         />
         <NutritionTargetTile
+          key={`alarm-${plan.revision}`}
           {...tile}
           label="Alarme"
           value={tiles.alarm.value}

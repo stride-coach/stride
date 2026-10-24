@@ -10,7 +10,10 @@ import { daysUntil } from "@/features/races/race";
 import { raceAllocation } from "@/features/races/race-nutrition";
 import { segmentNight } from "@/features/races/workspace";
 import { temperatureRange } from "@/features/races/weather";
-import { readNutritionProducts } from "@/server/fueling/products";
+import {
+  readNutritionLibrary,
+  readNutritionProducts,
+} from "@/server/fueling/products";
 import { readReadyRaceProposals } from "@/server/races/proposals";
 import { readWorkspace } from "@/server/races/races";
 import { planFor, weatherFor } from "@/server/races/views";
@@ -66,13 +69,12 @@ function allocationView(
       kind: station.kind,
       refill: station.text,
     })),
-    dropBag: allocation.dropBag
-      ? {
-          waypointId: allocation.dropBag.stationId,
-          items: allocation.dropBag.items.map(portion),
-          extras: allocation.dropBag.extras,
-        }
-      : null,
+    dropBags: allocation.dropBags.map((bag) => ({
+      waypointId: bag.stationId,
+      name: names.get(bag.stationId) ?? null,
+      items: bag.items.map(portion),
+      extras: bag.extras,
+    })),
     shopping: allocation.shopping.map(portion),
     totals: allocation.totals,
   };
@@ -101,11 +103,12 @@ export const readRaceNutritionTool = defineTool({
   }),
   run: async (context, { raceId }) => {
     if (!z.uuid().safeParse(raceId).success) throw toolError("not_found");
-    const [data, pending, products] = await Promise.all([
+    const [data, pending, library] = await Promise.all([
       readWorkspace(context, raceId),
       readReadyRaceProposals(context, raceId),
-      readNutritionProducts(context),
+      readNutritionLibrary(context),
     ]);
+    const products = library.active;
     if (!data) throw toolError("not_found");
     const today = localToday(data.course?.timeZone ?? "Europe/Paris");
     const daysToRace = data.race.date ? daysUntil(data.race.date, today) : null;
@@ -154,6 +157,10 @@ export const readRaceNutritionTool = defineTool({
         temperatures: null,
       };
     const { model, planned } = views;
+    const weather =
+      daysToRace !== null && daysToRace <= weatherHorizonDays
+        ? await weatherFor(data, model, planned)
+        : null;
     const allocation = raceAllocation({
       model,
       planned,
@@ -161,11 +168,9 @@ export const readRaceNutritionTool = defineTool({
       nutritionPlan: data.nutritionPlan?.plan ?? null,
       dropBagExtras: data.dropBag?.extras ?? [],
       products,
+      archivedProducts: library.archived,
+      weather,
     });
-    const weather =
-      daysToRace !== null && daysToRace <= weatherHorizonDays
-        ? await weatherFor(data, model, planned)
-        : null;
     const names = new Map(
       model.waypoints.map((waypoint) => [waypoint.id, waypoint.name]),
     );

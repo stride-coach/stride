@@ -58,12 +58,19 @@ export function NutritionTargetTile({
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState(() =>
+  const initial = () =>
     Object.fromEntries(
       fields.map((field) => [field.key, field.value?.toString() ?? ""]),
-    ),
-  );
+    );
+  const [values, setValues] = useState(initial);
   const [night, setNight] = useState(nightCaffeine ?? false);
+  const toggle = (next: boolean) => {
+    if (next) {
+      setValues(initial());
+      setNight(nightCaffeine ?? false);
+    }
+    setOpen(next);
+  };
   const [pending, startTransition] = useTransition();
   const parsed = fields.map((field) => {
     const text = values[field.key].trim();
@@ -98,7 +105,7 @@ export function NutritionTargetTile({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={toggle}>
       <PopoverTrigger asChild>
         <button
           type="button"

@@ -64,6 +64,10 @@ export function nutritionTiles({
       : `${range.min}–${range.max} °C`
     : null;
   const hours = allocation.totals.movingSeconds / 3600;
+  const heatMax = Math.max(
+    plan.waterMlPerHour,
+    ...allocation.segments.map((segment) => segment.waterMlPerHour),
+  );
   const sources = [
     ...new Set(
       allocation.shopping
@@ -92,9 +96,15 @@ export function nutritionTiles({
     },
     water: {
       value: `${formatInteger(plan.waterMlPerHour)} ml/h`,
-      detail: rangeText
-        ? `${rangeText} ${weather?.mode === "forecast" ? "prévus" : "en moyenne"}`
-        : `${formatDecimal(allocation.totals.waterMl / 1000)} L sur la course`,
+      detail: [
+        rangeText
+          ? `${rangeText} ${weather?.mode === "forecast" ? "prévus" : "en moyenne"}`
+          : `${formatDecimal(allocation.totals.waterMl / 1000)} L sur la course`,
+        heatMax > plan.waterMlPerHour &&
+          `jusqu’à ${formatInteger(heatMax)} ml/h au chaud`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
       mobile:
         rangeText ??
         `${formatDecimal(allocation.totals.waterMl / 1000)} L au total`,
@@ -231,9 +241,20 @@ export function shoppingRows(allocation: RaceNutritionAllocation) {
   }));
 }
 
-export function dropBagNote(allocation: RaceNutritionAllocation) {
-  if (!allocation.dropBag?.items.length) return null;
-  return `Dont dans le sac d’allègement (base de vie) : ${plainPortions(allocation.dropBag.items, ", ")}.`;
+export function dropBagNote(
+  allocation: RaceNutritionAllocation,
+  names: ReadonlyMap<string, string>,
+) {
+  const bags = allocation.dropBags.filter((bag) => bag.items.length);
+  if (!bags.length) return null;
+  if (bags.length === 1)
+    return `Dont dans le sac d’allègement (base de vie) : ${plainPortions(bags[0].items, ", ")}.`;
+  return `Dont dans les sacs d’allègement : ${bags
+    .map(
+      (bag) =>
+        `${shortName(names.get(bag.stationId) ?? "base de vie")} : ${plainPortions(bag.items, ", ")}`,
+    )
+    .join(" ; ")}.`;
 }
 
 export type SegmentRow = {

@@ -8,6 +8,7 @@ import {
   type RaceNutritionPlan,
 } from "@/features/fueling/race-plan";
 import type { RacePlan } from "./race";
+import type { RaceWeather } from "./weather";
 import {
   segmentNight,
   type CourseModel,
@@ -21,6 +22,8 @@ export function raceAllocation({
   nutritionPlan,
   products,
   dropBagExtras = [],
+  archivedProducts = [],
+  weather = null,
 }: {
   model: CourseModel;
   planned: RacePlanModel;
@@ -28,7 +31,18 @@ export function raceAllocation({
   nutritionPlan: RaceNutritionPlan | null;
   products: readonly NutritionProduct[];
   dropBagExtras?: readonly string[];
+  archivedProducts?: readonly NutritionProduct[];
+  weather?: RaceWeather | null;
 }) {
+  const temperatureAt = (elapsedSeconds: number) =>
+    weather?.slots.length
+      ? weather.slots.reduce((best, slot) =>
+          Math.abs(slot.elapsedSeconds - elapsedSeconds) <
+          Math.abs(best.elapsedSeconds - elapsedSeconds)
+            ? slot
+            : best,
+        ).temperature
+      : null;
   const waypoints = new Map(model.waypoints.map((point) => [point.id, point]));
   const segments = planned.simulation.segments;
   const station = (id: string): AllocationStation => {
@@ -53,6 +67,9 @@ export function raceAllocation({
       startElapsedSeconds:
         segment.arrival.elapsedSeconds - segment.movingSeconds,
       night: segmentNight(planned, index),
+      temperatureC: temperatureAt(
+        segment.arrival.elapsedSeconds - segment.movingSeconds / 2,
+      ),
     })),
     products,
     targets: {
@@ -67,5 +84,6 @@ export function raceAllocation({
     },
     plan: nutritionPlan ?? emptyNutritionPlan,
     dropBagExtras,
+    archivedProducts,
   });
 }

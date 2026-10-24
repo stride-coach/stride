@@ -1,7 +1,9 @@
 import { z } from "zod";
 import {
+  nutritionRoles,
   nutritionTargetsSchema,
   raceNutritionPlanSchema,
+  type NutritionRole,
   type NutritionTargets,
   type RaceNutritionPlan,
   type Serving,
@@ -250,6 +252,14 @@ function servingsText(
   );
 }
 
+const roleLabels: Record<NutritionRole, string> = {
+  gel: "gel",
+  drink: "boisson",
+  compote: "compote",
+  solid: "barre",
+  caffeine: "caféine",
+};
+
 export function nutritionChanges(
   current: { targets: Required<NutritionTargets>; plan: RaceNutritionPlan },
   proposed: NutritionProposal,
@@ -273,6 +283,35 @@ export function nutritionChanges(
   }
   const plan = proposed.plan;
   if (!plan) return changes;
+  for (const role of nutritionRoles) {
+    const before = current.plan.products[role] ?? null;
+    const after = plan.products[role] ?? null;
+    if (before === after) continue;
+    const name = (id: string | null) =>
+      id ? [names.get(id) ?? "Produit retiré"] : ["Choix de Stride"];
+    changes.push({
+      key: `product-${role}`,
+      label: `Produit · ${roleLabels[role]}`,
+      before: name(before),
+      after: name(after),
+    });
+  }
+  const flasks = (list: readonly ("drink" | "water")[] | undefined) =>
+    list
+      ? list.map(
+          (content, index) =>
+            `Flasque ${index + 1} : ${content === "drink" ? "iso" : "eau"}`,
+        )
+      : ["Choix de Stride"];
+  const flasksBefore = flasks(current.plan.start?.flasks);
+  const flasksAfter = flasks(plan.start?.flasks);
+  if (!sameList(flasksBefore, flasksAfter))
+    changes.push({
+      key: "start-flasks",
+      label: "Flasques au départ",
+      before: flasksBefore,
+      after: flasksAfter,
+    });
   const startBefore = servingsText(current.plan.start?.pocket, names);
   const startAfter = servingsText(plan.start?.pocket, names);
   if (!sameList(startBefore, startAfter))

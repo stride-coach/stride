@@ -110,7 +110,7 @@ function ProductForm({
     sodiumMg: integer(draft.sodiumMg) ?? 0,
     caffeineMg: integer(draft.caffeineMg) ?? 0,
     servingLabel: draft.servingLabel,
-    servingMl: integer(draft.servingMl),
+    servingMl: draft.kind === "drink" ? integer(draft.servingMl) : null,
     tested: draft.tested,
     testedNote: draft.tested ? draft.testedNote : "",
   };
@@ -119,7 +119,7 @@ function ProductForm({
     event.preventDefault();
     if (!productInputSchema.safeParse(input).success) {
       setMessage(
-        "Indique un nom, des glucides entre 0 et 200 g, du sodium jusqu’à 3 000 mg et de la caféine jusqu’à 400 mg, en nombres entiers.",
+        "Indique un nom, des glucides entre 0 et 200 g, du sodium jusqu’à 3 000 mg et de la caféine jusqu’à 400 mg et, pour une boisson, un volume de dose entre 1 et 2 000 ml, en nombres entiers.",
       );
       return;
     }

@@ -40,7 +40,7 @@ import { isStation } from "@/features/races/waypoints";
 import type { RaceWeather } from "@/features/races/weather";
 import type { Scenario, ScenarioKey } from "@/features/races/workspace";
 import type { NutritionProduct } from "@/features/fueling/products";
-import { readNutritionProducts } from "@/server/fueling/products";
+import { readNutritionLibrary } from "@/server/fueling/products";
 import { loadRace } from "@/server/races/load";
 import {
   loadRaceProposalReview,
@@ -307,7 +307,7 @@ type BodyProps = {
   views: Views;
   planned: Planned;
   proposal: StrategyProposal | null;
-  products: NutritionProduct[];
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] };
 };
 
 function PlanBody({
@@ -331,7 +331,9 @@ function PlanBody({
         plan: data.plan,
         nutritionPlan: data.nutritionPlan?.plan ?? null,
         dropBagExtras: data.dropBag?.extras ?? [],
-        products,
+        products: products.active,
+        archivedProducts: products.archived,
+        weather,
       }),
     ),
     stops: data.plan,
@@ -459,7 +461,7 @@ export default async function RoadbookPage({
       scenarioSchema.parse(query.scenario),
     ),
     readReadyRaceProposals(context, data.race.id),
-    readNutritionProducts(context),
+    readNutritionLibrary(context),
   ]);
   const sheet = review && <RaceProposalSheet key={review.id} review={review} />;
   const base = `/races/${id}`;
