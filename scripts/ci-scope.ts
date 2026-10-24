@@ -68,7 +68,8 @@ export function touchesMigrations(changedPaths: string): boolean {
 export function areaOf(path: string): string | undefined {
   const match =
     /^src\/(?:features|server)\/([\w-]+)\//.exec(path) ??
-    /^src\/app\/(?:\(app\)|api)\/([\w-]+)\//.exec(path);
+    /^src\/app\/(?:\(app\)|api)\/([\w-]+)\//.exec(path) ??
+    /^src\/app\/\(app\)\/@panel\/\(\.\)([\w-]+)\//.exec(path);
   if (match) return areaAliases[match[1]] ?? match[1];
   if (/^src\/app\/(?:\(auth\)|auth)\//.test(path)) return "auth";
   if (path.startsWith("src/app/settings/")) return "settings";
