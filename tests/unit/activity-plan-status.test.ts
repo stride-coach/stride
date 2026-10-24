@@ -9,6 +9,7 @@ import {
   isPlannedMatch,
   needsFeeling,
   plannedPill,
+  sessionProgramme,
   withinPlan,
   unplannedPill,
 } from "../../src/features/activities/plan-status";
@@ -167,6 +168,50 @@ const run = (
   averageHeartRate: 140,
   repPace: null,
   ...values,
+});
+
+describe("strength programme", () => {
+  it("lists the planned blocks with their cues and amounts", () => {
+    expect(
+      sessionProgramme([
+        {
+          type: "warmup",
+          end: { kind: "time", seconds: 480 },
+          target: { kind: "none" },
+          intensity: "easy",
+          cue: "Échauffement mobilité hanches",
+        },
+        {
+          type: "repeat",
+          count: 3,
+          steps: [
+            {
+              type: "work",
+              end: { kind: "time", seconds: 45 },
+              target: { kind: "none" },
+              intensity: "easy",
+              cue: "Gainage frontal",
+            },
+            {
+              type: "recovery",
+              end: { kind: "time", seconds: 60 },
+              target: { kind: "none" },
+              intensity: "recovery",
+            },
+          ],
+        },
+      ]),
+    ).toEqual([
+      { label: "Échauffement mobilité hanches", value: "8 min" },
+      { label: "Gainage frontal", value: "3 × 45 s" },
+    ]);
+  });
+
+  it("hides a programme without any named exercise", () => {
+    expect(
+      sessionProgramme(supportSession("strength", 30).structure),
+    ).toBeNull();
+  });
 });
 
 describe("similar activity comparison", () => {

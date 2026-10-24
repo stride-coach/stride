@@ -267,3 +267,45 @@ export function buildChartsView(
     series,
   };
 }
+
+export const curveWidth = 700;
+export const curveHeight = 120;
+
+export type HeartRateCurve = {
+  path: string;
+  averageY: number;
+  average: number;
+  peak: number;
+  duration: string;
+};
+
+export function buildHeartRateCurve(
+  track: ActivityTrack,
+  average: number | null,
+): HeartRateCurve | null {
+  const values = track.series.heart_rate;
+  const elapsed = track.series.elapsed_s;
+  if (!values || !elapsed || track.length < 2) return null;
+  const present = values.filter((value): value is number => value !== null);
+  const duration = elapsed.at(-1);
+  if (present.length < 2 || !duration || duration <= 0) return null;
+  const mean =
+    average ?? present.reduce((sum, value) => sum + value, 0) / present.length;
+  const domain = domainOf(values, false)!;
+  const range = { top: 10, bottom: curveHeight - 10 };
+  const xs = elapsed.map((value) =>
+    value === null ? 0 : (value / duration) * curveWidth,
+  );
+  const ys = values.map((value, index) =>
+    value === null || elapsed[index] === null
+      ? null
+      : round(scale(value, domain, range, false)),
+  );
+  return {
+    path: pathOf(xs, ys),
+    averageY: round(scale(mean, domain, range, false)),
+    average: Math.round(mean),
+    peak: Math.round(Math.max(...present)),
+    duration: formatElapsed(duration),
+  };
+}

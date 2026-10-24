@@ -215,7 +215,13 @@ describe("normalized activity tracks", () => {
         track: null,
         zones,
       }),
-    ).toEqual({ route: null, charts: null, zoneTime: null });
+    ).toEqual({
+      route: null,
+      charts: null,
+      zoneTime: null,
+      splits: null,
+      heartRate: null,
+    });
   });
 
   it("prefers normalized provider names and retains legacy title fallbacks", () => {

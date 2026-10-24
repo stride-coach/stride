@@ -1,7 +1,11 @@
 import { activityWeekStart, shiftDate } from "./activities";
 import type { MatchStatus } from "@/features/plans/matching/adherence";
 import type { PlanSession } from "@/features/plans/model/plan";
-import { flatten } from "@/features/plans/model/structure";
+import {
+  flatten,
+  type SessionStructure,
+  type SimpleStep,
+} from "@/features/plans/model/structure";
 import { isRunningSession } from "@/features/plans/model/volume";
 import {
   overallVerdict,
@@ -116,4 +120,46 @@ export function withinPlan(
   date: string,
 ) {
   return !!plan && date >= plan.startsOn && date <= plan.endsOn;
+}
+
+export type ProgrammeItem = { label: string; value: string };
+
+const stepLabels: Record<SimpleStep["type"], string> = {
+  warmup: "Échauffement",
+  work: "Exercice",
+  recovery: "Récupération",
+  cooldown: "Retour au calme",
+};
+
+function stepAmount(step: SimpleStep) {
+  if (step.end.kind === "distance")
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(step.end.meters / 1000)} km`;
+  const seconds =
+    step.end.kind === "time" ? step.end.seconds : step.end.estimatedSeconds;
+  return seconds % 60 === 0 && seconds >= 60
+    ? `${seconds / 60} min`
+    : `${seconds} s`;
+}
+
+export function sessionProgramme(
+  structure: SessionStructure,
+): ProgrammeItem[] | null {
+  const items = structure.map((step): ProgrammeItem & { cue: boolean } => {
+    if (step.type !== "repeat")
+      return {
+        label: step.cue ?? stepLabels[step.type],
+        value: stepAmount(step),
+        cue: step.cue !== undefined,
+      };
+    const main =
+      step.steps.find((inner) => inner.type === "work") ?? step.steps[0];
+    return {
+      label: main.cue ?? stepLabels[main.type],
+      value: `${step.count} × ${stepAmount(main)}`,
+      cue: main.cue !== undefined,
+    };
+  });
+  return items.some((item) => item.cue)
+    ? items.map(({ label, value }) => ({ label, value }))
+    : null;
 }

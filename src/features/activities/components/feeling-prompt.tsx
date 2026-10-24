@@ -28,12 +28,14 @@ export function FeelingPrompt({
   initial = null,
   compact = false,
   inline = false,
+  strength = false,
   onSaved,
 }: {
   activityId: string;
   initial?: { effort: number | null; feel: FeelValue | null } | null;
   compact?: boolean;
   inline?: boolean;
+  strength?: boolean;
   onSaved?: () => void;
 }) {
   const id = useId();
@@ -69,15 +71,21 @@ export function FeelingPrompt({
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-col gap-1.5">
           <span id={`${id}-title`} className="text-meta font-semibold">
-            Comment c’était ?{" "}
+            {strength ? "Effort de la séance" : "Comment c’était ?"}{" "}
             <span className="font-normal text-muted-foreground">
-              Effort perçu, de 1 à 10
+              {strength
+                ? "de 1 à 10 · compte dans ta charge de renfo"
+                : "Effort perçu, de 1 à 10"}
             </span>
           </span>
           <ToggleGroup
             type="single"
             variant="choice"
-            aria-label="Effort perçu, de 1 à 10"
+            aria-label={
+              strength
+                ? "Effort de la séance, de 1 à 10"
+                : "Effort perçu, de 1 à 10"
+            }
             value={effort === null ? "" : String(effort)}
             disabled={pending}
             onValueChange={(value) => {
@@ -312,9 +320,11 @@ export function DebriefFeeling({
 export function CardFeeling({
   activityId,
   feeling,
+  strength = false,
 }: {
   activityId: string;
   feeling: DebriefFeeling | null;
+  strength?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   if (!feeling || editing)
@@ -322,6 +332,7 @@ export function CardFeeling({
       <FeelingPrompt
         activityId={activityId}
         inline
+        strength={strength}
         initial={
           feeling ? { effort: feeling.effort, feel: feeling.feel } : null
         }

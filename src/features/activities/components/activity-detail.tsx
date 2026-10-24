@@ -6,32 +6,74 @@ import {
   activityTitle,
   detailMetrics,
   formatActivityDate,
+  formatDuration,
 } from "@/features/activities/activities";
 import { formatLocalDate } from "@/features/app-shell/shell";
-import { formatClock } from "../charts";
+import {
+  curveHeight,
+  curveWidth,
+  formatClock,
+  type HeartRateCurve,
+} from "../charts";
 import { effortStats, lapTable } from "../detail";
 import type { ActivityPanelView } from "../panel";
 import { ActivityData } from "./activity-data";
 import { LapTableSection } from "./lap-table";
+import { SplitsSection } from "./splits-section";
 import { PlanCard } from "./plan-card";
 
 const integer = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
+function strengthMetrics(activity: ActivityPanelView["activity"]) {
+  const items: { key: string; label: string; value: string; unit?: string }[] =
+    [];
+  if (activity.durationSeconds)
+    items.push({
+      key: "duration",
+      label: "Durée",
+      value: formatDuration(activity.durationSeconds),
+    });
+  if (activity.averageHeartRate)
+    items.push({
+      key: "heartRate",
+      label: "FC moy.",
+      value: integer.format(activity.averageHeartRate),
+      unit: "bpm",
+    });
+  if (activity.maxHeartRate)
+    items.push({
+      key: "maxHeartRate",
+      label: "FC max",
+      value: integer.format(activity.maxHeartRate),
+      unit: "bpm",
+    });
+  if (activity.calories)
+    items.push({
+      key: "calories",
+      label: "Calories",
+      value: integer.format(activity.calories),
+      unit: "kcal",
+    });
+  return items;
+}
+
 function HeaderMetrics({ panel }: { panel: ActivityPanelView }) {
   const { activity } = panel;
-  const metrics = [
-    ...detailMetrics(activity),
-    ...(activity.averagePowerWatts !== null
-      ? [
-          {
-            key: "power",
-            label: "Puissance",
-            value: integer.format(activity.averagePowerWatts),
-            unit: "W",
-          },
-        ]
-      : []),
-  ];
+  const metrics = panel.card.strength
+    ? strengthMetrics(activity)
+    : [
+        ...detailMetrics(activity),
+        ...(activity.averagePowerWatts !== null
+          ? [
+              {
+                key: "power",
+                label: "Puissance",
+                value: integer.format(activity.averagePowerWatts),
+                unit: "W",
+              },
+            ]
+          : []),
+      ];
   const columns = metrics.length <= 4 ? 2 : 3;
   if (metrics.length === 0)
     return (
@@ -145,6 +187,87 @@ function Effort({ panel }: { panel: ActivityPanelView }) {
   );
 }
 
+function StrengthHeartRate({ curve }: { curve: HeartRateCurve }) {
+  return (
+    <section
+      aria-labelledby="activity-heart-rate"
+      className="flex flex-col gap-2.5"
+    >
+      <div className="flex items-baseline justify-between">
+        <MonoLabel asChild>
+          <h2 id="activity-heart-rate">Fréquence cardiaque</h2>
+        </MonoLabel>
+        <MonoLabel>bpm · Garmin</MonoLabel>
+      </div>
+      <div className="rounded-card border border-border bg-surface-panel p-3">
+        <svg
+          role="img"
+          aria-label={`Fréquence cardiaque au fil de la séance, moyenne ${curve.average}, pic à ${curve.peak}`}
+          viewBox={`0 0 ${curveWidth} ${curveHeight}`}
+          preserveAspectRatio="none"
+          className="block h-30 w-full sm:h-37.5"
+        >
+          <line
+            x1={0}
+            x2={curveWidth}
+            y1={curve.averageY}
+            y2={curve.averageY}
+            className="stroke-border-strong"
+            strokeDasharray="4 4"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={curve.path}
+            fill="none"
+            className="stroke-danger"
+            strokeWidth={1.8}
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+        <div className="flex justify-between pt-1 font-mono text-micro text-muted-foreground uppercase">
+          <span>0:00</span>
+          <span>moy. {curve.average}</span>
+          <span>{curve.duration}</span>
+        </div>
+      </div>
+      <ProvenanceLabel source="provider">
+        Ni allure ni zones pour le renfo : l’effort ressenti compte davantage
+      </ProvenanceLabel>
+    </section>
+  );
+}
+
+function StrengthEffort({ panel }: { panel: ActivityPanelView }) {
+  const keys = ["calories", "aerobic", "maxHeartRate", "anaerobic"];
+  const stats = effortStats(panel.activity)
+    .filter((stat) => keys.includes(stat.key))
+    .sort((a, b) => keys.indexOf(a.key) - keys.indexOf(b.key));
+  if (stats.length === 0) return null;
+  return (
+    <section
+      aria-labelledby="activity-effort"
+      className="flex flex-col gap-2.5"
+    >
+      <MonoLabel asChild>
+        <h2 id="activity-effort">Effort</h2>
+      </MonoLabel>
+      <dl className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] sm:gap-x-7">
+        {stats.map((stat) => (
+          <div key={stat.key} className="contents">
+            <dt className="border-b border-border py-2.75 text-sm">
+              {stat.label}
+            </dt>
+            <dd className="border-b border-border py-2.75 text-right font-metric text-lg font-semibold tabular-nums">
+              {stat.value}
+              {stat.unit && ` ${stat.unit}`}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export function ActivityDetail({
   panel,
   current,
@@ -183,7 +306,14 @@ export function ActivityDetail({
         {pair}
       </header>
       <PlanCard card={panel.card} />
-      {panel.view.route || panel.view.charts ? (
+      {panel.card.strength ? (
+        <>
+          {panel.view.heartRate && (
+            <StrengthHeartRate curve={panel.view.heartRate} />
+          )}
+          <StrengthEffort panel={panel} />
+        </>
+      ) : panel.view.route || panel.view.charts ? (
         <ActivityData
           key={`data:${activity.id}`}
           route={panel.view.route}
@@ -200,8 +330,13 @@ export function ActivityDetail({
           </p>
         </section>
       )}
-      {laps && <LapTableSection table={laps} />}
-      {(zones || effort) && (
+      {!panel.card.strength &&
+        (panel.view.splits ? (
+          <SplitsSection splits={panel.view.splits} laps={laps} />
+        ) : (
+          laps && <LapTableSection table={laps} />
+        ))}
+      {!panel.card.strength && (zones || effort) && (
         <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-10">
           <ZoneTime panel={panel} />
           <Effort panel={panel} />

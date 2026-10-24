@@ -27,6 +27,7 @@ import {
 import {
   isPlannedMatch,
   plannedPill,
+  sessionProgramme,
   withinPlan,
 } from "@/features/activities/plan-status";
 import { localToday } from "@/features/app-shell/shell";
@@ -216,6 +217,7 @@ export const loadActivityPanel = cache(async function loadActivityPanel(
       )
     : undefined;
   const running = activityKind(activity.type) !== "other";
+  const strength = activityGroupOf(activity.type) === "strength";
   const current: CompareActivity = {
     id: activity.id,
     date: activity.date,
@@ -262,6 +264,9 @@ export const loadActivityPanel = cache(async function loadActivityPanel(
   if (match && session) {
     card = {
       kind: "planned",
+      strength,
+      sessionTitle: session.title,
+      programme: strength ? sessionProgramme(session.structure) : null,
       pill: plannedPill({
         session,
         match,
@@ -300,6 +305,8 @@ export const loadActivityPanel = cache(async function loadActivityPanel(
       : distances.reduce<number>((sum, meters) => sum + meters!, 0);
     card = {
       kind: "unplanned",
+      strength,
+      inPlan: withinPlan(overview?.plan.state.plan, activity.date),
       load: week
         ? weekLoadSentence({
             date: activity.date,

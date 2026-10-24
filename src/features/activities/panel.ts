@@ -3,11 +3,12 @@ import { activityWeekStart, formatWeekSpan } from "./activities";
 import type { ActivityView } from "./activity-view";
 import type { Comparison } from "./compare";
 import type { ActivityDetailData, ActivitySegment } from "./detail";
-import type { ActivityPill } from "./plan-status";
+import type { ActivityPill, ProgrammeItem } from "./plan-status";
 
 export type PanelFeeling = DebriefFeeling | null;
 
 type CardBase = {
+  strength: boolean;
   coachHref: string;
   feelingActivityId: string;
   feeling: PanelFeeling;
@@ -20,8 +21,10 @@ export type PlanCardView =
       pill: ActivityPill;
       body: string | null;
       planHref: string;
+      sessionTitle: string;
+      programme: ProgrammeItem[] | null;
     })
-  | (CardBase & { kind: "unplanned"; load: string | null });
+  | (CardBase & { kind: "unplanned"; inPlan: boolean; load: string | null });
 
 const decimal = new Intl.NumberFormat("fr-FR", {
   minimumFractionDigits: 1,
