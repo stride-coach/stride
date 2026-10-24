@@ -9,12 +9,13 @@ export default async function NewCoachConversationPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { request, session, text } = await searchParams;
+  const { request, session, race, text } = await searchParams;
   return (
     <CoachPage
       current
       request={typeof request === "string" ? request : null}
       sessionKey={typeof session === "string" ? session : null}
+      raceId={typeof race === "string" ? race : null}
       text={parseRequestText(text)}
     />
   );

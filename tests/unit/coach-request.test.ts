@@ -19,6 +19,18 @@ describe("coach request prefill", () => {
     expect(url.searchParams.get("session")).toBe("2026-10-15:threshold");
   });
 
+  it("builds a new conversation link with a race attached", () => {
+    const raceId = "b0000000-0000-4000-8000-00000000000b";
+    const url = new URL(
+      coachRequestHref(null, null, raceId),
+      "https://stride.test",
+    );
+    expect(url.pathname).toBe("/coach/new");
+    expect(url.searchParams.get("race")).toBe(raceId);
+    expect(url.searchParams.has("text")).toBe(false);
+    expect(url.searchParams.has("session")).toBe(false);
+  });
+
   it("ignores missing text and truncates long text", () => {
     expect(parseRequestText(undefined)).toBeNull();
     expect(parseRequestText("   ")).toBeNull();

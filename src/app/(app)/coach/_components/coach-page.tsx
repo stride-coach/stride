@@ -3,6 +3,7 @@ import { localToday } from "@/features/app-shell/shell";
 import { requireAthlete } from "@/server/app/session";
 import {
   loadAttachmentOptions,
+  loadRaceOption,
   loadSessionOption,
 } from "@/server/coaching/attachments";
 import {
@@ -19,12 +20,14 @@ export async function CoachPage({
   current,
   request = null,
   sessionKey = null,
+  raceId = null,
   text = null,
 }: {
   threadId?: string | null;
   current: boolean;
   request?: string | null;
   sessionKey?: string | null;
+  raceId?: string | null;
   text?: string | null;
 }) {
   const context = await requireAthlete();
@@ -38,7 +41,10 @@ export async function CoachPage({
   const plan = request === "plan";
   const preselected = thread
     ? []
-    : await loadSessionOption(context, attachmentOptions, sessionKey);
+    : [
+        ...(await loadSessionOption(context, attachmentOptions, sessionKey)),
+        ...loadRaceOption(attachmentOptions, raceId),
+      ];
   return (
     <CoachScreen
       key={thread?.id ?? "new"}

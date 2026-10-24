@@ -337,6 +337,16 @@ export async function loadSessionOption(
     : [];
 }
 
+export function loadRaceOption(
+  options: AttachmentOptions,
+  raceId: string | null,
+): AttachmentOption[] {
+  const ref = coachAttachmentSchema.safeParse({ kind: "race", id: raceId });
+  if (!ref.success) return [];
+  const listed = options.race.find((option) => option.id === ref.data.id);
+  return listed ? [listed] : [];
+}
+
 async function activityOptions(
   context: OnboardingContext,
 ): Promise<AttachmentOption[]> {
