@@ -1,4 +1,4 @@
-export const nutritionThresholdsVersion = "2026-10-18";
+export const nutritionThresholdsVersion = "2026-10-25";
 
 export const nutritionThresholds = {
   mifflinWeightFactor: 10,
@@ -36,6 +36,14 @@ export const nutritionThresholds = {
   proteinIntakes: { min: 4, max: 5 },
   proteinIntakeGPerKg: { min: 0.3, max: 0.4 },
   proteinRecoveryWindowHours: 2,
+  preSessionMealHours: { min: 3, max: 4 },
+  preSessionMealCarbsGPerKg: 1.5,
+  preSessionSnackMinutes: 30,
+  preSessionSnackCarbsG: 25,
+  recoveryCarbsGPerKg: 1,
+  timelineRoundingG: 5,
+  fuelingStepRoundingMinutes: 5,
+  genericGelCarbsG: 25,
   fatMinimumGPerKg: 0.8,
   kcalPerGramCarbs: 4,
   kcalPerGramProtein: 4,

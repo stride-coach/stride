@@ -22,15 +22,37 @@ test("the nutrition page shows today's targets and the next seven days", async (
   const targets = page.getByRole("region", { name: "Objectifs du jour" });
   for (const label of ["Énergie", "Glucides", "Protéines", "Lipides"])
     await expect(targets.getByText(label, { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Sources des chiffres" }),
+  ).toContainText("Poids");
+  const timeline = page.getByRole("region", { name: /^Ta journée/ });
+  await expect(timeline.getByRole("listitem").first()).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Ta base de ravito" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Teste ton ravito", { exact: true }),
+  ).toBeVisible();
   const table = page.getByRole("table");
   await expect(table.getByRole("row")).toHaveCount(8);
   await expect(table.locator('tr[aria-current="date"]')).toHaveCount(1);
   await expect(
-    page.getByText("Comment on calcule", { exact: true }),
+    table.getByRole("columnheader", { name: "Ravito" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Demander à Léa" }),
-  ).toHaveAttribute("href", "/coach");
+    page.getByText("Comment on calcule", { exact: true }),
+  ).toBeVisible();
+  const coach = page.getByRole("link", {
+    name: "Demander à Léa pour cette journée",
+  });
+  const href = await coach.first().getAttribute("href");
+  const url = new URL(href ?? "", "http://stride.test");
+  expect(url.pathname).toBe("/coach/new");
+  expect(url.searchParams.get("text")).toMatch(/^Nutrition du /);
+  await page.screenshot({
+    path: "test-results/nutrition-1440.png",
+    fullPage: true,
+  });
 });
 
 test("the nutrition page fits a phone", async ({ page }) => {
@@ -41,9 +63,18 @@ test("the nutrition page fits a phone", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: /kcal aujourd’hui\.$/ }),
   ).toBeVisible();
   await expect(page.getByRole("table")).toBeHidden();
+  const days = page.getByRole("region", { name: "Les 7 prochains jours" });
+  await expect(days.getByText(/^Prot\. /).first()).toBeVisible();
+  await expect(days.getByText(/^Gluc\. /).first()).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Demander à Léa" }).last(),
+    page
+      .getByRole("link", { name: "Demander à Léa pour cette journée" })
+      .last(),
   ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/nutrition-390.png",
+    fullPage: true,
+  });
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth,
   );

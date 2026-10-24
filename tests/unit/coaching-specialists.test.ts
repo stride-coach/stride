@@ -261,7 +261,14 @@ describe("nutrition targets", () => {
       ),
     };
     const [day] = nutritionDays(
-      { profile, plan, races: [], health: noHealth },
+      {
+        profile,
+        plan,
+        races: [],
+        fuelingRaces: [],
+        measured: new Map(),
+        health: noHealth,
+      },
       session.scheduledOn,
       1,
       true,
@@ -275,12 +282,19 @@ describe("nutrition targets", () => {
 
   it("formats a French view and reports missing profile fields", () => {
     const results = nutritionDays(
-      { profile, plan: null, races: [], health: noHealth },
+      {
+        profile,
+        plan: null,
+        races: [],
+        fuelingRaces: [],
+        measured: new Map(),
+        health: noHealth,
+      },
       "2026-10-18",
       7,
       false,
     );
-    const view = nutritionView(results, [], "2026-10-18");
+    const view = nutritionView({ results, sessions: [], today: "2026-10-18" });
     expect(view.status).toBe("ready");
     if (view.status !== "ready") return;
     expect(view.today.headline).toMatch(
@@ -293,23 +307,25 @@ describe("nutrition targets", () => {
       session: "Repos",
       dayTypeLabel: "Repos",
     });
-    expect(view.today.method[2]).toMatchObject({ estimated: true });
+    expect(view.today.method[2]).toMatchObject({ tag: "estimation" });
 
-    const missing = nutritionView(
-      nutritionDays(
+    const missing = nutritionView({
+      results: nutritionDays(
         {
           profile: { ...profile, weightKg: null, heightCm: null },
           plan: null,
           races: [],
+          fuelingRaces: [],
+          measured: new Map(),
           health: noHealth,
         },
         "2026-10-18",
         1,
         false,
       ),
-      [],
-      "2026-10-18",
-    );
+      sessions: [],
+      today: "2026-10-18",
+    });
     expect(missing).toEqual({
       status: "missing",
       missing: ["Taille", "Poids"],

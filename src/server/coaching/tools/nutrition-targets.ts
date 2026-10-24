@@ -11,7 +11,7 @@ export const nutritionMaxDays = 14;
 
 export const readNutritionTargetsTool = defineTool({
   name: "read_nutrition_targets",
-  description: `Read Stride's computed nutrition targets for a date range of at most ${nutritionMaxDays} days: for each day the day type from the planned sessions and races, the energy target (resting energy, digestion, NEAT, training energy, rounded display value), carbohydrate, protein and fat targets in g/kg and grams, the protein intakes and recovery window, in-session fueling for sessions over 90 minutes, and the light-deficit verdict when requested (refused on long, hard, pre-race and race days, taper and race weeks, and with open health signals). Each day lists its inputs, estimations and confidence. Returns missing profile fields instead of numbers when the profile is incomplete. Never compute a number yourself: quote this result.`,
+  description: `Read Stride's computed nutrition targets for a date range of at most ${nutritionMaxDays} days: for each day the day type from the planned sessions and races, the energy target (resting energy, digestion, NEAT, training energy, rounded display value), carbohydrate, protein and fat targets in g/kg and grams, the protein intakes and recovery window, in-session fueling for sessions of 90 minutes or more (carbohydrates, sodium and water per hour from the next race's plan when the athlete has an upcoming race, otherwise Stride's 30–60 g/h, or 60–90 g/h beyond 4 hours), Garmin calories for planned sessions already done, and the light-deficit verdict when requested (refused on long, hard, pre-race and race days, taper and race weeks, and with open health signals). Each day lists its inputs, estimations and confidence. Returns missing profile fields instead of numbers when the profile is incomplete. Never compute a number yourself: quote this result.`,
   class: "compute",
   dataClasses: ["training", "plan", "health"],
   input: z
@@ -38,7 +38,10 @@ export const readNutritionTargetsTool = defineTool({
   }),
   run: async (context, { from, days, deficitRequested }) => {
     const today = localToday("Europe/Paris");
-    const inputs = await readNutritionInputs(context, today).catch(() => {
+    const inputs = await readNutritionInputs(context, today, {
+      from,
+      to: addDays(from, days - 1),
+    }).catch(() => {
       throw toolError("tool_unavailable");
     });
     return {
