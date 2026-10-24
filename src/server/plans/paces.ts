@@ -6,18 +6,26 @@ import {
   paceMidpoints,
   trainingTargets,
   type IntensityPaceRanges,
+  type TrainingTargets,
 } from "@/features/plans/targets/targets";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { loadPlanningInput } from "./draft";
 
-export const loadIntensityPaceRanges = cache(
-  async (context: OnboardingContext): Promise<IntensityPaceRanges | null> => {
+export const loadTrainingTargets = cache(
+  async (context: OnboardingContext): Promise<TrainingTargets | null> => {
     try {
       const { today, input } = await loadPlanningInput(context);
-      return intensityPaceRanges(trainingTargets({ ...input.targets, today }));
+      return trainingTargets({ ...input.targets, today });
     } catch {
       return null;
     }
+  },
+);
+
+export const loadIntensityPaceRanges = cache(
+  async (context: OnboardingContext): Promise<IntensityPaceRanges | null> => {
+    const targets = await loadTrainingTargets(context);
+    return targets ? intensityPaceRanges(targets) : null;
   },
 );
 

@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import {
   PreferenceRow,
   PreferenceSection,
-  PreviewSegments,
-  PreviewSwitch,
   SegmentedField,
   WeekdayField,
 } from "@/features/settings/components/preferences";
@@ -63,9 +61,8 @@ export default async function TrainingSettingsPage({
           Entraînement et coach
         </h1>
         <p className="text-sm leading-normal text-muted md:text-body">
-          Ça guide mes plans et ma façon de te parler. Changer tes
-          disponibilités déclenchera une proposition de mise à jour, sans
-          réécrire ta semaine en douce.
+          Ça guide mes plans. Changer tes disponibilités déclenchera une
+          proposition de mise à jour, sans réécrire ta semaine en douce.
         </p>
       </div>
       <SettingsNotice status={query.status} />
@@ -153,89 +150,6 @@ export default async function TrainingSettingsPage({
         addAction={addSettingsUnavailability}
         removeAction={removeSettingsUnavailability}
       />
-      <PreferenceSection title="Unités">
-        <PreferenceRow labelId="u-sys" label="Distance et dénivelé">
-          <PreviewSegments
-            labelledBy="u-sys"
-            stretch
-            options={["km · m", "mi · ft"]}
-            selected="km · m"
-          />
-        </PreferenceRow>
-        <PreferenceRow labelId="u-pace" label="Allure">
-          <PreviewSegments
-            labelledBy="u-pace"
-            stretch
-            options={["min/km · 4:38", "km/h · 12,9"]}
-            selected="min/km · 4:38"
-          />
-        </PreferenceRow>
-      </PreferenceSection>
-      <PreferenceSection title="Coach" accent badge="Bientôt">
-        <PreferenceRow labelId="c-tone" label="Ton">
-          <div className="flex flex-col gap-2">
-            <PreviewSegments
-              labelledBy="c-tone"
-              options={["Direct", "Équilibré", "Encourageant"]}
-            />
-            <span className="text-xs text-muted-foreground">
-              « Aujourd’hui : 4 × 6. Nuit courte, jambes fraîches. »
-            </span>
-          </div>
-        </PreferenceRow>
-        <PreferenceRow labelId="c-detail" label="Niveau de détail">
-          <PreviewSegments
-            labelledBy="c-detail"
-            options={["Court", "Standard", "Avec les chiffres"]}
-          />
-        </PreferenceRow>
-        <PreferenceRow
-          labelId="c-adapt"
-          label="Changements du plan"
-          hint="Rien ne change sans trace dans le journal."
-        >
-          <div
-            role="radiogroup"
-            aria-labelledby="c-adapt"
-            className="flex flex-col gap-1.5"
-          >
-            <label className="flex items-start gap-2.5 rounded-control border border-border px-3 py-2.5 text-sm opacity-70">
-              <input
-                type="radio"
-                name="adapt"
-                disabled
-                className="mt-0.75 accent-accent"
-              />
-              Me demander avant chaque changement
-            </label>
-            <label className="flex items-start gap-2.5 rounded-control border border-border px-3 py-2.5 text-sm opacity-70">
-              <input
-                type="radio"
-                name="adapt"
-                disabled
-                className="mt-0.75 accent-accent"
-              />
-              <span className="flex flex-col gap-0.5">
-                Appliquer les petits ajustements, me demander pour le reste
-                <span className="text-xs text-muted-foreground">
-                  Lignes droites, quelques minutes en plus ou en moins ·
-                  annulable 48 h
-                </span>
-              </span>
-            </label>
-          </div>
-        </PreferenceRow>
-        <PreferenceRow
-          labelId="c-proactive"
-          label="Prendre la parole en premier"
-          hint="Brief du matin, alertes de récupération, tendances repérées"
-        >
-          <div className="flex items-center gap-3">
-            <PreviewSwitch label="Coaching proactif" />
-            <span className="text-sm text-muted">Désactivé</span>
-          </div>
-        </PreferenceRow>
-      </PreferenceSection>
       <PushSettings
         publicKey={push.publicKey}
         preferences={push.preferences}

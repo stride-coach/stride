@@ -196,12 +196,10 @@ export function SettingsTrainingLoading() {
     >
       <PageTitle
         title="Entraînement et coach"
-        description="Ça guide mes plans et ma façon de te parler. Changer tes disponibilités déclenchera une proposition de mise à jour, sans réécrire ta semaine en douce."
+        description="Ça guide mes plans. Changer tes disponibilités déclenchera une proposition de mise à jour, sans réécrire ta semaine en douce."
       />
       <div className="flex flex-col gap-6">
         <PreferenceRows title="Entraînement" rows={5} />
-        <PreferenceRows title="Unités" rows={2} />
-        <PreferenceRows title="Coach" rows={3} />
       </div>
     </LoadingScope>
   );
