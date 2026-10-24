@@ -16,6 +16,8 @@ export type GarminConnectionDependencies = {
   enabled: () => boolean;
   context: () => Promise<OnboardingContext | null>;
   progress: (context: OnboardingContext) => Promise<ProgressSnapshot>;
+  recordConsent: (context: OnboardingContext) => Promise<boolean>;
+  holdsConsent: (context: OnboardingContext) => Promise<boolean>;
   start: (
     context: OnboardingContext,
     credentials: { email: string; password: string },
@@ -47,9 +49,17 @@ export async function connectGarmin(
     if (!context) return failed("session_expired");
     if (!isStepAllowed(await dependencies.progress(context), "garmin"))
       return failed("connection_failed");
+    const consented =
+      "password" in parsed.data
+        ? await dependencies.recordConsent(context)
+        : await dependencies.holdsConsent(context);
+    if (!consented) return failed("connection_failed");
     const result =
       "password" in parsed.data
-        ? await dependencies.start(context, parsed.data)
+        ? await dependencies.start(context, {
+            email: parsed.data.email,
+            password: parsed.data.password,
+          })
         : await dependencies.verify(context, parsed.data);
     if (!result.ok)
       return { status: "error", failure: connectFailure(result.failure) };

@@ -1,4 +1,8 @@
 "use server";
+import {
+  holdsHealthConsent,
+  recordHealthConsent,
+} from "@/server/consent/health-consent";
 import { getGarminClient } from "@/server/garmin/session";
 import { createCompletionClient } from "@/server/supabase/completion-client";
 import { getOnboardingContext } from "./context";
@@ -55,6 +59,8 @@ function garminDependencies(): GarminConnectionDependencies {
     enabled: onboardingEnabled,
     context: () => getOnboardingContext({ writable: true }),
     progress: ensureProgress,
+    recordConsent: recordHealthConsent,
+    holdsConsent: holdsHealthConsent,
     start: (context, credentials) =>
       getGarminClient().startConnection(
         { accessToken: context.accessToken },

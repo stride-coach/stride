@@ -19,7 +19,15 @@ import {
 const date = "2026-10-09T12:00:00Z";
 const userId = "53d17ee9-4940-4be0-8bbe-6c35703a963d";
 const challengeId = "8e0d2b3c-7c1a-4e4b-9a55-0c1f0f8d3b21";
-const credentials = { email: "athlete@example.com", password: "s3cret-pass" };
+const credentials = {
+  email: "athlete@example.com",
+  password: "s3cret-pass",
+  healthConsent: true,
+};
+const garminCredentials = {
+  email: credentials.email,
+  password: credentials.password,
+};
 
 function progress(welcome: string | null = date): ProgressSnapshot {
   return {
@@ -48,6 +56,8 @@ function setup(overrides: Partial<GarminConnectionDependencies> = {}) {
     enabled: () => true,
     context: vi.fn(async () => context),
     progress: vi.fn(async () => progress()),
+    recordConsent: vi.fn(async () => true),
+    holdsConsent: vi.fn(async () => true),
     start: vi.fn(async () => ({
       ok: true as const,
       value: { status: "connected" as const },
@@ -169,7 +179,7 @@ describe("Garmin connection actions", () => {
     const result = await connectGarmin(dependencies, "start", credentials);
     expect(result).toEqual({ status: "connected" });
     expect(dependencies.start).toHaveBeenCalledTimes(1);
-    expect(dependencies.start).toHaveBeenCalledWith(context, credentials);
+    expect(dependencies.start).toHaveBeenCalledWith(context, garminCredentials);
     expect(JSON.stringify(result)).not.toContain(credentials.password);
   });
   it("returns only the challenge identifier when Garmin asks for a code", async () => {
@@ -226,6 +236,8 @@ describe("Garmin connection actions", () => {
     [{ email: "not-an-email", password: "x" }, "start"],
     [{ ...credentials, password: "" }, "start"],
     [{ ...credentials, extra: true }, "start"],
+    [garminCredentials, "start"],
+    [{ ...credentials, healthConsent: false }, "start"],
     [{ challengeId: "not-a-uuid", otp: "123456" }, "verify"],
     [{ challengeId, otp: "12345" }, "verify"],
     [{ challengeId, otp: "12a456" }, "verify"],
@@ -257,6 +269,29 @@ describe("Garmin connection actions", () => {
     ).toMatchObject({ failure: { state: "connection_failed" } });
     for (const { dependencies } of [expired, disabled, locked])
       expect(dependencies.start).not.toHaveBeenCalled();
+  });
+  it("records health consent before sending credentials to Garmin", async () => {
+    const { dependencies, context } = setup();
+    await connectGarmin(dependencies, "start", credentials);
+    expect(dependencies.recordConsent).toHaveBeenCalledWith(context);
+    expect(
+      vi.mocked(dependencies.recordConsent).mock.invocationCallOrder[0],
+    ).toBeLessThan(vi.mocked(dependencies.start).mock.invocationCallOrder[0]);
+  });
+  it("never reaches Garmin without a recorded consent", async () => {
+    const unrecorded = setup({ recordConsent: vi.fn(async () => false) });
+    expect(
+      await connectGarmin(unrecorded.dependencies, "start", credentials),
+    ).toMatchObject({ failure: { state: "connection_failed" } });
+    expect(unrecorded.dependencies.start).not.toHaveBeenCalled();
+    const withdrawn = setup({ holdsConsent: vi.fn(async () => false) });
+    expect(
+      await connectGarmin(withdrawn.dependencies, "verify", {
+        challengeId,
+        otp: "482716",
+      }),
+    ).toMatchObject({ failure: { state: "connection_failed" } });
+    expect(withdrawn.dependencies.verify).not.toHaveBeenCalled();
   });
   it("treats unexpected errors as a temporary Garmin outage", async () => {
     const { dependencies } = setup({

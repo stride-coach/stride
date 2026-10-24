@@ -4,9 +4,15 @@ vi.mock("server-only", () => ({}));
 
 const requestSync = vi.fn();
 const context = vi.fn();
+const consent = vi.fn(async () => true);
 vi.mock("../../src/server/garmin/session", () => ({
-  getGarminRequestContext: () => context(),
   getGarminClient: () => ({ requestSync }),
+}));
+vi.mock("../../src/server/onboarding/context", () => ({
+  getOnboardingContext: () => context(),
+}));
+vi.mock("../../src/server/consent/health-consent", () => ({
+  holdsHealthConsent: () => consent(),
 }));
 
 import {
@@ -116,6 +122,15 @@ describe("requestGarminSync", () => {
     context.mockResolvedValueOnce(null);
     await expect(requestGarminSync()).resolves.toEqual({
       status: "session-expired",
+    });
+    expect(requestSync).not.toHaveBeenCalled();
+  });
+
+  it("never asks Garmin to sync without health-data consent", async () => {
+    context.mockResolvedValueOnce({ accessToken: "token" });
+    consent.mockResolvedValueOnce(false);
+    await expect(requestGarminSync()).resolves.toEqual({
+      status: "unavailable",
     });
     expect(requestSync).not.toHaveBeenCalled();
   });

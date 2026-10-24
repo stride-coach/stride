@@ -137,6 +137,34 @@ export type Database = {
         };
         Relationships: [];
       };
+      athlete_consents: {
+        Row: {
+          granted_at: string;
+          id: string;
+          policy_version: string;
+          purpose: string;
+          user_id: string;
+          withdrawn_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          granted_at?: string;
+          id?: string;
+          policy_version: string;
+          purpose: string;
+          user_id: string;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          granted_at?: string;
+          id?: string;
+          policy_version?: string;
+          purpose?: string;
+          user_id?: string;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [];
+      };
       athlete_goals: {
         Row: {
           created_at: string;

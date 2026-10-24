@@ -3,7 +3,8 @@ import {
   LegalTable,
   type LegalSection,
 } from "@/features/public/components/legal-document";
-import { publisher } from "@/features/public/publisher";
+import { formatConsentDate } from "@/features/consent/health-consent";
+import { privacyPolicyVersion, publisher } from "@/features/public/publisher";
 
 const contact = <a href={`mailto:${publisher.email}`}>{publisher.email}</a>;
 
@@ -58,10 +59,21 @@ export const privacySections: readonly LegalSection[] = [
         <p>
           Sommeil, VFC, fréquence cardiaque et douleurs sont des données de
           santé au sens de l’article 9 du RGPD. Stride ne les traite qu’avec ton{" "}
-          <strong>consentement explicite</strong>, recueilli lorsque tu
-          connectes Garmin, et uniquement pour adapter ton entraînement. Tu peux
-          retirer ce consentement à tout moment en déconnectant Garmin et en
-          demandant la suppression des données importées.
+          <strong>consentement explicite</strong>, donné en cochant une case
+          dédiée lorsque tu connectes Garmin, et uniquement pour adapter ton
+          entraînement. Stride enregistre la date de ton accord et la version de
+          cette politique ({formatConsentDate(privacyPolicyVersion)}).
+        </p>
+        <p>
+          Tu peux retirer ce consentement à tout moment dans{" "}
+          <Link href="/settings/privacy">
+            Réglages › Données et confidentialité
+          </Link>
+          . Stride cesse alors d’utiliser ces données et de demander des
+          synchronisations à Garmin, et ton coaching reste en pause jusqu’à un
+          nouvel accord. La connexion Garmin et les données déjà importées
+          restent dans ton compte jusqu’à ta demande de suppression, à adresser
+          à {contact}.
         </p>
         <p>
           Stride n’est pas un dispositif médical et ne pose aucun diagnostic.

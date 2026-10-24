@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { loadHeartRateZones } from "@/server/activities/activities";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 import { readSettingsProfile } from "@/server/settings/profile";
 import { readRunningMaximum } from "@/server/heart-rate/maximum";
 import { readProfileMetrics } from "@/server/settings/data";
@@ -12,7 +12,7 @@ import { paceZones } from "@/features/settings/zones";
 export const metadata: Metadata = { title: "Profil · Réglages" };
 
 export default async function ProfileSettingsPage() {
-  const context = await requireAthlete();
+  const context = await requireAthleteAccount();
   const [snapshot, metrics, maximum, zones, targets] = await Promise.all([
     readSettingsProfile(context),
     readProfileMetrics(context),

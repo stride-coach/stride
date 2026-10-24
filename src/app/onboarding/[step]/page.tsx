@@ -18,6 +18,11 @@ import { readGoals } from "@/server/onboarding/goals";
 import { readProfile } from "@/server/onboarding/profile";
 import { loadKnownValues } from "@/server/onboarding/known-values";
 import { initialGarminScreen } from "@/features/onboarding/garmin-flow";
+import {
+  hasHealthConsent,
+  onboardingNeedsHealthConsent,
+} from "@/features/consent/health-consent";
+import { readHealthConsent } from "@/server/consent/health-consent";
 import { getOnboardingRequest } from "@/server/onboarding/request";
 export async function generateMetadata({
   params,
@@ -38,6 +43,13 @@ export default async function OnboardingStepPage({
   const guard = guardOnboarding(progress, (await params).step);
   if (guard.kind === "not-found") notFound();
   if (guard.kind === "redirect") redirect(guard.href);
+  const garminScreen = initialGarminScreen(connection);
+  const consented = hasHealthConsent(await readHealthConsent(context));
+  if (
+    !consented &&
+    onboardingNeedsHealthConsent(guard.step, garminScreen === "connected")
+  )
+    redirect("/consent");
   const about =
     guard.step === "about"
       ? await Promise.all([
@@ -67,7 +79,8 @@ export default async function OnboardingStepPage({
       {guard.step === "garmin" && (
         <GarminStep
           revision={progress.revision}
-          initialScreen={initialGarminScreen(connection)}
+          initialScreen={garminScreen}
+          initialConsent={consented}
         />
       )}
       {guard.step === "history" && (
