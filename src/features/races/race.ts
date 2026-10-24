@@ -20,6 +20,10 @@ export type RacePlan = {
   sodiumMgPerHour: number;
   alarmMinutes: number;
   nightCaffeine: boolean;
+  flaskMl: number;
+  flaskCount: number;
+  bladderMl: number | null;
+  caffeineMaxMg: number;
   roadbookImport: RoadbookImportSummary | null;
 };
 
@@ -49,13 +53,17 @@ export const defaultPlan: RacePlan = {
   sodiumMgPerHour: 500,
   alarmMinutes: 20,
   nightCaffeine: true,
+  flaskMl: 500,
+  flaskCount: 2,
+  bladderMl: null,
+  caffeineMaxMg: 200,
   roadbookImport: null,
 };
 
 export const defaultStartMinutes = 8 * 60;
 
 export const planColumns =
-  "start_time, start_time_confirmed, ambitious_duration_seconds, cautious_duration_seconds, cutoff_duration_seconds, labels, walk_grade_percent, walk_pace_seconds_per_km, aid_stop_seconds, water_stop_seconds, carbs_per_hour_g, water_ml_per_hour, sodium_mg_per_hour, nutrition_alarm_minutes, night_caffeine, roadbook_import, revision";
+  "start_time, start_time_confirmed, ambitious_duration_seconds, cautious_duration_seconds, cutoff_duration_seconds, labels, walk_grade_percent, walk_pace_seconds_per_km, aid_stop_seconds, water_stop_seconds, carbs_per_hour_g, water_ml_per_hour, sodium_mg_per_hour, nutrition_alarm_minutes, night_caffeine, flask_ml, flask_count, bladder_ml, caffeine_max_mg, roadbook_import, revision";
 
 export const planRowSchema = z
   .object({
@@ -74,6 +82,10 @@ export const planRowSchema = z
     sodium_mg_per_hour: z.number().int(),
     nutrition_alarm_minutes: z.number().int(),
     night_caffeine: z.boolean(),
+    flask_ml: z.number().int(),
+    flask_count: z.number().int(),
+    bladder_ml: z.number().int().nullable(),
+    caffeine_max_mg: z.number().int(),
     roadbook_import: z.unknown().nullable(),
     revision: z.number().int().positive(),
   })
@@ -94,6 +106,10 @@ export const planRowSchema = z
     sodiumMgPerHour: row.sodium_mg_per_hour,
     alarmMinutes: row.nutrition_alarm_minutes,
     nightCaffeine: row.night_caffeine,
+    flaskMl: row.flask_ml,
+    flaskCount: row.flask_count,
+    bladderMl: row.bladder_ml,
+    caffeineMaxMg: row.caffeine_max_mg,
     roadbookImport:
       roadbookImportSchema.safeParse(row.roadbook_import).data ?? null,
   }));
@@ -114,6 +130,10 @@ export const planInputSchema = z.object({
   sodiumMgPerHour: z.number().int().min(0).max(2000),
   alarmMinutes: z.number().int().min(5).max(60),
   nightCaffeine: z.boolean(),
+  flaskMl: z.number().int().min(100).max(1500),
+  flaskCount: z.number().int().min(0).max(6),
+  bladderMl: z.number().int().min(250).max(3000).nullable(),
+  caffeineMaxMg: z.number().int().min(0).max(600),
 });
 export type PlanInput = z.infer<typeof planInputSchema>;
 

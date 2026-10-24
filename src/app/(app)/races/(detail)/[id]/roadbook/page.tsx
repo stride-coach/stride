@@ -26,7 +26,9 @@ import { profileData } from "@/features/races/profile";
 import { raceStrategy } from "@/features/races/reading";
 import { defaultStartMinutes } from "@/features/races/race";
 import { defaultWatchLabel, serviceLabels } from "@/features/races/waypoints";
+import { RaceProposalSheet } from "@/features/races/components/race-proposal-sheet";
 import { loadRace } from "@/server/races/load";
+import { loadRaceProposalReview } from "@/server/races/proposals";
 import { planFor } from "@/server/races/views";
 
 const scenarioSchema = z
@@ -41,8 +43,14 @@ export default async function RoadbookPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const { data } = await loadRace(id);
+  const { context, data } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
+  const review = await loadRaceProposalReview(
+    context,
+    data,
+    typeof query.proposal === "string" ? query.proposal : undefined,
+  );
+  const sheet = review && <RaceProposalSheet key={review.id} review={review} />;
   const base = `/races/${id}`;
   if (!data.course)
     return (
@@ -91,6 +99,7 @@ export default async function RoadbookPage({
 
   return (
     <>
+      {sheet}
       {planned?.night && planned.night.totalSeconds > 0 && (
         <NightCard planned={planned} model={model} raceId={data.race.id} />
       )}

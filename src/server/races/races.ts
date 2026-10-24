@@ -21,6 +21,15 @@ import {
   type StoredCourse,
 } from "@/features/races/race";
 import {
+  raceNutritionPlanSchema,
+  type RaceNutritionPlan,
+} from "@/features/fueling/race-plan";
+import {
+  strategyColumns,
+  strategyRowSchema,
+  type StoredStrategy,
+} from "@/features/races/proposals";
+import {
   sortWaypoints,
   waypointColumns,
   waypointRowSchema,
@@ -35,7 +44,15 @@ export type RaceWorkspaceData = {
   course: StoredCourse | null;
   waypoints: Waypoint[];
   checklist: ChecklistItem[];
+  strategy: StoredStrategy | null;
+  nutritionPlan: { plan: RaceNutritionPlan; revision: number } | null;
 };
+
+function nutritionPlanOf(row: { plan: unknown; revision: number } | null) {
+  if (!row) return null;
+  const plan = raceNutritionPlanSchema.safeParse(row.plan);
+  return plan.success ? { plan: plan.data, revision: row.revision } : null;
+}
 
 function summary(row: unknown): RaceSummary {
   const race = raceRowSchema.parse(row);
@@ -81,46 +98,61 @@ export const readWorkspace = cache(
     context: OnboardingContext,
     raceId: string,
   ): Promise<RaceWorkspaceData | null> => {
-    const [race, plan, course, waypoints, checklist] = await Promise.all([
-      context.client
-        .from("athlete_races")
-        .select(raceColumns)
-        .eq("user_id", context.userId)
-        .eq("id", raceId)
-        .maybeSingle(),
-      context.client
-        .from("race_plans")
-        .select(planColumns)
-        .eq("user_id", context.userId)
-        .eq("race_id", raceId)
-        .maybeSingle(),
-      context.client
-        .from("race_courses")
-        .select(courseColumns)
-        .eq("user_id", context.userId)
-        .eq("race_id", raceId)
-        .maybeSingle(),
-      context.client
-        .from("race_waypoints")
-        .select(waypointColumns)
-        .eq("user_id", context.userId)
-        .eq("race_id", raceId)
-        .order("distance_m", { ascending: true }),
-      context.client
-        .from("race_checklist_items")
-        .select(checklistColumns)
-        .eq("user_id", context.userId)
-        .eq("race_id", raceId)
-        .order("list", { ascending: true })
-        .order("position", { ascending: true })
-        .order("created_at", { ascending: true }),
-    ]);
+    const [race, plan, course, waypoints, checklist, strategy, nutrition] =
+      await Promise.all([
+        context.client
+          .from("athlete_races")
+          .select(raceColumns)
+          .eq("user_id", context.userId)
+          .eq("id", raceId)
+          .maybeSingle(),
+        context.client
+          .from("race_plans")
+          .select(planColumns)
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .maybeSingle(),
+        context.client
+          .from("race_courses")
+          .select(courseColumns)
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .maybeSingle(),
+        context.client
+          .from("race_waypoints")
+          .select(waypointColumns)
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .order("distance_m", { ascending: true }),
+        context.client
+          .from("race_checklist_items")
+          .select(checklistColumns)
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .order("list", { ascending: true })
+          .order("position", { ascending: true })
+          .order("created_at", { ascending: true }),
+        context.client
+          .from("race_strategies")
+          .select(strategyColumns)
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .maybeSingle(),
+        context.client
+          .from("race_nutrition_plans")
+          .select("plan, revision")
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .maybeSingle(),
+      ]);
     if (
       race.error ||
       plan.error ||
       course.error ||
       waypoints.error ||
-      checklist.error
+      checklist.error ||
+      strategy.error ||
+      nutrition.error
     )
       throw new Error("Unable to read race workspace");
     if (!race.data) return null;
@@ -134,6 +166,8 @@ export const readWorkspace = cache(
       checklist: (checklist.data ?? []).map((row) =>
         checklistRowSchema.parse(row),
       ),
+      strategy: strategy.data ? strategyRowSchema.parse(strategy.data) : null,
+      nutritionPlan: nutritionPlanOf(nutrition.data),
     };
   },
 );

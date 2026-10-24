@@ -94,6 +94,12 @@ export async function saveRacePlan(
     ...(values.nightCaffeine !== undefined && {
       night_caffeine: values.nightCaffeine,
     }),
+    ...(values.flaskMl !== undefined && { flask_ml: values.flaskMl }),
+    ...(values.flaskCount !== undefined && { flask_count: values.flaskCount }),
+    ...(values.bladderMl !== undefined && { bladder_ml: values.bladderMl }),
+    ...(values.caffeineMaxMg !== undefined && {
+      caffeine_max_mg: values.caffeineMaxMg,
+    }),
   };
   try {
     const response =

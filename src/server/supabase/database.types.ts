@@ -162,6 +162,67 @@ export type Database = {
         };
         Relationships: [];
       };
+      athlete_nutrition_products: {
+        Row: {
+          archived_at: string | null;
+          brand: string | null;
+          caffeine_mg: number;
+          carbs_g: number;
+          catalogue_key: string | null;
+          created_at: string;
+          id: string;
+          kind: string;
+          name: string;
+          revision: number;
+          serving_label: string | null;
+          serving_ml: number | null;
+          sodium_mg: number;
+          tested: boolean;
+          tested_note: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          brand?: string | null;
+          caffeine_mg?: number;
+          carbs_g: number;
+          catalogue_key?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          name: string;
+          revision?: number;
+          serving_label?: string | null;
+          serving_ml?: number | null;
+          sodium_mg?: number;
+          tested?: boolean;
+          tested_note?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          brand?: string | null;
+          caffeine_mg?: number;
+          carbs_g?: number;
+          catalogue_key?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          name?: string;
+          revision?: number;
+          serving_label?: string | null;
+          serving_ml?: number | null;
+          sodium_mg?: number;
+          tested?: boolean;
+          tested_note?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       athlete_profiles: {
         Row: {
           available_weekdays: number[] | null;
@@ -1947,14 +2008,54 @@ export type Database = {
           },
         ];
       };
+      race_nutrition_plans: {
+        Row: {
+          created_at: string;
+          plan: NonNullable<Json>;
+          race_id: string;
+          revision: number;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          plan?: NonNullable<Json>;
+          race_id: string;
+          revision?: number;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          plan?: NonNullable<Json>;
+          race_id?: string;
+          revision?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_nutrition_plans_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: true;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       race_plans: {
         Row: {
           aid_stop_seconds: number;
           ambitious_duration_seconds: number | null;
+          bladder_ml: number | null;
+          caffeine_max_mg: number;
           carbs_per_hour_g: number;
           cautious_duration_seconds: number | null;
           created_at: string;
           cutoff_duration_seconds: number | null;
+          flask_count: number;
+          flask_ml: number;
           labels: string[];
           night_caffeine: boolean;
           nutrition_alarm_minutes: number;
@@ -1975,10 +2076,14 @@ export type Database = {
         Insert: {
           aid_stop_seconds?: number;
           ambitious_duration_seconds?: number | null;
+          bladder_ml?: number | null;
+          caffeine_max_mg?: number;
           carbs_per_hour_g?: number;
           cautious_duration_seconds?: number | null;
           created_at?: string;
           cutoff_duration_seconds?: number | null;
+          flask_count?: number;
+          flask_ml?: number;
           labels?: string[];
           night_caffeine?: boolean;
           nutrition_alarm_minutes?: number;
@@ -1998,10 +2103,14 @@ export type Database = {
         Update: {
           aid_stop_seconds?: number;
           ambitious_duration_seconds?: number | null;
+          bladder_ml?: number | null;
+          caffeine_max_mg?: number;
           carbs_per_hour_g?: number;
           cautious_duration_seconds?: number | null;
           created_at?: string;
           cutoff_duration_seconds?: number | null;
+          flask_count?: number;
+          flask_ml?: number;
           labels?: string[];
           night_caffeine?: boolean;
           nutrition_alarm_minutes?: number;
@@ -2021,6 +2130,109 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "race_plans_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: true;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      race_proposals: {
+        Row: {
+          base_revision: number;
+          coach_session_id: string | null;
+          created_at: string;
+          decided_at: string | null;
+          id: string;
+          kind: string;
+          payload: NonNullable<Json>;
+          race_id: string;
+          status: string;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          base_revision?: number;
+          coach_session_id?: string | null;
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          kind: string;
+          payload: NonNullable<Json>;
+          race_id: string;
+          status?: string;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          base_revision?: number;
+          coach_session_id?: string | null;
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          kind?: string;
+          payload?: NonNullable<Json>;
+          race_id?: string;
+          status?: string;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_proposals_coach_session_id_fkey";
+            columns: ["coach_session_id"];
+            isOneToOne: false;
+            referencedRelation: "coach_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "race_proposals_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      race_strategies: {
+        Row: {
+          consignes: NonNullable<Json>;
+          created_at: string;
+          race_id: string;
+          revision: number;
+          segments: NonNullable<Json>;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          consignes?: NonNullable<Json>;
+          created_at?: string;
+          race_id: string;
+          revision?: number;
+          segments?: NonNullable<Json>;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          consignes?: NonNullable<Json>;
+          created_at?: string;
+          race_id?: string;
+          revision?: number;
+          segments?: NonNullable<Json>;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_strategies_race_id_fkey";
             columns: ["race_id"];
             isOneToOne: true;
             referencedRelation: "athlete_races";
@@ -2352,6 +2564,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      accept_race_proposal: {
+        Args: { p_proposal_id: string };
+        Returns: string;
+      };
       acquire_provider_lease: {
         Args: { p_connection_id: string; p_owner: string };
         Returns: boolean;
@@ -2515,6 +2731,10 @@ export type Database = {
         Returns: boolean;
       };
       race_owned: { Args: { p_race_id: string }; Returns: boolean };
+      race_strategy_valid: {
+        Args: { p_consignes: Json; p_segments: Json };
+        Returns: boolean;
+      };
       reconcile_garmin_notifications: {
         Args: { p_gear_mismatches?: Json };
         Returns: undefined;
@@ -2578,6 +2798,10 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      reject_race_proposal: {
+        Args: { p_proposal_id: string };
+        Returns: undefined;
       };
       release_provider_lease: {
         Args: { p_connection_id: string; p_owner: string };
@@ -2732,6 +2956,17 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      submit_race_proposal: {
+        Args: {
+          p_coach_session_id?: string;
+          p_kind: string;
+          p_payload: Json;
+          p_race_id: string;
+          p_summary?: string;
+          p_title: string;
+        };
+        Returns: string;
       };
       upsert_activity_track: {
         Args: {
