@@ -3,15 +3,15 @@ import { Button } from "@/components/ui/button";
 import {
   SettingsGroup,
   SettingsHeading,
+  SettingsLinkRow,
 } from "@/features/settings/components/settings-shell";
+import { publisher } from "@/features/public/publisher";
 import { requireAthlete } from "@/server/app/session";
 import { readStoredCounts } from "@/server/settings/data";
 
 export const metadata: Metadata = {
   title: "Données et confidentialité · Réglages",
 };
-
-const supportEmail = "julestblt.dev@pm.me";
 
 export default async function PrivacySettingsPage() {
   const context = await requireAthlete();
@@ -55,6 +55,23 @@ export default async function PrivacySettingsPage() {
           </Button>
         </div>
       </SettingsGroup>
+      <SettingsGroup title="Documents">
+        <SettingsLinkRow
+          href="/privacy"
+          title="Confidentialité"
+          detail="Données collectées, prestataires et tes droits"
+        />
+        <SettingsLinkRow
+          href="/terms"
+          title="Conditions"
+          detail="Conditions d’utilisation du service"
+        />
+        <SettingsLinkRow
+          href="/legal"
+          title="Mentions légales"
+          detail="Éditeur et hébergement"
+        />
+      </SettingsGroup>
       <SettingsGroup title="Suppression">
         <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
           <div className="min-w-0 flex-1 basis-80">
@@ -63,14 +80,14 @@ export default async function PrivacySettingsPage() {
             </strong>
             <p className="mt-1 text-sm text-muted">
               Pas encore possible depuis les réglages. Écris-nous à{" "}
-              {supportEmail} : on supprime ce que tu demandes sous 30 jours et
-              on te confirme par e-mail. Tes données sur Garmin ne sont pas
+              {publisher.email} : on supprime ce que tu demandes sous 30 jours
+              et on te confirme par e-mail. Tes données sur Garmin ne sont pas
               touchées.
             </p>
           </div>
           <Button asChild variant="outline" className="max-md:w-full">
             <a
-              href={`mailto:${supportEmail}?subject=${encodeURIComponent("Suppression de mon compte Stride")}`}
+              href={`mailto:${publisher.email}?subject=${encodeURIComponent("Suppression de mon compte Stride")}`}
             >
               Écrire à l’équipe
             </a>

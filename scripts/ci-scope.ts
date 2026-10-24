@@ -51,7 +51,11 @@ export type BrowserLane = {
 };
 
 const globalAreas = new Set(["app-shell", "data-activity", "app", "supabase"]);
-const areaAliases: Record<string, string> = { plan: "plans", dev: "coach" };
+const areaAliases: Record<string, string> = {
+  plan: "plans",
+  dev: "coach",
+  public: "home",
+};
 
 function changedPathList(changedPaths: string): string[] | null {
   if (!changedPaths || !changedPaths.endsWith("\0")) return null;
@@ -75,7 +79,8 @@ export function areaOf(path: string): string | undefined {
   if (path.startsWith("src/app/settings/")) return "settings";
   if (path.startsWith("src/app/onboarding/")) return "onboarding";
   if (path.startsWith("src/app/(internal)/")) return "internal";
-  if (path === "src/app/page.tsx") return "home";
+  if (/^src\/app\/(?:page\.tsx$|(?:privacy|terms|legal)\/)/.test(path))
+    return "home";
   if (path === "src/app/not-found.tsx") return "not-found";
   return undefined;
 }

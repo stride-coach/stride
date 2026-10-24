@@ -51,10 +51,12 @@ test("auth navigation, accessible controls, focus and blank initial state", asyn
   await expect(
     page.getByRole("button", { name: "Créer un compte", exact: true }),
   ).toBeEnabled();
-  await page.getByText("Conditions", { exact: true }).click();
   await expect(
-    page.getByText(/conditions de Stride ne sont pas encore publiées/),
-  ).toBeVisible();
+    page.getByRole("link", { name: "Conditions d’utilisation" }),
+  ).toHaveAttribute("href", "/terms");
+  await expect(
+    page.getByRole("link", { name: "Politique de confidentialité" }),
+  ).toHaveAttribute("href", "/privacy");
 });
 
 test("recovery stages start gated and reset rejects anonymous sessions", async ({

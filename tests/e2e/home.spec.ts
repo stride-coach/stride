@@ -1,15 +1,40 @@
 import { expect, test } from "@playwright/test";
 
-test("signed-out visitors opening the root are sent to sign-in", async ({
+test("signed-out visitors land on the public page and reach legal pages", async ({
   page,
 }) => {
   await page.goto("/");
 
-  await expect(page).toHaveURL("/sign-in");
-  await expect(page).toHaveTitle(/Stride/);
+  await expect(page).toHaveURL("/");
+  await expect(page).toHaveTitle("Stride · Progresse sans te blesser");
   await expect(
-    page.getByRole("heading", { name: "Content de te revoir" }),
+    page.getByRole("heading", { level: 1, name: /Progresse sans te blesser/ }),
   ).toBeVisible();
+
+  const legal = page.getByRole("navigation", { name: "Informations légales" });
+  for (const [name, heading] of [
+    ["Confidentialité", "Politique de confidentialité"],
+    ["Conditions d’utilisation", "Conditions d’utilisation"],
+    ["Mentions légales", "Mentions légales"],
+  ] as const) {
+    await legal.getByRole("link", { name }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading);
+    await expect(page).toHaveTitle(`${heading} · Stride`);
+  }
+  await expect(
+    page.getByRole("link", { name: "github.com/Julestblt" }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Stride, accueil" })
+    .click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "Créer un compte" })
+    .first()
+    .click();
+  await expect(page).toHaveURL("/sign-up");
 });
 
 test("Night Track utilities and global accessibility defaults resolve in the browser", async ({

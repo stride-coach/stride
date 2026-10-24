@@ -207,31 +207,17 @@ export function SignUpForm({
       <p className="text-xs text-muted">
         On t’envoie un lien par e-mail pour confirmer ton adresse.
       </p>
-      <div className="text-xs leading-relaxed text-muted-foreground">
-        <p>
-          En créant un compte, tu acceptes les conditions et la politique de
-          confidentialité. Tes données ne sont jamais vendues.
-        </p>
-        <details className="mt-1">
-          <summary className="w-fit cursor-pointer text-accent">
-            Conditions
-          </summary>
-          <p className="mt-2">
-            Les conditions de Stride ne sont pas encore publiées. Cette version
-            n’est pas prête pour un lancement public.
-          </p>
-        </details>
-        <details className="mt-1">
-          <summary className="w-fit cursor-pointer text-accent">
-            Politique de confidentialité
-          </summary>
-          <p className="mt-2">
-            La politique de confidentialité de Stride n’est pas encore publiée.
-            L’authentification du compte est gérée par Supabase. Une politique
-            complète est requise avant le lancement public.
-          </p>
-        </details>
-      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        En créant un compte, tu acceptes les{" "}
+        <Link href="/terms" className="text-accent hover:underline">
+          Conditions d’utilisation
+        </Link>{" "}
+        et la{" "}
+        <Link href="/privacy" className="text-accent hover:underline">
+          Politique de confidentialité
+        </Link>
+        . Tes données ne sont jamais vendues.
+      </p>
       <p className="text-center text-sm text-muted">
         Déjà un compte ?{" "}
         <Link href="/sign-in" className="text-accent hover:underline">
