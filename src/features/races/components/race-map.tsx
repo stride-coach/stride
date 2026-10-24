@@ -3,7 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
-import { MaximizeIcon, MinusIcon, PlusIcon } from "lucide-react";
+import { ExpandIcon, MaximizeIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/features/theme/components/theme-store";
 import type { ResolvedTheme } from "@/features/theme/model";
@@ -13,6 +13,7 @@ import { formatKm } from "../format";
 import {
   nearestRouteDistance,
   rangeLines,
+  showFrenchNames,
   type MapData,
   type MapMarker,
 } from "../map";
@@ -110,6 +111,8 @@ function RaceMapView({
   activeId = null,
   onSelect,
   onPick,
+  onFullscreen,
+  cooperative = true,
   label,
   className,
 }: {
@@ -119,6 +122,8 @@ function RaceMapView({
   activeId?: string | null;
   onSelect?: (id: string) => void;
   onPick?: (distanceM: number) => void;
+  onFullscreen?: () => void;
+  cooperative?: boolean;
   label: string;
   className?: string;
 }) {
@@ -164,7 +169,7 @@ function RaceMapView({
           bounds: boundsOf(initial.route),
           fitBoundsOptions: { padding },
           attributionControl: false,
-          cooperativeGestures: true,
+          cooperativeGestures: cooperative,
           locale: {
             "Map.Title": "Carte du parcours",
             "CooperativeGesturesHandler.WindowsHelpText":
@@ -181,6 +186,7 @@ function RaceMapView({
         current.on("load", () => {
           if (disposed) return;
           clearTimeout(timeout);
+          showFrenchNames(current);
           const background = token(container, "--background");
           if (current.getLayer("background"))
             current.setPaintProperty(
@@ -272,7 +278,7 @@ function RaceMapView({
       mapRef.current = null;
       setReady(false);
     };
-  }, [routeKey, theme]);
+  }, [routeKey, theme, cooperative]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -428,18 +434,31 @@ function RaceMapView({
           >
             <MinusIcon className="size-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            type="button"
-            aria-label="Voir tout le parcours"
-            onClick={() =>
-              mapRef.current?.fitBounds(bounds, { padding, duration: 400 })
-            }
-            className="rounded-none"
-          >
-            <MaximizeIcon className="size-3.5" />
-          </Button>
+          {onFullscreen ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              type="button"
+              aria-label="Plein écran"
+              onClick={onFullscreen}
+              className="rounded-none"
+            >
+              <ExpandIcon className="size-3.5" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              type="button"
+              aria-label="Voir tout le parcours"
+              onClick={() =>
+                mapRef.current?.fitBounds(bounds, { padding, duration: 400 })
+              }
+              className="rounded-none"
+            >
+              <MaximizeIcon className="size-3.5" />
+            </Button>
+          )}
         </div>
       )}
       {tooltip && tooltipPoint && (
