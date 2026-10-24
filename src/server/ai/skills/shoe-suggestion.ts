@@ -1,5 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
+import { anthropic } from "../provider";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import {
   shoeSuggestion,
@@ -17,13 +18,6 @@ const system = [
   "terrain : road, trail ou mixed (route et chemins).",
   "description : une seule phrase en français, 20 mots au plus, qui dit à quoi sert la paire et ce qu’on ressent en la portant. Pas de chiffres ni de caractéristiques techniques.",
 ].join("\n");
-
-let client: Anthropic | null = null;
-
-function anthropic() {
-  client ??= new Anthropic({ timeout: 20_000, maxRetries: 1 });
-  return client;
-}
 
 export type SuggestionResult =
   | { status: "suggested"; suggestion: ShoeSuggestion }

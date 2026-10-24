@@ -1,9 +1,11 @@
 import "server-only";
+import { z } from "zod";
 import {
+  roadbookCandidateSchema,
   shapeCandidates,
   type RoadbookCandidate,
 } from "@/features/races/roadbook";
-import { aiModel, completeJson } from "../provider";
+import { aiModel, completeStructured } from "../provider";
 
 const maximumCharacters = 24_000;
 
@@ -14,40 +16,41 @@ const system = [
   "kind vaut aid, water, base, summit, caution ou instruction. cutoff est l’heure limite de passage au format HH:MM, ou null.",
   "services est une liste parmi water, sweet, salty, hot, toilets, assistance, seulement si le texte les cite.",
   "Ignore le départ et l’arrivée.",
-  'Réponds uniquement en JSON : {"points":[{"name":"…","km":16.7,"kind":"aid","cutoff":null,"services":["water"]}]}.',
 ].join("\n");
+
+const outputSchema = z.object({
+  points: z.array(
+    z.object({
+      name: z.string(),
+      km: z.number(),
+      kind: roadbookCandidateSchema.shape.kind,
+      cutoff: z.string().nullable(),
+      services: z.array(roadbookCandidateSchema.shape.services.element),
+    }),
+  ),
+});
 
 export async function extractRoadbookWithAi(
   text: string,
 ): Promise<RoadbookCandidate[] | null> {
   const started = Date.now();
-  const result = await completeJson({
+  const result = await completeStructured({
     system,
     user: text.slice(0, maximumCharacters),
     maxTokens: 2500,
+    schema: outputSchema,
   });
-  let candidates: RoadbookCandidate[] | null = null;
-  if (result.ok)
-    try {
-      candidates = shapeCandidates(JSON.parse(result.content));
-    } catch {
-      candidates = null;
-    }
+  const candidates = result.ok ? shapeCandidates(result.output) : null;
   console.info(
     JSON.stringify({
       event: "ai.skill",
       skill: "roadbook-extraction",
       model: aiModel,
-      outcome: result.ok
-        ? candidates
-          ? "accepted"
-          : "rejected"
-        : result.reason,
+      outcome: result.ok ? "accepted" : "failed",
+      status: result.ok ? null : result.status,
       points: candidates?.length ?? 0,
-      promptTokens: result.ok ? (result.usage?.promptTokens ?? null) : null,
-      completionTokens: result.ok
-        ? (result.usage?.completionTokens ?? null)
-        : null,
+      promptTokens: result.ok ? result.usage.promptTokens : null,
+      completionTokens: result.ok ? result.usage.completionTokens : null,
       durationMs: Date.now() - started,
     }),
   );

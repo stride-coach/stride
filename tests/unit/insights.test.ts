@@ -14,7 +14,8 @@ import {
   phraseHistoryInsights,
   resetHistoryInsightsCache,
 } from "../../src/server/ai/skills/history-insights";
-import { completeJson } from "../../src/server/ai/provider";
+import { completeStructured } from "../../src/server/ai/provider";
+import { z } from "zod";
 
 const today = new Date("2026-10-10T12:00:00Z");
 function activity(
@@ -162,21 +163,18 @@ const sample: InsightFact[] = [
 
 describe("AI phrasing validation", () => {
   it("accepts rephrasings that keep the same numbers", () => {
-    const accepted = acceptPhrasing(
-      sample,
-      JSON.stringify({
-        items: [
-          {
-            key: "volume",
-            text: "Environ 5 heures d’entraînement chaque semaine.",
-          },
-          {
-            key: "longest",
-            text: "Ton record : 63 km et 1057 m D+ en septembre 2026.",
-          },
-        ],
-      }),
-    );
+    const accepted = acceptPhrasing(sample, {
+      items: [
+        {
+          key: "volume",
+          text: "Environ 5 heures d’entraînement chaque semaine.",
+        },
+        {
+          key: "longest",
+          text: "Ton record : 63 km et 1057 m D+ en septembre 2026.",
+        },
+      ],
+    });
     expect([...accepted.keys()]).toEqual(["volume", "longest"]);
   });
   it.each([
@@ -190,13 +188,11 @@ describe("AI phrasing validation", () => {
     ],
     ["an unknown key", { key: "zones", text: "Tu cours souvent en zone 2." }],
   ])("rejects %s", (_, item) => {
-    expect(acceptPhrasing(sample, JSON.stringify({ items: [item] })).size).toBe(
-      0,
-    );
+    expect(acceptPhrasing(sample, { items: [item] }).size).toBe(0);
   });
   it("rejects malformed output", () => {
-    expect(acceptPhrasing(sample, "not json").size).toBe(0);
-    expect(acceptPhrasing(sample, JSON.stringify({ text: "x" })).size).toBe(0);
+    expect(acceptPhrasing(sample, null).size).toBe(0);
+    expect(acceptPhrasing(sample, { text: "x" }).size).toBe(0);
   });
 });
 
@@ -208,7 +204,7 @@ describe("history insights skill", () => {
   const reply = (items: { key: string; text: string }[]) =>
     vi.fn(async () => ({
       ok: true as const,
-      content: JSON.stringify({ items }),
+      output: { items },
       usage: { promptTokens: 300, completionTokens: 150 },
     }));
   it("uses deterministic sentences without calling the model while importing", async () => {
@@ -272,7 +268,7 @@ describe("history insights skill", () => {
   it("limits model calls per athlete and falls back when the provider fails", async () => {
     const failing = vi.fn(async () => ({
       ok: false as const,
-      reason: "failed" as const,
+      status: 529,
     }));
     const now = 1_000_000;
     const items = await phraseHistoryInsights({
@@ -303,57 +299,62 @@ describe("history insights skill", () => {
 });
 
 describe("AI provider", () => {
-  beforeEach(() => vi.unstubAllEnvs());
-  it("does nothing without a server key", async () => {
-    vi.stubEnv("OPENCODE_API_KEY", "");
-    const send = vi.fn();
+  const schema = z.object({ items: z.array(z.string()) });
+  const client = (parse: () => Promise<unknown>) => {
+    const spy = vi.fn(parse);
+    return {
+      spy,
+      send: () => ({ messages: { parse: spy } }) as never,
+    };
+  };
+  it("requests a low effort structured answer from Claude Haiku without thinking", async () => {
+    const { spy, send } = client(async () => ({
+      stop_reason: "end_turn",
+      parsed_output: { items: ["a"] },
+      usage: { input_tokens: 10, output_tokens: 5 },
+    }));
     expect(
-      await completeJson({ system: "s", user: "u", maxTokens: 10, send }),
-    ).toEqual({ ok: false, reason: "unconfigured" });
-    expect(send).not.toHaveBeenCalled();
-  });
-  it("requests JSON without reasoning tokens and a random session", async () => {
-    vi.stubEnv("OPENCODE_API_KEY", "test-key");
-    const send = vi.fn(
-      async () =>
-        new Response(
-          JSON.stringify({
-            choices: [{ message: { content: '{"items":[]}' } }],
-            usage: { prompt_tokens: 10, completion_tokens: 5 },
-          }),
-        ),
-    );
-    expect(
-      await completeJson({ system: "s", user: "u", maxTokens: 50, send }),
+      await completeStructured({
+        system: "s",
+        user: "u",
+        maxTokens: 50,
+        schema,
+        send,
+      }),
     ).toEqual({
       ok: true,
-      content: '{"items":[]}',
+      output: { items: ["a"] },
       usage: { promptTokens: 10, completionTokens: 5 },
     });
-    const [, init] = send.mock.calls[0] as unknown as [string, RequestInit];
-    const body = JSON.parse(String(init.body));
-    expect(body).toMatchObject({
-      model: "deepseek-v4.1-flash",
-      max_tokens: 50,
-      thinking: { type: "disabled" },
-      response_format: { type: "json_object" },
-    });
-    const headers = init.headers as Record<string, string>;
-    expect(headers.Authorization).toBe("Bearer test-key");
-    expect(headers["x-opencode-session"]).toMatch(/^[0-9a-f-]{36}$/);
+    expect(spy.mock.calls[0]).toMatchObject([
+      {
+        model: "claude-haiku-5-5",
+        max_tokens: 50,
+        thinking: { type: "disabled" },
+        system: "s",
+        messages: [{ role: "user", content: "u" }],
+        output_config: { effort: "low" },
+      },
+    ]);
   });
   it.each([
-    [new Response("nope", { status: 429 })],
-    [new Response(JSON.stringify({ choices: [] }))],
-  ])("reports provider failures without throwing", async (response) => {
-    vi.stubEnv("OPENCODE_API_KEY", "test-key");
+    [async () => ({ stop_reason: "refusal", parsed_output: null })],
+    [async () => ({ stop_reason: "end_turn", parsed_output: null })],
+    [
+      async () => {
+        throw new Error("network");
+      },
+    ],
+  ])("reports failures without throwing", async (parse) => {
+    const { send } = client(parse);
     expect(
-      await completeJson({
+      await completeStructured({
         system: "s",
         user: "u",
         maxTokens: 10,
-        send: async () => response,
+        schema,
+        send,
       }),
-    ).toEqual({ ok: false, reason: "failed" });
+    ).toEqual({ ok: false, status: null });
   });
 });

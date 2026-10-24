@@ -11,7 +11,6 @@ import {
   type RoadbookPoint,
 } from "@/features/races/roadbook";
 import { clockToSql } from "@/features/races/format";
-import { aiConfigured } from "@/server/ai/provider";
 import { extractRoadbookWithAi } from "@/server/ai/skills/roadbook-extraction";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { maximumUploadBytes, storeCourse } from "./course";
@@ -290,9 +289,7 @@ async function roadbookFromText(
 ): Promise<RoadbookResult> {
   const distance = await readCourseDistance(context, raceId);
   if (distance === null) return { status: "no-course" };
-  const candidates =
-    (aiConfigured() ? await extractRoadbookWithAi(text) : null) ??
-    roadbookLines(text);
+  const candidates = (await extractRoadbookWithAi(text)) ?? roadbookLines(text);
   const points = acceptRoadbook(candidates, text, distance);
   if (points.length === 0) return { status: "nothing-found" };
   return storeRoadbook(context, raceId, points, source);
