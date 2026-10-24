@@ -12,7 +12,7 @@ The engine needs reliable structured outputs and tool use, strong reasoning for 
 ## Decision
 
 - All model calls go through a Stride `ModelGateway` port with a versioned routing table, one versioned price table, per-call budgets and usage accounting. Provider SDKs are imported only inside gateway adapters.
-- The first adapter uses the official `@anthropic-ai/sdk` with no EU-residency requirement (D1). The existing OpenAI-compatible adapter serves the current skills until they move to Haiku 5.5 (D7); an OpenAI-compatible adapter may serve a second provider later.
+- The first adapter uses the official `@anthropic-ai/sdk` with no EU-residency requirement (D1). The existing single-shot skills moved to Haiku 5.5 through the same SDK (D7, #319); an OpenAI-compatible adapter may serve a second provider later.
 - Routing:
   - Claude Opus 5.5 at high effort for plan design and multi-race revisions;
   - Claude Sonnet 5.5 for conversation, adaptations, weekly reviews and specialist consults;
