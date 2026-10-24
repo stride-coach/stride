@@ -177,7 +177,9 @@ export function DebriefFeeling({
           <h3 id={`feeling-${activityId}`}>Ton ressenti</h3>
         </MonoLabel>
         <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          {garmin && <PulseDot tone="provider" breathing={false} />}
+          {garmin && !feeling.sessionWide && (
+            <PulseDot tone="provider" breathing={false} />
+          )}
           {feeling.sourceLabel}
         </span>
       </div>

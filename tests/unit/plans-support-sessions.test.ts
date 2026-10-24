@@ -60,9 +60,7 @@ function panel(sessionKey: string, matches: PanelMatch[] = [], on = today) {
     sessionKey,
     matches,
     proposals: [],
-    activity: null,
-    laps: [],
-    series: null,
+    activities: [],
   })!;
 }
 

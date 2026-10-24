@@ -41,6 +41,7 @@ export type DebriefStepView = {
 export type DebriefFeelingView = {
   source: FeelingSource;
   sourceLabel: string;
+  sessionWide: boolean;
   effort: string | null;
   effortLabel: string;
   feel: string | null;
@@ -50,6 +51,7 @@ export type DebriefFeelingView = {
 export type DebriefView = {
   sessionKey: string;
   activityId: string;
+  activityIds: string[];
   sessionTitle: string;
   aligned: boolean;
   verdict: Verdict;
@@ -64,6 +66,7 @@ export type DebriefView = {
 export type DebriefViewInput = {
   session: PlanSession;
   activityId: string;
+  activityIds?: string[];
   laps: DebriefLap[];
   paceRanges: IntensityPaceRanges | null;
   match: DebriefMatch;
@@ -214,11 +217,18 @@ function stepView(step: StepResult): DebriefStepView {
   };
 }
 
-export function feelingView(feeling: DebriefFeeling): DebriefFeelingView {
+export function feelingView(
+  feeling: DebriefFeeling,
+  sessionWide = false,
+): DebriefFeelingView {
   return {
     source: feeling.source,
-    sourceLabel:
-      feeling.source === "garmin" ? "Saisi sur ta montre" : "Noté par toi",
+    sourceLabel: sessionWide
+      ? "Pour toute la séance"
+      : feeling.source === "garmin"
+        ? "Saisi sur ta montre"
+        : "Noté par toi",
+    sessionWide,
     effort: feeling.effort !== null ? `${feeling.effort} / 10` : null,
     effortLabel:
       feeling.effort !== null
@@ -234,9 +244,11 @@ export function buildDebriefView(input: DebriefViewInput): DebriefView | null {
   if (!debrief) return null;
   const stepCount = flatten(input.session.structure).length;
   const lapCount = input.laps.length;
+  const activityIds = input.activityIds ?? [input.activityId];
   return {
     sessionKey: input.session.sessionKey,
     activityId: input.activityId,
+    activityIds,
     sessionTitle: input.session.title,
     aligned: debrief.aligned,
     verdict: debrief.verdict,
@@ -252,7 +264,9 @@ export function buildDebriefView(input: DebriefViewInput): DebriefView | null {
           ? "Garmin n’a transmis aucun tour pour cette activité. Le débrief compare donc la séance dans son ensemble."
           : "Tes tours ne correspondent pas aux étapes de la séance. Le débrief compare donc la séance dans son ensemble.",
     steps: debrief.steps.map(stepView),
-    feeling: debrief.feeling ? feelingView(debrief.feeling) : null,
+    feeling: debrief.feeling
+      ? feelingView(debrief.feeling, activityIds.length > 1)
+      : null,
     coachHref: `/coach/new?session=${encodeURIComponent(input.session.sessionKey)}`,
     planHref: sessionPanelHref(input.session.sessionKey),
   };

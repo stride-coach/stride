@@ -1,12 +1,11 @@
 import "server-only";
 import { buildSessionPanel } from "@/features/plans/view/session-panel";
-import { readActivityDetail } from "@/server/activities/activities";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { sessionShoesView } from "@/features/gear/planned";
 import { loadPlanShoes } from "@/server/gear/planned";
-import { readActivityFeeling } from "@/server/activities/feelings";
 import { loadPlanOverview } from "./overview";
 import { loadIntensityPaceRanges } from "./paces";
+import { readSessionActivities } from "./session-activities";
 
 export async function loadSessionPanel(
   context: OnboardingContext,
@@ -18,22 +17,22 @@ export async function loadSessionPanel(
     loadPlanShoes(context),
   ]);
   if (!overview) return null;
-  const match = overview.matches.find((item) => item.sessionKey === sessionKey);
-  const [detail, feeling] = match?.activityId
-    ? await Promise.all([
-        readActivityDetail(context, match.activityId).catch(() => null),
-        readActivityFeeling(context, match.activityId),
-      ])
-    : [null, null];
+  const { reads, feeling } = await readSessionActivities(
+    context,
+    overview.matches,
+    sessionKey,
+  );
   return buildSessionPanel({
     state: overview.plan.state,
     today: overview.today,
     sessionKey,
     matches: overview.matches,
     proposals: overview.proposals,
-    activity: detail?.activity ?? null,
-    laps: (detail?.segments ?? []).filter((segment) => segment.type === "lap"),
-    series: detail?.track?.series ?? null,
+    activities: reads.map((read) => ({
+      activity: read.activity,
+      laps: read.segments.filter((segment) => segment.type === "lap"),
+      series: read.track?.series ?? null,
+    })),
     paceRanges,
     shoes: shoes ? sessionShoesView(shoes, sessionKey) : null,
     feeling,
