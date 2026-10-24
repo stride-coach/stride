@@ -1,85 +1,59 @@
 import "server-only";
-import { z } from "zod";
+import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { z } from "zod";
 
-export const aiModel = "deepseek-v4.1-flash";
-const endpoint = "https://opencode.ai/zen/go/v1/chat/completions";
-
-const completionSchema = z.object({
-  choices: z
-    .array(z.object({ message: z.object({ content: z.string().nullable() }) }))
-    .min(1),
-  usage: z
-    .object({
-      prompt_tokens: z.number().int().nonnegative(),
-      completion_tokens: z.number().int().nonnegative(),
-    })
-    .optional(),
-});
+export const aiModel = "claude-haiku-5-5";
 
 export type AiUsage = { promptTokens: number; completionTokens: number };
-export type AiCompletion =
-  | { ok: true; content: string; usage: AiUsage | null }
-  | { ok: false; reason: "unconfigured" | "failed" };
+export type AiCompletion<Output> =
+  | { ok: true; output: Output; usage: AiUsage }
+  | { ok: false; status: number | null };
 
-export function aiConfigured() {
-  return Boolean(process.env.OPENCODE_API_KEY);
+let client: Anthropic | null = null;
+
+export function anthropic() {
+  client ??= new Anthropic({ timeout: 20_000, maxRetries: 1 });
+  return client;
 }
 
-export async function completeJson({
+export async function completeStructured<Schema extends z.ZodType>({
   system,
   user,
   maxTokens,
-  send = fetch,
+  schema,
+  send = anthropic,
 }: {
   system: string;
   user: string;
   maxTokens: number;
-  send?: typeof fetch;
-}): Promise<AiCompletion> {
-  const key = process.env.OPENCODE_API_KEY;
-  if (!key) return { ok: false, reason: "unconfigured" };
+  schema: Schema;
+  send?: () => Pick<Anthropic, "messages">;
+}): Promise<AiCompletion<z.infer<Schema>>> {
   try {
-    const response = await send(endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-        "User-Agent": "Stride/0.1",
-        "x-opencode-session": crypto.randomUUID(),
-      },
-      body: JSON.stringify({
-        model: aiModel,
-        max_tokens: maxTokens,
-        temperature: 0.3,
-        thinking: { type: "disabled" },
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-      cache: "no-store",
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
+    const response = await send().messages.parse({
+      model: aiModel,
+      max_tokens: maxTokens,
+      thinking: { type: "disabled" },
+      system,
+      messages: [{ role: "user", content: user }],
+      output_config: { effort: "low", format: zodOutputFormat(schema) },
     });
-    if (!response.ok) return { ok: false, reason: "failed" };
-    const parsed = completionSchema.safeParse(await response.json());
-    const content = parsed.success
-      ? parsed.data.choices[0].message.content
-      : null;
-    if (!parsed.success || !content) return { ok: false, reason: "failed" };
-    const usage = parsed.data.usage;
+    if (response.stop_reason === "refusal" || response.parsed_output == null)
+      return { ok: false, status: null };
     return {
       ok: true,
-      content,
-      usage: usage
-        ? {
-            promptTokens: usage.prompt_tokens,
-            completionTokens: usage.completion_tokens,
-          }
-        : null,
+      output: response.parsed_output,
+      usage: {
+        promptTokens: response.usage.input_tokens,
+        completionTokens: response.usage.output_tokens,
+      },
     };
-  } catch {
-    return { ok: false, reason: "failed" };
+  } catch (error) {
+    return {
+      ok: false,
+      status:
+        error instanceof Anthropic.APIError ? (error.status ?? null) : null,
+    };
   }
 }

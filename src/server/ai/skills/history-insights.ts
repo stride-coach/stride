@@ -2,7 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { InsightFact, InsightFactKey } from "@/features/insights/facts";
-import { aiModel, completeJson, type AiCompletion } from "../provider";
+import { aiModel, completeStructured, type AiCompletion } from "../provider";
 
 export type PhrasedInsight = {
   key: InsightFactKey;
@@ -19,8 +19,19 @@ const system = [
   "Règles : une phrase par constat, 140 caractères maximum, tutoiement, ton sobre et chaleureux, aucun conseil, aucune promesse, aucun diagnostic.",
   "Garde exactement le sens de chaque constat : l’entraînement inclut le renfo et les autres sports, ne le transforme pas en course.",
   "N’ajoute aucun chiffre absent du constat. Aucun pourcentage.",
-  'Réponds uniquement en JSON : {"items":[{"key":"…","text":"…"}]} avec les mêmes clés.',
+  "Réponds avec un item par constat, en reprenant sa clé.",
 ].join("\n");
+
+const responseSchema = z.object({
+  items: z.array(z.object({ key: z.string(), text: z.string() })),
+});
+
+type Complete = (request: {
+  system: string;
+  user: string;
+  maxTokens: number;
+  schema: typeof responseSchema;
+}) => Promise<AiCompletion<z.infer<typeof responseSchema>>>;
 
 const outputSchema = z.object({
   items: z
@@ -43,16 +54,10 @@ function numbers(text: string) {
 
 export function acceptPhrasing(
   facts: InsightFact[],
-  content: string,
+  output: unknown,
 ): Map<InsightFactKey, string> {
   const accepted = new Map<InsightFactKey, string>();
-  let raw: unknown;
-  try {
-    raw = JSON.parse(content);
-  } catch {
-    return accepted;
-  }
-  const parsed = outputSchema.safeParse(raw);
+  const parsed = outputSchema.safeParse(output);
   if (!parsed.success) return accepted;
   for (const item of parsed.data.items) {
     const fact = facts.find((candidate) => candidate.key === item.key);
@@ -78,13 +83,13 @@ export async function phraseHistoryInsights({
   athlete,
   facts,
   allowAi,
-  complete = completeJson,
+  complete = completeStructured,
   now = Date.now(),
 }: {
   athlete: string;
   facts: InsightFact[];
   allowAi: boolean;
-  complete?: typeof completeJson;
+  complete?: Complete;
   now?: number;
 }): Promise<PhrasedInsight[]> {
   if (facts.length === 0) return [];
@@ -95,7 +100,7 @@ export async function phraseHistoryInsights({
     return fromFacts(facts);
   lastCall.set(athlete, now);
   const started = Date.now();
-  const result: AiCompletion = await complete({
+  const result = await complete({
     system,
     user: JSON.stringify({
       constats: facts.map((fact) => ({
@@ -104,22 +109,22 @@ export async function phraseHistoryInsights({
       })),
     }),
     maxTokens: 400,
+    schema: responseSchema,
   });
   const accepted = result.ok
-    ? acceptPhrasing(facts, result.content)
+    ? acceptPhrasing(facts, result.output)
     : new Map<InsightFactKey, string>();
   console.info(
     JSON.stringify({
       event: "ai.skill",
       skill: "history-insights",
       model: aiModel,
-      outcome: result.ok ? "completed" : result.reason,
+      outcome: result.ok ? "completed" : "failed",
+      status: result.ok ? null : result.status,
       accepted: accepted.size,
       facts: facts.length,
-      promptTokens: result.ok ? (result.usage?.promptTokens ?? null) : null,
-      completionTokens: result.ok
-        ? (result.usage?.completionTokens ?? null)
-        : null,
+      promptTokens: result.ok ? result.usage.promptTokens : null,
+      completionTokens: result.ok ? result.usage.completionTokens : null,
       durationMs: Date.now() - started,
     }),
   );

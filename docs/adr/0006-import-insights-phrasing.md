@@ -1,6 +1,6 @@
 # ADR 0006: Deterministic import insights with optional model phrasing
 
-- Status: Accepted
+- Status: Accepted; provider replaced by Claude Haiku 5.5 through the Anthropic SDK (#319)
 - Date: 2026-10-10
 
 ## Context
