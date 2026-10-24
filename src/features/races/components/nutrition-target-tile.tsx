@@ -129,10 +129,10 @@ export function NutritionTargetTile({
           <span className="sr-only">, modifier</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-76">
+      <PopoverContent align="start" sideOffset={8} className="w-76 p-4">
         <form onSubmit={save} className="flex flex-col gap-3.5">
           <MonoLabel size="micro">{title}</MonoLabel>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={cn("grid gap-3", fields.length > 1 && "grid-cols-2")}>
             {fields.map((field) => (
               <div key={field.key} className="flex flex-col gap-1.5">
                 <Label htmlFor={`${id}-${field.key}`}>{field.label}</Label>

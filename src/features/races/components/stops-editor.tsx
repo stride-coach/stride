@@ -71,7 +71,7 @@ export function StopsEditor({
           <span className="sr-only">, modifier les durées d’arrêt</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72">
+      <PopoverContent align="start" sideOffset={8} className="w-72 p-4">
         <form onSubmit={save} className="flex flex-col gap-3.5">
           <MonoLabel size="micro">Durées d’arrêt</MonoLabel>
           <div className="grid grid-cols-2 gap-3">
