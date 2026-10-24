@@ -29,7 +29,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="en"
+      lang="fr"
       suppressHydrationWarning
       className={cn(fontVariables, "h-full antialiased")}
     >
