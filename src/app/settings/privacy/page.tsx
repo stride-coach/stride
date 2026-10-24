@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   SettingsGroup,
   SettingsHeading,
   SettingsLinkRow,
 } from "@/features/settings/components/settings-shell";
+import { WithdrawConsentButton } from "@/features/consent/components/withdraw-consent-button";
+import { formatConsentDate } from "@/features/consent/health-consent";
 import { publisher } from "@/features/public/publisher";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
+import { readHealthConsent } from "@/server/consent/health-consent";
 import { readStoredCounts } from "@/server/settings/data";
 
 export const metadata: Metadata = {
@@ -14,8 +18,11 @@ export const metadata: Metadata = {
 };
 
 export default async function PrivacySettingsPage() {
-  const context = await requireAthlete();
-  const counts = await readStoredCounts(context);
+  const context = await requireAthleteAccount();
+  const [counts, consent] = await Promise.all([
+    readStoredCounts(context),
+    readHealthConsent(context),
+  ]);
   return (
     <>
       <SettingsHeading
@@ -37,6 +44,41 @@ export default async function PrivacySettingsPage() {
           <p className="mt-1 text-sm text-muted">
             Tes réponses restent disponibles dans ton compte après connexion.
           </p>
+        </div>
+      </SettingsGroup>
+      <SettingsGroup title="Consentement aux données de santé">
+        <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
+          <div className="min-w-0 flex-1 basis-80">
+            <strong className="flex items-center gap-2 text-sm">
+              <span
+                aria-hidden="true"
+                className={
+                  consent.kind === "active"
+                    ? "size-1.75 rounded-full bg-success"
+                    : "size-1.75 rounded-full bg-warning"
+                }
+              />
+              {consent.kind === "active"
+                ? `Accordé le ${formatConsentDate(consent.grantedAt)}`
+                : consent.kind === "withdrawn"
+                  ? `Retiré le ${formatConsentDate(consent.withdrawnAt)}`
+                  : "Pas encore accordé"}
+            </strong>
+            <p className="mt-1 text-sm text-muted">
+              Sommeil, VFC, fréquence cardiaque et douleurs signalées servent
+              uniquement à adapter ton entraînement.{" "}
+              {consent.kind === "active"
+                ? `Donné selon la politique de confidentialité du ${formatConsentDate(consent.policyVersion)}.`
+                : "Sans ton accord, ton coaching reste en pause."}
+            </p>
+          </div>
+          {consent.kind === "active" ? (
+            <WithdrawConsentButton contact={publisher.email} />
+          ) : (
+            <Button asChild className="max-md:w-full">
+              <Link href="/consent">Donner mon accord</Link>
+            </Button>
+          )}
         </div>
       </SettingsGroup>
       <SettingsGroup title="Ta copie">

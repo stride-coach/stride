@@ -28,7 +28,7 @@ import {
   WatchToggle,
 } from "@/features/garmin/components/watch-settings";
 import { cn } from "@/lib/utils";
-import { requireAthlete } from "@/server/app/session";
+import { requireAthleteAccount } from "@/server/app/session";
 import { loadWatchView } from "@/server/garmin/watch";
 import { loadPlanOverview } from "@/server/plans/overview";
 import {
@@ -165,7 +165,7 @@ function Banner({
 }
 
 export default async function GarminSettingsPage() {
-  const context = await requireAthlete();
+  const context = await requireAthleteAccount();
   const [{ connection, sync }, counts, recent, overview] = await Promise.all([
     readSettingsConnection(context),
     readStoredCounts(context),

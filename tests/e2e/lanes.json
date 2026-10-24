@@ -9,6 +9,7 @@
     "auth": ["auth", "auth-integration", "home"],
     "coach": ["coach", "coach-runtime", "plan-review"],
     "coaching": ["coach", "coach-runtime", "plan-review"],
+    "consent": ["consent", "settings"],
     "garmin": ["garmin-sync", "watch-workouts", "data-activity", "settings"],
     "gear": ["gear-session", "session-panel"],
     "heart-rate": ["progress", "settings"],

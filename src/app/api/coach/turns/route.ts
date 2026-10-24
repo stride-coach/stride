@@ -12,6 +12,7 @@ import {
 } from "@/server/coaching/managed/session";
 import { sessionModes } from "@/server/coaching/managed/store";
 import { detachedTurnStream } from "@/server/coaching/managed/turn-stream";
+import { holdsHealthConsent } from "@/server/consent/health-consent";
 import { getOnboardingContext } from "@/server/onboarding/context";
 
 export const maxDuration = 960;
@@ -64,6 +65,11 @@ export async function POST(request: Request) {
     return Response.json(
       { code: "session-expired" },
       { status: 401, headers: jsonHeaders },
+    );
+  if (!(await holdsHealthConsent(context).catch(() => false)))
+    return Response.json(
+      { code: "consent-required" },
+      { status: 403, headers: jsonHeaders },
     );
   const parsed = requestSchema.safeParse(
     await request.json().catch(() => null),

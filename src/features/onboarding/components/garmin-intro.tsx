@@ -5,6 +5,7 @@ import {
   WavesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HealthConsentField } from "@/features/consent/components/health-consent-field";
 import { AsideList, SecureNote, StepHeading, StepLayout } from "./garmin-parts";
 import { OnboardingActions } from "./onboarding-actions";
 
@@ -34,7 +35,15 @@ const signals = [
   },
 ];
 
-export function GarminIntro({ onStart }: { onStart: () => void }) {
+export function GarminIntro({
+  consent,
+  onConsentChange,
+  onStart,
+}: {
+  consent: boolean;
+  onConsentChange: (consent: boolean) => void;
+  onStart: () => void;
+}) {
   return (
     <StepLayout
       aside={
@@ -120,16 +129,34 @@ export function GarminIntro({ onStart }: { onStart: () => void }) {
           </li>
         ))}
       </ul>
-      <OnboardingActions className="lg:flex-col lg:items-start lg:gap-4">
-        <Button className="w-full lg:w-auto lg:px-5.5" onClick={onStart}>
+      <OnboardingActions className="lg:flex-col lg:items-stretch lg:gap-4">
+        <HealthConsentField checked={consent} onCheckedChange={onConsentChange}>
+          <span className="hidden lg:inline">
+            Consentement explicite au sens de l’article 9 du RGPD, obligatoire
+            pour connecter Garmin. Tu peux le retirer à tout moment dans
+            Réglages › Données et confidentialité.
+          </span>
+          <span className="lg:hidden">
+            Obligatoire pour connecter Garmin (art. 9 du RGPD). Retrait possible
+            à tout moment dans Réglages.
+          </span>
+        </HealthConsentField>
+        <Button
+          className="w-full lg:w-auto lg:self-start lg:px-5.5"
+          disabled={!consent}
+          aria-describedby="garmin-consent-required"
+          onClick={onStart}
+        >
           Connecter Garmin
         </Button>
-        <p className="text-center text-xs text-muted-foreground lg:text-left lg:text-meta">
+        <p
+          id="garmin-consent-required"
+          className="text-center text-xs text-muted-foreground lg:text-left lg:text-meta"
+        >
+          {!consent && "Coche la case pour continuer. "}
           Ensuite : connecte-toi à ton compte Garmin Connect
           <span className="hidden lg:inline">, ici même.</span>
-          <span className="lg:hidden">
-            . Lecture seule — déconnexion possible à tout moment.
-          </span>
+          <span className="lg:hidden">.</span>
         </p>
         <div className="hidden lg:block">
           <SecureNote>
