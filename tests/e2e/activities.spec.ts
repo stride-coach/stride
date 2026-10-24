@@ -246,6 +246,23 @@ test("the activity panel shows laps, effort and provenance, and the old detail U
   await expect(
     article.getByRole("region", { name: "Hors plan" }),
   ).toBeVisible();
+  const km = page.getByRole("table", { name: "Splits par km" });
+  await expect(km.getByRole("row")).toHaveCount(14);
+  await expect(km.getByRole("rowheader", { name: "0,3" })).toBeVisible();
+  await expect(km.getByRole("rowheader", { name: "Moyenne" })).toBeVisible();
+  for (const label of ["Allure", "FC moy.", "Cad.", "Puiss."])
+    await expect(
+      km.getByRole("columnheader", { name: label, exact: true }),
+    ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Bleu : km plus rapides que ta moyenne · calculé sur le tracé Garmin",
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("radiogroup", { name: "Découpage" })
+    .getByRole("radio", { name: /^Tours/ })
+    .click();
   const table = page.getByRole("table", { name: "Tours" });
   await expect(table.getByRole("row")).toHaveCount(8);
   await expect(table.getByRole("columnheader", { name: "D−" })).toBeVisible();
@@ -285,6 +302,19 @@ test("the activity panel says nothing about laps Garmin did not send and stays w
   await expect(page.getByRole("article")).toBeVisible();
   await expect(page.getByRole("table", { name: "Tours" })).toHaveCount(0);
   await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
+  const km = page.getByRole("table", { name: "Splits par km" });
+  await expect(
+    km.getByRole("columnheader", { name: "FC", exact: true }),
+  ).toBeVisible();
+  await expect(km.getByRole("columnheader", { name: "D+/D−" })).toBeVisible();
+  await expect(km.getByRole("columnheader", { name: "Cad." })).toBeHidden();
+  expect(
+    await km.evaluate((element) => element.scrollWidth <= element.clientWidth),
+  ).toBe(true);
+  await page
+    .getByRole("radiogroup", { name: "Découpage" })
+    .getByRole("radio", { name: /^Tours/ })
+    .click();
   const table = page.getByRole("table", { name: "Tours" });
   await expect(table).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Cad." })).toBeHidden();
@@ -491,24 +521,61 @@ test("mobile shows the list, then the activity alone, without overflow", async (
   ).toBeVisible();
 });
 
-test("samples without GPS keep the chart without running pace", async ({
+test("a strength session shows effort and heart rate without running data", async ({
   page,
 }) => {
   await signIn(page);
   await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000003");
-  const data = page.getByRole("region", { name: "Parcours et données" });
+  const article = page.getByRole("article");
+  const metrics = article.locator("dl").first();
+  await expect(metrics.getByText("Durée", { exact: true })).toBeVisible();
+  await expect(metrics).toContainText("55:00");
+  await expect(metrics).toContainText("152");
+  await expect(metrics).toContainText("410");
   await expect(
-    data.getByText("Aucun tracé GPS n’est disponible pour cette activité."),
-  ).toBeVisible();
-  await expect(
-    data.getByRole("img", { name: "FC selon le temps écoulé" }),
-  ).toBeVisible();
-  const toggles = data.getByRole("toolbar", { name: "Données affichées" });
-  await expect(toggles.getByRole("button")).toHaveText(["FC"]);
-  await expect(
-    page.getByRole("radiogroup", { name: "Colorer le tracé par" }),
+    page.getByRole("region", { name: "Parcours et données" }),
   ).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Chaussures" })).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Temps dans les zones" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("table")).toHaveCount(0);
+  const card = page.getByRole("region", { name: "Hors plan" });
+  await expect(card).toContainText("Effort de la séance");
+  await expect(
+    card.getByRole("radiogroup", { name: "Effort de la séance, de 1 à 10" }),
+  ).toBeVisible();
+  const heartRate = page.getByRole("region", { name: "Fréquence cardiaque" });
+  await expect(heartRate.getByRole("img")).toBeVisible();
+  await expect(heartRate).toContainText("moy. 118");
+  await expect(heartRate).toContainText(
+    "Ni allure ni zones pour le renfo : l’effort ressenti compte davantage",
+  );
+  const effort = page.getByRole("region", { name: "Effort" });
+  await expect(effort).toContainText("Effet aérobie");
+  await expect(effort).toContainText("1,6");
+});
+
+test("a planned strength session lists its programme", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signInAs(page, "plan@example.com");
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000005003");
+  const card = page.getByRole("region", { name: "Séance du plan" });
+  await expect(card.getByText("Renfo · faite")).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(
+    card.getByText("Séance du plan · Renfo haut du corps"),
+  ).toBeVisible();
+  await expect(card.getByText("Programme prévu")).toBeVisible();
+  await expect(card.getByRole("listitem")).toHaveText([
+    "Échauffement mobilité hanches8 min",
+    "Squat bulgare3 × 4 min",
+    "Gainage frontal7 min",
+  ]);
+  await expect(
+    card.getByRole("link", { name: "Voir dans le plan" }),
+  ).toBeVisible();
 });
 
 test("the bundled map worker renders a GPS route with map controls", async ({
@@ -735,6 +802,7 @@ test("name search preserves query through load-more and selection", async ({
 });
 
 test("mobile list and GPS preview fit 390 and 320 pixels", async ({ page }) => {
+  test.slow();
   await page.route("https://basemaps.cartocdn.com/**", (route) =>
     route.abort(),
   );

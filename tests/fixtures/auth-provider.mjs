@@ -337,6 +337,11 @@ const tables = {
     activity(3, 4, {
       activity_type: "strength_training",
       duration_seconds: 3300,
+      average_heart_rate: 118,
+      max_heart_rate: 152,
+      calories: 410,
+      aerobic_training_effect: 1.6,
+      anaerobic_training_effect: 0.8,
     }),
     activity(4, 6, {
       activity_name: "Threshold 3 × 10 min",
@@ -450,10 +455,19 @@ const tables = {
           { length: 100 },
           (_, index) => (index * 3520) / 99,
         ),
-        distance_m: Array.from(
-          { length: 100 },
-          (_, index) => (index * 11300) / 99,
-        ),
+        distance_m: (() => {
+          const speeds = Array.from(
+            { length: 100 },
+            (_, index) => 3 + Math.sin(index / 8) * 0.7,
+          );
+          const steps = speeds.map((speed, index) => (index === 0 ? 0 : speed));
+          const total = steps.reduce((sum, value) => sum + value, 0);
+          let covered = 0;
+          return steps.map((value) => {
+            covered += value;
+            return Math.round((covered / total) * 11300);
+          });
+        })(),
         heart_rate: Array.from(
           { length: 100 },
           (_, index) => 125 + Math.round(51 * Math.abs(Math.sin(index / 11))),
@@ -491,9 +505,16 @@ const tables = {
       route: null,
       bounds: null,
       series: {
-        elapsed_s: [0, 600, 1200, 1800, 2400, 3300],
-        heart_rate: [100, 120, 140, 130, 125, 105],
-        speed_mps: [1, 2, 3, 2, 1, 1],
+        elapsed_s: Array.from({ length: 56 }, (_, minute) => minute * 60),
+        heart_rate: Array.from({ length: 56 }, (_, minute) =>
+          Math.round(
+            minute < 8
+              ? 96 + minute * 3
+              : 112 +
+                  26 * Math.max(0, Math.sin((minute - 8) / 2.2)) -
+                  (minute % 5),
+          ),
+        ),
       },
       heart_rate_histogram: { 100: 600, 120: 900, 140: 1800 },
       source_point_count: 3300,
@@ -678,7 +699,18 @@ const planSessionTemplates = {
     durationSeconds: 1_800,
     distanceMeters: null,
     elevationGainMeters: null,
-    structure: [step(1_800, "easy")],
+    structure: [
+      { ...step(480, "easy", "warmup"), cue: "Échauffement mobilité hanches" },
+      {
+        type: "repeat",
+        count: 3,
+        steps: [
+          { ...step(240, "easy"), cue: "Squat bulgare" },
+          step(60, "recovery", "recovery"),
+        ],
+      },
+      { ...step(420, "easy"), cue: "Gainage frontal" },
+    ],
   }),
   mobility: () => ({
     sport: "strength",
@@ -931,6 +963,10 @@ const planDebriefSession = planMatchedSessions.find(
 const planDebriefActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005002";
 const planMissedSession = pastPlanSessions[2];
 const planImportedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005001";
+const planStrengthSession = planMatchedSessions.findLast(
+  (session) => session.kind === "strength",
+);
+const planStrengthActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005003";
 const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
 const planDoneStart = Date.parse(`${planDoneSession.scheduled_on}T17:12:00Z`);
 tables.provider_activities.push({
@@ -989,6 +1025,45 @@ if (planDebriefSession) {
       elevation_loss_meters: null,
     })),
   );
+}
+const strengthHeartRate = Array.from({ length: 56 }, (_, minute) =>
+  Math.round(
+    minute < 8
+      ? 96 + minute * 3
+      : 112 + 26 * Math.max(0, Math.sin((minute - 8) / 2.2)) - (minute % 5),
+  ),
+);
+const strengthSeries = {
+  elapsed_s: strengthHeartRate.map((_, minute) => minute * 60),
+  heart_rate: strengthHeartRate,
+};
+if (planStrengthSession) {
+  tables.provider_activities.push({
+    ...activity(5003, 0, {
+      activity_type: "strength_training",
+      activity_name: "Renforcement",
+      duration_seconds: 3300,
+      average_heart_rate: 118,
+      max_heart_rate: 152,
+      calories: 410,
+      aerobic_training_effect: 1.6,
+      anaerobic_training_effect: 0.8,
+    }),
+    user_id: planUser.id,
+    provider_activity_id: "21894515003",
+    started_at: `${planStrengthSession.scheduled_on}T10:30:00Z`,
+    local_started_at: `${planStrengthSession.scheduled_on} 12:30:00`,
+  });
+  tables.provider_activity_tracks.push({
+    activity_id: planStrengthActivityId,
+    user_id: planUser.id,
+    status: "available",
+    route: null,
+    bounds: null,
+    series: strengthSeries,
+    heart_rate_histogram: { 110: 1500, 130: 1200, 150: 600 },
+    source_point_count: 3300,
+  });
 }
 tables.provider_activity_gear = [
   {
@@ -1254,7 +1329,9 @@ Object.assign(tables, {
         ? planDoneActivityId
         : session === planDebriefSession
           ? planDebriefActivityId
-          : null,
+          : session === planStrengthSession
+            ? planStrengthActivityId
+            : null,
     method: "auto",
     status: "completed",
     confidence: 0.9,
