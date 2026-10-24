@@ -21,7 +21,9 @@ test("signed-out visitors land on the public page and reach legal pages", async 
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading);
     await expect(page).toHaveTitle(`${heading} · Stride`);
   }
-  await expect(page.getByText("844 478 891 00030")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "github.com/Julestblt" }),
+  ).toBeVisible();
 
   await page
     .getByRole("banner")
