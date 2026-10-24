@@ -36,7 +36,9 @@ test("signed-in session updates home, visitor routes, 404, and sign-out", async 
     page.getByRole("heading", { name: "Content de te revoir" }),
   ).toBeVisible();
   await page.goto("/");
-  await expect(page).toHaveURL("/sign-in");
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Progresse/ }),
+  ).toBeVisible();
   await page.goto("/missing-route");
   await expect(page.getByRole("link", { name: "Se connecter" })).toBeVisible();
 
