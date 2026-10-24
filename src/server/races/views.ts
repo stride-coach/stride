@@ -18,6 +18,7 @@ import {
   type RacePlanModel,
   type ScenarioKey,
 } from "@/features/races/workspace";
+import { paceFactorsOf, type RaceStrategy } from "@/features/races/proposals";
 import { raceWeather } from "./weather";
 
 export type CourseViews = {
@@ -29,6 +30,7 @@ export type CourseViews = {
 export function planFor(
   data: RaceWorkspaceData,
   scenarioKey: ScenarioKey | null = null,
+  strategy: RaceStrategy | null = data.strategy,
 ) {
   if (!data.course) return null;
   const model = courseModel(
@@ -50,6 +52,7 @@ export function planFor(
         plan: data.plan,
         scenario,
         timeZone: data.course.timeZone,
+        paceFactors: strategy ? paceFactorsOf(strategy) : undefined,
       })
     : null;
   return { model, planned, scenarios };

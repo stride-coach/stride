@@ -1,3 +1,4 @@
+import type { ExpressionSpecification, Map as MapLibreMap } from "maplibre-gl";
 import { pointDistance, positionAt, type Course } from "./course";
 import type { ProfileData, ProfileMarker } from "./profile";
 
@@ -72,3 +73,26 @@ export function nearestRouteDistance(data: MapData, lat: number, lon: number) {
     offsetM: Math.sqrt(bestScore) * 111_195,
   };
 }
+
+export const frenchName: ExpressionSpecification = [
+  "coalesce",
+  ["get", "name:fr"],
+  ["get", "name"],
+];
+
+export function showFrenchNames(
+  map: Pick<
+    MapLibreMap,
+    "getStyle" | "getLayoutProperty" | "setLayoutProperty"
+  >,
+) {
+  for (const layer of map.getStyle().layers ?? []) {
+    if (layer.type !== "symbol") continue;
+    const field: unknown = map.getLayoutProperty(layer.id, "text-field");
+    if (field !== undefined && JSON.stringify(field).includes("name"))
+      map.setLayoutProperty(layer.id, "text-field", frenchName);
+  }
+}
+
+export const raceWorkspaceId = "race-workspace";
+export const fullscreenMapParam = "carte";

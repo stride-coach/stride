@@ -13,6 +13,7 @@ export type SimulationSettings = {
   aidStopSeconds: number;
   waterStopSeconds: number;
   startMinutes: number;
+  paceFactors?: Readonly<Record<string, number>>;
 };
 
 export type Passage = {
@@ -143,6 +144,10 @@ export function simulate(
   let cost = 0;
   const costs: number[] = [];
   let portionIndex = 0;
+  const arrivals = waypoints.filter(
+    (waypoint) => isSegmentBoundary(waypoint.kind) && waypoint.distanceM > 0,
+  );
+  let arrivalIndex = 0;
   for (let index = 0; index < last; index += 1) {
     const from = pointDistance(course, index);
     const length = pointDistance(course, index + 1) - from;
@@ -162,10 +167,18 @@ export function simulate(
       walkSeconds += (length / 1000) * settings.walkPaceSecondsPerKm;
       costs.push(0);
     } else {
+      while (
+        arrivalIndex < arrivals.length - 1 &&
+        arrivals[arrivalIndex].distanceM < middle
+      )
+        arrivalIndex += 1;
+      const factor =
+        settings.paceFactors?.[arrivals[arrivalIndex]?.id ?? ""] ?? 1;
       const segmentCost =
         length *
         runningFactor(grades[index]) *
-        (1 + (fade * middle) / course.distanceM);
+        (1 + (fade * middle) / course.distanceM) *
+        factor;
       costs.push(segmentCost);
       cost += segmentCost;
     }
@@ -241,8 +254,15 @@ export function simulate(
         arrival: passage,
       };
     });
+  const segmentsFeasible = segments.every((segment) => {
+    const runKm = (segment.toM - segment.fromM - segment.walkM) / 1000;
+    const runSeconds =
+      segment.movingSeconds -
+      (segment.walkM / 1000) * settings.walkPaceSecondsPerKm;
+    return runKm <= 0.05 || runSeconds / runKm >= minimumRunPaceSecondsPerKm;
+  });
   return {
-    feasible,
+    feasible: feasible && segmentsFeasible,
     fade,
     movingElapsed,
     stops,

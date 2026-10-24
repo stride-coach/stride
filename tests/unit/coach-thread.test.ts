@@ -379,6 +379,45 @@ describe("thread view model", () => {
     expect(card("stale")).toMatchObject({ blocks: [{ status: "closed" }] });
   });
 
+  it("shows a race strategy proposal under the strategist", () => {
+    const raceId = "e0000000-0000-4000-8000-00000000000e";
+    const entries = buildThread({
+      items: [
+        {
+          kind: "proposal",
+          at: at(9),
+          proposalId,
+          scope: "race_strategy",
+          raceId,
+          agent: "strategist",
+          title: "Stratégie de course",
+          summary: null,
+          opinions: [],
+        },
+      ],
+      live: false,
+      pendingToolUseId: null,
+      proposalStatuses: { [proposalId]: "applied" },
+    });
+    expect(entries[0]).toMatchObject({
+      agent: "strategist",
+      blocks: [{ scope: "race_strategy", raceId, status: "applied" }],
+    });
+    expect(
+      parseThreadItem({
+        kind: "proposal",
+        body: {
+          proposalId,
+          scope: "race_strategy",
+          raceId,
+          title: "S",
+          summary: null,
+        },
+        created_at: at(0),
+      }),
+    ).toMatchObject({ scope: "race_strategy", raceId });
+  });
+
   it("shows a turn error inside a Coach message", () => {
     const entries = view([
       {

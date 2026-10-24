@@ -32,37 +32,30 @@ export function RaceEntryLoading() {
         <main className="mx-auto flex w-full max-w-360 flex-col px-5 pt-3 pb-18 sm:px-[clamp(20px,4vw,56px)] md:pt-9">
           <LoadingScope
             label="Chargement de la course"
-            className="flex flex-col gap-6 sm:gap-7"
+            className="flex flex-col gap-5 sm:gap-9"
           >
-            <div aria-hidden="true" className="flex flex-col gap-5 sm:gap-7">
-              <div className="flex flex-col gap-3">
-                <Skeleton className="h-3 w-48" />
-                <Skeleton className="h-8.5 w-72 max-w-full sm:h-12" />
-                <Skeleton className="h-12 w-40" />
-              </div>
-              <Skeleton className="h-34 w-full rounded-panel sm:h-24" />
-            </div>
             <div
               aria-hidden="true"
-              className="-mx-5 flex gap-6 overflow-hidden border-b border-border px-5 sm:mx-0 sm:px-0"
+              className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-6"
             >
-              {["w-16", "w-18", "w-20", "w-22", "w-24"].map((width) => (
-                <div
-                  key={width}
-                  className="flex min-h-11 shrink-0 items-center"
-                >
-                  <Skeleton className={`h-4 ${width}`} />
-                </div>
-              ))}
+              <div className="flex flex-col gap-3 md:gap-2.5">
+                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-7.5 w-72 max-w-full md:h-10" />
+                <Skeleton className="h-11 w-48" />
+              </div>
+              <div className="flex flex-col gap-5 md:items-end md:gap-3.5">
+                <Skeleton className="h-30 w-full rounded-card md:h-11 md:w-110" />
+                <Skeleton className="h-11 w-full md:h-9.5 md:w-120" />
+              </div>
             </div>
             <Skeleton
               aria-hidden="true"
-              className="h-44 w-full rounded-panel"
+              className="h-56 w-full rounded-panel"
             />
-            <div aria-hidden="true" className="grid gap-5 lg:grid-cols-2">
-              <Skeleton className="h-64 rounded-panel" />
-              <Skeleton className="h-64 rounded-panel" />
-            </div>
+            <Skeleton
+              aria-hidden="true"
+              className="h-56 w-full rounded-panel md:h-105"
+            />
           </LoadingScope>
         </main>
       </div>

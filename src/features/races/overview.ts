@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { pointDistance } from "./course";
+import type { PlanBlock } from "@/features/plans/model/plan";
+import type { ProgramOverview } from "@/features/plans/view/program";
+import { addDays } from "@/features/progress/period";
 import { gearReadiness, type ChecklistItem } from "./checklists";
 import { formatDuration } from "./format";
 import {
@@ -10,7 +12,6 @@ import {
   type StoredCourse,
 } from "./race";
 import { isStation, type Waypoint } from "./waypoints";
-import { courseFromStored } from "./workspace";
 
 export const racesViews = ["upcoming", "past", "all"] as const;
 export type RacesView = (typeof racesViews)[number];
@@ -57,12 +58,45 @@ export function splitRaces(races: RaceSummary[], today: string) {
   };
 }
 
-export const trainingPhases = [
-  { label: "Reprise", threshold: 120 },
-  { label: "Volume", threshold: 56 },
-  { label: "Spécifique", threshold: 14 },
-  { label: "Affûtage", threshold: 0 },
-] as const;
+export type PlanPhase = {
+  key: string;
+  label: string;
+  kind: PlanBlock["kind"] | null;
+  start: string;
+  end: string;
+};
+
+const phaseStages: Record<PlanBlock["kind"], number> = {
+  lead_in: 0,
+  base: 1,
+  build: 1,
+  specific: 2,
+  taper: 3,
+  race: 3,
+  recovery: 0,
+  transition: 0,
+};
+
+export function planPhases(
+  program: Pick<ProgramOverview, "blocks"> | null,
+  blockKinds: Record<string, PlanBlock["kind"]>,
+): PlanPhase[] {
+  return (program?.blocks ?? []).flatMap((block) => {
+    const first = block.weeks[0];
+    const last = block.weeks[block.weeks.length - 1];
+    return first && last
+      ? [
+          {
+            key: block.blockKey,
+            label: block.name,
+            kind: blockKinds[block.blockKey] ?? null,
+            start: first.weekStart,
+            end: addDays(last.weekStart, 7),
+          },
+        ]
+      : [];
+  });
+}
 
 const dayMs = 86_400_000;
 
@@ -74,6 +108,16 @@ const monthLabel = new Intl.DateTimeFormat("fr-FR", {
   month: "short",
   timeZone: "UTC",
 });
+
+const monthName = new Intl.DateTimeFormat("fr-FR", {
+  month: "long",
+  timeZone: "UTC",
+});
+
+function fromMonth(time: number) {
+  const name = monthName.format(new Date(time));
+  return /^[aeiou]/.test(name) ? `d’${name}` : `de ${name}`;
+}
 
 export const timelineWidthPx = 896;
 
@@ -89,12 +133,15 @@ export type TimelineMarker = {
   priority: RaceSummary["priority"];
   date: string;
   label: string;
+  short: string;
   left: number;
   lane: number;
   align: "start" | "center" | "end";
 };
 
 export type SeasonTimeline = {
+  range: string;
+  today: number;
   months: { key: string; label: string; left: number }[];
   phases: {
     key: string;
@@ -129,6 +176,7 @@ function markerLanes(
 export function seasonTimeline(
   races: RaceSummary[],
   today: string,
+  planned: PlanPhase[] = [],
 ): SeasonTimeline | null {
   const dated = races
     .filter(
@@ -137,18 +185,18 @@ export function seasonTimeline(
     )
     .sort((a, b) => a.date.localeCompare(b.date));
   if (dated.length === 0) return null;
-  const start = epoch(today);
+  const now = new Date(epoch(today));
+  const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
   const lastDay = new Date(epoch(dated[dated.length - 1].date));
   const end = Math.max(
-    Date.UTC(lastDay.getUTCFullYear(), lastDay.getUTCMonth() + 1, 1),
-    start + 60 * dayMs,
+    Date.UTC(lastDay.getUTCFullYear(), lastDay.getUTCMonth() + 1, 15),
+    epoch(today) + 60 * dayMs,
   );
   const span = end - start;
   const at = (time: number) =>
     Math.min(100, Math.max(0, ((time - start) / span) * 100));
   const months: SeasonTimeline["months"] = [];
-  const cursor = new Date(start);
-  let month = Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1);
+  let month = start;
   while (month < end) {
     months.push({
       key: new Date(month).toISOString().slice(0, 7),
@@ -158,34 +206,23 @@ export function seasonTimeline(
     const next = new Date(month);
     month = Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 1);
   }
-  const goals = dated.some((race) => race.priority === "A")
-    ? dated.filter((race) => race.priority === "A")
-    : [dated.find((race) => race.priority === "B") ?? dated[0]];
-  const phases: SeasonTimeline["phases"] = [];
-  let cycleStart = start;
-  for (const goalRace of goals) {
-    const goal = epoch(goalRace.date);
-    trainingPhases.forEach((phase, stage) => {
-      const previous = trainingPhases[stage - 1];
-      const from = Math.max(
-        cycleStart,
-        previous ? goal - previous.threshold * dayMs : cycleStart,
-      );
-      const to = goal - phase.threshold * dayMs;
-      if (to <= from) return;
-      const width = at(to) - at(from);
-      phases.push({
-        key: `${goalRace.id}-${stage}`,
+  const phases: SeasonTimeline["phases"] = planned.flatMap((phase) => {
+    const from = Math.max(start, epoch(phase.start));
+    const to = Math.min(end, epoch(phase.end));
+    if (to <= from) return [];
+    const width = at(to) - at(from);
+    return [
+      {
+        key: phase.key,
         label: phase.label,
-        stage,
+        stage: phase.kind ? phaseStages[phase.kind] : 0,
         left: at(from),
         width,
         labelled:
           (width / 100) * timelineWidthPx >= textWidthPx(phase.label, 6) + 14,
-      });
-    });
-    cycleStart = goal;
-  }
+      },
+    ];
+  });
   const markers = markerLanes(
     dated.map((race) => ({
       id: race.id,
@@ -193,10 +230,13 @@ export function seasonTimeline(
       priority: race.priority,
       date: race.date,
       label: `${race.name} · ${formatShortDate(race.date)}`,
+      short: formatShortDate(race.date),
       left: at(epoch(race.date)),
     })),
   );
   return {
+    range: `${fromMonth(start)} à ${monthName.format(new Date(end - dayMs))}`,
+    today: at(epoch(today)),
     months,
     phases,
     markers,
@@ -316,18 +356,6 @@ export function preparationProgress(rows: PreparationRow[]) {
     next: pending ? (nextSteps[pending.key] ?? null) : null,
     nextHref: pending?.href ?? null,
   };
-}
-
-export function elevationSamples(stored: StoredCourse, count = 96) {
-  const course = courseFromStored(stored);
-  const stride = Math.max(1, Math.floor(course.points.length / count));
-  const samples = course.points.flatMap((point, index) =>
-    point[2] !== null &&
-    (index % stride === 0 || index === course.points.length - 1)
-      ? [{ distanceM: pointDistance(course, index), ele: point[2] }]
-      : [],
-  );
-  return samples.length >= 2 ? samples : null;
 }
 
 export function countdownLabel(date: string | null, today: string) {

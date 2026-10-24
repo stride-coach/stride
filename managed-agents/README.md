@@ -8,7 +8,7 @@ Claude Managed Agents definitions for the coaching runtime, chosen by the [#128]
 | `agents/medical.md`          | Stride Medical, brought in by the Coach, then talks to the athlete       |
 | `agents/director.md`         | Stride Sports Director: season calendar, race roles, spacing             |
 | `agents/strategist.md`       | Stride Course Strategist: one race on its course, scenarios and pacing   |
-| `agents/nutritionist.md`     | Stride Nutritionist: daily targets from the nutrition calculator         |
+| `agents/nutritionist.md`     | Stride Nutritionist: daily targets and race nutrition plans              |
 | `skills/*/SKILL.md`          | Coaching knowledge loaded on demand (plan format, periodization, races…) |
 | `environments/coaching.yaml` | Cloud environment, limited networking, MCP servers only                  |
 | `claude-lock.json`           | Resource IDs written by `ant apply`, committed                           |
@@ -20,9 +20,12 @@ The Coach and the specialists run on Claude Sonnet 5.5, except the Nutritionist 
 - `read_active_plan`, `read_plan_progress` and `read_plan_history` (Coach): the plan for a range, planned-versus-completed status, and recorded proposals with their decisions;
 - `submit_plan`, `create_plan_proposal`, `extend_plan` and `rewrite_plan_range` (Coach), which store validated proposals only. `extend_plan` adds weeks after the active plan's end for a race added later, so the athlete keeps one plan (ADR 0008); `rewrite_plan_range` rebuilds the phases, weeks and sessions of a date range and keeps the weeks outside it unchanged;
 - `read_season_calendar` (Sports Director): every race with its weekday, km-effort, recovery and taper windows, the gaps and the conflicts, from the deterministic calendar check in `src/features/races/calendar.ts`; candidates the athlete mentions are tested without being saved;
-- `read_race_strategy` (Course Strategist): the race workspace analysis for one race, with the three scenarios simulated on the course, passages, cutoff margins, night sections, fueling totals and, within 14 days, the weather;
+- `read_race_strategy` (Course Strategist): the race workspace analysis for one race, with the accepted race strategy and any waiting strategy proposal, the three scenarios simulated on the course with the accepted pace factors, passages, cutoff margins, segments with their arrival waypoint ids, night sections, fueling totals and, within 14 days, the weather;
+- `propose_race_strategy` (Course Strategist): stores a race strategy proposal (instructions, and per segment a note and a pace factor that keeps the target time) through `submit_race_proposal`. Nothing changes until the athlete accepts it on the race's Plan de course tab;
 - `read_gear` (Coach, Course Strategist): the athlete's active pairs with mileage, wear, longest run and replacement date, the pair Stride recommends or the athlete chose for each running session of a date range with reason codes, and each upcoming race's pair with its break-in status, from the deterministic rules in `src/features/gear`;
 - `read_nutrition_targets` (Nutritionist): daily energy and macro targets from the deterministic calculator in `src/features/nutrition/calculator.ts`, with the light-deficit verdict and missing profile fields;
+- `read_race_nutrition` (Nutritionist): the race fueling targets, the athlete's nutrition products, the accepted race nutrition plan, any waiting nutrition proposal and Stride's allocation on the target scenario (start setup, items per segment by arrival waypoint id, station refills, drop bag, shopping list), from `src/features/fueling/allocation.ts`;
+- `propose_race_nutrition` (Nutritionist): stores a race nutrition proposal (targets to change, product per role, start setup, and exact items per segment, with caffeine only in night segments and within the caffeine maximum) through `submit_race_proposal`. Nothing changes until the athlete accepts it on the race's Nutrition tab;
 - `ask_athlete` (Coach and every specialist), which asks one question, with optional answer options, and pauses the turn until the athlete answers. The answer goes back to the agent that asked.
 
 The custom tool entries in `agents/*.md` are generated from the registry between the `# stride-tools:start` and `# stride-tools:end` markers. Never edit them by hand: change the tool module, run `npm run agents:tools`, and commit both. `npm run agents:tools:check` and `npm test` fail when a block drifts. The agent files are excluded from Prettier so the generated lines stay intact.

@@ -15,10 +15,14 @@ export function parseRequestText(value: unknown) {
   return parsed.success ? parsed.data : null;
 }
 
-export function coachRequestHref(text: string, sessionKey?: string | null) {
-  const params = new URLSearchParams({
-    text: text.slice(0, maximumRequestLength),
-  });
+export function coachRequestHref(
+  text: string | null,
+  sessionKey?: string | null,
+  raceId?: string | null,
+) {
+  const params = new URLSearchParams();
+  if (text) params.set("text", text.slice(0, maximumRequestLength));
   if (sessionKey) params.set("session", sessionKey);
+  if (raceId) params.set("race", raceId);
   return `/coach/new?${params.toString()}`;
 }

@@ -1,8 +1,7 @@
-import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { MonoLabel } from "@/components/stride/mono-label";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { SourceMark } from "@/components/stride/marks";
 import { Button } from "@/components/ui/button";
 import {
   formatClock,
@@ -10,22 +9,25 @@ import {
   formatInteger,
   formatKm,
 } from "../format";
+import type { GoalCard } from "@/features/progress/goal";
+import type { RaceOnTrack } from "../on-track";
+import { countdownLabel, type SeasonTimeline } from "../overview";
 import {
-  countdownLabel,
-  type PreparationRow,
-  type SeasonTimeline,
-} from "../overview";
+  formatResultDelta,
+  formatResultTime,
+  type RaceResult,
+} from "../results";
 import {
   defaultStartMinutes,
+  formatCompactDate,
+  formatDayDate,
   formatRaceDate,
   formatShortDate,
-  daysUntil,
   type RacePlan,
   type RaceSummary,
   type StoredCourse,
 } from "../race";
-import { RaceSettingsDialog } from "./race-settings-dialog";
-import { EmptyState, Figure, RaceCard } from "./race-ui";
+import { OnTrack } from "./on-track";
 
 export function PriorityBadge({
   priority,
@@ -48,7 +50,7 @@ export function PriorityBadge({
           ? "bg-accent text-accent-foreground"
           : cn(
               "border-[1.5px] text-muted",
-              planned ? "border-border-strong" : "border-dashed",
+              planned ? "border-border-strong" : "border-dashed border-dim",
             ),
       )}
     >
@@ -57,555 +59,442 @@ export function PriorityBadge({
   );
 }
 
-const phaseTones = [
-  "bg-surface-raised",
-  "bg-accent/12",
-  "bg-accent/22",
-  "bg-surface-raised",
-];
+const phaseTones = ["bg-border", "bg-accent/12", "bg-accent/22", "bg-border"];
 
-const laneHeight = 28;
-const labelsTop = 20;
-
-export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
-  const phaseTop = labelsTop + timeline.lanes * laneHeight + 18;
-  const monthTop = phaseTop + 16 + 10;
-  const label = `Saison : ${timeline.markers
-    .map((marker) => `${marker.name} le ${formatShortDate(marker.date)}`)
-    .join(", ")}`;
+function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
   return (
-    <RaceCard className="gap-3 pb-3">
-      <div className="flex items-baseline gap-3">
-        <MonoLabel>Ta saison</MonoLabel>
-        <span className="text-xs text-muted-foreground max-sm:hidden">
-          Phases indicatives et courses à venir
-        </span>
-        <Link
-          href="/plan"
-          className="ml-auto text-meta text-accent hover:text-foreground"
-        >
-          Voir le plan →
-        </Link>
-      </div>
-      <div className="-mx-1 overflow-x-auto overflow-y-hidden px-1">
-        <div
-          role="img"
-          aria-label={label}
-          className="relative min-w-224"
-          style={{ height: monthTop + 18 }}
-        >
-          {timeline.months.map((month) => (
-            <span
-              key={month.key}
-              aria-hidden="true"
-              className="absolute top-0 border-l border-border-subtle"
-              style={{ left: `${month.left}%`, height: phaseTop + 16 }}
-            />
-          ))}
-          <span
-            aria-hidden="true"
-            className="absolute top-0 left-0 border-l border-foreground"
-            style={{ height: phaseTop + 16 }}
-          />
-          <MonoLabel
-            size="nano"
-            tone="foreground"
-            className="absolute top-0 left-1.5"
-          >
-            Auj.
-          </MonoLabel>
-          {timeline.markers.map((marker) => {
-            const top = labelsTop + marker.lane * laneHeight;
-            return (
-              <div key={marker.id}>
-                <span
-                  className={cn(
-                    "absolute flex w-max items-center gap-1.5 text-meta leading-5.5 whitespace-nowrap",
-                    marker.align === "center" && "-translate-x-1/2",
-                    marker.align === "end" && "-translate-x-full",
-                    marker.priority === "A" ? "text-foreground" : "text-muted",
-                  )}
-                  style={{ left: `${marker.left}%`, top }}
-                >
-                  <PriorityBadge priority={marker.priority} small />
-                  {marker.label}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="absolute border-l border-dashed border-border-strong"
-                  style={{
-                    left: `${marker.left}%`,
-                    top: top + 24,
-                    height: phaseTop - top - 32,
-                  }}
-                />
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute z-10 size-2 -translate-x-1/2 rounded-full ring-2 ring-surface",
-                    marker.priority === "A" ? "bg-accent" : "bg-muted",
-                  )}
-                  style={{ left: `${marker.left}%`, top: phaseTop - 10 }}
-                />
-              </div>
-            );
-          })}
-          {timeline.phases.map((phase) => (
-            <span
-              key={phase.key}
-              className={cn(
-                "absolute flex h-4 items-center overflow-hidden rounded-tag border-r-2 border-surface px-1.5 text-micro whitespace-nowrap text-muted",
-                phaseTones[phase.stage],
-              )}
-              style={{
-                left: `${phase.left}%`,
-                width: `${phase.width}%`,
-                top: phaseTop,
-              }}
-            >
-              {phase.labelled && phase.label}
-            </span>
-          ))}
-          {timeline.months.map((month) => (
-            <MonoLabel
-              key={month.key}
-              size="micro"
-              className="absolute pl-1.5"
-              style={{ left: `${month.left}%`, top: monthTop }}
-            >
-              {month.label}
-            </MonoLabel>
-          ))}
-        </div>
-      </div>
-    </RaceCard>
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex items-center justify-center font-metric leading-none font-bold",
+        priority === "A"
+          ? "size-5.5 rounded-control bg-accent text-sm text-accent-foreground"
+          : "size-5 rounded-tag border-[1.5px] border-dim bg-background text-meta text-muted",
+      )}
+    >
+      {priority}
+    </span>
   );
 }
 
-function ElevationStrip({
-  samples,
-  distanceM,
-  nightRanges,
-  stations,
+function SeasonGraphic({
+  timeline,
+  compact,
 }: {
-  samples: { distanceM: number; ele: number }[];
-  distanceM: number;
-  nightRanges: { fromM: number; toM: number }[];
-  stations: number[];
+  timeline: SeasonTimeline;
+  compact: boolean;
 }) {
-  const width = 560;
-  const height = 70;
-  const low = Math.min(...samples.map((sample) => sample.ele));
-  const high = Math.max(...samples.map((sample) => sample.ele));
-  const span = high - low || 1;
-  const x = (meters: number) => (meters / distanceM) * width;
-  const line = samples
-    .map(
-      (sample, index) =>
-        `${index === 0 ? "M" : "L"}${x(sample.distanceM).toFixed(1)},${(8 + (1 - (sample.ele - low) / span) * 46).toFixed(1)}`,
-    )
-    .join(" ");
+  const lanes = compact ? 1 : timeline.lanes;
+  const laneHeight = 24;
+  const bandTop = compact ? 64 : 48 + lanes * laneHeight;
+  const badgeTop = bandTop - 33;
+  const lineHeight = bandTop + 24;
+  const monthTop = lineHeight + 4;
   return (
-    <div className="flex flex-col gap-1.5">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        className="h-17.5 w-full overflow-visible"
-      >
-        {nightRanges.map((range) => (
-          <rect
-            key={range.fromM}
-            x={x(range.fromM)}
-            y={0}
-            width={Math.max(0, x(range.toM) - x(range.fromM))}
-            height={height}
-            className="fill-night/20"
-          />
-        ))}
-        <path
-          d={line}
-          fill="none"
-          strokeWidth="1.5"
-          vectorEffect="non-scaling-stroke"
-          className="stroke-muted"
-        />
-        {stations.map((meters) => (
-          <line
-            key={meters}
-            x1={x(meters)}
-            x2={x(meters)}
-            y1={60}
-            y2={70}
-            strokeWidth="2"
-            vectorEffect="non-scaling-stroke"
-            className="stroke-accent"
-          />
-        ))}
-      </svg>
-      <div className="flex items-center justify-between gap-3">
-        <MonoLabel size="nano">0 km</MonoLabel>
-        <span className="flex items-center gap-3">
-          {stations.length > 0 && (
-            <MonoLabel size="nano" className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="h-0.5 w-2.5 bg-accent" />
-              Ravitos
-            </MonoLabel>
-          )}
-          {nightRanges.length > 0 && (
-            <MonoLabel size="nano" className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="size-2 bg-night/40" />
-              Nuit
-            </MonoLabel>
-          )}
+    <div
+      aria-hidden="true"
+      className={cn("relative", compact ? "md:hidden" : "max-md:hidden")}
+      style={{ height: monthTop + 14 }}
+    >
+      {timeline.months.map((month) => (
+        <span
+          key={month.key}
+          className="absolute top-0 border-l border-border-subtle"
+          style={{ left: `${month.left}%`, height: lineHeight }}
+        >
+          <MonoLabel
+            size={compact ? "nano" : "micro"}
+            className="absolute left-0.75"
+            style={{ top: monthTop }}
+          >
+            {month.label}
+          </MonoLabel>
         </span>
-        <MonoLabel size="nano">{formatKm(distanceM)} km</MonoLabel>
-      </div>
+      ))}
+      {timeline.phases.map((phase) => (
+        <span
+          key={phase.key}
+          className={cn(
+            "absolute flex h-4 items-center overflow-hidden rounded-tag border-r-2 border-surface px-1.5 whitespace-nowrap text-muted",
+            compact ? "text-micro" : "text-label",
+            "tracking-normal",
+            phaseTones[phase.stage],
+          )}
+          style={{
+            left: `${phase.left}%`,
+            width: `${phase.width}%`,
+            top: bandTop,
+          }}
+        >
+          {(compact
+            ? (phase.width / 100) * 350 >= phase.label.length * 5.5 + 12
+            : phase.labelled) && phase.label}
+        </span>
+      ))}
+      <span
+        className="absolute top-1.5 border-l border-foreground"
+        style={{ left: `${timeline.today}%`, height: lineHeight - 6 }}
+      >
+        <MonoLabel
+          size="nano"
+          tone="foreground"
+          className="absolute -top-1.5 left-1"
+        >
+          Auj.
+        </MonoLabel>
+      </span>
+      {timeline.markers.map((marker) => {
+        const end = marker.align === "end";
+        const label = compact ? marker.short : marker.label;
+        const showLabel = !compact || marker.priority === "A";
+        return (
+          <div
+            key={marker.id}
+            className="absolute -translate-x-1/2"
+            style={{ left: `${marker.left}%`, top: badgeTop }}
+          >
+            <TimelineBadge priority={marker.priority} />
+            {showLabel && (
+              <span
+                className={cn(
+                  "absolute leading-4 whitespace-nowrap text-foreground",
+                  compact ? "text-[11px]" : "text-xs",
+                  compact
+                    ? "-top-5 right-0"
+                    : end
+                      ? "top-0.75 right-full mr-1.25"
+                      : marker.align === "start"
+                        ? "left-0"
+                        : "left-1/2 -translate-x-1/2",
+                )}
+                style={
+                  compact || end
+                    ? undefined
+                    : { top: -20 - marker.lane * laneHeight }
+                }
+              >
+                {label}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-const rowMarks: Record<PreparationRow["state"], string> = {
-  done: "bg-success",
-  partial: "bg-warning",
-  todo: "border border-border-strong",
-};
-
-const rowStateLabels: Record<PreparationRow["state"], string> = {
-  done: "Fait",
-  partial: "En cours",
-  todo: "À faire",
-};
-
-export function FeaturedRace({
-  race,
-  plan,
-  course,
-  rows,
-  progress,
-  elevation,
-  nightRanges,
-  nightSeconds,
-  stationDistances,
-  today,
-}: {
-  race: RaceSummary;
-  plan: RacePlan;
-  course: StoredCourse | null;
-  rows: PreparationRow[];
-  progress: { done: number; total: number; next: string | null };
-  elevation: { distanceM: number; ele: number }[] | null;
-  nightRanges: { fromM: number; toM: number }[];
-  nightSeconds: number | null;
-  stationDistances: number[];
-  today: string;
-}) {
-  const days = race.date ? daysUntil(race.date, today) : null;
-  const distance = course
-    ? `${formatKm(course.distanceM)} km`
-    : race.distanceKm
-      ? `${formatInteger(race.distanceKm)} km`
-      : "—";
-  const gain = course?.elevationGainM ?? race.elevationGainM;
-  const start = plan.startMinutes ?? defaultStartMinutes;
-  const principal = race.priority === "A";
+export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
+  const label = `Saison ${timeline.range} : ${timeline.markers
+    .map((marker) => `${marker.name} le ${formatShortDate(marker.date)}`)
+    .join(", ")}`;
   return (
-    <section
-      aria-label={race.name}
-      className="grid overflow-hidden rounded-panel border border-accent/30 bg-surface lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]"
-    >
-      <div className="flex min-w-0 flex-col gap-4.5 px-5 py-5.5 sm:px-7 sm:py-6.5">
-        <div className="flex items-center gap-3">
-          <PriorityBadge priority={race.priority} />
-          <MonoLabel className="min-w-0 truncate">
-            {principal ? "Objectif principal" : `Course ${race.priority}`}
-            {race.date ? ` · ${formatRaceDate(race.date)}` : ""}
-          </MonoLabel>
-          <MonoLabel
-            size="micro"
-            className="ml-auto shrink-0 rounded-tag border border-border-strong px-1.5 py-0.5"
-          >
-            {race.kind === "road" ? "Route" : "Trail"}
-          </MonoLabel>
-        </div>
-        <h2 className="text-[2rem] leading-none font-semibold tracking-[-0.03em] text-balance sm:text-[2.5rem]">
-          {race.name}
-        </h2>
-        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-          {days !== null && days >= 0 && (
-            <div className="flex items-end gap-2.5">
-              <span className="font-metric text-[4rem] leading-[0.8] font-semibold tabular-nums">
-                {days}
-              </span>
-              <span className="pb-1 text-body">
-                {days > 1 ? "jours" : "jour"}
-              </span>
-            </div>
-          )}
-          {race.targetSeconds && (
-            <Figure
-              value={formatDuration(race.targetSeconds)}
-              label="Objectif"
-              className="pb-1 [&>span:first-child]:text-[1.875rem]"
-            />
-          )}
-          {nightSeconds !== null && nightSeconds > 0 && (
-            <Figure
-              value={`≈ ${formatDuration(nightSeconds)}`}
-              label="de nuit à l’objectif"
-              tone="night"
-              className="pb-1 [&>span:first-child]:text-[1.875rem]"
-            />
-          )}
-        </div>
-        {elevation && course ? (
-          <ElevationStrip
-            samples={elevation}
-            distanceM={course.distanceM}
-            nightRanges={nightRanges}
-            stations={stationDistances}
-          />
-        ) : (
-          <EmptyState title="Pas encore de parcours">
-            Importe le GPX pour afficher le profil, les ravitos et la nuit.
-          </EmptyState>
-        )}
-        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            { label: course ? "Distance GPX" : "Distance", value: distance },
-            {
-              label: course ? "D+ GPX" : "D+",
-              value: gain !== null ? `${formatInteger(gain)} m` : "—",
-            },
-            { label: "Départ", value: formatClock(start) },
-            {
-              label: "Barrière",
-              value: plan.cutoffSeconds
-                ? formatClock(start + plan.cutoffSeconds / 60)
-                : "—",
-            },
-          ].map((item) => (
-            <div key={item.label} className="flex min-w-0 flex-col gap-1">
-              <dd className="order-1 font-metric text-[1.625rem] leading-none font-semibold tabular-nums">
-                {item.value}
-              </dd>
-              <MonoLabel asChild size="nano" className="order-2">
-                <dt>{item.label}</dt>
-              </MonoLabel>
-            </div>
-          ))}
-        </dl>
-      </div>
-      <div className="flex min-w-0 flex-col gap-3.5 border-t border-border bg-surface-inset px-5 py-5.5 sm:px-7 sm:py-6.5 lg:border-t-0 lg:border-l">
-        <div className="flex items-baseline justify-between">
-          <MonoLabel>Préparation</MonoLabel>
-          <span className="text-xs text-muted-foreground">
-            {progress.done} sur {progress.total}
-          </span>
-        </div>
-        <div
-          role="progressbar"
-          aria-label="Préparation"
-          aria-valuemin={0}
-          aria-valuemax={progress.total}
-          aria-valuenow={progress.done}
-          className="h-1 overflow-hidden rounded-full bg-border-subtle"
+    <section className="flex min-w-0 flex-col gap-1.5 rounded-panel border border-border bg-surface px-3.5 pt-3.5 pb-2 md:gap-2 md:px-5.5 md:pt-4.5 md:pb-2.5">
+      <div className="flex items-baseline gap-3">
+        <MonoLabel size="nano" className="md:text-micro">
+          Ta saison
+        </MonoLabel>
+        <span className="text-xs text-muted-foreground max-md:hidden">
+          {timeline.phases.length
+            ? `Phases du plan et courses, ${timeline.range}`
+            : `Courses à venir, ${timeline.range}`}
+        </span>
+        <Link
+          href="/plan"
+          className="ml-auto text-xs text-accent hover:text-foreground md:text-meta"
         >
-          <div
-            className="h-full bg-success"
-            style={{
-              width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%`,
-            }}
-          />
-        </div>
-        <ul className="flex flex-col">
-          {rows.map((row) => {
-            const className =
-              "flex w-full items-center gap-2.5 py-2 text-left text-meta hover:text-accent focus-visible:outline-2 focus-visible:outline-ring";
-            const content = (
-              <>
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    rowMarks[row.state],
-                  )}
-                />
-                <span className="flex-1">{row.label}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {row.detail}
-                </span>
-                <span className="sr-only">{rowStateLabels[row.state]}</span>
-              </>
-            );
-            return (
-              <li
-                key={row.key}
-                className="border-t border-border first:border-t"
-              >
-                {row.href ? (
-                  <Link href={row.href} prefetch={false} className={className}>
-                    {content}
-                  </Link>
-                ) : (
-                  <RaceSettingsDialog
-                    raceId={race.id}
-                    raceRevision={race.revision}
-                    targetSeconds={race.targetSeconds}
-                    kind={race.kind}
-                    plan={plan}
-                  >
-                    <button type="button" className={className}>
-                      {content}
-                    </button>
-                  </RaceSettingsDialog>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-        {progress.next && (
-          <p className="mt-auto flex items-start gap-2.5 rounded-card border border-border-subtle bg-surface px-3.5 py-3 text-meta leading-normal text-pretty text-muted">
-            <StrideMark className="mt-0.5 size-3.5 shrink-0" />
-            {progress.next}
-          </p>
-        )}
-        <Button asChild size="lg" className="w-full rounded-surface">
-          <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
-        </Button>
+          <span className="md:hidden">Plan →</span>
+          <span className="max-md:hidden">Voir le plan →</span>
+        </Link>
+      </div>
+      <div role="img" aria-label={label}>
+        <SeasonGraphic timeline={timeline} compact={false} />
+        <SeasonGraphic timeline={timeline} compact />
       </div>
     </section>
   );
 }
 
-export function CalendarRow({
+export function FeaturedRace({
   race,
+  plan,
+  course,
+  onTrack,
   today,
 }: {
   race: RaceSummary;
+  plan: RacePlan;
+  course: StoredCourse | null;
+  onTrack: RaceOnTrack | null;
   today: string;
 }) {
-  const label = countdownLabel(race.date, today);
-  const terrain = [
-    race.distanceKm ? `${formatInteger(race.distanceKm)} km` : null,
-    race.elevationGainM ? `D+ ${formatInteger(race.elevationGainM)} m` : null,
+  const countdown = countdownLabel(race.date, today);
+  const distance = course
+    ? `${formatKm(course.distanceM)} km`
+    : race.distanceKm
+      ? `${formatInteger(race.distanceKm)} km`
+      : null;
+  const gain = course?.elevationGainM ?? race.elevationGainM;
+  const start = plan.startMinutes ?? defaultStartMinutes;
+  const meta = [
+    distance,
+    gain !== null ? `${formatInteger(gain)} m D+` : null,
+    `départ ${formatClock(start)}`,
   ].filter(Boolean);
+  const objective = race.targetSeconds
+    ? `objectif ${formatDuration(race.targetSeconds)}`
+    : null;
+  return (
+    <section
+      aria-label={race.name}
+      className="flex flex-col gap-4 rounded-[16px] border border-accent/30 bg-surface p-4.5 sm:gap-5 sm:px-7 sm:py-6.5"
+    >
+      <div className="flex items-center gap-3">
+        <PriorityBadge priority={race.priority} />
+        <MonoLabel size="nano" className="min-w-0 truncate md:text-label">
+          {race.priority === "A" ? "Objectif" : `Course ${race.priority}`}
+          {race.date && (
+            <>
+              <span className="md:hidden"> · {formatDayDate(race.date)}</span>
+              <span className="max-md:hidden">
+                {" "}
+                · {formatRaceDate(race.date)}
+              </span>
+            </>
+          )}
+        </MonoLabel>
+        {countdown && (
+          <span className="ml-auto shrink-0 font-metric text-[22px] leading-none font-semibold tabular-nums sm:text-[28px]">
+            {countdown}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h2 className="text-[26px] leading-[1.05] font-semibold tracking-[-0.02em] text-balance sm:text-[32px]">
+          {race.name}
+        </h2>
+        <span className="text-meta text-muted-foreground max-sm:basis-full sm:text-sm">
+          {meta.join(" · ")}
+          {objective && <span className="max-sm:hidden"> · {objective}</span>}
+        </span>
+        <Button
+          asChild
+          size="md"
+          className="ml-auto rounded-surface max-sm:hidden"
+        >
+          <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
+        </Button>
+      </div>
+      {onTrack && <OnTrack onTrack={onTrack} />}
+      <Button asChild size="lg" className="w-full rounded-surface sm:hidden">
+        <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
+      </Button>
+    </section>
+  );
+}
+
+export function CalendarCard({
+  race,
+  today,
+  goal = null,
+}: {
+  race: RaceSummary;
+  today: string;
+  goal?: GoalCard | null;
+}) {
+  const label = countdownLabel(race.date, today);
+  const distance = race.distanceKm
+    ? `${formatInteger(race.distanceKm)} km`
+    : null;
+  const gain = race.elevationGainM
+    ? `${formatInteger(race.elevationGainM)} m D+`
+    : null;
+  const cells = goal?.road
+    ? [
+        { label: "Objectif", value: goal.target ?? "—", tone: null },
+        {
+          label: "Prévision",
+          value: goal.road.prediction ?? "—",
+          tone: null,
+          provider: true,
+        },
+        {
+          label: "Écart",
+          value: goal.gap?.label ?? "—",
+          tone: goal.gap?.tone ?? null,
+        },
+      ]
+    : [
+        {
+          label: "Objectif",
+          value: race.targetSeconds ? formatDuration(race.targetSeconds) : "—",
+          tone: null,
+        },
+      ];
   return (
     <Link
       href={`/races/${race.id}`}
       prefetch={false}
-      className="grid items-center gap-x-5 gap-y-3 rounded-card border border-border bg-surface px-4 py-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:grid-cols-[2rem_minmax(0,1fr)_10rem_9rem_7rem_1rem] sm:px-5"
+      className="flex min-w-0 flex-col gap-2.5 rounded-panel border border-border bg-surface p-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring md:gap-3.5 md:px-6 md:py-5.5"
     >
-      <PriorityBadge priority={race.priority} />
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-base font-semibold">{race.name}</span>
-        <span className="text-meta text-muted">
-          {race.kind === "road" ? "Route" : "Trail"}
-        </span>
-      </span>
-      <span className="flex flex-col gap-0.5">
-        <span className="text-sm">
-          {race.date ? formatRaceDate(race.date) : "Date à définir"}
+      <span className="flex items-center gap-2.5">
+        <PriorityBadge priority={race.priority} small />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-[15px] font-semibold md:text-base">
+            {race.name}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {race.date && (
+              <>
+                <span className="md:hidden">
+                  {formatCompactDate(race.date)}
+                </span>
+                <span className="max-md:hidden">
+                  {formatCompactDate(race.date, true)}
+                </span>
+              </>
+            )}
+            {!race.date && "Date à définir"}
+            {[distance, gain]
+              .filter(Boolean)
+              .map((item) => ` · ${item}`)
+              .join("")}
+          </span>
         </span>
         {label && (
-          <span className="font-metric text-xl leading-none font-semibold">
+          <span className="shrink-0 font-metric text-xl leading-none font-semibold tabular-nums md:text-[22px]">
             {label}
           </span>
         )}
       </span>
-      <span className="font-metric text-xl leading-none font-semibold">
-        {terrain.length ? terrain.join(" · ") : "—"}
+      <span className="grid grid-cols-3 gap-2 border-t border-border pt-2 md:pt-3">
+        {cells.map((item) => (
+          <span key={item.label} className="flex flex-col md:gap-0.5">
+            <MonoLabel
+              size="nano"
+              className="flex items-center gap-1.5 md:text-micro"
+            >
+              {"provider" in item && (
+                <SourceMark source="provider" className="max-md:hidden" />
+              )}
+              {item.label}
+            </MonoLabel>
+            <span
+              className={cn(
+                "font-metric text-lg leading-tight font-semibold tabular-nums md:text-[22px]",
+                item.tone === "success" && "text-success",
+                item.tone === "warning" && "text-warning",
+              )}
+            >
+              {item.value}
+            </span>
+          </span>
+        ))}
       </span>
-      <span className="flex flex-col gap-0.5">
-        <span className="font-metric text-xl leading-none font-semibold">
-          {race.targetSeconds ? formatDuration(race.targetSeconds) : "—"}
-        </span>
-        <MonoLabel size="nano">Objectif</MonoLabel>
-      </span>
-      <ChevronRightIcon
-        aria-hidden="true"
-        className="size-4 text-muted-foreground max-sm:hidden"
-      />
     </Link>
   );
 }
 
 export function OpenSlot({ priority }: { priority: "B" }) {
   return (
-    <div className="grid items-center gap-x-5 gap-y-3 rounded-card border border-dashed border-border-strong px-4 py-4 sm:grid-cols-[2rem_minmax(0,1fr)_auto] sm:px-5">
-      <PriorityBadge priority={priority} planned={false} />
-      <span className="flex min-w-0 flex-col gap-1.5">
-        <span className="text-base font-semibold">
-          Aucune course B au calendrier
-        </span>
-        <span className="flex items-start gap-2.5 text-meta leading-normal text-pretty text-muted">
-          <StrideMark className="mt-0.5 size-3.5 shrink-0" />
-          Une course B sert de répétition générale avant l’objectif : départ,
-          nutrition et équipement testés dans les conditions réelles.
-        </span>
-      </span>
-      <Button asChild variant="outline" size="md" className="rounded-surface">
+    <section className="flex min-w-0 flex-col gap-3 rounded-panel border border-dashed border-dim px-6 py-5.5">
+      <div className="flex items-center gap-2.5">
+        <PriorityBadge priority={priority} planned={false} small />
+        <h3 className="text-[15px] font-semibold">Place pour une course B</h3>
+      </div>
+      <p className="text-meta leading-relaxed text-pretty text-muted">
+        Une course B sert de répétition générale avant l’objectif : départ,
+        nutrition et équipement testés dans les conditions réelles.
+      </p>
+      <Button
+        asChild
+        variant="outline"
+        size="md"
+        className="self-start rounded-surface"
+      >
         <Link href="/settings/goals">Ajouter une course B</Link>
       </Button>
-    </div>
+    </section>
   );
 }
 
-export function PastRaces({ races }: { races: RaceSummary[] }) {
+export function PastRaces({
+  races,
+  results,
+}: {
+  races: RaceSummary[];
+  results: Record<string, RaceResult>;
+}) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-136 border-collapse">
-        <thead>
-          <tr className="border-b border-border-strong text-left">
-            {["Course", "Date", "Distance", "D+", "Objectif"].map(
-              (heading, index) => (
-                <th
-                  key={heading}
-                  scope="col"
-                  className={cn(
-                    "pb-2 font-mono text-micro font-normal tracking-[0.08em] text-muted-foreground uppercase",
-                    index > 1 && "text-right",
-                  )}
-                >
-                  {heading}
-                </th>
-              ),
+    <ul className="flex flex-col">
+      {races.map((race) => {
+        const result = results[race.id];
+        const distance = result
+          ? `${formatKm(result.distanceMeters)} km`
+          : race.distanceKm
+            ? `${formatInteger(race.distanceKm)} km`
+            : null;
+        return (
+          <li
+            key={race.id}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.75 border-t border-border py-3.25 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_90px_minmax(0,1fr)_110px] md:gap-x-4"
+          >
+            <Link
+              href={`/races/${race.id}`}
+              prefetch={false}
+              className="min-w-0 truncate text-[15px] font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              {race.name}
+            </Link>
+            <span className="text-xs text-muted-foreground max-md:order-3 md:text-meta">
+              {[race.date ? formatCompactDate(race.date) : null, distance]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+            <span className="font-metric text-xl leading-none font-semibold tabular-nums max-md:order-2 max-md:text-right">
+              {result ? formatResultTime(result.seconds) : "—"}
+            </span>
+            <span className="text-xs max-md:order-4 max-md:text-right md:text-meta">
+              {result ? (
+                race.targetSeconds && result.deltaSeconds !== null ? (
+                  <>
+                    <span className="text-muted-foreground">
+                      <span className="md:hidden">obj.</span>
+                      <span className="max-md:hidden">objectif</span>{" "}
+                      {formatDuration(race.targetSeconds)} ·{" "}
+                    </span>
+                    <span
+                      className={
+                        result.deltaSeconds <= 0
+                          ? "text-success"
+                          : "text-warning"
+                      }
+                    >
+                      {formatResultDelta(result.deltaSeconds)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">sans objectif</span>
+                )
+              ) : (
+                <span className="text-muted-foreground">
+                  Résultat non trouvé
+                </span>
+              )}
+            </span>
+            {result ? (
+              <Link
+                href={`/activities/${result.activityId}`}
+                prefetch={false}
+                className="text-xs text-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-md:order-5 max-md:col-span-2 md:text-right md:text-meta"
+              >
+                Voir l’activité ›
+              </Link>
+            ) : (
+              <span aria-hidden="true" className="max-md:hidden" />
             )}
-          </tr>
-        </thead>
-        <tbody>
-          {races.map((race) => (
-            <tr key={race.id} className="border-b border-border">
-              <td className="py-3 pr-3">
-                <Link
-                  href={`/races/${race.id}`}
-                  prefetch={false}
-                  className="flex items-center gap-2.5 text-body font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
-                >
-                  <span className="font-metric text-muted">
-                    {race.priority}
-                  </span>
-                  {race.name}
-                </Link>
-              </td>
-              <td className="py-3 pr-3 text-meta text-muted">
-                {race.date ? formatRaceDate(race.date) : "—"}
-              </td>
-              <td className="py-3 text-right font-metric text-lg tabular-nums">
-                {race.distanceKm ? `${formatInteger(race.distanceKm)} km` : "—"}
-              </td>
-              <td className="py-3 text-right font-metric text-lg tabular-nums">
-                {race.elevationGainM
-                  ? `${formatInteger(race.elevationGainM)} m`
-                  : "—"}
-              </td>
-              <td className="py-3 text-right font-metric text-lg tabular-nums">
-                {race.targetSeconds ? formatDuration(race.targetSeconds) : "—"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -9,9 +9,9 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "18",
-      "hash": "e846b4a756b30e7f984e98d76143a4b2",
-      "remote_hash": "939b972a6a431758fff887aed5f44c58"
+      "version": "19",
+      "hash": "0c01be9e4144690d2b5fade1c03fc104",
+      "remote_hash": "cb2e019bdc7b21117bb716879f1aadfb"
     },
     "./agents/director.md": {
       "kind": "agent",
@@ -30,16 +30,16 @@
     "./agents/nutritionist.md": {
       "kind": "agent",
       "id": "agent_01T4vwuYeP5ZjKoLPDdHC9z4",
-      "version": "1",
-      "hash": "55436de8cfb1a6f81a5986d239a032da",
-      "remote_hash": "5bf93079eb37f3eca3a8c04d05baf137"
+      "version": "2",
+      "hash": "a2483f4e2b0d538ad396b28a42aed7a5",
+      "remote_hash": "25d0033b4c1dc51ea67d888d50b76601"
     },
     "./agents/strategist.md": {
       "kind": "agent",
       "id": "agent_015ajAPp18SxHnnA4QEcQ8st",
-      "version": "2",
-      "hash": "978f08a14ad5730117160e7c210ee6ea",
-      "remote_hash": "cebd53bbfdefcfcf7a0aff9cfe4f8f5b"
+      "version": "3",
+      "hash": "33fb8a9e46d8201685f2d692950a13ba",
+      "remote_hash": "ebf4bb911a09d620ba319499c91b2a15"
     },
     "./environments/coaching.yaml": {
       "kind": "environment",
@@ -62,8 +62,8 @@
     "./skills/fueling": {
       "kind": "skill",
       "id": "skill_01MUkdrYENWzre6pp9m9Yzt2",
-      "version": "skver_011bHzr86juxpJREv3LXfkaz",
-      "hash": "087e78331231b70cb8365068448c6865"
+      "version": "skver_01G6kZgnPiiRTjLLXFUEEf3M",
+      "hash": "ac57afc273ba5a4f01cc2f74b0be6c62"
     },
     "./skills/garmin-data-access": {
       "kind": "skill",
@@ -104,8 +104,8 @@
     "./skills/race-strategy": {
       "kind": "skill",
       "id": "skill_01NZHMP1ESZ1CdVEgR2hLQbc",
-      "version": "skver_017hdmzDyrRsZ3egnG9at9aa",
-      "hash": "dc220f0daa3aa3c8bb8d96a6720d239e"
+      "version": "skver_018iCaS9g3JPNr72yvtVgMPb",
+      "hash": "f8325ebb6b2040375e77bce444a0dd1d"
     },
     "./skills/season-calendar": {
       "kind": "skill",

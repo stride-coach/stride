@@ -21,6 +21,9 @@ vi.mock("../../src/server/races/races", () => ({
 vi.mock("../../src/server/races/views", () => ({
   weatherFor: sources.weatherFor,
 }));
+vi.mock("../../src/server/races/proposals", () => ({
+  readReadyRaceProposals: vi.fn(async () => []),
+}));
 vi.mock("../../src/server/plans/health", () => ({
   readPlanningHealth: sources.readPlanningHealth,
 }));
@@ -69,6 +72,10 @@ describe("specialist tool access", () => {
     expect(agentTools.director).toContain("read_season_calendar");
     expect(agentTools.strategist).toContain("read_race_strategy");
     expect(agentTools.nutritionist).toContain("read_nutrition_targets");
+    expect(agentTools.nutritionist).toEqual(
+      expect.arrayContaining(["read_race_nutrition", "propose_race_nutrition"]),
+    );
+    expect(agentTools.coach).not.toContain("propose_race_nutrition");
     for (const agent of ["director", "strategist", "nutritionist"] as const) {
       expect(agentTools[agent]).toEqual(
         expect.arrayContaining(["ask_athlete", "message_athlete"]),
@@ -189,6 +196,8 @@ describe("read_race_strategy", () => {
       hasCourse: false,
       scenarios: [],
       weather: null,
+      strategy: { revision: 0, consignes: [], segments: {} },
+      pendingProposal: null,
     });
     expect(sources.weatherFor).not.toHaveBeenCalled();
   });

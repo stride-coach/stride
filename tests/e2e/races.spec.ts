@@ -23,13 +23,12 @@ for (const viewport of [
     await expect(
       page.getByRole("heading", { level: 1, name: "Courses" }),
     ).toBeVisible();
-    for (const row of [/^Objectif de temps/, /^Heure de départ/]) {
-      await page.getByRole("button", { name: row }).click();
-      const dialog = page.getByRole("dialog", { name: "Modifier la course" });
-      await expect(dialog).toBeVisible();
-      await page.keyboard.press("Escape");
-      await expect(dialog).toBeHidden();
-    }
+    await expect(
+      page.getByRole("heading", { name: "Suis-je dans les temps ?" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("pas de prévision fiable en ultra"),
+    ).toBeVisible();
     await page.getByRole("link", { name: "Ouvrir la course" }).click();
     await expect(page).toHaveURL(
       /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb$/,
@@ -47,16 +46,30 @@ for (const viewport of [
     const sections = page.getByRole("navigation", {
       name: "Sections de la course",
     });
-    for (const label of [
-      "Roadbook",
+    await expect(sections.getByRole("link")).toHaveText([
+      "Course",
+      "Plan de course",
       "Nutrition",
-      "Équipement",
-      "Préparation",
+      "Équipement et check-lists",
+    ]);
+    for (const label of [
+      "Plan de course",
+      "Nutrition",
+      "Équipement et check-lists",
     ]) {
       await sections.getByRole("link", { name: label }).click();
       await expect(
         page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
       ).toBeVisible();
     }
+    await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/preparation");
+    await expect(page).toHaveURL(
+      /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb\/gear$/,
+    );
+    await expect(
+      sections.getByRole("link", { name: "Équipement et check-lists" }),
+    ).toHaveAttribute("aria-current", "page");
+    for (const list of ["J-7", "J-1", "Jour J"])
+      await expect(page.getByText(list, { exact: true }).first()).toBeVisible();
   });
 }

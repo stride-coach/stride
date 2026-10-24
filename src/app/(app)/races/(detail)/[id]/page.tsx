@@ -1,76 +1,30 @@
 import { Suspense } from "react";
-import { z } from "zod";
+import { localToday } from "@/features/app-shell/shell";
 import type { RaceWeather } from "@/features/races/weather";
 import { walkPortions, walkSummary } from "@/features/races/grade";
+import { raceOnTrack, type RaceOnTrack } from "@/features/races/on-track";
 import {
-  courseReading,
-  raceStrategy,
-  roadReading,
-  type Reading,
-} from "@/features/races/reading";
+  preparationProgress,
+  preparationRows,
+} from "@/features/races/overview";
 import { MapCard } from "@/features/races/components/map-card";
-import {
-  NightCard,
-  OtherRaces,
-  ProfileCard,
-  ReadingCard,
-  SimulationCard,
-  StrategyCard,
-  WeatherCard,
-  WeatherCardLoading,
-} from "@/features/races/components/course-cards";
+import { ProfileCard } from "@/features/races/components/course-cards";
 import { CourseImport } from "@/features/races/components/course-import";
+import { OnTrack } from "@/features/races/components/on-track";
+import { RaceCard } from "@/features/races/components/race-ui";
 import { TargetMissing } from "@/features/races/components/target-missing";
 import { WalkCard } from "@/features/races/components/walk-card";
 import { requireAthlete } from "@/server/app/session";
-import { listRaces, type RaceWorkspaceData } from "@/server/races/races";
+import type { RaceWorkspaceData } from "@/server/races/races";
 import { loadRace } from "@/server/races/load";
+import { loadOnTrackInputs } from "@/server/races/on-track";
 import { chartViews, planFor, weatherFor } from "@/server/races/views";
 import { listCourseActivities } from "@/server/races/activities";
-
-const scenarioSchema = z
-  .enum(["ambitious", "target", "cautious"])
-  .catch("target");
 
 type Workspace = {
   data: RaceWorkspaceData;
   views: NonNullable<ReturnType<typeof planFor>>;
-  races: Awaited<ReturnType<typeof listRaces>>;
 };
-
-function readingFor(
-  { data, views: { model, planned } }: Workspace,
-  weather: RaceWeather | null,
-): Reading | null {
-  if (!planned) return null;
-  return data.race.kind === "road"
-    ? roadReading({ model, planned, weather, date: data.race.date })
-    : courseReading({
-        model,
-        planned,
-        weather,
-        walkGrade: data.plan.walkGradePercent,
-        date: data.race.date,
-      });
-}
-
-function CourseReading({
-  pending,
-  ...props
-}: Workspace & { pending?: Promise<RaceWeather | null> }) {
-  const reading = readingFor(props, null);
-  if (!reading)
-    return <TargetMissing race={props.data.race} plan={props.data.plan} />;
-  const road = props.data.race.kind === "road";
-  return (
-    <ReadingCard
-      reading={reading}
-      pending={pending?.then((weather) => readingFor(props, weather)!)}
-      road={road}
-      strategy={!road}
-    />
-  );
-}
 
 async function CourseWithWeather({
   weather,
@@ -82,15 +36,9 @@ async function CourseWithWeather({
 function CourseWorkspace({
   data,
   views,
-  races,
   weather,
-  pendingWeather = null,
-}: Workspace & {
-  weather: RaceWeather | null;
-  pendingWeather?: React.ReactNode;
-}) {
-  const course = data.course!;
-  const { model, planned, scenarios } = views;
+}: Workspace & { weather: RaceWeather | null }) {
+  const { model, planned } = views;
   const { profile, map } = chartViews(model, planned, weather);
   const road = data.race.kind === "road";
   const roadProfile = road
@@ -122,10 +70,10 @@ function CourseWorkspace({
       <MapCard
         key={data.race.kind}
         data={map}
-        fileName={course.fileName ?? "parcours.gpx"}
+        segments={roadProfile.segments}
+        title={data.race.name}
         rainLabel={weather?.mode === "forecast" ? "Averses" : "Météo"}
         hasWeather={profile.rain.length > 0}
-        walkThreshold={data.plan.walkGradePercent}
         kind={data.race.kind}
       />
       <ProfileCard
@@ -137,102 +85,89 @@ function CourseWorkspace({
         walkDistanceM={walk.distanceM}
         race={data.race}
       />
-      {pendingWeather}
-      {weather && planned && (
-        <WeatherCard weather={weather} planned={planned} race={data.race} />
-      )}
       {!road && (
-        <div className="grid items-start gap-5 md:grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))]">
-          <WalkCard
-            raceId={data.race.id}
-            revision={data.plan.revision}
-            threshold={data.plan.walkGradePercent}
-            paceSecondsPerKm={data.plan.walkPaceSecondsPerKm}
-            rows={walkRows}
-            applied={planned !== null}
-          />
-          {planned?.night && planned.night.totalSeconds > 0 && (
-            <NightCard planned={planned} model={model} raceId={data.race.id} />
-          )}
-        </div>
+        <WalkCard
+          raceId={data.race.id}
+          revision={data.plan.revision}
+          threshold={data.plan.walkGradePercent}
+          paceSecondsPerKm={data.plan.walkPaceSecondsPerKm}
+          rows={walkRows}
+          applied={planned !== null}
+        />
       )}
-      {!road && planned && (
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-          <SimulationCard
-            model={model}
-            planned={planned}
-            scenarios={scenarios}
-            raceId={data.race.id}
-            walkThreshold={data.plan.walkGradePercent}
-            walkPace={data.plan.walkPaceSecondsPerKm}
-            aidStop={data.plan.aidStopSeconds}
-            waterStop={data.plan.waterStopSeconds}
-          />
-          <StrategyCard
-            items={raceStrategy({
-              model,
-              planned,
-              walkGrade: data.plan.walkGradePercent,
-              walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
-            })}
-          />
-        </div>
+    </>
+  );
+}
+
+function RaceStatus({
+  data,
+  onTrack,
+  askTarget = true,
+}: {
+  data: RaceWorkspaceData;
+  onTrack: RaceOnTrack | null;
+  askTarget?: boolean;
+}) {
+  return (
+    <>
+      {askTarget && !data.race.targetSeconds && (
+        <TargetMissing race={data.race} plan={data.plan} />
       )}
-      <OtherRaces races={races} currentId={data.race.id} />
+      {onTrack && (
+        <RaceCard>
+          <OnTrack onTrack={onTrack} />
+        </RaceCard>
+      )}
     </>
   );
 }
 
 export default async function RaceCoursePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ id }, query] = await Promise.all([params, searchParams]);
-  const [{ context, data }, races] = await Promise.all([
+  const inputsRead = requireAthlete().then((context) =>
+    loadOnTrackInputs(context, localToday(new Date())),
+  );
+  const { id } = await params;
+  const [{ context, data }, inputs] = await Promise.all([
     loadRace(id),
-    requireAthlete().then((context) => listRaces(context)),
+    inputsRead,
   ]);
+  const onTrack = raceOnTrack(
+    data.race,
+    inputs,
+    preparationProgress(preparationRows(data)),
+  );
   if (!data.course) {
     const activities = await listCourseActivities(context);
     return (
       <>
+        <RaceStatus data={data} onTrack={onTrack} askTarget={false} />
         <CourseImport
           race={data.race}
           activities={activities}
           replacing={false}
         />
-        <OtherRaces races={races} currentId={data.race.id} />
       </>
     );
   }
-  const views = planFor(data, scenarioSchema.parse(query.scenario))!;
-  const props = { data, views, races };
+  const views = planFor(data)!;
+  const props = { data, views };
   const { planned } = views;
   if (!planned || !data.race.date || planned.startEpochMs === null)
     return (
       <>
-        <CourseReading {...props} />
+        <RaceStatus data={data} onTrack={onTrack} />
         <CourseWorkspace {...props} weather={null} />
       </>
     );
   const weather = weatherFor(data, views.model, planned);
   return (
     <>
-      <CourseReading {...props} pending={weather} />
-      <Suspense
-        fallback={
-          <CourseWorkspace
-            {...props}
-            weather={null}
-            pendingWeather={
-              <WeatherCardLoading planned={planned} race={data.race} />
-            }
-          />
-        }
-      >
+      <RaceStatus data={data} onTrack={onTrack} />
+      <Suspense fallback={<CourseWorkspace {...props} weather={null} />}>
         <CourseWithWeather {...props} weather={weather} />
       </Suspense>
     </>

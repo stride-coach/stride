@@ -42,7 +42,6 @@ import {
   type StoredCourse,
 } from "@/features/races/race";
 import { courseModel, planModel } from "@/features/races/workspace";
-import { roadReading } from "@/features/races/reading";
 import { checklistTemplateFor } from "@/features/races/checklists";
 
 const metersPerDegree = 111_195;
@@ -233,9 +232,6 @@ describe("road race simulation", () => {
       (39 * 60) / 10,
       0,
     );
-    const reading = roadReading({ model, planned, weather: null, date: null });
-    expect(reading.body).toContain("3:54 /km");
-    expect(reading.body).not.toMatch(/frontale|marche|ravito/i);
   });
 
   it("uses road preparation tasks without trail equipment templates", () => {

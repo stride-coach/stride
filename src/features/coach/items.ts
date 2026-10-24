@@ -7,7 +7,13 @@ export const itemTextLimit = 7000;
 
 const text = z.string().max(itemTextLimit);
 
-export const proposalScopes = ["new_plan", "session"] as const;
+export const proposalScopes = [
+  "new_plan",
+  "session",
+  "race_strategy",
+  "race_nutrition",
+] as const;
+export type ProposalScope = (typeof proposalScopes)[number];
 
 export const opinionSchema = z.object({
   agent,
@@ -43,6 +49,8 @@ const bodies = {
   proposal: z.object({
     proposalId: z.uuid(),
     scope: z.enum(proposalScopes),
+    raceId: z.uuid().optional().catch(undefined),
+    agent: agent.optional().catch(undefined),
     title: z.string(),
     summary: text.nullable(),
     opinions: z.array(opinionSchema).catch([]),

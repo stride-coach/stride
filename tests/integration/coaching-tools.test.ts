@@ -337,6 +337,29 @@ function inputFor(name: string) {
     update_condition_report: { id: a.conditionId, severity: 1 },
     read_season_calendar: { candidates: [] },
     read_race_strategy: { raceId: a.raceId },
+    propose_race_strategy: {
+      raceId: a.raceId,
+      title: "Stratégie de course",
+      summary: null,
+      consignes: ["Pars lentement."],
+      segments: [],
+    },
+    read_race_nutrition: { raceId: a.raceId },
+    propose_race_nutrition: {
+      raceId: a.raceId,
+      title: "Nutrition de course",
+      summary: null,
+      targets: {
+        carbsPerHourG: 70,
+        waterMlPerHour: null,
+        sodiumMgPerHour: null,
+        caffeineMaxMg: null,
+        nightCaffeine: null,
+        flaskMl: null,
+        flaskCount: null,
+      },
+      plan: null,
+    },
     read_gear: { from: null, to: null },
     read_nutrition_targets: {
       from: isoDay(0),
@@ -456,6 +479,31 @@ describe("coaching tools run as athlete A", () => {
       raceId: b.raceId,
     });
     expect(strategy.content).toMatchObject({ code: "not_found" });
+    const raceProposal = await runCustomTool(
+      a.context,
+      "propose_race_strategy",
+      {
+        raceId: b.raceId,
+        title: "Stratégie",
+        summary: null,
+        consignes: ["Pars lentement."],
+        segments: [],
+      },
+    );
+    expect(raceProposal.content).toMatchObject({ code: "not_found" });
+    const nutrition = await runCustomTool(a.context, "read_race_nutrition", {
+      raceId: b.raceId,
+    });
+    expect(nutrition.content).toMatchObject({ code: "not_found" });
+    const nutritionProposal = await runCustomTool(
+      a.context,
+      "propose_race_nutrition",
+      {
+        ...(inputFor("propose_race_nutrition") as object),
+        raceId: b.raceId,
+      },
+    );
+    expect(nutritionProposal.content).toMatchObject({ code: "not_found" });
   });
 
   it("reads A's pairs, session pair and race pair break-in", async () => {
@@ -518,5 +566,13 @@ describe("coaching tools run as athlete A", () => {
       select count(*)::integer as count from public.plan_proposals
       where user_id = ${b.context.userId}`;
     expect(foreign.count).toBe(1);
+    const races = await sql<{ user_id: string; kind: string }[]>`
+      select user_id, kind from public.race_proposals
+      where user_id in (${a.context.userId}, ${b.context.userId})
+      order by kind`;
+    expect([...races]).toEqual([
+      { user_id: a.context.userId, kind: "nutrition" },
+      { user_id: a.context.userId, kind: "strategy" },
+    ]);
   });
 });

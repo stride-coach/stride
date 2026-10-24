@@ -3,7 +3,13 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
-import { MaximizeIcon, MinusIcon, PlusIcon } from "lucide-react";
+import {
+  ExpandIcon,
+  MaximizeIcon,
+  MinusIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/features/theme/components/theme-store";
 import type { ResolvedTheme } from "@/features/theme/model";
@@ -13,6 +19,7 @@ import { formatKm } from "../format";
 import {
   nearestRouteDistance,
   rangeLines,
+  showFrenchNames,
   type MapData,
   type MapMarker,
 } from "../map";
@@ -110,6 +117,12 @@ function RaceMapView({
   activeId = null,
   onSelect,
   onPick,
+  onFullscreen,
+  fullscreenRef,
+  onClose,
+  closeRef,
+  overlay,
+  cooperative = true,
   label,
   className,
 }: {
@@ -119,9 +132,16 @@ function RaceMapView({
   activeId?: string | null;
   onSelect?: (id: string) => void;
   onPick?: (distanceM: number) => void;
+  onFullscreen?: () => void;
+  fullscreenRef?: React.Ref<HTMLButtonElement>;
+  onClose?: () => void;
+  closeRef?: React.Ref<HTMLButtonElement>;
+  overlay?: React.ReactNode;
+  cooperative?: boolean;
   label: string;
   className?: string;
 }) {
+  const framed = Boolean(onFullscreen || onClose);
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -164,7 +184,7 @@ function RaceMapView({
           bounds: boundsOf(initial.route),
           fitBoundsOptions: { padding },
           attributionControl: false,
-          cooperativeGestures: true,
+          cooperativeGestures: cooperative,
           locale: {
             "Map.Title": "Carte du parcours",
             "CooperativeGesturesHandler.WindowsHelpText":
@@ -181,6 +201,7 @@ function RaceMapView({
         current.on("load", () => {
           if (disposed) return;
           clearTimeout(timeout);
+          showFrenchNames(current);
           const background = token(container, "--background");
           if (current.getLayer("background"))
             current.setPaintProperty(
@@ -272,7 +293,7 @@ function RaceMapView({
       mapRef.current = null;
       setReady(false);
     };
-  }, [routeKey, theme]);
+  }, [routeKey, theme, cooperative]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -406,7 +427,7 @@ function RaceMapView({
           />
         </svg>
       )}
-      {ready && (
+      {ready && !framed && (
         <div className="absolute top-3 right-3 flex flex-col overflow-hidden rounded-surface border border-border bg-surface/90">
           <Button
             variant="ghost"
@@ -442,6 +463,64 @@ function RaceMapView({
           </Button>
         </div>
       )}
+      {overlay && (
+        <div className="absolute top-3 left-3 z-10 flex max-w-[calc(100%-4.5rem)] flex-wrap gap-1.5">
+          {overlay}
+        </div>
+      )}
+      {framed && (
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+          {onClose ? (
+            <Button
+              variant="outline"
+              size="icon"
+              type="button"
+              ref={closeRef}
+              aria-label="Quitter le plein écran"
+              onClick={onClose}
+              className="size-10 bg-surface-inset md:size-9"
+            >
+              <XIcon className="size-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="icon"
+              type="button"
+              ref={fullscreenRef}
+              aria-label="Plein écran"
+              onClick={onFullscreen}
+              className="size-9 bg-surface-inset max-md:size-11"
+            >
+              <ExpandIcon className="size-3.5" />
+            </Button>
+          )}
+          {ready && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                aria-label="Zoom avant"
+                onClick={() => mapRef.current?.zoomIn()}
+                className="size-9 bg-surface-inset max-md:hidden"
+              >
+                <PlusIcon className="size-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                aria-label="Zoom arrière"
+                onClick={() => mapRef.current?.zoomOut()}
+                className="size-9 bg-surface-inset max-md:hidden"
+              >
+                <MinusIcon className="size-3.5" />
+              </Button>
+            </>
+          )}
+        </div>
+      )}
       {tooltip && tooltipPoint && (
         <div
           className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-surface border border-border-strong bg-surface/95 px-3 py-2"
@@ -472,19 +551,27 @@ function RaceMapView({
       {failed && !ready && (
         <span
           role="status"
-          className="absolute top-3 left-3 rounded-control bg-surface px-2 py-1 text-xs text-muted"
+          className={cn(
+            "absolute left-3 rounded-control bg-surface px-2 py-1 text-xs text-muted",
+            framed ? "bottom-7" : "top-3",
+          )}
         >
           Carte indisponible · tracé affiché
         </span>
       )}
-      <span className="absolute right-2.5 bottom-2 font-mono text-nano text-muted-foreground uppercase">
+      <span
+        className={cn(
+          "absolute bottom-2 font-mono text-nano text-muted-foreground uppercase",
+          framed ? "left-3" : "right-2.5",
+        )}
+      >
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noreferrer"
           className="hover:text-foreground"
         >
-          © OpenStreetMap
+          {framed ? "© OSM" : "© OpenStreetMap"}
         </a>
         {" · "}
         <a
@@ -493,9 +580,9 @@ function RaceMapView({
           rel="noreferrer"
           className="hover:text-foreground"
         >
-          © CARTO
+          {framed ? "CARTO" : "© CARTO"}
         </a>
-        {" · MapLibre"}
+        {framed ? " · noms en français" : " · MapLibre"}
       </span>
     </div>
   );

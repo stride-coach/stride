@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { parseRacesView } from "@/features/races/overview";
 import { RacesTitle } from "@/features/races/components/races-title";
 import { MonoLabel } from "@/components/stride/mono-label";
@@ -243,13 +244,10 @@ export function RaceLoading() {
   return (
     <LoadingScope
       label="Chargement des courses"
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-5 sm:gap-9"
     >
-      <Skeleton className="h-44 w-full rounded-panel" />
-      <div aria-hidden="true" className="grid gap-5 lg:grid-cols-2">
-        <Skeleton className="h-64 rounded-panel" />
-        <Skeleton className="h-64 rounded-panel" />
-      </div>
+      <Skeleton className="h-56 w-full rounded-panel" />
+      <Skeleton className="h-56 w-full rounded-panel md:h-105" />
     </LoadingScope>
   );
 }
@@ -259,32 +257,34 @@ export function RacesLoading() {
   return (
     <LoadingScope
       label="Chargement des courses"
-      className="flex flex-col gap-7 sm:gap-9"
+      className="flex flex-col gap-5 sm:gap-9"
     >
       <RacesTitle
         view={view}
         subtitle={<Skeleton className="h-6 w-56 max-w-full" />}
       />
-      <div aria-hidden="true" className="flex flex-col gap-7 sm:gap-9">
+      <div aria-hidden="true" className="flex flex-col gap-5 sm:gap-9">
         {view !== "past" && (
           <>
             <Skeleton className="h-36 w-full rounded-panel" />
             <Skeleton className="h-105 w-full rounded-panel lg:h-100" />
-            <div className="flex flex-col gap-3">
-              <Skeleton className="h-7 w-48" />
-              <Skeleton className="h-22 w-full rounded-card" />
-              <Skeleton className="h-22 w-full rounded-card" />
+            <div className="grid gap-5 md:grid-cols-2">
+              <Skeleton className="h-44 w-full rounded-panel" />
+              <Skeleton className="h-44 w-full rounded-panel max-md:hidden" />
             </div>
           </>
         )}
-        {view !== "upcoming" && (
-          <div className="flex flex-col gap-3">
-            <Skeleton className="h-7 w-44" />
-            {[0, 1, 2].map((item) => (
-              <Skeleton key={item} className="h-14 w-full" />
-            ))}
-          </div>
-        )}
+        <div
+          className={cn(
+            "flex flex-col gap-3",
+            view === "upcoming" && "max-md:hidden",
+          )}
+        >
+          <Skeleton className="h-6 w-44" />
+          {[0, 1, 2].map((item) => (
+            <Skeleton key={item} className="h-14 w-full" />
+          ))}
+        </div>
       </div>
     </LoadingScope>
   );

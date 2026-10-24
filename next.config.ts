@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
       { source: "/coach/equipe", destination: "/coach/team", permanent: true },
       { source: "/coach/nouvelle", destination: "/coach/new", permanent: true },
       {
+        source: "/races/:id/preparation",
+        destination: "/races/:id/gear",
+        permanent: true,
+      },
+      {
         source: "/plan/historique",
         destination: "/plan/history",
         permanent: true,

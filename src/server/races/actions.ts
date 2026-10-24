@@ -8,6 +8,7 @@ import {
   checklistLists,
   checklistTemplateFor,
 } from "@/features/races/checklists";
+import { dropBagExtrasSchema } from "@/features/fueling/race-plan";
 import { clockToSql } from "@/features/races/format";
 import { planInputSchema } from "@/features/races/race";
 import { raceValueSchemas, type RaceKind } from "@/features/onboarding/goals";
@@ -93,6 +94,12 @@ export async function saveRacePlan(
     }),
     ...(values.nightCaffeine !== undefined && {
       night_caffeine: values.nightCaffeine,
+    }),
+    ...(values.flaskMl !== undefined && { flask_ml: values.flaskMl }),
+    ...(values.flaskCount !== undefined && { flask_count: values.flaskCount }),
+    ...(values.bladderMl !== undefined && { bladder_ml: values.bladderMl }),
+    ...(values.caffeineMaxMg !== undefined && {
+      caffeine_max_mg: values.caffeineMaxMg,
     }),
   };
   try {
@@ -408,6 +415,48 @@ export async function applyChecklistTemplate(
   if (error) return { status: "error" };
   refresh(race.data);
   return { status: "saved" };
+}
+
+export async function saveDropBagExtras(
+  raceId: string,
+  revision: number | null,
+  input: unknown,
+): Promise<ActionResult> {
+  const race = idSchema.safeParse(raceId);
+  const extras = dropBagExtrasSchema.safeParse(input);
+  if (!race.success || !extras.success) return { status: "invalid" };
+  const current = await context();
+  if (!current) return { status: "session-expired" };
+  try {
+    const response =
+      revision === null
+        ? await current.client
+            .from("race_drop_bags")
+            .insert({
+              race_id: race.data,
+              user_id: current.userId,
+              extras: extras.data,
+            })
+            .select("race_id")
+            .maybeSingle()
+        : await current.client
+            .from("race_drop_bags")
+            .update({ extras: extras.data })
+            .eq("user_id", current.userId)
+            .eq("race_id", race.data)
+            .eq("revision", revision)
+            .select("race_id")
+            .maybeSingle();
+    if (response.error)
+      return response.error.code === "23505"
+        ? { status: "conflict" }
+        : { status: "error" };
+    if (!response.data) return { status: "conflict" };
+    refresh(race.data);
+    return { status: "saved" };
+  } catch {
+    return { status: "error" };
+  }
 }
 
 export async function importCourseFromActivity(

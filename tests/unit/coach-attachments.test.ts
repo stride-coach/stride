@@ -39,6 +39,7 @@ import {
   attachmentContextSchema,
   attachmentContextText,
   loadAttachmentOptions,
+  loadRaceOption,
   loadSessionOption,
   resolveAttachments,
 } from "../../src/server/coaching/attachments";
@@ -288,6 +289,17 @@ describe("attachment resolution", () => {
     ]);
     expect(await loadSessionOption(context, options, "unknown")).toEqual([]);
     expect(await loadSessionOption(context, options, "Bad Key!")).toEqual([]);
+  });
+
+  it("preselects only a listed race with a valid id", () => {
+    const listed = option("race", race.id, "2027-06-27");
+    const options = { session: [], activity: [], race: [listed] };
+    expect(loadRaceOption(options, race.id)).toEqual([listed]);
+    expect(
+      loadRaceOption(options, "c0000000-0000-4000-8000-00000000000c"),
+    ).toEqual([]);
+    expect(loadRaceOption(options, "not-a-uuid")).toEqual([]);
+    expect(loadRaceOption(options, null)).toEqual([]);
   });
 
   it("reads each record for the athlete and builds a typed context block", async () => {

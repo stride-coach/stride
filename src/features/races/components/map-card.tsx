@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Toggle } from "@/components/ui/toggle";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { formatKm } from "../format";
-import type { MapData } from "../map";
+import { fullscreenMapParam, raceWorkspaceId, type MapData } from "../map";
 import { RaceMap, type MapLayers } from "./race-map";
 
-export function LayerChip({
+function LayerChip({
   pressed,
   onPressedChange,
-  dot,
   children,
   className,
 }: {
   pressed: boolean;
   onPressedChange: (pressed: boolean) => void;
-  dot: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -27,95 +27,242 @@ export function LayerChip({
       pressed={pressed}
       onPressedChange={onPressedChange}
       className={cn(
-        "min-h-8 gap-1.75 rounded-full border border-border-strong px-3 text-meta text-muted data-[state=on]:border-dim data-[state=on]:bg-surface-raised data-[state=on]:text-foreground",
+        "min-h-8.5 rounded-full border border-border-strong bg-surface-inset px-3 text-meta text-muted hover:bg-surface-raised data-[state=on]:border-dim data-[state=on]:bg-surface-inset data-[state=on]:font-semibold data-[state=on]:text-foreground",
         className,
       )}
     >
-      <span aria-hidden="true" className={cn("size-1.75 rounded-full", dot)} />
       {children}
     </Toggle>
   );
 }
 
+export type MapSegment = {
+  fromM: number;
+  toM: number;
+  km: string;
+  gainM: number | null;
+};
+
+function segmentRows(data: MapData, segments: MapSegment[]) {
+  return segments.map((segment, index) => {
+    const arrival = data.markers.find(
+      (marker) => Math.abs(marker.distanceM - segment.toM) < 1,
+    );
+    const night = data.night.some(
+      (range) => segment.toM > range.fromM && segment.toM <= range.toM,
+    );
+    return {
+      key: `${segment.fromM}-${segment.toM}`,
+      label: `T${index + 1}`,
+      name: arrival?.name ?? `km ${formatKm(segment.toM)}`,
+      clock: arrival?.clock ?? null,
+      detail: [
+        segment.km,
+        segment.gainM !== null ? `+${segment.gainM} m` : null,
+        night ? "nuit" : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    };
+  });
+}
+
+function subscribeNever() {
+  return () => {};
+}
+
+function SegmentBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-control border border-border-strong bg-surface-raised px-1 font-metric text-xs font-semibold">
+      {label}
+    </span>
+  );
+}
+
+function FullscreenMap({
+  onClose,
+  data,
+  segments,
+  layers,
+  chips,
+  label,
+  title,
+}: {
+  onClose: () => void;
+  data: MapData;
+  segments: MapSegment[];
+  layers: MapLayers;
+  chips: React.ReactNode;
+  label: string;
+  title: string;
+}) {
+  const rows = segmentRows(data, segments);
+  const close = useRef<HTMLButtonElement>(null);
+  const container = useSyncExternalStore(
+    subscribeNever,
+    () => document.getElementById(raceWorkspaceId) ?? document.body,
+    () => null,
+  );
+  const closeHandler = useRef(onClose);
+  useEffect(() => {
+    closeHandler.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    if (!container) return;
+    close.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeHandler.current();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [container]);
+  if (!container) return null;
+  return createPortal(
+    <section
+      role="dialog"
+      aria-label={`Carte plein écran · ${title}`}
+      className="fixed inset-0 z-50 bg-background md:absolute md:z-30"
+    >
+      <RaceMap
+        data={data}
+        layers={layers}
+        label={label}
+        cooperative={false}
+        overlay={chips}
+        onClose={onClose}
+        closeRef={close}
+        className="absolute inset-0"
+      />
+      {rows.length > 0 && (
+        <aside
+          aria-label="Tronçons"
+          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-2xl border-t border-border bg-surface-inset/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-panel md:border md:bg-surface-inset md:p-4"
+        >
+          <span
+            aria-hidden="true"
+            className="h-1 w-9 self-center rounded-mark bg-border-strong md:hidden"
+          />
+          <MonoLabel size="nano" className="md:pb-2.5">
+            <span className="md:hidden">Tronçons · glisse pour voir</span>
+            <span className="max-md:hidden">Tronçons · scénario cible</span>
+          </MonoLabel>
+          <ol className="flex gap-2 max-md:[scrollbar-width:none] max-md:overflow-x-auto md:flex-col md:gap-0">
+            {rows.map((row) => (
+              <li
+                key={row.key}
+                className="flex w-37.5 shrink-0 flex-col gap-1 rounded-[10px] border border-border p-2.5 md:grid md:w-auto md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-x-2.5 md:gap-y-0.5 md:rounded-none md:border-0 md:border-t md:px-0 md:py-3"
+              >
+                <span className="self-start md:row-span-2">
+                  <SegmentBadge label={row.label} />
+                </span>
+                <span className="truncate text-meta">
+                  {row.name}
+                  {row.clock && (
+                    <span className="md:hidden"> · {row.clock}</span>
+                  )}
+                </span>
+                <span className="font-metric text-[15px] leading-none font-semibold tabular-nums max-md:hidden">
+                  {row.clock ?? ""}
+                </span>
+                <span className="text-[11px] text-muted-foreground md:col-start-2">
+                  {row.detail}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )}
+    </section>,
+    container,
+  );
+}
+
 export function MapCard({
   data,
-  fileName,
+  segments = [],
+  title,
   rainLabel,
   hasWeather,
-  walkThreshold,
   kind = "trail",
 }: {
   data: MapData;
-  walkThreshold: number;
-  fileName: string;
+  segments?: MapSegment[];
+  title: string;
   rainLabel: "Météo" | "Averses";
   hasWeather: boolean;
   kind?: "road" | "trail";
 }) {
   const road = kind === "road";
+  const pathname = usePathname();
+  const fullscreen = useSearchParams().has(fullscreenMapParam);
+  const opener = useRef<HTMLButtonElement>(null);
   const [layers, setLayers] = useState<MapLayers>({
     markers: !road,
-    walk: !road,
+    walk: false,
     night: !road,
-    rain: !road && rainLabel === "Averses",
+    rain: false,
   });
   const toggle = (key: keyof MapLayers) => (pressed: boolean) =>
     setLayers((current) => ({ ...current, [key]: pressed }));
+  const setFullscreen = (open: boolean) => {
+    window.history.replaceState(
+      null,
+      "",
+      open ? `${pathname}?${fullscreenMapParam}` : pathname,
+    );
+    if (!open) requestAnimationFrame(() => opener.current?.focus());
+  };
   const chips = road ? null : (
     <>
-      <LayerChip
-        pressed={layers.markers}
-        onPressedChange={toggle("markers")}
-        dot="bg-foreground"
-      >
-        Ravitos
-      </LayerChip>
-      <LayerChip
-        pressed={layers.walk}
-        onPressedChange={toggle("walk")}
-        dot="bg-accent"
-      >
-        <span className="max-sm:hidden">Marche ≥ {walkThreshold} %</span>
-        <span className="sm:hidden">Marche</span>
+      <LayerChip pressed={layers.markers} onPressedChange={toggle("markers")}>
+        Passages
       </LayerChip>
       {data.night.length > 0 && (
-        <LayerChip
-          pressed={layers.night}
-          onPressedChange={toggle("night")}
-          dot="bg-night"
-        >
+        <LayerChip pressed={layers.night} onPressedChange={toggle("night")}>
           Nuit
         </LayerChip>
       )}
+      <LayerChip pressed={layers.walk} onPressedChange={toggle("walk")}>
+        Marche
+      </LayerChip>
       {hasWeather && (
         <LayerChip
           pressed={layers.rain}
           onPressedChange={toggle("rain")}
-          dot="bg-provider"
+          className="max-md:hidden"
         >
           {rainLabel}
         </LayerChip>
       )}
     </>
   );
+  const label = `Carte du parcours, ${formatKm(data.distanceM)} km${road ? "" : `, ${data.markers.length} points de passage`}`;
   return (
-    <section className="flex min-w-0 flex-col overflow-hidden rounded-panel border border-border bg-surface">
-      <div className="hidden flex-wrap items-center justify-between gap-2.5 border-b border-border px-5 py-4 sm:flex">
-        <MonoLabel asChild>
-          <h2>Parcours · {fileName}</h2>
-        </MonoLabel>
-        <div className="flex flex-wrap gap-2">{chips}</div>
-      </div>
+    <section
+      aria-label="Carte du parcours"
+      className="min-w-0 overflow-hidden rounded-panel border border-border bg-surface"
+    >
       <RaceMap
         data={data}
         layers={layers}
-        label={`Carte du parcours, ${formatKm(data.distanceM)} km${road ? "" : `, ${data.markers.length} points de passage`}`}
-        className="h-60 sm:h-105"
+        label={label}
+        overlay={
+          chips && <div className="flex gap-1.5 max-md:hidden">{chips}</div>
+        }
+        fullscreenRef={opener}
+        onFullscreen={() => setFullscreen(true)}
+        className="h-56 md:h-105"
       />
-      {chips && (
-        <div className="flex [scrollbar-width:none] gap-2 overflow-x-auto px-3 py-3 sm:hidden">
-          {chips}
-        </div>
+      {fullscreen && (
+        <FullscreenMap
+          onClose={() => setFullscreen(false)}
+          data={data}
+          segments={segments}
+          layers={layers}
+          chips={chips}
+          label={label}
+          title={title}
+        />
       )}
     </section>
   );
