@@ -1,5 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 import lanes from "./tests/e2e/lanes.json";
+import { acquireE2eLock } from "./tests/fixtures/e2e-lock";
+
+// The config is also loaded by every worker; only the runner (no IPC channel) takes the lock.
+if (!process.env.CI && !process.send && process.env.PLAYWRIGHT_NO_LOCK !== "true") {
+  acquireE2eLock();
+}
 
 const appPort = Number(process.env.PLAYWRIGHT_APP_PORT ?? 3100);
 const authPort = Number(process.env.PLAYWRIGHT_AUTH_PORT ?? 3200);
@@ -12,7 +18,7 @@ const courseSpecs = specFiles(lanes.course);
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
-  workers: process.env.CI ? 4 : undefined,
+  workers: process.env.CI ? 4 : Number(process.env.PLAYWRIGHT_WORKERS ?? 1),
   retries: process.env.CI ? 1 : 0,
   testIgnore: "onboarding.spec.ts",
   reporter: "list",
