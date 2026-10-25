@@ -290,7 +290,9 @@ test("an athlete without a stored plan is invited to ask the coach", async ({
   await expect(
     page.getByRole("heading", { level: 1, name: "Pas encore de programme" }),
   ).toBeVisible();
-  await expect(page.getByText(/Demande au Coach/)).toBeVisible();
+  await expect(
+    page.getByText(/Demande au Coach/).filter({ visible: true }),
+  ).toBeVisible();
   await expect(page.getByText("Brouillon", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "Programme complet" }),

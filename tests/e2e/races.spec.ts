@@ -27,7 +27,9 @@ for (const viewport of [
       page.getByRole("heading", { name: "Suis-je dans les temps ?" }),
     ).toBeVisible();
     await expect(
-      page.getByText("pas de prévision fiable en ultra"),
+      page
+        .getByText("pas de prévision fiable en ultra")
+        .filter({ visible: true }),
     ).toBeVisible();
     await page.getByRole("link", { name: "Ouvrir la course" }).click();
     await expect(page).toHaveURL(

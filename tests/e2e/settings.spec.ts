@@ -25,6 +25,7 @@ test("keyboard help is searchable, platform-aware and available from the account
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await signIn(page);
   await page.goto("/activities");
   await page.getByRole("button", { name: /^Jules Profil/ }).click();
@@ -129,8 +130,10 @@ test("desktop settings reflect stored athlete data and expose every supported se
   await expect(page.getByRole("textbox", { name: "Prénom" })).toHaveValue(
     "Jules",
   );
-  await expect(page.getByLabel("Poids (kg)")).toHaveValue("68,2");
-  await page.getByLabel("Poids (kg)").fill("69");
+  await expect(page.getByRole("textbox", { name: "Poids (kg)" })).toHaveValue(
+    "68,2",
+  );
+  await page.getByRole("textbox", { name: "Poids (kg)" }).fill("69");
   await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
   await expect(
     page
@@ -138,7 +141,9 @@ test("desktop settings reflect stored athlete data and expose every supported se
       .filter({ hasText: "Profil enregistré." }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("Poids (kg)")).toHaveValue("69");
+  await expect(page.getByRole("textbox", { name: "Poids (kg)" })).toHaveValue(
+    "69",
+  );
   await page
     .getByRole("navigation", { name: "Réglages personnels" })
     .getByRole("link", { name: "Entraînement et coach" })
@@ -581,7 +586,7 @@ test("settings list open questions that link to the missing answer", async ({
   await expect(
     page.getByRole("link", { name: "Répondre : Quelle est ta FC max ?" }),
   ).toBeVisible();
-  await page.getByText("Voir les 9 autres").click();
+  await page.getByText("Voir les 9 autres").filter({ visible: true }).click();
   const question = page.getByRole("link", {
     name: "Répondre : Quel est ton poids ?",
   });
@@ -600,7 +605,7 @@ test("profile preserves partial French dates and decimal input and rejects inval
   await date.fill("");
   await date.pressSequentially("20 / 01 / 1990");
   await expect(date).toHaveValue("20 / 01 / 1990");
-  const weight = page.getByLabel("Poids (kg)");
+  const weight = page.getByRole("textbox", { name: "Poids (kg)" });
   await weight.fill("");
   await weight.pressSequentially("68,7");
   await expect(weight).toHaveValue("68,7");
