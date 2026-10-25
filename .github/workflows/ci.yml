@@ -21,6 +21,7 @@ jobs:
       migrations: ${{ steps.scope.outputs.migrations }}
       browser: ${{ steps.scope.outputs.browser }}
       browser_matrix: ${{ steps.scope.outputs.browser_matrix }}
+      runner: ${{ steps.runner.outputs.labels }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,17 +35,30 @@ jobs:
           CI_EVENT_NAME: ${{ github.event_name }}
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           CI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      - id: runner
+        run: |
+          labels='"ubuntu-latest"'
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::notice::RUNNER_STATUS_TOKEN is not set; using GitHub-hosted runners."
+          elif ! online=$(gh api "repos/$GITHUB_REPOSITORY/actions/runners" --jq '[.runners[] | select(.status == "online" and any(.labels[]; .name == "wsl"))] | length > 0'); then
+            echo "::warning::Could not list repository runners; using GitHub-hosted runners."
+          elif [ "$online" = true ]; then
+            labels='["self-hosted","wsl"]'
+          fi
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
 
   quality:
     needs: scope
     if: needs.scope.outputs.documentation_only != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(needs.scope.outputs.runner) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
+          cache: ${{ !contains(needs.scope.outputs.runner, 'self-hosted') && 'npm' || '' }}
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
@@ -54,7 +68,7 @@ jobs:
   browser:
     needs: scope
     if: needs.scope.outputs.browser == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(needs.scope.outputs.runner) }}
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host
@@ -83,6 +97,9 @@ jobs:
             test-results/.last-run.json
           if-no-files-found: warn
           retention-days: 7
+      - name: Restore workspace ownership
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' /__w)" /__w
 
   database-onboarding:
     needs: scope

@@ -987,6 +987,10 @@ const planStrengthSession = planMatchedSessions.findLast(
 const planStrengthActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005003";
 const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
 const planDoneStart = Date.parse(`${planDoneSession.scheduled_on}T17:12:00Z`);
+tables.provider_activities = tables.provider_activities.filter(
+  (row) =>
+    row.user_id !== planUser.id || Date.parse(row.started_at) < planDoneStart,
+);
 tables.provider_activities.push({
   ...activity(5000, 0, {
     distance_meters: 8320,

@@ -272,7 +272,6 @@ test("completed athletes reach the application and second athletes cannot read p
     p_expected_revision: row.revision,
   });
   expect(completed.error).toBeNull();
-  await consentFor(user.id);
   await page.goto("/onboarding/garmin");
   await expect(page).toHaveURL("http://127.0.0.1:3110/today");
   await page.reload();

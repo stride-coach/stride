@@ -124,7 +124,9 @@ for (const viewport of [
     ).toBeVisible();
     await expect(page.getByRole("region", { name: "Nuits" })).toBeVisible();
     await expect(
-      page.getByText("Aucune course passée avec des mesures de VFC."),
+      page
+        .getByText("Aucune course passée avec des mesures de VFC.")
+        .filter({ visible: true }),
     ).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth,
