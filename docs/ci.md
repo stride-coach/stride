@@ -16,6 +16,12 @@ Pull requests run a subset of browser specs. For each changed `src` file, scope 
 
 New commits cancel older CI runs for the same pull request. Main pushes use a unique run ID, so their runs do not cancel each other.
 
+## Runners
+
+`quality` and `browser` run on the self-hosted runner labelled `wsl` when one is online, and on `ubuntu-latest` otherwise. Scope checks the repository runners with the `RUNNER_STATUS_TOKEN` secret, a fine-grained token with read-only repository Administration permission, and exposes the chosen labels as its `runner` output. Without the secret, or when the API call fails, every job stays on GitHub-hosted runners. A runner that goes offline after scope has chosen it leaves its jobs queued until it returns or the run is canceled.
+
+The self-hosted runner executes jobs one at a time, so browser lanes run sequentially there. Browser containers run as root; a final step returns the mounted workspace to the runner user so the next checkout can clean it. `scope`, `validate`, `database`, `database-onboarding` and the release workflow always use GitHub-hosted runners: onboarding needs passwordless `sudo` for system browser dependencies, and its local Supabase stack would compete for the developer machine's ports.
+
 ## Isolated jobs
 
 | Job                         | Coverage                                                                              | Server / fixtures                                         |
