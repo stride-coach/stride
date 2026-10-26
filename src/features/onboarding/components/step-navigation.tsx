@@ -151,7 +151,7 @@ export function StepNavigation({
       </aside>
       <main
         id="onboarding-content"
-        className="flex min-w-0 flex-1 flex-col bg-surface-inset lg:my-2 lg:mr-2 lg:rounded-panel lg:border lg:border-border"
+        className="relative isolate flex min-w-0 flex-1 flex-col overflow-clip bg-surface-inset lg:my-2 lg:mr-2 lg:rounded-panel lg:border lg:border-border"
       >
         <header className="flex flex-col gap-5 px-5 pt-8 pb-5 lg:flex-row lg:items-center lg:gap-3 lg:border-b lg:border-border lg:px-6 lg:py-5">
           {previous && step === "profile" && (

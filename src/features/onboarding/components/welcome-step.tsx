@@ -23,7 +23,13 @@ const stages = [
     description: "Vérifie ce que j’ai appris. Corrige-moi.",
   },
 ];
-export function WelcomeStep({ revision }: { revision: number }) {
+export function WelcomeStep({
+  revision,
+  backdrop,
+}: {
+  revision: number;
+  backdrop?: React.ReactNode;
+}) {
   const { pending, failed, run } = useOnboardingTransition();
   function start() {
     run(
@@ -32,7 +38,8 @@ export function WelcomeStep({ revision }: { revision: number }) {
     );
   }
   return (
-    <div className="flex flex-1 flex-col lg:justify-center">
+    <div className="relative flex flex-1 flex-col lg:static lg:justify-center">
+      {backdrop}
       <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise lg:max-w-160 lg:flex-none lg:gap-10">
         <div className="flex flex-col gap-3.5 lg:gap-4.5">
           <StrideMark className="size-8.5 lg:size-10" strokeWidth="1.6" />

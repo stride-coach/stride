@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Halo } from "@/components/stride/halo";
 import { cn } from "@/lib/utils";
 
 export function Wordmark({
@@ -40,6 +41,14 @@ export function Wordmark({
   );
 }
 
+const signInTrajectory =
+  "M-20,820 C60,760 120,700 180,690 S260,640 300,560 S360,470 430,440 S520,400 560,330 S640,250 720,230";
+const signUpTrajectory =
+  "M-20,820 C60,760 120,700 180,690 S260,640 300,560 S360,470 430,440";
+const signUpRemainder = "M430,440 C500,410 520,400 560,330 S640,250 720,230";
+const mobileTrajectory =
+  "M-10,270 C40,240 90,220 140,210 S220,170 260,130 S330,80 400,70";
+
 function Terrain({ signup }: { signup: boolean }) {
   return (
     <>
@@ -61,24 +70,34 @@ function Terrain({ signup }: { signup: boolean }) {
             <path d="M155 301c61-45 105-35 125 6s-77 44-108 28-21-27-17-34Z" />
           )}
         </g>
-        <path
-          d="M-20 830C52 780 110 723 170 706S264 682 309 581"
-          className="stroke-accent"
-          strokeWidth="2"
-        />
-        <path
-          d="M309 581C353 482 416 447 475 421S550 387 591 320 660 244 742 224"
-          className={signup ? "stroke-muted-foreground" : "stroke-accent"}
-          strokeWidth="2"
-          strokeDasharray={signup ? "4 6" : undefined}
-        />
-        <circle
-          cx={signup ? 309 : 591}
-          cy={signup ? 581 : 320}
-          r="4"
-          className="fill-accent"
-        />
       </svg>
+      <Halo
+        viewBox="0 0 700 900"
+        preserveAspectRatio="none"
+        path={signup ? signUpTrajectory : signInTrajectory}
+        pool={
+          signup ? { cx: 420, cy: 380, r: 460 } : { cx: 546, cy: 270, r: 500 }
+        }
+        width={150}
+        point={signup ? { x: 430, y: 440 } : { x: 560, y: 330 }}
+        scrim="bottom-start"
+        className="absolute inset-0 hidden h-full w-full md:block"
+      />
+      {signup && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 700 900"
+          preserveAspectRatio="none"
+          className="absolute inset-0 hidden h-full w-full fill-none md:block"
+        >
+          <path
+            d={signUpRemainder}
+            className="stroke-muted-foreground"
+            strokeWidth="2"
+            strokeDasharray="4 6"
+          />
+        </svg>
+      )}
       <svg
         aria-hidden="true"
         viewBox="0 0 390 240"
@@ -93,12 +112,15 @@ function Terrain({ signup }: { signup: boolean }) {
             />
           ))}
         </g>
-        <path
-          d="M-10 240C60 193 114 189 160 173S225 142 261 105 339 62 402 50"
-          className="stroke-accent"
-          strokeWidth="2"
-        />
       </svg>
+      <Halo
+        viewBox="0 0 390 270"
+        path={mobileTrajectory}
+        pool={{ cx: 312, cy: 68, r: 290 }}
+        width={90}
+        scrim="bottom"
+        className="absolute inset-0 h-full w-full md:hidden"
+      />
     </>
   );
 }
