@@ -1,7 +1,8 @@
 import { spawn } from "node:child_process";
-import config from "../playwright.config";
 
 export async function main(): Promise<number> {
+  process.env.PLAYWRIGHT_NO_LOCK = "true";
+  const { default: config } = await import("../playwright.config");
   const servers = [config.webServer ?? []].flat();
   const app = servers.find((server) => server.url === config.use?.baseURL);
   if (!app?.command) throw new Error("The e2e app server is not configured.");
