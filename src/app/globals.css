@@ -39,6 +39,15 @@
   --zone-3: #a9c94a;
   --zone-4: #e8f59a;
   --zone-5: var(--danger);
+  --halo: #d5ff3f;
+  --halo-core: #e6ff8a;
+  --halo-spark: #f2ffc4;
+  --halo-trace: var(--accent);
+  --halo-point: var(--halo-spark);
+  --halo-pool-opacity: 0.26;
+  --halo-ribbon-opacity: 0.42;
+  --halo-ribbon-core-opacity: 0.6;
+  --halo-spark-opacity: 0.7;
   --focus: var(--accent);
   --card: var(--surface);
   --card-foreground: var(--foreground);
@@ -105,6 +114,13 @@
   --zone-1: #c3c8bb;
   --zone-3: #8fb23a;
   --zone-4: #d1b83a;
+  --halo-core: #d5ff3f;
+  --halo-trace: #4d6b00;
+  --halo-point: #4d6b00;
+  --halo-pool-opacity: 0.45;
+  --halo-ribbon-opacity: 0.55;
+  --halo-ribbon-core-opacity: 0;
+  --halo-spark-opacity: 0;
 }
 
 @theme inline {
@@ -143,6 +159,11 @@
   --color-zone-3: var(--zone-3);
   --color-zone-4: var(--zone-4);
   --color-zone-5: var(--zone-5);
+  --color-halo: var(--halo);
+  --color-halo-core: var(--halo-core);
+  --color-halo-spark: var(--halo-spark);
+  --color-halo-trace: var(--halo-trace);
+  --color-halo-point: var(--halo-point);
   --color-focus: var(--focus);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -210,6 +231,8 @@
   --animate-sheen: sheen 1.8s linear infinite;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
   --animate-data-sheen: data-sheen 1.6s linear infinite;
+  --animate-halo-breathe: halo-breathe 8s ease-in-out infinite;
+  --animate-halo-draw: halo-draw 2s var(--stride-ease) 300ms both;
 
   @keyframes rise {
     from {
@@ -248,6 +271,25 @@
   @keyframes breathe {
     50% {
       opacity: 0.35;
+    }
+  }
+
+  @keyframes halo-breathe {
+    0%,
+    100% {
+      opacity: 0.85;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes halo-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
     }
   }
 }

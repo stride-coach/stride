@@ -66,6 +66,7 @@ import { CoachNote } from "@/components/stride/coach-note";
 import { ConfidenceMeter } from "@/components/stride/confidence-meter";
 import { DecisionLegend, LedgerEntry } from "@/components/stride/ledger-entry";
 import { TrendLabel } from "@/components/stride/marks";
+import { Halo } from "@/components/stride/halo";
 import { Metric } from "@/components/stride/metric";
 import { MonoLabel } from "@/components/stride/mono-label";
 import {
@@ -854,6 +855,28 @@ export default function DesignSystemPage() {
               Sleep and HRV are both down.
             </LedgerEntry>
             <DecisionLegend />
+          </Specimen>
+          <Specimen title="Halo Volt" meta="Halo · entry and highlight only">
+            <div className="relative isolate flex h-64 flex-col justify-end overflow-hidden rounded-panel border border-border-subtle bg-background p-6">
+              <Halo
+                viewBox="0 0 600 300"
+                path="M-20,290 C140,270 230,170 330,140 S500,80 620,30"
+                pool={{ cx: 432, cy: 105, r: 360 }}
+                width={110}
+                point={{ x: 330, y: 140 }}
+                scrim="bottom-start"
+                className="absolute inset-0 -z-10 size-full"
+              />
+              <p className="text-title font-semibold">
+                Ton coach sait déjà d’où tu viens.
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pool, blurred ribbon and crisp trace from the halo tokens, with a
+              scrim in the surface color under text. Breathes over 8 s and stays
+              static with reduced motion. Never behind data, buttons, badges or
+              status, and one per screen.
+            </p>
           </Specimen>
           <Specimen title="Coach presence" meta="no sparkles">
             <dl className="grid grid-cols-[5.625rem_minmax(0,1fr)] border-t border-border">
