@@ -69,7 +69,7 @@ The halo is the lit track of Night Track: a Volt trajectory that diffuses its li
 - **Forbidden:** behind numbers, charts, maps or training zones; on buttons, badges, cards or status; on everyday screens such as Aujourd’hui, Plan, Activités, Progression and Santé; near Garmin brand elements; and more than one halo in a visible viewport.
 - **Accessibility:** the SVG is `aria-hidden` and decorative. Text over it keeps 4.5:1 contrast through the scrim. The pool and ribbon breathe over 8 seconds (`animate-halo-breathe`) and the trace draws in over 2 seconds (`animate-halo-draw`), both only under `motion-safe:`; reduced motion shows a static halo with the trace fully drawn. Gradient and filter ids come from `useId`, so several instances never share ids. The halo needs no client JavaScript.
 
-On a sign-up screen only the completed segment is lit: glow means done, and the dashed muted remainder means ahead.
+On a sign-up screen only the completed segment is lit: glow means done, and the dashed muted remainder means ahead. On the onboarding welcome the halo sits in the content's top-right corner below the step header on mobile, never behind the step status or selector, and fills the work area from `xl`; between `lg` and `xl` the text column leaves no room, so the screen shows none. A client component receives the halo as a server-rendered prop, as `WelcomeStep` does with `backdrop`, so the halo never ships client JavaScript.
 
 ## Components and shadcn
 

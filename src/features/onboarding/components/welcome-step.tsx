@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Halo } from "@/components/stride/halo";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
 import { completeOnboarding } from "@/server/onboarding/actions";
@@ -24,7 +23,13 @@ const stages = [
     description: "Vérifie ce que j’ai appris. Corrige-moi.",
   },
 ];
-export function WelcomeStep({ revision }: { revision: number }) {
+export function WelcomeStep({
+  revision,
+  backdrop,
+}: {
+  revision: number;
+  backdrop?: React.ReactNode;
+}) {
   const { pending, failed, run } = useOnboardingTransition();
   function start() {
     run(
@@ -33,28 +38,8 @@ export function WelcomeStep({ revision }: { revision: number }) {
     );
   }
   return (
-    <div className="flex flex-1 flex-col lg:justify-center">
-      <Halo
-        viewBox="0 0 1160 984"
-        preserveAspectRatio="xMaxYMin slice"
-        path="M520,1040 C640,900 700,860 800,800 S900,600 960,500 S1060,300 1200,140"
-        pool={{ cx: 998, cy: 118, r: 640 }}
-        width={170}
-        scrim="start"
-        surface="inset"
-        className="absolute inset-0 -z-10 hidden size-full lg:block"
-      />
-      <Halo
-        viewBox="0 0 390 320"
-        preserveAspectRatio="xMaxYMin slice"
-        path="M120,250 C210,232 275,200 318,160 S376,112 420,98"
-        pool={{ cx: 345, cy: 175, r: 125 }}
-        width={80}
-        trace={false}
-        scrim="bottom"
-        surface="inset"
-        className="absolute top-0 right-0 -z-10 h-80 w-97.5 lg:hidden"
-      />
+    <div className="relative flex flex-1 flex-col lg:static lg:justify-center">
+      {backdrop}
       <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise lg:max-w-160 lg:flex-none lg:gap-10">
         <div className="flex flex-col gap-3.5 lg:gap-4.5">
           <StrideMark className="size-8.5 lg:size-10" strokeWidth="1.6" />

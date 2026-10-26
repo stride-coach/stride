@@ -73,6 +73,7 @@ function Terrain({ signup }: { signup: boolean }) {
       </svg>
       <Halo
         viewBox="0 0 700 900"
+        preserveAspectRatio="none"
         path={signup ? signUpTrajectory : signInTrajectory}
         pool={
           signup ? { cx: 420, cy: 380, r: 460 } : { cx: 546, cy: 270, r: 500 }
@@ -86,7 +87,7 @@ function Terrain({ signup }: { signup: boolean }) {
         <svg
           aria-hidden="true"
           viewBox="0 0 700 900"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="none"
           className="absolute inset-0 hidden h-full w-full fill-none md:block"
         >
           <path
