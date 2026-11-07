@@ -471,6 +471,22 @@ export async function* streamCoachTurn(
   }, turnTimeoutMs);
 
   let pendingQuestion: PendingQuestion | null = null;
+  const answered = new Set<string>(
+    request.input.kind === "answer" ? [request.input.toolUseId] : [],
+  );
+  const sendToolResult = (toolUseId: string, outcome: ToolOutcome) => {
+    answered.add(toolUseId);
+    return client.beta.sessions.events.send(id, {
+      events: [
+        {
+          type: "user.custom_tool_result",
+          custom_tool_use_id: toolUseId,
+          is_error: !outcome.ok,
+          content: [{ type: "text", text: JSON.stringify(outcome.content) }],
+        },
+      ],
+    });
+  };
   const threadAgents = new Map<string, string>();
   const endedThreads = new Set<string>();
   const speakerOf = (thread: string | null | undefined): StaffAgent =>
@@ -603,6 +619,11 @@ export async function* streamCoachTurn(
               ok: false,
               content: toolError("unknown_tool").toBody(),
             };
+          } else if (event.name === askAthleteTool.name && pendingQuestion) {
+            outcome = {
+              ok: false,
+              content: toolError("question_pending").toBody(),
+            };
           } else if (event.name === askAthleteTool.name) {
             const asked = questionOf(event.input, caller);
             if (asked.ok) {
@@ -654,18 +675,7 @@ export async function* streamCoachTurn(
             caller,
           );
           if (proposal) yield persist(proposal);
-          await client.beta.sessions.events.send(id, {
-            events: [
-              {
-                type: "user.custom_tool_result",
-                custom_tool_use_id: event.id,
-                is_error: !outcome.ok,
-                content: [
-                  { type: "text", text: JSON.stringify(outcome.content) },
-                ],
-              },
-            ],
-          });
+          await sendToolResult(event.id, outcome);
           break;
         }
         case "span.model_request_start":
@@ -709,11 +719,29 @@ export async function* streamCoachTurn(
           }
           break;
         }
-        case "session.status_idle":
+        case "session.status_idle": {
           stopReason = event.stop_reason.type;
-          if (event.stop_reason.type !== "requires_action" || pendingQuestion)
-            break loop;
+          if (event.stop_reason.type !== "requires_action") break loop;
+          const orphans = (event.stop_reason.event_ids ?? []).filter(
+            (eventId) =>
+              !answered.has(eventId) && eventId !== pendingQuestion?.toolUseId,
+          );
+          if (orphans.length)
+            console.warn("Coach turn released unanswered tool calls", {
+              count: orphans.length,
+            });
+          for (const eventId of orphans)
+            await sendToolResult(eventId, {
+              ok: false,
+              content: toolError("tool_unavailable").toBody(),
+            }).catch((error: unknown) => {
+              console.error("Coach tool call was not released", {
+                error: error instanceof Error ? error.message : "unknown",
+              });
+            });
+          if (pendingQuestion) break loop;
           break;
+        }
         case "session.status_terminated":
           stopReason = "terminated";
           break loop;

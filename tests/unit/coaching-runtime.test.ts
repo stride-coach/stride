@@ -503,6 +503,108 @@ describe("coach turn stream", () => {
     );
   });
 
+  it("refuses a second ask_athlete while a question is pending", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    managed.stream.mockResolvedValue(
+      streamOf([
+        {
+          type: "agent.custom_tool_use",
+          id: "sevt_ask",
+          name: "ask_athlete",
+          input: { question: "Depuis quand ?" },
+        },
+        {
+          type: "agent.custom_tool_use",
+          id: "sevt_ask_again",
+          name: "ask_athlete",
+          input: { question: "Où as-tu mal ?" },
+        },
+        {
+          type: "session.status_idle",
+          stop_reason: {
+            type: "requires_action",
+            event_ids: ["sevt_ask", "sevt_ask_again"],
+          },
+        },
+      ]),
+    );
+
+    const events = await collect(
+      streamCoachTurn(contextFor(athleteA), request),
+    );
+
+    expect(managed.send).toHaveBeenCalledWith("sesn_01A", {
+      events: [
+        expect.objectContaining({
+          custom_tool_use_id: "sevt_ask_again",
+          is_error: true,
+          content: [
+            {
+              type: "text",
+              text: expect.stringContaining('"code":"question_pending"'),
+            },
+          ],
+        }),
+      ],
+    });
+    expect(events).toContainEqual({
+      type: "question",
+      question: expect.objectContaining({
+        toolUseId: "sevt_ask",
+        question: "Depuis quand ?",
+      }),
+    });
+    expect(events.at(-1)).toMatchObject({ status: "awaiting_athlete" });
+  });
+
+  it("releases tool calls the session waits on but the turn never saw", async () => {
+    store.findOwnSession.mockResolvedValue(
+      record({ status: "awaiting_athlete", pendingToolUseId: "sevt_ask" }),
+    );
+    managed.stream.mockResolvedValue(
+      streamOf([
+        {
+          type: "session.status_idle",
+          stop_reason: {
+            type: "requires_action",
+            event_ids: ["sevt_ask", "sevt_orphan"],
+          },
+        },
+        {
+          type: "agent.message",
+          content: [{ type: "text", text: "C’est noté." }],
+        },
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+
+    const events = await collect(
+      streamCoachTurn(contextFor(athleteA), {
+        ...request,
+        input: { kind: "answer", toolUseId: "sevt_ask", text: "Non, rien" },
+      }),
+    );
+
+    expect(managed.send).toHaveBeenCalledWith("sesn_01A", {
+      events: [
+        expect.objectContaining({
+          custom_tool_use_id: "sevt_orphan",
+          is_error: true,
+        }),
+      ],
+    });
+    expect(managed.send).not.toHaveBeenCalledWith("sesn_01A", {
+      events: [
+        expect.objectContaining({
+          custom_tool_use_id: "sevt_ask",
+          is_error: true,
+        }),
+      ],
+    });
+    expect(events).toContainEqual({ type: "coach", text: "C’est noté." });
+    expect(events.at(-1)).toMatchObject({ status: "idle" });
+  });
+
   it("resumes with the athlete's answer to the pending question", async () => {
     store.findOwnSession.mockResolvedValue(
       record({ status: "awaiting_athlete", pendingToolUseId: "sevt_ask" }),
