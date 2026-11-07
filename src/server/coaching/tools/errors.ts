@@ -7,6 +7,7 @@ export const toolErrorCodes = [
   "invalid_plan",
   "unknown_tool",
   "tool_unavailable",
+  "question_pending",
 ] as const;
 
 export type ToolErrorCode = (typeof toolErrorCodes)[number];
@@ -20,6 +21,8 @@ export const toolErrorMessages: Record<ToolErrorCode, string> = {
   invalid_plan: "Le plan envoyé n’est pas au bon format.",
   unknown_tool: "Outil inconnu.",
   tool_unavailable: "Cet outil est momentanément indisponible.",
+  question_pending:
+    "Une question attend déjà la réponse de l’athlète. Pose une seule question à la fois.",
 };
 
 export type ToolErrorBody = {
