@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, RotateCcwIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContextChipLink } from "@/components/stride/context-chip";
 import { MonoLabel } from "@/components/stride/mono-label";
@@ -236,12 +236,14 @@ function StaffMessage({
   timeZone,
   onAnswer,
   onOther,
+  onRetry,
   busy,
 }: {
   entry: Extract<ThreadEntry, { type: "staff" }>;
   timeZone: string;
   onAnswer: (text: string) => void;
   onOther: () => void;
+  onRetry?: () => void;
   busy: boolean;
 }) {
   return (
@@ -280,9 +282,21 @@ function StaffMessage({
           if (block.type === "proposal")
             return <ProposalCard key={index} block={block} />;
           return (
-            <p key={index} className="text-sm text-danger">
-              {block.text}
-            </p>
+            <div key={index} className="flex flex-col items-start gap-2">
+              <p className="text-sm text-danger">{block.text}</p>
+              {onRetry && index === entry.blocks.length - 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={busy}
+                  onClick={onRetry}
+                >
+                  <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
+                  Renvoyer le message
+                </Button>
+              )}
+            </div>
           );
         })}
         {entry.reads.length > 0 && (
@@ -404,6 +418,7 @@ export function ThreadLog({
   busy,
   onAnswer,
   onOther,
+  onRetry,
 }: {
   entries: ThreadEntry[];
   pending: { text: string; attachments: SentAttachment[] } | null;
@@ -412,6 +427,7 @@ export function ThreadLog({
   busy: boolean;
   onAnswer: (text: string) => void;
   onOther: () => void;
+  onRetry?: () => void;
 }) {
   return (
     <div
@@ -444,6 +460,9 @@ export function ThreadLog({
                 timeZone={timeZone}
                 onAnswer={onAnswer}
                 onOther={onOther}
+                onRetry={
+                  index === entries.length - 1 && !pending ? onRetry : undefined
+                }
                 busy={busy}
               />
             )}

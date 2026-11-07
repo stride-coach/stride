@@ -12,6 +12,7 @@ const store = vi.hoisted(() => ({
 const managed = vi.hoisted(() => ({
   retrieve: vi.fn(),
   create: vi.fn(),
+  update: vi.fn(),
   stream: vi.fn(),
   send: vi.fn(),
 }));
@@ -36,6 +37,7 @@ vi.mock("../../src/server/coaching/managed/resources", () => ({
       sessions: {
         retrieve: managed.retrieve,
         create: managed.create,
+        update: managed.update,
         events: { stream: managed.stream, send: managed.send },
       },
     },
@@ -189,10 +191,16 @@ describe("turn preconditions", () => {
   const answer = { kind: "answer", toolUseId: "sevt_1", text: "Oui" } as const;
 
   it("rejects closed sessions", () => {
-    for (const status of ["budget_reached", "failed", "terminated"] as const)
+    for (const status of ["budget_reached", "terminated"] as const)
       expect(() => assertTurnAllowed(record({ status }), message, now)).toThrow(
         SessionStateError,
       );
+  });
+
+  it("lets the athlete resend after a failed turn", () => {
+    expect(() =>
+      assertTurnAllowed(record({ status: "failed" }), message, now),
+    ).not.toThrow();
   });
 
   it("rejects a second turn while one is running, unless it is stale", () => {
@@ -292,15 +300,40 @@ describe("coach turn stream", () => {
         metadata: { stride_user_id: athleteA, mode: "conversation" },
         budget: {
           type: "limit",
-          max_list_cost: { amount: "100", currency: "USD" },
+          max_list_cost: { amount: "500", currency: "USD" },
         },
       }),
     );
     expect(store.recordSession).toHaveBeenCalledWith(expect.anything(), {
       managedSessionId: "sesn_01A",
       mode: "conversation",
-      budgetCents: 100,
+      budgetCents: 500,
       title: "Comment se passe ma semaine",
+    });
+  });
+
+  it("raises the budget of a session created under a lower cap", async () => {
+    store.findOwnSession.mockResolvedValue(record({ status: "failed" }));
+    managed.update.mockResolvedValue({});
+    managed.retrieve.mockResolvedValue({
+      id: "sesn_01A",
+      metadata: { stride_user_id: athleteA },
+      budget: {
+        type: "limit",
+        max_list_cost: { amount: "100", currency: "USD" },
+      },
+    });
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+    await collect(streamCoachTurn(contextFor(athleteA), request));
+    expect(managed.update).toHaveBeenCalledWith("sesn_01A", {
+      budget: {
+        type: "limit",
+        max_list_cost: { amount: "500", currency: "USD" },
+      },
     });
   });
 
