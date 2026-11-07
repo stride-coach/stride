@@ -9,7 +9,7 @@ import {
   predictionFixture,
   profileFixture,
 } from "./coaching-tools-fixture";
-import { planState } from "./plan-fixture";
+import { easyRun, planState } from "./plan-fixture";
 
 vi.mock("server-only", () => ({}));
 
@@ -697,6 +697,96 @@ describe("create_plan_proposal", () => {
             op: "replace_session",
             sessionKey: "s-2026-10-20-1",
             content: { title: "x" },
+          },
+        ],
+      },
+    );
+    expect(outcome.content).toMatchObject({ code: "invalid_input" });
+  });
+
+  it("adds a session on a busy day and targets the new key", async () => {
+    const { client } = fakeClient(
+      {},
+      { data: { id: proposalId, status: "ready" }, error: null },
+    );
+    const outcome = await runCustomTool(
+      contextWith(client),
+      "create_plan_proposal",
+      {
+        ...proposal,
+        operations: [
+          {
+            op: "add_session",
+            session: { scheduledOn: "2026-10-22", content: easyRun(30) },
+          },
+        ],
+      },
+    );
+    expect(outcome.ok).toBe(true);
+    expect(client.rpc).toHaveBeenCalledWith(
+      "submit_plan_proposal",
+      expect.objectContaining({
+        p_target_keys: ["s-2026-10-22-2"],
+        p_preview: expect.objectContaining({
+          sessions: {
+            closed: [],
+            added: [expect.objectContaining({ sessionKey: "s-2026-10-22-2" })],
+          },
+        }),
+      }),
+    );
+  });
+
+  it("refuses an added session before today", async () => {
+    const outcome = await runCustomTool(
+      contextWith(fakeClient({}).client),
+      "create_plan_proposal",
+      {
+        ...proposal,
+        operations: [
+          {
+            op: "add_session",
+            session: { scheduledOn: "2026-10-14", content: easyRun(30) },
+          },
+        ],
+      },
+    );
+    expect(outcome.content).toMatchObject({ code: "validation_failed" });
+  });
+
+  it("refuses an added session outside the plan", async () => {
+    const outcome = await runCustomTool(
+      contextWith(fakeClient({}).client),
+      "create_plan_proposal",
+      {
+        ...proposal,
+        operations: [
+          {
+            op: "add_session",
+            session: { scheduledOn: "2027-06-01", content: easyRun(30) },
+          },
+        ],
+      },
+    );
+    expect(outcome.content).toMatchObject({ code: "validation_failed" });
+  });
+
+  it("checks added session content strictly", async () => {
+    const outcome = await runCustomTool(
+      contextWith(fakeClient({}).client),
+      "create_plan_proposal",
+      {
+        ...proposal,
+        operations: [
+          {
+            op: "add_session",
+            session: {
+              scheduledOn: "2026-10-22",
+              content: {
+                ...easyRun(30),
+                targets: { ...easyRun(30).targets, durationSeconds: 2_700 },
+              },
+            },
           },
         ],
       },

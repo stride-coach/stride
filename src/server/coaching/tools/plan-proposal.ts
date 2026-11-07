@@ -59,6 +59,21 @@ const coachOperationSchema = z.discriminatedUnion("op", [
       ),
   }),
   z.strictObject({
+    op: z.literal("add_session"),
+    session: z.strictObject({
+      scheduledOn: z.iso
+        .date()
+        .describe(
+          "Day of the added session. A day that already has a session keeps it and gets a second one.",
+        ),
+      content: z
+        .looseObject({})
+        .describe(
+          "The added session content, in the same shape as a session's content returned by read_active_plan (without sessionKey and scheduledOn).",
+        ),
+    }),
+  }),
+  z.strictObject({
     op: z.literal("set_race_role"),
     raceId: z
       .string()
@@ -78,14 +93,20 @@ const opinionSchema = z.strictObject({
   summary: z.string().min(1).max(1000),
 });
 
-function targetKeys(operations: PlanOperation[]) {
-  return operations.flatMap((operation) => {
-    if (operation.op === "swap_sessions")
-      return [operation.firstKey, operation.secondKey];
-    if ("sessionKey" in operation) return [operation.sessionKey];
-    if (operation.op === "set_race_role") return [`race:${operation.raceId}`];
-    return [];
-  });
+function targetKeys(operations: PlanOperation[], addedKeys: string[]) {
+  return [
+    ...new Set([
+      ...operations.flatMap((operation) => {
+        if (operation.op === "swap_sessions")
+          return [operation.firstKey, operation.secondKey];
+        if ("sessionKey" in operation) return [operation.sessionKey];
+        if (operation.op === "set_race_role")
+          return [`race:${operation.raceId}`];
+        return [];
+      }),
+      ...addedKeys,
+    ]),
+  ];
 }
 
 export const createPlanProposalTool = defineTool({
@@ -121,7 +142,7 @@ export const createPlanProposalTool = defineTool({
       .min(1)
       .max(20)
       .describe(
-        "Plan operations: skip, move, swap or replace one session by a key returned by read_active_plan, or set the role of a race inside the plan's dates.",
+        "Plan operations: skip, move, swap or replace one session by a key returned by read_active_plan, add a session on a day (two activities on one day are two sessions, never one merged session), or set the role of a race inside the plan's dates.",
       ),
     specialist_opinions: z
       .array(opinionSchema)
@@ -192,7 +213,17 @@ export const createPlanProposalTool = defineTool({
       p_plan_id: stored.planId,
       p_base_version: stored.activeVersion,
       p_specialist_opinions: proposal.specialist_opinions,
-      p_target_keys: targetKeys(operations.data),
+      p_target_keys: targetKeys(
+        operations.data,
+        result.changeset.sessions.added
+          .map((session) => session.sessionKey)
+          .filter(
+            (key) =>
+              !stored.state.sessions.some(
+                (session) => session.sessionKey === key,
+              ),
+          ),
+      ),
     });
     return {
       proposalId: data.id,
