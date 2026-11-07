@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(13);
 
 insert into auth.users (id, aud, role, email) values
   ('a5000000-0000-4000-8000-0000000000a5', 'authenticated', 'authenticated', 'thread-a@example.com'),
@@ -43,6 +43,12 @@ select throws_ok(
       'coach', '{"text": "Intrus"}')$$,
   '42501', null, 'athlete cannot write into another athlete''s thread'
 );
+select lives_ok(
+  $$insert into public.coach_thread_items (user_id, coach_session_id, kind, body)
+    values ('a5000000-0000-4000-8000-0000000000a5', 'a5000000-0000-4000-8000-00000000c0a5',
+      'staff_message', '{"thread": "sthr_medical", "agent": "medical", "text": "Rien à signaler."}')$$,
+  'a specialist message to the athlete is recorded'
+);
 select throws_ok(
   $$insert into public.coach_thread_items (user_id, coach_session_id, kind, body)
     values ('a5000000-0000-4000-8000-0000000000a5', 'a5000000-0000-4000-8000-00000000c0a5',
@@ -63,7 +69,7 @@ select throws_ok(
   '42501', null, 'the title is fixed at creation'
 );
 select is(
-  (select count(*)::int from public.coach_thread_items), 1,
+  (select count(*)::int from public.coach_thread_items), 2,
   'athlete reads their own items'
 );
 
