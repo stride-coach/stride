@@ -9,7 +9,12 @@ import {
   withRaceValues,
   type ProgramInput,
 } from "@/features/plans/view/program";
-import { easyRun, planState, thresholdSession } from "./plan-fixture";
+import {
+  easyRun,
+  planState,
+  supportSession,
+  thresholdSession,
+} from "./plan-fixture";
 
 function input(overrides: Partial<ProgramInput> = {}): ProgramInput {
   return {
@@ -363,6 +368,163 @@ describe("race values", () => {
     ).weeks[3].days.find((day) => day.date === "2026-11-08")!;
     expect(unmatched.raceId).toBeNull();
     expect(unmatched.sessionKey).toBe("s-2026-11-08-1");
+  });
+});
+
+describe("double days", () => {
+  const doubleDay = (
+    keys: [string, string] = ["s-2026-10-21-1", "s-2026-10-21-2"],
+  ) => {
+    const state = planState();
+    return {
+      ...state,
+      sessions: [
+        ...state.sessions,
+        {
+          ...easyRun(30),
+          title: "Footing facile",
+          targets: {
+            durationSeconds: 1_800,
+            distanceMeters: 5_200,
+            elevationGainMeters: null,
+          },
+          sessionKey: keys[1],
+          scheduledOn: "2026-10-21",
+        },
+        {
+          ...supportSession("strength", 30),
+          sessionKey: keys[0],
+          scheduledOn: "2026-10-21",
+        },
+      ],
+    };
+  };
+
+  it("keeps the longest session as the day lead while listing by slot", () => {
+    const base = planState();
+    const state = {
+      ...base,
+      sessions: [
+        ...base.sessions,
+        {
+          ...easyRun(90),
+          title: "Sortie longue",
+          sessionKey: "s-2026-10-21-2",
+          scheduledOn: "2026-10-21",
+        },
+        {
+          ...supportSession("strength", 30),
+          sessionKey: "s-2026-10-21-1",
+          scheduledOn: "2026-10-21",
+        },
+      ],
+    };
+    const day = buildProgram(input({ state })).weeks[1].days[2];
+    expect(day.sessions.map((session) => session.title)).toEqual([
+      "Renforcement",
+      "Sortie longue",
+    ]);
+    expect(day).toMatchObject({
+      sessionKey: "s-2026-10-21-2",
+      title: "Sortie longue",
+    });
+  });
+
+  it("lists each session of a day in slot order with its own details", () => {
+    const day = buildProgram(input({ state: doubleDay() })).weeks[1].days[2];
+    expect(day.sessions).toMatchObject([
+      {
+        sessionKey: "s-2026-10-21-1",
+        family: "strength",
+        title: "Renforcement",
+        summary: "30’",
+      },
+      {
+        sessionKey: "s-2026-10-21-2",
+        family: "easy",
+        title: "Footing facile",
+        summary: "30’ · 5,2 km",
+      },
+    ]);
+    expect(day.sessions[1].blocks.length).toBeGreaterThan(0);
+    expect(day).toMatchObject({
+      sessionKey: "s-2026-10-21-1",
+      family: "strength",
+      title: "Renforcement",
+    });
+  });
+
+  it("orders slots numerically", () => {
+    const day = buildProgram(
+      input({ state: doubleDay(["s-2026-10-21-2", "s-2026-10-21-10"]) }),
+    ).weeks[1].days[2];
+    expect(day.sessions.map((session) => session.sessionKey)).toEqual([
+      "s-2026-10-21-2",
+      "s-2026-10-21-10",
+    ]);
+  });
+
+  it("keeps the state of each session independent", () => {
+    const day = buildProgram(
+      input({
+        state: doubleDay(),
+        matches: [
+          {
+            sessionKey: "s-2026-10-21-1",
+            status: "completed",
+            compliance: { duration: 1, distance: null },
+          },
+        ],
+      }),
+    ).weeks[1].days[2];
+    expect(day.sessions.map((session) => session.state)).toEqual([
+      "done",
+      null,
+    ]);
+  });
+
+  it("leads a race day with the race and still lists the other session", () => {
+    const state = withRace(planState());
+    const day = buildProgram(
+      input({
+        state: {
+          ...state,
+          sessions: [
+            ...state.sessions,
+            {
+              ...easyRun(15),
+              title: "Déblocage",
+              sessionKey: "s-2026-11-08-0",
+              scheduledOn: "2026-11-08",
+            },
+          ],
+        },
+      }),
+    ).weeks[3].days.find((item) => item.date === "2026-11-08")!;
+    expect(day.sessions.map((session) => session.title)).toEqual([
+      "Marathon de Paris",
+      "Déblocage",
+    ]);
+    expect(day).toMatchObject({
+      sessionKey: "s-2026-11-08-1",
+      raceId: "race-a",
+      family: "race",
+    });
+  });
+
+  it("keeps single and rest days unchanged", () => {
+    const [, current] = buildProgram(input()).weeks;
+    expect(current.days[0]).toMatchObject({
+      sessionKey: null,
+      family: "rest",
+      title: "Repos",
+      sessions: [],
+    });
+    expect(current.days[1].sessions).toHaveLength(1);
+    expect(current.days[1]).toMatchObject({
+      ...current.days[1].sessions[0],
+      title: "Footing",
+    });
   });
 });
 

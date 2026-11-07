@@ -1,3 +1,4 @@
+import { sessionSlot } from "./keys";
 import { planStateSchema, type PlanState } from "./plan";
 
 export type PlanRow = {
@@ -115,6 +116,7 @@ export function toPlanState(rows: PlanRows): PlanState {
       .sort(
         (first, second) =>
           first.scheduled_on.localeCompare(second.scheduled_on) ||
+          sessionSlot(first.session_key) - sessionSlot(second.session_key) ||
           first.session_key.localeCompare(second.session_key),
       )
       .map((session) => ({

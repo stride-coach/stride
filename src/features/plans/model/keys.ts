@@ -18,3 +18,19 @@ export function sessionKey(
     if (!taken.has(candidate)) return candidate;
   }
 }
+
+export function sessionSlot(key: string) {
+  const match = /-(\d+)$/.exec(key);
+  return match ? Number(match[1]) : 0;
+}
+
+export function compareSessions(
+  first: { scheduledOn: string; sessionKey: string },
+  second: { scheduledOn: string; sessionKey: string },
+) {
+  return (
+    first.scheduledOn.localeCompare(second.scheduledOn) ||
+    sessionSlot(first.sessionKey) - sessionSlot(second.sessionKey) ||
+    first.sessionKey.localeCompare(second.sessionKey)
+  );
+}
