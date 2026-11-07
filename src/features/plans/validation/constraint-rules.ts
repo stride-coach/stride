@@ -146,18 +146,38 @@ function constraintRules(input: ValidationInput): Rules {
   if (sessionCap === null && maxWeeklyMinutes === null)
     c2 = { outcome: "skipped", reason: "no_declared_maximum" };
   else {
+    const days = new Map<string, PlanSession[]>();
+    if (sessionCap !== null)
+      for (const session of input.candidate.sessions)
+        if (
+          session.scheduledOn >= input.today &&
+          isoWeekday(session.scheduledOn) <= 5 &&
+          session.sport !== "rest" &&
+          session.kind !== "rest"
+        )
+          days.set(session.scheduledOn, [
+            ...(days.get(session.scheduledOn) ?? []),
+            session,
+          ]);
     const keys =
       sessionCap === null
         ? []
-        : future
+        : [...days.values()]
             .filter(
-              (session) =>
-                isoWeekday(session.scheduledOn) <= 5 &&
-                session.kind !== "long" &&
-                session.targets.durationSeconds >
+              (sessions) =>
+                !sessions.some(
+                  (session) =>
+                    session.kind === "long" || session.kind === "race",
+                ) &&
+                sessions.reduce(
+                  (total, session) => total + session.targets.durationSeconds,
+                  0,
+                ) >
                   sessionCap * (1 + thresholds.durationTolerance),
             )
-            .map((session) => session.sessionKey);
+            .flatMap((sessions) =>
+              sessions.map((session) => session.sessionKey),
+            );
     const issues: string[] = [];
     let observed: number | null = null;
     if (maxWeeklyMinutes !== null)

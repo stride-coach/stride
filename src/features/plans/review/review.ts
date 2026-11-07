@@ -23,6 +23,7 @@ import {
   formatDuration,
   formatElevation,
 } from "../view/format";
+import { sessionFamilyOf, type SessionFamily } from "../view/program";
 import { formatClock } from "@/features/progress/format";
 import {
   coach,
@@ -140,7 +141,7 @@ const ruleTexts: Partial<Record<RuleId, string>> = {
   I3: "la structure d’une séance n’est pas valide",
   I4: "une course prioritaire serait déplacée ou retirée",
   C1: "une séance tombe sur un jour où tu n’es pas disponible",
-  C2: "une séance ou une semaine dépasse le temps que tu as déclaré",
+  C2: "une séance, une journée ou une semaine dépasse le temps que tu as déclaré",
   C3: "une contrainte posée par un spécialiste n’est pas respectée",
   H1: "ton dernier signalement de douleur ou de maladie interdit de courir",
   H2: "ta douleur déclarée interdit la qualité et la hausse de volume",
@@ -180,13 +181,19 @@ function isRunning(session: Pick<SessionContent, "sport" | "kind">) {
   return session.sport !== "rest" && session.kind !== "rest";
 }
 
+const supportLabels: Partial<Record<SessionFamily, string>> = {
+  strength: "renforcement",
+  mobility: "mobilité",
+  cross: "sport croisé",
+};
+
 function sessionMeta(session: SessionContent) {
   if (!isRunning(session)) return "jour sans course";
-  const distance = sessionDistance({
-    ...session,
-    sessionKey: "",
-    scheduledOn: "",
-  });
+  const placed = { ...session, sessionKey: "", scheduledOn: "" };
+  const support = supportLabels[sessionFamilyOf(placed)];
+  if (support)
+    return `${formatDuration(session.targets.durationSeconds)} · ${support}`;
+  const distance = sessionDistance(placed);
   return [
     formatDuration(session.targets.durationSeconds),
     distance ? formatDistance(distance) : null,
