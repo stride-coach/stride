@@ -18,6 +18,7 @@ import {
   formatLongDay,
 } from "@/features/plans/view/format";
 import {
+  orderDaySessions,
   sessionFamilyOf,
   type DayState,
   type ProgramOverview,
@@ -46,6 +47,17 @@ export type TodayHeader = { date: string };
 
 export type TodaySessionStat = { key: string; value: string; label: string };
 
+export type TodayDaySession = {
+  sessionKey: string;
+  family: SessionFamily;
+  title: string;
+  summary: string | null;
+  status: "done" | "partial" | "substituted" | null;
+  note: string;
+  label: string;
+  href: string;
+};
+
 export type TodaySession =
   | {
       kind: "session";
@@ -54,6 +66,9 @@ export type TodaySession =
       terrain: string | null;
       quality: boolean;
       href: string;
+      count: number;
+      before: TodayDaySession[];
+      after: TodayDaySession[];
     }
   | {
       kind: "rest";
@@ -73,8 +88,10 @@ export type TodayWeekDay = {
   date: string;
   letter: string;
   family: SessionFamily;
+  families: SessionFamily[];
   title: string;
   state: DayState;
+  doneCount: number;
   isToday: boolean;
   isPast: boolean;
   label: string;
@@ -151,7 +168,7 @@ export type TodayInput = {
   program: ProgramOverview | null;
   races: ProgramRace[];
   matches: TodayMatch[];
-  panel: SessionPanel | null;
+  panels: SessionPanel[];
   recovery: RecoveryModel;
   latest: Activity | null;
   latestGroup?: Activity[];
@@ -258,16 +275,87 @@ function goal(input: TodayInput): TodayGoal | null {
   };
 }
 
-function todayPlanSession(plan: PlanState | null, today: string) {
-  const key = todaySessionKey(plan, today);
-  return key
-    ? (plan?.sessions.find((item) => item.sessionKey === key) ?? null)
-    : null;
+function isPanelDone(panel: SessionPanel) {
+  return (
+    panel.status === "done" ||
+    panel.status === "partial" ||
+    panel.status === "substituted" ||
+    panel.checkIn?.done === true
+  );
+}
+
+function focusIndex(panels: SessionPanel[]) {
+  const index = panels.findIndex((panel) => !isPanelDone(panel));
+  return index === -1 ? panels.length - 1 : index;
+}
+
+function daySession(
+  panel: SessionPanel,
+  summaries: Map<string, string | null>,
+): TodayDaySession {
+  const status =
+    panel.status === "done" ||
+    panel.status === "partial" ||
+    panel.status === "substituted"
+      ? panel.status
+      : panel.checkIn?.done
+        ? "done"
+        : null;
+  const completion = panel.completion;
+  const note =
+    status === null
+      ? "À venir"
+      : status === "substituted"
+        ? "Remplacée"
+        : completion
+          ? [
+              status === "partial" ? "Fait en partie" : "Fait",
+              completion.durationSeconds !== null &&
+                formatDuration(completion.durationSeconds),
+              completion.startTime && `Garmin ${completion.startTime}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")
+          : "Fait · noté par toi";
+  const summary = summaries.get(panel.sessionKey) ?? null;
+  return {
+    sessionKey: panel.sessionKey,
+    family: panel.family,
+    title: panel.title,
+    summary,
+    status,
+    note,
+    label: [
+      panel.title,
+      summary,
+      status === null
+        ? "à venir"
+        : status === "substituted"
+          ? "remplacée"
+          : status === "partial"
+            ? "fait en partie"
+            : "fait",
+      "voir la séance",
+    ]
+      .filter(Boolean)
+      .join(", "),
+    href: sessionPanelHref(panel.sessionKey),
+  };
+}
+
+function daySummaries(program: ProgramOverview | null, today: string) {
+  const day = currentWeek(program)?.days.find((item) => item.date === today);
+  return new Map(
+    (day?.sessions ?? []).map((item) => [item.sessionKey, item.summary]),
+  );
 }
 
 function session(input: TodayInput): TodaySession {
-  const { panel, plan, today } = input;
+  const { panels, plan, today } = input;
+  const index = focusIndex(panels);
+  const panel = panels[index];
   if (panel) {
+    const summaries = daySummaries(input.program, today);
     const planned = plan?.sessions.find(
       (item) => item.sessionKey === panel.sessionKey,
     );
@@ -282,6 +370,9 @@ function session(input: TodayInput): TodaySession {
         panel.stats.find((stat) => stat.key === "terrain")?.value ?? null,
       quality: planned ? isQuality(planned) : false,
       href: sessionPanelHref(panel.sessionKey),
+      count: panels.length,
+      before: panels.slice(0, index).map((item) => daySession(item, summaries)),
+      after: panels.slice(index + 1).map((item) => daySession(item, summaries)),
     };
   }
   if (!plan) return { kind: "none" };
@@ -345,19 +436,40 @@ function week(program: ProgramOverview | null): TodayWeek | null {
     blockName: current.blockName,
     days: current.days.map((day, index) => {
       const state = day.family === "rest" ? null : day.state;
+      const multiple = day.sessions.length > 1;
+      const doneCount = day.sessions.filter(
+        (item) => item.state === "done" || item.state === "partial",
+      ).length;
+      const sessions = multiple
+        ? `${day.sessions.length} séances : ${day.sessions
+            .map((item) =>
+              item.state
+                ? `${item.title} ${stateLabels[item.state]}`
+                : item.title,
+            )
+            .join(", puis ")}`
+        : null;
       return {
         date: day.date,
         letter: weekdayLetters[index] ?? day.weekday.charAt(0).toUpperCase(),
         family: day.family,
+        families: multiple
+          ? day.sessions.map((item) => item.family)
+          : [day.family],
         title: day.title,
         state,
+        doneCount,
         isToday: day.isToday,
         isPast: day.isPast,
         label: [
           formatLongDay(day.date),
-          day.title,
+          sessions ?? day.title,
           day.isToday ? "aujourd’hui" : null,
-          state ? stateLabels[state] : null,
+          multiple
+            ? `${doneCount} sur ${day.sessions.length} faites`
+            : state
+              ? stateLabels[state]
+              : null,
         ]
           .filter(Boolean)
           .join(" · "),
@@ -508,6 +620,18 @@ function queue(input: TodayInput): TodayQueueItem[] {
   return items;
 }
 
+export function todaySessionKeys(plan: PlanState | null, today: string) {
+  if (!plan) return [];
+  return orderDaySessions(
+    plan.sessions.filter(
+      (item) =>
+        item.scheduledOn === today &&
+        item.kind !== "rest" &&
+        item.sport !== "rest",
+    ),
+  ).map((item) => item.sessionKey);
+}
+
 export function todaySessionKey(plan: PlanState | null, today: string) {
   if (!plan) return null;
   const sessions = plan.sessions.filter(
@@ -526,10 +650,17 @@ export function todaySessionKey(plan: PlanState | null, today: string) {
 export function buildToday(input: TodayInput): TodayView {
   const today = session(input);
   const day = form(input.recovery);
-  const planned = todayPlanSession(input.plan, input.today);
+  const planned =
+    today.kind === "session"
+      ? input.plan?.sessions.find(
+          (item) => item.sessionKey === today.panel.sessionKey,
+        )
+      : undefined;
   const done =
     today.kind === "session" &&
-    (today.panel.status === "done" || today.panel.status === "partial");
+    (today.panel.status === "done" ||
+      today.panel.status === "partial" ||
+      today.panel.status === "substituted");
   return {
     header: { date: formatTodayDate(input.today) },
     session: today,

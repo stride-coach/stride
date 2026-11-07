@@ -12,10 +12,12 @@ import {
   buildToday,
   formatTodayDate,
   todaySessionKey,
+  todaySessionKeys,
   type TodayInput,
   type TodayMatch,
 } from "@/features/today/today";
-import { planState } from "./plan-fixture";
+import { easyRun, planState, supportSession } from "./plan-fixture";
+import type { PlanState } from "@/features/plans/model/plan";
 
 const today = "2026-10-22";
 
@@ -96,16 +98,18 @@ function input(overrides: Partial<TodayInput> = {}): TodayInput {
     }),
     races,
     matches,
-    panel: sessionKey
-      ? buildSessionPanel({
-          state,
-          today,
-          sessionKey,
-          matches: [],
-          proposals: [],
-          activities: [],
-        })
-      : null,
+    panels: sessionKey
+      ? [
+          buildSessionPanel({
+            state,
+            today,
+            sessionKey,
+            matches: [],
+            proposals: [],
+            activities: [],
+          })!,
+        ]
+      : [],
     recovery: recoveryModel({
       nights: nights((age) =>
         age === 0 ? { readiness: 58, sleepSeconds: 21_120, hrv: 46 } : {},
@@ -165,14 +169,16 @@ describe("today view", () => {
   it("drops the verdict once today's session is done", () => {
     const base = input();
     const done = buildToday(
-      input({ panel: base.panel && { ...base.panel, status: "done" } }),
+      input({
+        panels: base.panels.map((panel) => ({ ...panel, status: "done" })),
+      }),
     );
     expect(done.session.kind).toBe("session");
     expect(done.verdict).toBeNull();
   });
 
   it("points to the next session on a rest day", () => {
-    const { session } = buildToday(input({ today: "2026-10-23", panel: null }));
+    const { session } = buildToday(input({ today: "2026-10-23", panels: [] }));
     expect(session).toEqual({
       kind: "rest",
       next: {
@@ -185,7 +191,7 @@ describe("today view", () => {
 
   it("says when there is no active plan", () => {
     const view = buildToday(
-      input({ plan: null, program: null, panel: null, matches: [] }),
+      input({ plan: null, program: null, panels: [], matches: [] }),
     );
     expect(view.session).toEqual({ kind: "none" });
     expect(view.verdict).toBeNull();
@@ -285,7 +291,7 @@ describe("today view", () => {
     const { queue } = buildToday(
       input({
         today: "2026-10-21",
-        panel: null,
+        panels: [],
         debrief,
         pairQuestion,
       }),
@@ -315,7 +321,7 @@ describe("today view", () => {
     const noted = buildToday(
       input({
         today: "2026-10-21",
-        panel: null,
+        panels: [],
         debrief: debrief && {
           ...debrief,
           feeling: feelingView({ source: "athlete", effort: 6, feel: 75 }),
@@ -363,7 +369,7 @@ describe("today view", () => {
     const { queue } = buildToday(
       input({
         today: "2026-10-21",
-        panel: null,
+        panels: [],
         matches: ["activity-1", "activity-2"].map((activityId) => ({
           sessionKey: "s-2026-10-20-1",
           activityId,
@@ -386,5 +392,180 @@ describe("today view", () => {
         href: "/plan/sessions/s-2026-10-20-1",
       },
     });
+  });
+});
+
+describe("today double day", () => {
+  const doubleState = (): PlanState => {
+    const state = planState();
+    return {
+      ...state,
+      sessions: [
+        ...state.sessions.filter((item) => item.scheduledOn !== today),
+        {
+          ...easyRun(30),
+          title: "Footing facile",
+          sessionKey: "s-2026-10-22-2",
+          scheduledOn: today,
+        },
+        {
+          ...supportSession("strength", 30),
+          sessionKey: "s-2026-10-22-1",
+          scheduledOn: today,
+        },
+      ],
+    };
+  };
+
+  function doubleInput(done: boolean, extra: TodayMatch[] = []): TodayInput {
+    const state = doubleState();
+    const matches: TodayMatch[] = [
+      ...(done
+        ? [
+            {
+              sessionKey: "s-2026-10-22-1",
+              activityId: "activity-2",
+              status: "completed" as const,
+              compliance: { duration: 1 },
+            },
+          ]
+        : []),
+      ...extra,
+    ];
+    const panelMatches = matches.map((match) => ({
+      ...match,
+      compliance: { ...match.compliance, distance: null },
+    }));
+    return input({
+      plan: state,
+      matches,
+      program: buildProgram({
+        state,
+        today,
+        summary: null,
+        matches: panelMatches,
+        proposalKeys: [],
+        races,
+      }),
+      panels: todaySessionKeys(state, today).map((sessionKey) =>
+        buildSessionPanel({
+          state,
+          today,
+          sessionKey,
+          matches: panelMatches,
+          proposals: [],
+          activities:
+            done && sessionKey === "s-2026-10-22-1"
+              ? [
+                  {
+                    activity: {
+                      id: "activity-2",
+                      startedAt: "2026-10-22T05:40:00Z",
+                      date: today,
+                      localTime: "07:40",
+                      durationSeconds: 1_920,
+                      distanceMeters: null,
+                      averageHeartRate: null,
+                      detailImportedAt: null,
+                    },
+                    laps: [],
+                    series: null,
+                  },
+                ]
+              : [],
+        })!,
+      ),
+    });
+  }
+
+  it("orders today's sessions by slot", () => {
+    expect(todaySessionKeys(doubleState(), today)).toEqual([
+      "s-2026-10-22-1",
+      "s-2026-10-22-2",
+    ]);
+  });
+
+  it("shows the done session as a compact row and focuses the next one", () => {
+    const view = buildToday(doubleInput(true));
+    expect(view.session.kind).toBe("session");
+    if (view.session.kind !== "session") return;
+    expect(view.session.panel.title).toBe("Footing facile");
+    expect(view.session.count).toBe(2);
+    expect(view.session.after).toEqual([]);
+    expect(view.session.before).toEqual([
+      {
+        sessionKey: "s-2026-10-22-1",
+        family: "strength",
+        title: "Renforcement",
+        summary: "30’",
+        status: "done",
+        note: "Fait · 32’ · Garmin 07:40",
+        label: "Renforcement, 30’, fait, voir la séance",
+        href: "/plan/sessions/s-2026-10-22-1",
+      },
+    ]);
+    expect(view.verdict).not.toBeNull();
+  });
+
+  it("focuses the first session while none is done", () => {
+    const view = buildToday(doubleInput(false));
+    if (view.session.kind !== "session") throw new Error("session expected");
+    expect(view.session.panel.title).toBe("Renforcement");
+    expect(view.session.before).toEqual([]);
+    expect(view.session.after).toMatchObject([
+      { title: "Footing facile", status: null, note: "À venir" },
+    ]);
+  });
+
+  it("focuses the last session once every session is done", () => {
+    const view = buildToday(
+      doubleInput(true, [
+        {
+          sessionKey: "s-2026-10-22-2",
+          activityId: null,
+          status: "completed",
+          compliance: { duration: 1 },
+        },
+      ]),
+    );
+    if (view.session.kind !== "session") throw new Error("session expected");
+    expect(view.session.panel.title).toBe("Footing facile");
+    expect(view.session.before).toMatchObject([{ title: "Renforcement" }]);
+    expect(view.verdict).toBeNull();
+  });
+
+  it("treats a replaced session as settled and focuses the next one", () => {
+    const view = buildToday(
+      doubleInput(false, [
+        {
+          sessionKey: "s-2026-10-22-1",
+          activityId: "activity-2",
+          status: "substituted",
+          compliance: { duration: null },
+        },
+      ]),
+    );
+    if (view.session.kind !== "session") throw new Error("session expected");
+    expect(view.session.panel.title).toBe("Footing facile");
+    expect(view.session.before).toMatchObject([
+      { title: "Renforcement", status: "substituted", note: "Remplacée" },
+    ]);
+  });
+
+  it("stacks both sessions in the week strip with a done count", () => {
+    const { week } = buildToday(doubleInput(true));
+    expect(week?.days[3]).toMatchObject({
+      families: ["strength", "easy"],
+      doneCount: 1,
+      label:
+        "jeu. 22 oct. · 2 séances : Renforcement fait, puis Footing facile · aujourd’hui · 1 sur 2 faites",
+    });
+    expect(week?.days[1]).toMatchObject({ families: ["easy"], doneCount: 0 });
+  });
+
+  it("keeps a single session day as before", () => {
+    const view = buildToday(input());
+    if (view.session.kind !== "session") throw new Error("session expected");
+    expect(view.session).toMatchObject({ count: 1, before: [], after: [] });
   });
 });
