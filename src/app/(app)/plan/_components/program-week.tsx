@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { CheckIcon, WatchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
@@ -7,11 +8,16 @@ import { SessionKindTile } from "@/components/stride/session-kind-tile";
 import { SessionShape } from "@/components/stride/session-shape";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatElevation } from "@/features/plans/view/format";
+import {
+  formatDuration,
+  formatElevation,
+  formatLongDay,
+} from "@/features/plans/view/format";
 import {
   easyTargetPct,
   weekSplit,
   type ProgramDay,
+  type ProgramDaySession,
   type ProgramWeek,
 } from "@/features/plans/view/program";
 import type { WeekProposal } from "@/features/plans/review/proposal";
@@ -20,19 +26,22 @@ import { formatInteger } from "@/features/progress/format";
 import { markProposalOpened } from "./proposal-sheet";
 import { markSessionOpened } from "./session-sheet";
 
-function DayState({ day }: { day: ProgramDay }) {
-  switch (day.state) {
+function DayState({
+  state,
+  compliancePct,
+}: Pick<ProgramDaySession, "state" | "compliancePct">) {
+  switch (state) {
     case "done":
     case "partial":
       return (
         <span
           className={cn(
             "flex items-center gap-1.25 text-xs",
-            day.state === "done" ? "text-success" : "text-warning",
+            state === "done" ? "text-success" : "text-warning",
           )}
         >
           <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
-          Fait{day.compliancePct !== null && ` · ${day.compliancePct} %`}
+          Fait{compliancePct !== null && ` · ${compliancePct} %`}
         </span>
       );
     case "proposed":
@@ -66,26 +75,167 @@ function WatchTag({ tag }: { tag: WatchDayTag | undefined }) {
   );
 }
 
+type SessionHref = (sessionKey: string) => string;
+type WatchTags = Record<string, WatchDayTag>;
+
+function SessionLink({
+  session,
+  sessionHref,
+  current = false,
+  className,
+  children,
+}: {
+  session: ProgramDaySession;
+  sessionHref: SessionHref;
+  current?: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={
+        session.raceId
+          ? `/races/${session.raceId}`
+          : sessionHref(session.sessionKey)
+      }
+      onClick={session.raceId ? undefined : markSessionOpened}
+      data-session-key={session.sessionKey}
+      aria-current={current ? "date" : undefined}
+      className={className}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function sessionCount(day: ProgramDay) {
+  return `${day.sessions.length} séances`;
+}
+
+function DayDate({ day, size }: { day: ProgramDay; size: "micro" | "nano" }) {
+  return (
+    <>
+      <MonoLabel size={size} tone={day.isToday ? "accent" : "muted"}>
+        {day.weekday}
+      </MonoLabel>
+      <span className="font-metric text-lg leading-none font-semibold tabular-nums">
+        {day.dayNumber}
+      </span>
+    </>
+  );
+}
+
+function SessionShapeStrip({
+  blocks,
+  className,
+}: {
+  blocks: ProgramDaySession["blocks"];
+  className?: string;
+}) {
+  if (blocks.length === 0) return null;
+  return (
+    <SessionShape
+      blocks={blocks}
+      aria-hidden="true"
+      role={undefined}
+      aria-label={undefined}
+      className={cn("h-3.5 gap-px", className)}
+    />
+  );
+}
+
 function DayCard({
   day,
   sessionHref,
-  watch,
+  watchTags,
 }: {
   day: ProgramDay;
-  sessionHref: (sessionKey: string) => string;
-  watch?: WatchDayTag;
+  sessionHref: SessionHref;
+  watchTags: WatchTags;
 }) {
   const rest = day.sessionKey === null;
+  const className = cn(
+    "flex min-w-0 flex-col rounded-card border p-3",
+    rest
+      ? "border-dashed border-border"
+      : "border-border bg-surface hover:border-border-strong",
+    day.isPast && !rest && "bg-surface-panel",
+    day.isPast && "opacity-70",
+    day.isToday && "border-foreground bg-surface-current opacity-100",
+  );
+  if (day.sessions.length > 1)
+    return (
+      <div
+        role="group"
+        aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
+        aria-current={day.isToday ? "date" : undefined}
+        className={cn(className, "gap-1.5 hover:border-border")}
+      >
+        <span className="flex min-h-6.5 items-center justify-between gap-1.5">
+          <span className="flex items-baseline gap-1.25">
+            <DayDate day={day} size="micro" />
+          </span>
+          <MonoLabel size="micro" tone="muted">
+            {sessionCount(day)}
+          </MonoLabel>
+        </span>
+        {day.sessions.map((session, index) => (
+          <Fragment key={session.sessionKey}>
+            {index > 0 && (
+              <span aria-hidden="true" className="h-px shrink-0 bg-border" />
+            )}
+            <SessionLink
+              session={session}
+              sessionHref={sessionHref}
+              className={cn(
+                "-mx-2 flex flex-col gap-2 rounded-surface p-2 hover:bg-surface-raised",
+                index === day.sessions.length - 1 && "flex-1",
+              )}
+            >
+              <span className="text-[13.5px] leading-tight font-semibold">
+                {session.title}
+              </span>
+              <span className="flex items-center gap-1.75">
+                <SessionKindTile
+                  kind={session.family}
+                  size="sm"
+                  className="size-5.5"
+                />
+                {session.summary && (
+                  <span className="font-metric text-base leading-tight font-semibold tabular-nums">
+                    {session.summary}
+                  </span>
+                )}
+              </span>
+              {session.elevation && (
+                <span className="-mt-1 text-xs text-muted-foreground">
+                  {session.elevation}
+                </span>
+              )}
+              <SessionShapeStrip
+                blocks={session.blocks}
+                className={
+                  index === day.sessions.length - 1 ? "mt-auto" : undefined
+                }
+              />
+              <DayState
+                state={session.state}
+                compliancePct={session.compliancePct}
+              />
+              {session.state !== "proposed" && (
+                <WatchTag tag={watchTags[session.sessionKey]} />
+              )}
+            </SessionLink>
+          </Fragment>
+        ))}
+      </div>
+    );
+  const watch = day.sessionKey ? watchTags[day.sessionKey] : undefined;
   const body = (
     <>
       <span className="flex items-center justify-between gap-1.5">
         <span className="flex items-baseline gap-1.25">
-          <MonoLabel size="micro" tone={day.isToday ? "accent" : "muted"}>
-            {day.weekday}
-          </MonoLabel>
-          <span className="font-metric text-lg leading-none font-semibold tabular-nums">
-            {day.dayNumber}
-          </span>
+          <DayDate day={day} size="micro" />
         </span>
         <SessionKindTile kind={day.family} size="md" />
       </span>
@@ -109,98 +259,127 @@ function DayCard({
           {day.elevation}
         </span>
       )}
-      {day.blocks.length > 0 && (
-        <SessionShape
-          blocks={day.blocks}
-          aria-hidden="true"
-          role={undefined}
-          aria-label={undefined}
-          className="mt-auto h-3.5 gap-px"
-        />
-      )}
-      <DayState day={day} />
+      <SessionShapeStrip blocks={day.blocks} className="mt-auto" />
+      <DayState state={day.state} compliancePct={day.compliancePct} />
       {day.state !== "proposed" && <WatchTag tag={watch} />}
     </>
   );
-  const className = cn(
-    "flex min-w-0 flex-col gap-2.5 rounded-card border p-3",
-    rest
-      ? "border-dashed border-border"
-      : "border-border bg-surface hover:border-border-strong",
-    day.isPast && !rest && "bg-surface-panel",
-    day.isPast && "opacity-70",
-    day.isToday && "border-foreground bg-surface-current opacity-100",
-  );
-  return day.sessionKey ? (
-    <Link
-      href={day.raceId ? `/races/${day.raceId}` : sessionHref(day.sessionKey)}
-      onClick={day.raceId ? undefined : markSessionOpened}
-      data-session-key={day.sessionKey}
-      aria-current={day.isToday ? "date" : undefined}
-      className={className}
+  const single = day.sessions[0];
+  return single ? (
+    <SessionLink
+      session={single}
+      sessionHref={sessionHref}
+      current={day.isToday}
+      className={cn(className, "gap-2.5")}
     >
       {body}
-    </Link>
+    </SessionLink>
   ) : (
-    <div className={className}>{body}</div>
+    <div className={cn(className, "gap-2.5")}>{body}</div>
   );
 }
 
 function DayRow({
   day,
   sessionHref,
-  watch,
+  watchTags,
 }: {
   day: ProgramDay;
-  sessionHref: (sessionKey: string) => string;
-  watch?: WatchDayTag;
+  sessionHref: SessionHref;
+  watchTags: WatchTags;
 }) {
   const rest = day.sessionKey === null;
-  const details = [day.summary, day.elevation].filter(Boolean).join(" · ");
-  const body = (
-    <>
-      <span className="flex flex-col items-center">
-        <MonoLabel size="nano" tone={day.isToday ? "accent" : "muted"}>
-          {day.weekday}
-        </MonoLabel>
-        <span className="font-metric text-lg leading-none font-semibold tabular-nums">
-          {day.dayNumber}
-        </span>
-      </span>
-      <SessionKindTile kind={day.family} size="lg" />
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span
-          className={cn(
-            "text-sm",
-            rest ? "text-muted-foreground" : "font-semibold",
-          )}
-        >
-          {day.title}
-        </span>
-        {details && (
-          <span className="text-xs text-muted-foreground">{details}</span>
-        )}
-        {day.state !== "proposed" && <WatchTag tag={watch} />}
-      </span>
-      <DayState day={day} />
-    </>
+  const date = (
+    <span className="flex flex-col items-center">
+      <DayDate day={day} size="nano" />
+    </span>
   );
-  const className = cn(
-    "grid min-h-11 grid-cols-[40px_32px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-border py-3",
+  const sessionBody = (
+    session: Pick<
+      ProgramDaySession,
+      "family" | "title" | "summary" | "elevation" | "state" | "compliancePct"
+    >,
+    watch: WatchDayTag | undefined,
+  ) => {
+    const details = [session.summary, session.elevation]
+      .filter(Boolean)
+      .join(" · ");
+    return (
+      <>
+        <SessionKindTile kind={session.family} size="lg" />
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span
+            className={cn(
+              "text-sm",
+              rest ? "text-muted-foreground" : "font-semibold",
+            )}
+          >
+            {session.title}
+          </span>
+          {details && (
+            <span className="text-xs text-muted-foreground">{details}</span>
+          )}
+          {session.state !== "proposed" && <WatchTag tag={watch} />}
+        </span>
+        <DayState state={session.state} compliancePct={session.compliancePct} />
+      </>
+    );
+  };
+  const frame = cn(
+    "border-t border-border",
     day.isPast && "opacity-65",
     day.isToday &&
       "my-0.5 rounded-card border border-border-strong bg-surface-current px-3",
   );
-  return day.sessionKey ? (
-    <Link
-      href={day.raceId ? `/races/${day.raceId}` : sessionHref(day.sessionKey)}
-      onClick={day.raceId ? undefined : markSessionOpened}
-      data-session-key={day.sessionKey}
-      aria-current={day.isToday ? "date" : undefined}
+  if (day.sessions.length > 1)
+    return (
+      <div
+        role="group"
+        aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
+        aria-current={day.isToday ? "date" : undefined}
+        className={cn(
+          frame,
+          "grid grid-cols-[40px_minmax(0,1fr)] items-start gap-2.5 py-0.5",
+        )}
+      >
+        <span className="pt-3.75">{date}</span>
+        <div className="flex min-w-0 flex-col">
+          {day.sessions.map((session, index) => (
+            <SessionLink
+              key={session.sessionKey}
+              session={session}
+              sessionHref={sessionHref}
+              className={cn(
+                "grid min-h-11 grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-2.5 py-2.5",
+                index > 0 && "border-t border-dashed border-border-strong",
+              )}
+            >
+              {sessionBody(session, watchTags[session.sessionKey])}
+            </SessionLink>
+          ))}
+        </div>
+      </div>
+    );
+  const className = cn(
+    frame,
+    "grid min-h-11 grid-cols-[40px_32px_minmax(0,1fr)_auto] items-center gap-2.5 py-3",
+  );
+  const body = (
+    <>
+      {date}
+      {sessionBody(day, day.sessionKey ? watchTags[day.sessionKey] : undefined)}
+    </>
+  );
+  const single = day.sessions[0];
+  return single ? (
+    <SessionLink
+      session={single}
+      sessionHref={sessionHref}
+      current={day.isToday}
       className={className}
     >
       {body}
-    </Link>
+    </SessionLink>
   ) : (
     <div className={className}>{body}</div>
   );
@@ -525,7 +704,7 @@ export function ProgramWeekPanel({
             key={day.date}
             day={day}
             sessionHref={sessionHref}
-            watch={day.sessionKey ? watchTags[day.sessionKey] : undefined}
+            watchTags={watchTags}
           />
         ))}
       </div>
@@ -535,7 +714,7 @@ export function ProgramWeekPanel({
             key={day.date}
             day={day}
             sessionHref={sessionHref}
-            watch={day.sessionKey ? watchTags[day.sessionKey] : undefined}
+            watchTags={watchTags}
           />
         ))}
       </div>

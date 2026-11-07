@@ -12,6 +12,7 @@ import type { AthleteFeeling } from "../debrief/debrief";
 import { buildDebriefView, type DebriefView } from "../debrief/view";
 import type { MatchStatus } from "../matching/adherence";
 import { addDays, mondayOf } from "../model/dates";
+import { compareSessions } from "../model/keys";
 import type { PlanSession, PlanState } from "../model/plan";
 import type { IntensityPaces } from "../model/structure";
 import {
@@ -125,6 +126,8 @@ export type PanelActivityItem = {
 export type PanelCompletion = {
   activityId: string;
   pct: number | null;
+  durationSeconds: number | null;
+  startTime: string | null;
   headline: string;
   detail: string;
   rows: PanelRow[];
@@ -204,11 +207,7 @@ function weekSessions(state: PlanState, session: PlanSession) {
         item.kind !== "rest" &&
         item.sport !== "rest",
     )
-    .sort(
-      (first, second) =>
-        first.scheduledOn.localeCompare(second.scheduledOn) ||
-        first.sessionKey.localeCompare(second.sessionKey),
-    );
+    .sort(compareSessions);
 }
 
 function tone(ratio: number | null): PanelTone {
@@ -430,6 +429,8 @@ function completion(
   return {
     activityId: main.id,
     pct,
+    durationSeconds: totals.durationSeconds,
+    startTime: activities[0]?.localTime ?? null,
     headline:
       match.status === "partial"
         ? `Fait en partie${pct !== null ? ` · ${pct} % conforme` : ""}`

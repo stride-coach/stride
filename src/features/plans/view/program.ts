@@ -6,6 +6,7 @@ import {
   type MatchStatus,
 } from "../matching/adherence";
 import { addDays } from "../model/dates";
+import { compareSessions } from "../model/keys";
 import { formatClock, formatDayMonthShort } from "@/features/progress/format";
 import type {
   PlanBlock,
@@ -98,11 +99,8 @@ export type LabelTone = "muted" | "provider" | "success" | "accent";
 export type DayState =
   "done" | "partial" | "substituted" | "missed" | "proposed" | null;
 
-export type ProgramDay = {
-  date: string;
-  weekday: string;
-  dayNumber: number;
-  sessionKey: string | null;
+export type ProgramDaySession = {
+  sessionKey: string;
   raceId: string | null;
   family: SessionFamily;
   title: string;
@@ -111,6 +109,14 @@ export type ProgramDay = {
   blocks: SessionBlock[];
   state: DayState;
   compliancePct: number | null;
+};
+
+export type ProgramDay = Omit<ProgramDaySession, "sessionKey"> & {
+  date: string;
+  weekday: string;
+  dayNumber: number;
+  sessionKey: string | null;
+  sessions: ProgramDaySession[];
   isToday: boolean;
   isPast: boolean;
 };
@@ -291,14 +297,13 @@ function matchesProposal(keys: Set<string>, prefix: string, key: string) {
   return keys.has(key) || keys.has(`${prefix}:${key}`);
 }
 
-function mainSession(sessions: PlanSession[]) {
-  return (
-    sessions.find((session) => session.kind === "race") ??
-    [...sessions].sort(
-      (first, second) =>
-        second.targets.durationSeconds - first.targets.durationSeconds,
-    )[0] ??
-    null
+export function orderDaySessions<
+  Session extends Pick<PlanSession, "kind" | "scheduledOn" | "sessionKey">,
+>(sessions: Session[]) {
+  return [...sessions].sort(
+    (first, second) =>
+      Number(second.kind === "race") - Number(first.kind === "race") ||
+      compareSessions(first, second),
   );
 }
 
@@ -367,6 +372,67 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
         race.date >= start &&
         race.date <= end,
     ) ?? null;
+  const daySession = (
+    session: PlanSession,
+    date: string,
+    isPast: boolean,
+  ): ProgramDaySession => {
+    const matchStatus = statuses.get(session.sessionKey);
+    const durationRatio = compliance.get(session.sessionKey)?.duration ?? null;
+    const proposed = matchesProposal(
+      proposalKeys,
+      "session",
+      session.sessionKey,
+    );
+    const state: DayState =
+      matchStatus === "completed" || matchStatus === "checked_in"
+        ? "done"
+        : matchStatus === "partial"
+          ? "partial"
+          : matchStatus === "substituted"
+            ? "substituted"
+            : proposed && !isPast
+              ? "proposed"
+              : isPast &&
+                  session.kind !== "race" &&
+                  !isUntrackedSession(session)
+                ? "missed"
+                : null;
+    const distance = sessionDistance(session, paces);
+    return {
+      sessionKey: session.sessionKey,
+      raceId: session.kind === "race" ? (raceOn(date)?.id ?? null) : null,
+      family: sessionFamilyOf(session),
+      title: session.title,
+      summary:
+        [
+          session.kind === "race"
+            ? null
+            : formatDuration(session.targets.durationSeconds),
+          distance !== null
+            ? approximate(formatDistance(distance.meters), distance.estimated)
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") || null,
+      elevation:
+        session.targets.elevationGainMeters !== null &&
+        session.targets.elevationGainMeters > 0
+          ? `${formatElevation(session.targets.elevationGainMeters)} D+`
+          : null,
+      blocks:
+        session.kind === "race" || !hasIntensity(session)
+          ? []
+          : sessionBlocks(session),
+      state,
+      compliancePct:
+        state === "done" || state === "partial"
+          ? durationRatio !== null
+            ? Math.round(durationRatio * 100)
+            : null
+          : null,
+    };
+  };
 
   const weeks: ProgramWeek[] = state.weeks.map((week, index) => {
     const end = addDays(week.weekStart, 6);
@@ -475,7 +541,6 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
       const daySessions = sessions.filter(
         (session) => session.scheduledOn === date,
       );
-      const main = mainSession(daySessions);
       const isPast = date < today;
       const base = {
         date,
@@ -484,7 +549,19 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
         isToday: date === today,
         isPast,
       };
-      if (!main)
+      const ordered = orderDaySessions(daySessions).map((session) =>
+        daySession(session, date, isPast),
+      );
+      const main =
+        daySessions.find((session) => session.kind === "race") ??
+        orderDaySessions(daySessions).sort(
+          (first, second) =>
+            second.targets.durationSeconds - first.targets.durationSeconds,
+        )[0];
+      const lead =
+        ordered.find((session) => session.sessionKey === main?.sessionKey) ??
+        ordered[0];
+      if (!lead)
         return {
           ...base,
           sessionKey: null,
@@ -496,64 +573,9 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
           blocks: [],
           state: isPast ? "done" : null,
           compliancePct: null,
+          sessions: [],
         };
-      const matchStatus = statuses.get(main.sessionKey);
-      const durationRatio = compliance.get(main.sessionKey)?.duration ?? null;
-      const proposed = matchesProposal(
-        proposalKeys,
-        "session",
-        main.sessionKey,
-      );
-      const state: DayState =
-        matchStatus === "completed" || matchStatus === "checked_in"
-          ? "done"
-          : matchStatus === "partial"
-            ? "partial"
-            : matchStatus === "substituted"
-              ? "substituted"
-              : proposed && !isPast
-                ? "proposed"
-                : isPast && main.kind !== "race" && !isUntrackedSession(main)
-                  ? "missed"
-                  : null;
-      const distance = sessionDistance(main, paces);
-      return {
-        ...base,
-        sessionKey: main.sessionKey,
-        raceId: main.kind === "race" ? (raceOn(date)?.id ?? null) : null,
-        family: sessionFamilyOf(main),
-        title:
-          daySessions.length > 1
-            ? daySessions.map((session) => session.title).join(" + ")
-            : main.title,
-        summary:
-          [
-            main.kind === "race"
-              ? null
-              : formatDuration(main.targets.durationSeconds),
-            distance !== null
-              ? approximate(formatDistance(distance.meters), distance.estimated)
-              : null,
-          ]
-            .filter(Boolean)
-            .join(" · ") || null,
-        elevation:
-          main.targets.elevationGainMeters !== null &&
-          main.targets.elevationGainMeters > 0
-            ? `${formatElevation(main.targets.elevationGainMeters)} D+`
-            : null,
-        blocks:
-          main.kind === "race" || !hasIntensity(main)
-            ? []
-            : sessionBlocks(main),
-        state,
-        compliancePct:
-          state === "done" || state === "partial"
-            ? durationRatio !== null
-              ? Math.round(durationRatio * 100)
-              : null
-            : null,
-      };
+      return { ...base, ...lead, sessions: ordered };
     });
     const families = days.map((day) => day.family);
     return {

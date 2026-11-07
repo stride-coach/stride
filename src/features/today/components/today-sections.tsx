@@ -14,7 +14,13 @@ import {
 import { ScoreRing } from "@/features/progress/components/body-sections";
 import { bodyPath } from "@/features/progress/health";
 import { cn } from "@/lib/utils";
-import type { TodayForm, TodayGoal, TodaySession, TodayWeek } from "../today";
+import type {
+  TodayDaySession,
+  TodayForm,
+  TodayGoal,
+  TodaySession,
+  TodayWeek,
+} from "../today";
 import {
   reviewRule,
   type FormIndicator,
@@ -161,11 +167,42 @@ export function SessionSection({
       aria-labelledby="today-session"
       className={cn(todayCard, "gap-4 sm:px-6.5 sm:py-6")}
     >
-      <Eyebrow id="today-session" tone="accent">
-        Séance du jour
-      </Eyebrow>
+      {session.kind === "session" && session.count > 1 ? (
+        <div className="flex items-center gap-2.5">
+          <Eyebrow id="today-session" tone="accent">
+            Séances du jour
+          </Eyebrow>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {session.count} séances
+          </span>
+        </div>
+      ) : (
+        <Eyebrow id="today-session" tone="accent">
+          Séance du jour
+        </Eyebrow>
+      )}
       {session.kind === "session" ? (
-        <PlannedSession session={session} verdict={verdict} />
+        session.count > 1 ? (
+          <>
+            {session.before.map((item) => (
+              <DaySessionRow key={item.sessionKey} session={item} />
+            ))}
+            <div
+              className={cn(
+                "flex flex-col gap-4",
+                session.before.length > 0 && "border-t border-border pt-4",
+                session.after.length > 0 && "border-b border-border pb-4",
+              )}
+            >
+              <PlannedSession session={session} verdict={verdict} />
+            </div>
+            {session.after.map((item) => (
+              <DaySessionRow key={item.sessionKey} session={item} />
+            ))}
+          </>
+        ) : (
+          <PlannedSession session={session} verdict={verdict} />
+        )
       ) : session.kind === "rest" ? (
         <>
           <div className="flex items-start gap-3.5">
@@ -230,6 +267,59 @@ export function SessionSection({
         </>
       )}
     </section>
+  );
+}
+
+function DaySessionRow({ session }: { session: TodayDaySession }) {
+  return (
+    <Link
+      href={session.href}
+      aria-label={session.label}
+      className="grid min-h-11 grid-cols-[32px_minmax(0,1fr)_12px] items-center gap-3 rounded-card border border-border px-3 py-2.5 hover:border-border-strong sm:grid-cols-[32px_minmax(0,1fr)_auto_12px] sm:gap-3.5 sm:px-3.5"
+    >
+      <SessionKindTile kind={session.family} size="lg" />
+      <span className="flex min-w-0 flex-col gap-0.75 sm:gap-0.5">
+        <span className="text-[15px] font-semibold">{session.title}</span>
+        {session.summary && (
+          <span className="text-xs text-muted-foreground">
+            {session.summary}
+          </span>
+        )}
+        <DaySessionNote session={session} className="sm:hidden" />
+      </span>
+      <DaySessionNote session={session} className="max-sm:hidden" />
+      <ChevronRightIcon
+        aria-hidden="true"
+        className="size-3 text-muted-foreground"
+      />
+    </Link>
+  );
+}
+
+function DaySessionNote({
+  session,
+  className,
+}: {
+  session: TodayDaySession;
+  className: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-1.5 text-xs whitespace-nowrap",
+        session.status === "done"
+          ? "text-success"
+          : session.status === "partial"
+            ? "text-warning"
+            : "text-muted-foreground",
+        className,
+      )}
+    >
+      {(session.status === "done" || session.status === "partial") && (
+        <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
+      )}
+      {session.note}
+    </span>
   );
 }
 
@@ -474,6 +564,23 @@ export function FormSection({
   );
 }
 
+function DayMark({ state }: { state: TodayWeek["days"][number]["state"] }) {
+  if (state === "done" || state === "partial")
+    return (
+      <CheckIcon
+        className={cn(
+          "size-2.5",
+          state === "done" ? "text-success" : "text-warning",
+        )}
+        strokeWidth={3}
+      />
+    );
+  if (state === "missed") return <PulseDot tone="danger" breathing={false} />;
+  if (state === "proposed")
+    return <PulseDot tone="warning" breathing={false} />;
+  return null;
+}
+
 export function WeekSection({ week }: { week: TodayWeek }) {
   return (
     <section aria-labelledby="today-week" className={todayCard}>
@@ -505,22 +612,23 @@ export function WeekSection({ week }: { week: TodayWeek }) {
             >
               {day.letter}
             </MonoLabel>
-            <SessionKindTile kind={day.family} size="lg" className="size-6.5" />
-            <span aria-hidden="true" className="flex h-3 items-center">
-              {(day.state === "done" || day.state === "partial") && (
-                <CheckIcon
-                  className={cn(
-                    "size-2.5",
-                    day.state === "done" ? "text-success" : "text-warning",
-                  )}
-                  strokeWidth={3}
+            <span aria-hidden="true" className="flex flex-col gap-1">
+              {day.families.map((family, index) => (
+                <SessionKindTile
+                  key={index}
+                  kind={family}
+                  size="lg"
+                  className="size-6.5"
                 />
-              )}
-              {day.state === "missed" && (
-                <PulseDot tone="danger" breathing={false} />
-              )}
-              {day.state === "proposed" && (
-                <PulseDot tone="warning" breathing={false} />
+              ))}
+            </span>
+            <span aria-hidden="true" className="flex h-3 items-center">
+              {day.families.length > 1 ? (
+                <span className="font-metric text-[11px] leading-none text-muted tabular-nums">
+                  {day.doneCount}/{day.families.length}
+                </span>
+              ) : (
+                <DayMark state={day.state} />
               )}
             </span>
           </li>

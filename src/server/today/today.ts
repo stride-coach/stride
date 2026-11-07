@@ -1,7 +1,7 @@
 import "server-only";
 import { localToday } from "@/features/app-shell/shell";
 import { buildProgram } from "@/features/plans/view/program";
-import { buildToday, todaySessionKey } from "@/features/today/today";
+import { buildToday, todaySessionKeys } from "@/features/today/today";
 import type { Activity } from "@/features/activities/activities";
 import { listActivities, readActivity } from "@/server/activities/activities";
 import { pairQuestion } from "@/features/gear/check-view";
@@ -51,7 +51,7 @@ export async function loadToday(context: OnboardingContext, now: Date) {
     paces,
     recovery,
     latest,
-    panel,
+    panels,
     races,
     ,
     checks,
@@ -63,12 +63,14 @@ export async function loadToday(context: OnboardingContext, now: Date) {
     loadIntensityPaces(context),
     loadRecovery(context, localToday(now)),
     latestRead,
-    overviewRead.then((overview) => {
-      const sessionKey = todaySessionKey(
-        overview?.plan.state ?? null,
-        overview?.today ?? localToday(now),
+    overviewRead.then(async (overview) => {
+      const panels = await Promise.all(
+        todaySessionKeys(
+          overview?.plan.state ?? null,
+          overview?.today ?? localToday(now),
+        ).map((sessionKey) => loadSessionPanel(context, sessionKey)),
       );
-      return sessionKey ? loadSessionPanel(context, sessionKey) : null;
+      return panels.filter((panel) => panel !== null);
     }),
     overviewRead.then((overview) =>
       overview ? overview.races : readPlanRaces(context),
@@ -100,7 +102,7 @@ export async function loadToday(context: OnboardingContext, now: Date) {
       program: overview ? buildProgram(programInput(overview, paces)) : null,
       races,
       matches: overview?.matches ?? [],
-      panel,
+      panels,
       recovery,
       latest,
       latestGroup,
