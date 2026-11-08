@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.0](https://github.com/stride-coach/stride/compare/v1.3.0...v1.4.0) (2026-11-08)
+
+
+### Features
+
+* **coach:** let the coach add a session to a day and cap a day's total time ([#380](https://github.com/stride-coach/stride/issues/380)) ([79e4d8c](https://github.com/stride-coach/stride/commit/79e4d8cb453ded036919a9c16a55dbec28b8671e))
+* **design:** add the Halo Volt pattern to auth and onboarding welcome ([#373](https://github.com/stride-coach/stride/issues/373)) ([0b9123f](https://github.com/stride-coach/stride/commit/0b9123fff3be8e77a3f9a738a5e74656d33ba0ac))
+* **plans:** show double days as separate sessions on Plan and Today ([#377](https://github.com/stride-coach/stride/issues/377)) ([935e2bf](https://github.com/stride-coach/stride/commit/935e2bf6bd4e955e05cb60b79bf5e696e22d4495))
+
+
+### Bug Fixes
+
+* **coach:** raise session budgets and let athletes resend a failed message ([#379](https://github.com/stride-coach/stride/issues/379)) ([f75e871](https://github.com/stride-coach/stride/commit/f75e871cec9b7d88c96191e5e40b80f549befbc3))
+* **coach:** stop coach turns hanging and keep specialist messages ([#375](https://github.com/stride-coach/stride/issues/375)) ([6d8d340](https://github.com/stride-coach/stride/commit/6d8d3400c0b64ee36cffb6a3f867a299ce56cf75))
+* **e2e:** keep the e2e app server out of the Playwright lock ([#372](https://github.com/stride-coach/stride/issues/372)) ([40087fe](https://github.com/stride-coach/stride/commit/40087fe2d2eb9c461696d3809763197e9a8b8f08)), closes [#371](https://github.com/stride-coach/stride/issues/371)
+
 ## [1.3.0](https://github.com/Julestblt/Stride/compare/v1.2.0...v1.3.0) (2026-10-24)
 
 
