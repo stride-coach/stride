@@ -216,6 +216,34 @@ describe("proposal review", () => {
     });
   });
 
+  it("shows an added support session with its duration and family", () => {
+    const review = buildProposalReview(
+      input({
+        proposal: proposal({
+          operations: [
+            {
+              op: "add_session",
+              session: {
+                scheduledOn: "2026-10-22",
+                content: {
+                  ...easyRun(30),
+                  sport: "strength",
+                  kind: "strength",
+                  title: "Renforcement",
+                },
+              },
+            },
+          ],
+        }),
+      }),
+    );
+    expect(review.operations[0]).toMatchObject({
+      label: "Ajoutée",
+      before: null,
+      after: { title: "Renforcement", meta: "30’ · renforcement" },
+    });
+  });
+
   it("is read-only once applied, rejected or stale", () => {
     const applied = buildProposalReview(
       input({
@@ -519,6 +547,21 @@ describe("week proposals", () => {
         { id: "p-2", title: "Footing décalé", summary: "Mardi passe à jeudi." },
       ],
       "2026-11-02": [{ id: "p-3", title: "Objectifs revus", summary: null }],
+    });
+  });
+
+  it("places a proposal adding a session in the week of its date", () => {
+    expect(
+      proposalsByWeek(planState(), [
+        {
+          id: "p-4",
+          title: "Footing en plus",
+          summary: null,
+          targetKeys: ["s-2026-10-29-1"],
+        },
+      ]),
+    ).toEqual({
+      "2026-10-26": [{ id: "p-4", title: "Footing en plus", summary: null }],
     });
   });
 });

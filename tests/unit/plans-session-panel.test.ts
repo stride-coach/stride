@@ -105,6 +105,24 @@ describe("session panel", () => {
     });
   });
 
+  it("shows a proposal adding a session on the same day", () => {
+    const proposal = {
+      id: "10000000-0000-4000-8000-000000000002",
+      title: "Footing après le renfo",
+      summary: "Un footing de 30’ en plus mercredi.",
+      targetKeys: ["s-2026-10-22-2"],
+      createdAt: "2026-10-22T05:30:00Z",
+    };
+    expect(
+      buildSessionPanel(input({ proposals: [proposal] }))!.proposal?.id,
+    ).toBe(proposal.id);
+    expect(
+      buildSessionPanel(
+        input({ sessionKey: "s-2026-10-20-1", proposals: [proposal] }),
+      )!.proposal,
+    ).toBeNull();
+  });
+
   it("compares planned and completed values from the matched activity", () => {
     const panel = buildSessionPanel(
       input({

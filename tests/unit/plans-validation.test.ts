@@ -337,6 +337,43 @@ describe("athlete constraints", () => {
     ).toBe("skipped");
   });
 
+  it("C2 caps the total of a weekday's sessions", () => {
+    const cap = athlete({ weekdaySessionMinutes: 60 });
+    const day = (runMinutes: number, kind: "easy" | "long" = "easy") =>
+      state([
+        run("s-2026-10-14-1", "2026-10-14", 30, {
+          sport: "strength",
+          kind: "strength",
+        }),
+        run("s-2026-10-14-2", "2026-10-14", runMinutes, { kind }),
+      ]);
+    expect(rule(input(day(45), cap), "C2")).toMatchObject({
+      outcome: "fail",
+      keys: ["s-2026-10-14-1", "s-2026-10-14-2"],
+    });
+    expect(rule(input(day(25), cap), "C2").outcome).toBe("pass");
+    expect(rule(input(day(90, "long"), cap), "C2").outcome).toBe("pass");
+  });
+
+  it("C2 caps a lone support session and skips race days", () => {
+    const cap = athlete({ weekdaySessionMinutes: 60 });
+    const strength = state([
+      run("s-2026-10-14-1", "2026-10-14", 75, {
+        sport: "strength",
+        kind: "strength",
+      }),
+    ]);
+    expect(rule(input(strength, cap), "C2")).toMatchObject({
+      outcome: "fail",
+      keys: ["s-2026-10-14-1"],
+    });
+    const raceDay = state([
+      run("s-2026-10-14-1", "2026-10-14", 90, { kind: "race" }),
+      run("s-2026-10-14-2", "2026-10-14", 20),
+    ]);
+    expect(rule(input(raceDay, cap), "C2").outcome).toBe("pass");
+  });
+
   it("C2 enforces the weekly ceiling", () => {
     const week = (minutes: number) =>
       state([

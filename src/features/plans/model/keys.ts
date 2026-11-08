@@ -34,3 +34,8 @@ export function compareSessions(
     first.sessionKey.localeCompare(second.sessionKey)
   );
 }
+
+export function sessionKeyDate(key: string) {
+  const match = /^s-(\d{4}-\d{2}-\d{2})-\d+$/.exec(key);
+  return match ? match[1] : null;
+}

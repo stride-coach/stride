@@ -44,7 +44,8 @@ Rules:
 - Every `run` and `trail` session has `km`, including quality sessions: estimate it from the steps' durations and paces (use the easy pace for warm-up, recoveries and cool-down). Leave `km` null only for `strength`, `cross` and `mobility`.
 - Do not list rest days. The objective race is a session of kind `race` on the race date.
 - Every week from `startsOn` to `endsOn` is fully detailed.
-- Schedule sessions only on the athlete's available weekdays, keep weekday sessions within the maximum weekday duration, respect the weekly maximum, and schedule nothing during unavailable periods.
+- Schedule sessions only on the athlete's available weekdays, keep the total of each weekday's sessions within the maximum weekday duration, respect the weekly maximum, and schedule nothing during unavailable periods.
+- Two activities on one day are two sessions on the same date, never one merged session: strength is its own `strength` session and a run after it is a separate `run` or `trail` session. In `create_plan_proposal`, add the second one with `add_session`.
 - Races the plan does not target but that fall inside it get a role in `raceRoles` and a session of kind `race` on their date.
 
 ## Extending the active plan with `extend_plan`

@@ -371,6 +371,18 @@ describe("race values", () => {
   });
 });
 
+describe("add-only proposals", () => {
+  it("mark the day and the week of an added session as proposed", () => {
+    const program = buildProgram(
+      input({ proposalKeys: ["session:s-2026-10-22-2"] }),
+    );
+    const week = program.weeks[1];
+    expect(week.proposed).toBe(true);
+    expect(week.days[3].state).toBe("proposed");
+    expect(program.weeks[2].proposed).toBe(false);
+  });
+});
+
 describe("double days", () => {
   const doubleDay = (
     keys: [string, string] = ["s-2026-10-21-1", "s-2026-10-21-2"],

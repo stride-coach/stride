@@ -6,7 +6,7 @@ import {
   type MatchStatus,
 } from "../matching/adherence";
 import { addDays } from "../model/dates";
-import { compareSessions } from "../model/keys";
+import { compareSessions, sessionKeyDate } from "../model/keys";
 import { formatClock, formatDayMonthShort } from "@/features/progress/format";
 import type {
   PlanBlock,
@@ -357,6 +357,18 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
     input.matches.map((match) => [match.sessionKey, match.compliance]),
   );
   const proposalKeys = new Set(input.proposalKeys);
+  const knownKeys = new Set(
+    state.sessions.map((session) => session.sessionKey),
+  );
+  const addedDates = new Set(
+    input.proposalKeys.flatMap((key) => {
+      const sessionKey = key.replace(/^session:/, "");
+      const date = knownKeys.has(sessionKey)
+        ? null
+        : sessionKeyDate(sessionKey);
+      return date ? [date] : [];
+    }),
+  );
   const planRaceIds = planRaceIdsOf(state);
   const raceOn = (date: string) =>
     input.races.find(
@@ -379,11 +391,9 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
   ): ProgramDaySession => {
     const matchStatus = statuses.get(session.sessionKey);
     const durationRatio = compliance.get(session.sessionKey)?.duration ?? null;
-    const proposed = matchesProposal(
-      proposalKeys,
-      "session",
-      session.sessionKey,
-    );
+    const proposed =
+      matchesProposal(proposalKeys, "session", session.sessionKey) ||
+      addedDates.has(session.scheduledOn);
     const state: DayState =
       matchStatus === "completed" || matchStatus === "checked_in"
         ? "done"
@@ -618,7 +628,8 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
         matchesProposal(proposalKeys, "week", week.weekKey) ||
         sessions.some((session) =>
           matchesProposal(proposalKeys, "session", session.sessionKey),
-        ),
+        ) ||
+        [...addedDates].some((date) => date >= week.weekStart && date <= end),
       race:
         raceSession || race
           ? {

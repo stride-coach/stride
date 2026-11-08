@@ -11,4 +11,5 @@ description: Session design and training paces. Intensity zones from threshold p
 - Fartlek (kind `fartlek`) is a guided, feel-based quality session: a 10-20 minute easy warm-up, one free work step of 20-35 minutes by time with an RPE 5-9 target, intensity `threshold`, and a cue, then a 10-minute easy cool-down. Never pace or heart-rate targets on the free step, so the watch does not alert during surges. Put the surge menu in the purpose or cue: 6 to 10 surges of 30 s to 3 min with a jogged recovery at least as long; on trail, surge on climbs and flats and recover on descents. Use it in lead-in, base and development as a gentler alternative to hills or VO2 intervals, to train effort changes; never in taper or race-specific weeks.
 - Without a threshold calibration, use RPE (easy 3-4, threshold 6-7, interval 8) and conservative pace ranges from recent results.
 - Novices: easy runs by time with RPE, strides for speed, run-walk when needed.
-- Keep sessions within the athlete's available days and maximum weekday duration; put the long run on the day with the most time.
+- Keep sessions within the athlete's available days and keep each weekday's total within the maximum weekday duration; put the long run on the day with the most time.
+- Strength and running on the same day are two sessions, strength first and the run after it, never one session mixing both.

@@ -4,6 +4,7 @@ import {
   type StaffAgent,
 } from "@/features/coach/staff";
 import { mondayOf } from "../model/dates";
+import { sessionKeyDate } from "../model/keys";
 import type { PlanState } from "../model/plan";
 
 export const proposalStatuses = [
@@ -239,10 +240,17 @@ export function proposalsByWeek(
     const keys = new Set(
       proposal.targetKeys.map((key) => key.slice(key.indexOf(":") + 1)),
     );
+    const existing = new Set(state.sessions.map((item) => item.sessionKey));
     const starts = new Set([
       ...state.sessions
         .filter((session) => keys.has(session.sessionKey))
         .map((session) => mondayOf(session.scheduledOn)),
+      ...[...keys]
+        .filter((key) => !existing.has(key))
+        .flatMap((key) => {
+          const date = sessionKeyDate(key);
+          return date ? [mondayOf(date)] : [];
+        }),
       ...state.weeks
         .filter((week) => keys.has(week.weekKey))
         .map((week) => week.weekStart),

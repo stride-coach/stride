@@ -12,7 +12,7 @@ import type { AthleteFeeling } from "../debrief/debrief";
 import { buildDebriefView, type DebriefView } from "../debrief/view";
 import type { MatchStatus } from "../matching/adherence";
 import { addDays, mondayOf } from "../model/dates";
-import { compareSessions } from "../model/keys";
+import { compareSessions, sessionKeyDate } from "../model/keys";
 import type { PlanSession, PlanState } from "../model/plan";
 import type { IntensityPaces } from "../model/structure";
 import {
@@ -508,11 +508,14 @@ export function buildSessionPanel(
     status === "done" || status === "partial"
       ? null
       : (input.proposals.find((item) =>
-          item.targetKeys.some(
-            (key) =>
+          item.targetKeys.some((target) => {
+            const key = target.slice(target.indexOf(":") + 1);
+            return (
               key === session.sessionKey ||
-              key === `session:${session.sessionKey}`,
-          ),
+              (sessionKeyDate(key) === session.scheduledOn &&
+                !state.sessions.some((other) => other.sessionKey === key))
+            );
+          }),
         ) ?? null);
   const paceRanges = input.paceRanges ?? null;
   const paces = paceRanges ? paceMidpoints(paceRanges) : null;
