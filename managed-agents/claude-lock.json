@@ -9,121 +9,138 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "19",
-      "hash": "0c01be9e4144690d2b5fade1c03fc104",
-      "remote_hash": "cb2e019bdc7b21117bb716879f1aadfb"
+      "version": "20",
+      "hash": "564cffcc5e97380e0622ef36de566ed7",
+      "remote_hash": "e91b8de9c3eb41fd69e0f498a242101d",
+      "stamp": "20"
     },
     "./agents/director.md": {
       "kind": "agent",
       "id": "agent_017vonN4KirZUgE4TdC7eept",
       "version": "3",
       "hash": "397ab9614788fc393e9bd7ce86c54093",
-      "remote_hash": "1089f8d6ee6fb95ebbcf5407af55cfb8"
+      "remote_hash": "1089f8d6ee6fb95ebbcf5407af55cfb8",
+      "stamp": "3"
     },
     "./agents/medical.md": {
       "kind": "agent",
       "id": "agent_011dYKZ33Wq7xwdNR3SqpugL",
       "version": "11",
       "hash": "9e4078f597326451ff75547a228c1002",
-      "remote_hash": "ec073119786e5ae18fbf2cf6379ac6ad"
+      "remote_hash": "ec073119786e5ae18fbf2cf6379ac6ad",
+      "stamp": "11"
     },
     "./agents/nutritionist.md": {
       "kind": "agent",
       "id": "agent_01T4vwuYeP5ZjKoLPDdHC9z4",
-      "version": "2",
-      "hash": "a2483f4e2b0d538ad396b28a42aed7a5",
-      "remote_hash": "25d0033b4c1dc51ea67d888d50b76601"
+      "version": "3",
+      "hash": "667c80801ff4553747cebfa5e3dece3e",
+      "remote_hash": "99db88873f00dea22c13a9b0dedcd242",
+      "stamp": "3"
     },
     "./agents/strategist.md": {
       "kind": "agent",
       "id": "agent_015ajAPp18SxHnnA4QEcQ8st",
       "version": "3",
       "hash": "33fb8a9e46d8201685f2d692950a13ba",
-      "remote_hash": "ebf4bb911a09d620ba319499c91b2a15"
+      "remote_hash": "ebf4bb911a09d620ba319499c91b2a15",
+      "stamp": "3"
     },
     "./environments/coaching.yaml": {
       "kind": "environment",
       "id": "env_01VLDfiFmxn52uU7BCPirTCB",
       "hash": "1d890d72191fe02dc9248cd2d0e1f297",
-      "remote_hash": "72d0b2cd62455eb38b15979e13b46c91"
+      "remote_hash": "72d0b2cd62455eb38b15979e13b46c91",
+      "stamp": "2026-10-14T22:24:05.095062Z"
     },
     "./skills/daily-nutrition": {
       "kind": "skill",
       "id": "skill_01XZb7tWQ2Tm6ZGRihsiXt6L",
       "version": "skver_01LQHrYpdgYDQwsNgEvbnmWU",
-      "hash": "194539b1355f586343804c9bb78dd062"
+      "hash": "194539b1355f586343804c9bb78dd062",
+      "stamp": "skver_01LQHrYpdgYDQwsNgEvbnmWU"
     },
     "./skills/explain-decision": {
       "kind": "skill",
       "id": "skill_01PeEfH9uW4FuyNL7tERZsMn",
       "version": "skver_016wHx1YB5EdwvdjWMDEWmm8",
-      "hash": "d8d83ef2c26c88bc8a23f677337d71ec"
+      "hash": "d8d83ef2c26c88bc8a23f677337d71ec",
+      "stamp": "skver_016wHx1YB5EdwvdjWMDEWmm8"
     },
     "./skills/fueling": {
       "kind": "skill",
       "id": "skill_01MUkdrYENWzre6pp9m9Yzt2",
       "version": "skver_01G6kZgnPiiRTjLLXFUEEf3M",
-      "hash": "ac57afc273ba5a4f01cc2f74b0be6c62"
+      "hash": "ac57afc273ba5a4f01cc2f74b0be6c62",
+      "stamp": "skver_01G6kZgnPiiRTjLLXFUEEf3M"
     },
     "./skills/garmin-data-access": {
       "kind": "skill",
       "id": "skill_01DUdrTJ4ZWGvHdqoVeoGiw4",
       "version": "skver_01EvGTmbrckwYxLF3kRyGtDN",
-      "hash": "de9418328fc9c4e3906f5a4a003ac730"
+      "hash": "de9418328fc9c4e3906f5a4a003ac730",
+      "stamp": "skver_01EvGTmbrckwYxLF3kRyGtDN"
     },
     "./skills/gear-rotation": {
       "kind": "skill",
       "id": "skill_01KW6E5Lo9UCWbEz7SX4VVpB",
       "version": "skver_01BLDdhjYDWt9UctB2UD8ViK",
-      "hash": "68a73727473889940ce0c1516dc56e7e"
+      "hash": "68a73727473889940ce0c1516dc56e7e",
+      "stamp": "skver_01BLDdhjYDWt9UctB2UD8ViK"
     },
     "./skills/health-recovery": {
       "kind": "skill",
       "id": "skill_01McDG7svjNWDicbWjdxAV1f",
       "version": "skver_01Pao6UPF8eYgRgsA6qCLp4H",
-      "hash": "faf3012c818394b9f8376c4bbd16d07f"
+      "hash": "faf3012c818394b9f8376c4bbd16d07f",
+      "stamp": "skver_01Pao6UPF8eYgRgsA6qCLp4H"
     },
     "./skills/plan-format": {
       "kind": "skill",
       "id": "skill_012bHRN9qv9aAfHU1DJVygLt",
-      "version": "skver_01QnCzjMffuuA9uUhcR4U7S9",
-      "hash": "cba8ad2764e42cb8dff29d3d77256bd3"
+      "version": "skver_01AJ2T7JGfAuvtcCDx8Q8tKT",
+      "hash": "dcf3ffe038f19ff2c91d4a29c9b27ada"
     },
     "./skills/plan-periodization": {
       "kind": "skill",
       "id": "skill_01DHHZifHU7Eq6byKet5Xfoc",
       "version": "skver_01D4C7LyMwF6tx8XEmDMtzo2",
-      "hash": "02951adf2ad1ec483c51f555c91e21d4"
+      "hash": "02951adf2ad1ec483c51f555c91e21d4",
+      "stamp": "skver_01D4C7LyMwF6tx8XEmDMtzo2"
     },
     "./skills/race-specificity": {
       "kind": "skill",
       "id": "skill_01VQqXNMQneHCr5RJSGEKkSN",
       "version": "skver_01XJVygPPNBQuJT793ZHRpgh",
-      "hash": "dede43319735eac14a964e9ad60c1879"
+      "hash": "dede43319735eac14a964e9ad60c1879",
+      "stamp": "skver_01XJVygPPNBQuJT793ZHRpgh"
     },
     "./skills/race-strategy": {
       "kind": "skill",
       "id": "skill_01NZHMP1ESZ1CdVEgR2hLQbc",
       "version": "skver_018iCaS9g3JPNr72yvtVgMPb",
-      "hash": "f8325ebb6b2040375e77bce444a0dd1d"
+      "hash": "f8325ebb6b2040375e77bce444a0dd1d",
+      "stamp": "skver_018iCaS9g3JPNr72yvtVgMPb"
     },
     "./skills/season-calendar": {
       "kind": "skill",
       "id": "skill_01QWi4yaJZQLoZAfGZU5aBBF",
       "version": "skver_012CnsUSC949PdRT325BHLn2",
-      "hash": "10a9ed6a6eb35b9b66786cf46f0fe41a"
+      "hash": "10a9ed6a6eb35b9b66786cf46f0fe41a",
+      "stamp": "skver_012CnsUSC949PdRT325BHLn2"
     },
     "./skills/session-design": {
       "kind": "skill",
       "id": "skill_01AroJ3qNVuGNpe3nfH26hf8",
-      "version": "skver_017f4X5PuPfyY53awV7cMJrk",
-      "hash": "86628d242d3db750787c0cc96fe5f27e"
+      "version": "skver_01Uzg5Nu1BRDXiXfQ8ig6NX1",
+      "hash": "feb7e7b662ac371922ae2c9fee4a2276"
     },
     "./skills/status-reports": {
       "kind": "skill",
       "id": "skill_016RBxwbMwvtMjh1XnsutLF5",
       "version": "skver_017Ab7GaJvcpxRVEWxUd5gNU",
-      "hash": "a33dde57c87f8a2c09b1c542922d8f2b"
+      "hash": "a33dde57c87f8a2c09b1c542922d8f2b",
+      "stamp": "skver_017Ab7GaJvcpxRVEWxUd5gNU"
     }
   }
 }
