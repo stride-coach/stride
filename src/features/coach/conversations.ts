@@ -19,7 +19,6 @@ export type ThreadStatus =
 
 export const closedStates: readonly SessionState[] = [
   "budget_reached",
-  "failed",
   "terminated",
 ];
 

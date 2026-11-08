@@ -256,6 +256,30 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
   return entries;
 }
 
+export type RetryableMessage = {
+  text: string;
+  consult: boolean;
+  attachments: SentAttachment[];
+};
+
+export function retryableMessage(
+  items: readonly ThreadItem[],
+): RetryableMessage | null {
+  const last = items.at(-1);
+  if (last?.kind !== "error" || last.code === "budget_reached") return null;
+  for (let index = items.length - 2; index >= 0; index -= 1) {
+    const item = items[index];
+    if (item.kind === "answer" || item.kind === "error") return null;
+    if (item.kind === "athlete")
+      return {
+        text: item.text,
+        consult: item.consult !== null,
+        attachments: item.attachments,
+      };
+  }
+  return null;
+}
+
 export function typingLabel(member: StaffMember, read: string | null) {
   return read
     ? `${member.name} lit ${read.toLowerCase()}…`

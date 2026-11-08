@@ -61,7 +61,7 @@ import { useStaff } from "@/features/coach/components/staff-context";
 import { staffAgents } from "@/features/coach/staff";
 import { refusalText, splitFrames, turnFailure } from "@/features/coach/stream";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
-import { buildThread } from "@/features/coach/thread";
+import { buildThread, retryableMessage } from "@/features/coach/thread";
 import { markCoachThreadRead } from "@/server/coaching/actions";
 import { ContextPicker } from "./context-picker";
 import { ConversationList } from "./conversation-list";
@@ -396,6 +396,10 @@ export function CoachScreen({
     [items, working, pendingQuestion, proposalStatuses],
   );
   const closed = state !== null && closedStates.includes(state);
+  const retry =
+    working || closed || pendingQuestion !== null
+      ? null
+      : retryableMessage(items);
   const participants = threadParticipants(items);
   const title =
     thread?.title ??
@@ -751,6 +755,12 @@ export function CoachScreen({
                 now={now}
                 busy={working}
                 onAnswer={(answer) => void send(answer, false)}
+                onRetry={
+                  retry
+                    ? () =>
+                        void send(retry.text, retry.consult, retry.attachments)
+                    : undefined
+                }
                 onOther={() =>
                   document.getElementById("coach-composer")?.focus()
                 }

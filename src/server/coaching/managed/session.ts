@@ -49,9 +49,16 @@ export type { SessionMode } from "./store";
 
 const userKey = "stride_user_id";
 export const sessionBudgetCents: Record<SessionMode, number> = {
-  conversation: 100,
-  plan: 200,
+  conversation: 500,
+  plan: 1000,
 };
+
+function budgetLimit(cents: number) {
+  return {
+    type: "limit" as const,
+    max_list_cost: { amount: String(cents), currency: "USD" as const },
+  };
+}
 
 export const turnMessages = {
   timeout:
@@ -145,11 +152,7 @@ function callingAgent(
   return agentNames[threadAgents.get(threadId) ?? ""] ?? "medical";
 }
 
-const closedStatuses: SessionStatus[] = [
-  "budget_reached",
-  "failed",
-  "terminated",
-];
+const closedStatuses: SessionStatus[] = ["budget_reached", "terminated"];
 
 export function assertTurnAllowed(
   record: CoachSessionRecord,
@@ -225,6 +228,16 @@ async function openSession(
     if (session.metadata?.[userKey] !== context.userId)
       throw new SessionAccessError();
     assertTurnAllowed(record, request.input, nowMs);
+    const budgetCents = sessionBudgetCents[record.mode];
+    const currentCents = costCents(session.budget?.max_list_cost.amount);
+    if (currentCents !== null && currentCents < budgetCents)
+      await client.beta.sessions
+        .update(request.sessionId, { budget: budgetLimit(budgetCents) })
+        .catch((error: unknown) => {
+          console.warn("Coach session budget was not raised", {
+            error: error instanceof Error ? error.message : "unknown",
+          });
+        });
     return record;
   }
   if (request.input.kind !== "message")
@@ -236,10 +249,7 @@ async function openSession(
     title: `Stride ${request.mode}`,
     vault_ids: [vaultId],
     metadata: { [userKey]: context.userId, mode: request.mode },
-    budget: {
-      type: "limit",
-      max_list_cost: { amount: String(budgetCents), currency: "USD" },
-    },
+    budget: budgetLimit(budgetCents),
   });
   return recordSession(context, {
     managedSessionId: session.id,

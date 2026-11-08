@@ -34,6 +34,7 @@ import {
   buildThread,
   questionAttribution,
   replyToLabel,
+  retryableMessage,
   splitMentions,
   typingLabel,
 } from "../../src/features/coach/thread";
@@ -333,6 +334,31 @@ describe("thread view model", () => {
     expect(view(consultDone).at(-1)).toMatchObject({
       blocks: [{ state: "closed" }],
     });
+  });
+
+  it("offers to resend the athlete message behind a failed turn", () => {
+    const failed: ThreadItem = {
+      kind: "error",
+      at: at(5),
+      code: "failed",
+      text: "Le coach a rencontré un problème.",
+    };
+    expect(retryableMessage([...consultTurn.slice(0, 2), failed])).toEqual({
+      text: "J’ai mal au genou",
+      consult: true,
+      attachments: [],
+    });
+    expect(
+      retryableMessage([consultTurn[0], { ...failed, code: "budget_reached" }]),
+    ).toBeNull();
+    expect(retryableMessage(consultTurn.slice(0, 2))).toBeNull();
+    expect(
+      retryableMessage([
+        consultTurn[0],
+        { kind: "answer", at: at(4), toolUseId: "sevt_1", text: "Oui" },
+        failed,
+      ]),
+    ).toBeNull();
   });
 
   it("splits mentions out of message text", () => {
