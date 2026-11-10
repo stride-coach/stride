@@ -31,7 +31,7 @@ Stride is a web-first personal running coach for road and trail athletes. This r
 - Tailwind CSS v4 is the primary styling system. Prefer utility classes inside React components, including responsive breakpoint utilities.
 - Reserve `globals.css` for theme tokens, resets, global accessibility behavior, and truly global styles. Do not add page-specific or component-specific global classes without a strong technical reason.
 - Consume semantic theme utilities instead of raw colors. Keep CSS variables and `@theme inline` as the token source of truth.
-- shadcn/ui is the preferred accessible primitive layer. Night Track controls colors, typography, radii, spacing, and final appearance; shadcn presets must not replace it.
+- shadcn/ui is the preferred accessible primitive layer. The Dense design system controls colors, typography, radii, spacing, and final appearance; shadcn presets must not replace it.
 - Reuse existing primitives before adding abstractions. Avoid unnecessary wrappers, utilities, and duplicate UI libraries.
 - Use `next/font` for project fonts. Preserve keyboard navigation, focus-visible states, and reduced-motion behavior.
 - Follow `docs/architecture/frontend-data-loading.md` for reads, revalidation and navigation: revalidate inside Server Actions without a client `router.refresh()`, wrap shared reads in React `cache()`, and add no server-side data cache.
@@ -42,7 +42,7 @@ Stride is a web-first personal running coach for road and trail athletes. This r
 - Add shadcn primitives only when they solve an actual interaction or accessibility need. Do not recreate an existing shadcn/Radix primitive without a good reason.
 - Do not add UI libraries that duplicate shadcn/Radix functionality.
 - UI has three layers: shadcn primitives in `src/components/ui`, Stride patterns in `src/components/stride`, and screen composition in `src/app` and `src/features`. Before creating a component or local style, check both layers and the `/design-system` gallery, then reuse or extend; add a new abstraction only for a genuinely new pattern. See `docs/design/design-system.md`.
-- Adapt registry component styles to Night Track before use. Token names follow shadcn: `text-secondary-foreground` is supporting text, `bg-muted` is the muted surface, `bg-card` the card surface, and `primary` the brand colour. `muted` is a surface, never a text colour. Use `rounded-md` for controls and `rounded-lg` for fields and menus.
+- Adapt registry component styles to Dense before use. Token names follow shadcn: `text-secondary-foreground` is supporting text, `bg-muted` is the muted surface, `bg-card` the card surface, and `primary` the brand colour. `muted` is a surface, never a text colour. Use `rounded-md` for controls and `rounded-lg` for fields and menus.
 
 ## Design reference conventions
 

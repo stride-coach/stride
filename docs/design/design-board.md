@@ -28,7 +28,7 @@ Artboards on the `archive` page (`"page": "archive"` in `canvas.json`) are super
 
 The board stays the single source of truth, so it changes before the code. For a new screen or a user-visible UI change, start by updating the board:
 
-1. Edit the affected artboards on the board, desktop and mobile, until the render is clean. Follow the board's `SKILL.md` and keep the change consistent with `Foundations · Product system` and `Foundations · Patterns`.
+1. Edit the affected artboards on the board, desktop and mobile, until the render is clean. Follow the board's `SKILL.md` and keep the change consistent with the [Stride Design System](https://claude.ai/artifact/SbP5TijwXUuGmWBR8hqXht).
 2. Share the updated artboard titles and the board version with the owner.
 3. Implement from the updated artboards.
 
@@ -36,9 +36,9 @@ Fixes that only bring the code back in line with the board need no board change.
 
 ## Implementing from an artboard
 
-Artboard markup is a reference, not production code. Never copy its generated HTML, inline styles, or scripts. Rebuild the screen with Stride's architecture, Tailwind, Night Track tokens, and shadcn primitives, and map raw values such as `#D5FF3F` or `8px` radii to the semantic tokens in [design-system.md](design-system.md).
+Artboard markup is a reference, not production code. Never copy its generated HTML, inline styles, or scripts. Rebuild the screen with Stride's architecture, Tailwind, Dense tokens, and shadcn primitives, and map raw values such as `#6E9BFF` or `9px` radii to the semantic tokens in [design-system.md](design-system.md).
 
-Read the `Foundations · Product system` and `Foundations · Patterns` artboards with any screen artboard when a task touches visual language.
+Read the design system's `project/README.md`, `project/tokens.json` and the relevant component pages with any screen artboard when a task touches visual language. Screens of the Dense direction live on the `V2 · Dense` page; the older pages show Night Track and are references for behaviour and copy only until their area is migrated.
 
 Board assets are never application assets. Do not download, transform, or commit board images or derivatives without explicit instruction.
 
