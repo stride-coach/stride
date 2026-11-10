@@ -99,7 +99,7 @@ export function AppHeader({
         )}
       </div>
       {actions}
-      <DataActivityStatus short className="shrink-0 md:hidden" />
+      <DataActivityStatus compact className="shrink-0 md:hidden" />
       <MobileHeaderActions />
       <DataActivityThread />
     </header>
