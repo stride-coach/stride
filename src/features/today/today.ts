@@ -17,9 +17,11 @@ import {
   formatDuration,
   formatLongDay,
 } from "@/features/plans/view/format";
-import type { SessionBlock, Zone } from "@/components/stride/session-blocks";
 import {
-  familyLabels,
+  dayIntensity,
+  type SessionIntensity as TodayIntensity,
+} from "@/features/plans/view/intensity";
+import {
   orderDaySessions,
   sessionFamilyOf,
   type DayState,
@@ -86,8 +88,6 @@ export type TodayForm = {
   indicators: FormIndicator[];
 };
 
-export type TodayIntensity = { level: Zone | null; label: string };
-
 export type TodayWeekDay = {
   date: string;
   dayLabel: string;
@@ -107,43 +107,6 @@ export type TodayWeekDay = {
   isPast: boolean;
   label: string;
 };
-
-const intensityLabels: Record<Zone, string> = {
-  1: "Récup",
-  2: "Facile",
-  3: "Tempo",
-  4: "Seuil",
-  5: "Fractionné",
-};
-
-const unrankedFamilies: Partial<Record<SessionFamily, string>> = {
-  strength: "Renfo",
-  mobility: "Mobilité",
-  cross: "Sport croisé",
-  race: "Course",
-};
-
-export function dayIntensity(
-  family: SessionFamily,
-  blocks: readonly SessionBlock[],
-): TodayIntensity | null {
-  if (family === "rest") return null;
-  const unranked = unrankedFamilies[family];
-  if (unranked) return { level: null, label: unranked };
-  const peak = blocks.reduce<Zone | null>(
-    (zone, block) =>
-      block.removed
-        ? zone
-        : zone === null || block.zone > zone
-          ? block.zone
-          : zone,
-    null,
-  );
-  if (peak === null) return { level: null, label: familyLabels[family] };
-  if (family === "long" || family === "long_trail")
-    return { level: peak, label: "Long" };
-  return { level: peak, label: intensityLabels[peak] };
-}
 
 const shortDay = new Intl.DateTimeFormat("fr-FR", {
   weekday: "short",

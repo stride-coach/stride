@@ -1,6 +1,5 @@
 import { PlusIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import type { RaceProgram } from "@/features/plans/view/program";
 
@@ -20,7 +19,7 @@ export function ProgramTabs({
   return (
     <nav
       aria-label="Programmes"
-      className="-mx-5 flex gap-2 overflow-x-auto px-5 max-sm:w-[calc(100%+2.5rem)] sm:mx-0 sm:flex-wrap sm:px-0"
+      className="flex min-w-0 gap-1.5 overflow-x-auto"
     >
       {tabs.map((program, index) => {
         const tab = program.tab!;
@@ -31,16 +30,16 @@ export function ProgramTabs({
             href={programHref(program, index === 0)}
             aria-current={current ? "page" : undefined}
             className={cn(
-              "flex min-h-12 shrink-0 items-center gap-2.5 rounded-[10px] border px-3 sm:min-h-13 sm:px-3.5",
+              "flex min-h-control-auto shrink-0 items-center gap-2 rounded-md border px-2.5 transition-colors duration-150 ease-stride",
               current
-                ? "border-muted-foreground bg-muted"
-                : "border-border hover:bg-card",
+                ? "border-transparent bg-muted"
+                : "border-control-border hover:border-muted-foreground",
             )}
           >
             <span
               aria-hidden="true"
               className={cn(
-                "grid size-6 shrink-0 place-items-center rounded-[6px] text-[13px] font-bold tabular-nums",
+                "grid size-4.5 shrink-0 place-items-center rounded-sm text-micro font-bold tabular-nums",
                 tab.primary
                   ? "bg-primary text-primary-foreground"
                   : "border-[1.5px] border-muted-foreground text-secondary-foreground",
@@ -48,10 +47,10 @@ export function ProgramTabs({
             >
               {tab.letter}
             </span>
-            <span className="flex min-w-0 flex-col gap-px">
+            <span className="flex min-w-0 items-baseline gap-2">
               <span
                 className={cn(
-                  "text-body font-semibold whitespace-nowrap",
+                  "font-medium whitespace-nowrap",
                   current ? "text-foreground" : "text-secondary-foreground",
                 )}
               >
@@ -67,7 +66,7 @@ export function ProgramTabs({
             {tab.detail && (
               <span
                 className={cn(
-                  "ml-1.5 text-[11px] whitespace-nowrap max-sm:hidden",
+                  "text-label whitespace-nowrap max-lg:hidden",
                   current
                     ? "text-secondary-foreground"
                     : "text-muted-foreground",
@@ -82,9 +81,9 @@ export function ProgramTabs({
       <Link
         href="/races"
         aria-label="Nouveau programme"
-        className="grid min-h-12 w-12 shrink-0 place-items-center rounded-[10px] border border-dashed border-control-border text-muted-foreground hover:text-foreground sm:min-h-13 sm:w-13"
+        className="grid size-control-auto shrink-0 place-items-center rounded-md border border-dashed border-control-border text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground"
       >
-        <PlusIcon aria-hidden="true" className="size-4.5" />
+        <PlusIcon aria-hidden="true" className="size-4" />
       </Link>
     </nav>
   );
@@ -98,37 +97,24 @@ export function ProgramHeader({
   eyebrow?: string;
 }) {
   return (
-    <section className="flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-end sm:gap-7">
-      <div className="flex flex-col gap-1.5 sm:mr-auto">
-        <MonoLabel size="nano" className="sm:text-label">
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <span className="text-label font-medium text-muted-foreground">
           {eyebrow}
-        </MonoLabel>
-        <h1 className="text-metric leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[34px] sm:leading-[1.05] sm:tracking-[-0.025em]">
-          {program.title}
-        </h1>
+        </span>
+        <p className="text-title font-semibold text-balance">{program.title}</p>
         {program.summary && (
-          <p className="max-w-190 text-[13px] leading-[1.45] text-pretty text-muted-foreground sm:hidden">
-            {program.summary}
-          </p>
+          <p className="text-secondary-foreground">{program.summary}</p>
         )}
       </div>
-      <dl className="grid grid-cols-3 gap-2 sm:flex sm:gap-7">
-        {program.kpis.map((kpi, index) => (
+      <dl className="flex flex-col">
+        {program.kpis.map((kpi) => (
           <div
             key={kpi.key}
-            className={cn(
-              "flex min-w-0 flex-col gap-0.5 sm:gap-0.75",
-              index > 2 && "max-sm:hidden",
-            )}
+            className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5"
           >
-            <dt className="order-2">
-              <MonoLabel size="nano" className="text-[8.5px] sm:text-[9px]">
-                {kpi.label}
-              </MonoLabel>
-            </dt>
-            <dd className="order-1 text-verdict leading-none font-semibold whitespace-nowrap tabular-nums sm:text-[26px]">
-              {kpi.value}
-            </dd>
+            <dt className="text-muted-foreground">{kpi.label}</dt>
+            <dd className="font-semibold tabular-nums">{kpi.value}</dd>
           </div>
         ))}
       </dl>

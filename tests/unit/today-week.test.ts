@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { dayIntensity, shortDayLabel } from "../../src/features/today/today";
+import { dayIntensity } from "../../src/features/plans/view/intensity";
+import { shortDayLabel } from "../../src/features/today/today";
 
 describe("today week rows", () => {
   it("labels a day by its hardest kept block", () => {

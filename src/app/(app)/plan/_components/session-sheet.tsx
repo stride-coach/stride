@@ -11,7 +11,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { sessionPanelHref } from "@/features/plans/view/session-href";
@@ -217,9 +216,9 @@ export function SessionSheet({
             <>
               <span className="flex flex-1 flex-col text-center">
                 <span className="text-body">{panel.day}</span>
-                <MonoLabel size="nano" className="text-[9px]">
+                <span className="text-label text-muted-foreground">
                   {position} · glisse ← →
-                </MonoLabel>
+                </span>
               </span>
               {next}
             </>
@@ -227,12 +226,12 @@ export function SessionSheet({
             <>
               {next}
               <span className="ml-1.5 flex min-w-0 flex-col">
-                <span className="text-[13px] text-secondary-foreground">
+                <span className="text-secondary-foreground">
                   {panel.heading}
                 </span>
-                <MonoLabel size="nano" className="text-[9px]">
+                <span className="text-label text-muted-foreground">
                   {position} de la semaine · ← → · Échap
-                </MonoLabel>
+                </span>
               </span>
               <SheetClose asChild>
                 <Button
