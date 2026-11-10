@@ -105,6 +105,8 @@ export type ProgramDaySession = {
   family: SessionFamily;
   title: string;
   summary: string | null;
+  duration: string | null;
+  distance: string | null;
   elevation: string | null;
   blocks: SessionBlock[];
   state: DayState;
@@ -409,22 +411,23 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
                 ? "missed"
                 : null;
     const distance = sessionDistance(session, paces);
+    const durationLabel =
+      session.kind === "race"
+        ? null
+        : formatDuration(session.targets.durationSeconds);
+    const distanceLabel =
+      distance !== null
+        ? approximate(formatDistance(distance.meters), distance.estimated)
+        : null;
     return {
       sessionKey: session.sessionKey,
       raceId: session.kind === "race" ? (raceOn(date)?.id ?? null) : null,
       family: sessionFamilyOf(session),
       title: session.title,
       summary:
-        [
-          session.kind === "race"
-            ? null
-            : formatDuration(session.targets.durationSeconds),
-          distance !== null
-            ? approximate(formatDistance(distance.meters), distance.estimated)
-            : null,
-        ]
-          .filter(Boolean)
-          .join(" · ") || null,
+        [durationLabel, distanceLabel].filter(Boolean).join(" · ") || null,
+      duration: durationLabel,
+      distance: distanceLabel,
       elevation:
         session.targets.elevationGainMeters !== null &&
         session.targets.elevationGainMeters > 0
@@ -579,6 +582,8 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
           family: "rest",
           title: familyLabels.rest,
           summary: null,
+          duration: null,
+          distance: null,
           elevation: null,
           blocks: [],
           state: isPast ? "done" : null,
