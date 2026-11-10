@@ -778,6 +778,7 @@ export default function DesignSystemPage() {
 
           <Specimen title="Banded block and range" meta="Widget · Plage">
             <Widget
+              headingLevel={4}
               title="Ton corps ce matin"
               verdict={<Status level="watch">2 signaux sur 3</Status>}
             >

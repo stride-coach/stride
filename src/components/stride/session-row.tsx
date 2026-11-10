@@ -36,6 +36,16 @@ export function SessionStateMark({
   );
 }
 
+function MissingValue({ value }: { value?: React.ReactNode }) {
+  if (value !== undefined && value !== null) return value;
+  return (
+    <>
+      <span aria-hidden="true">–</span>
+      <span className="sr-only">non renseigné</span>
+    </>
+  );
+}
+
 export function SessionRow({
   state,
   past = false,
@@ -72,9 +82,11 @@ export function SessionRow({
           <Chip intensity={intensity.level}>{intensity.label}</Chip>
         )}
       </span>
-      <span className="text-right tabular-nums">{duration ?? "–"}</span>
+      <span className="text-right tabular-nums">
+        <MissingValue value={duration} />
+      </span>
       <span className="text-right tabular-nums max-sm:hidden">
-        {distance ?? "–"}
+        <MissingValue value={distance} />
       </span>
     </>
   );
@@ -84,10 +96,12 @@ export function SessionRow({
     <li
       data-slot="session-row"
       data-state={state}
+      aria-current={selected && !href ? "true" : undefined}
       className={cn(
         "border-b border-border last:border-b-0",
         past && "opacity-55",
-        (state === "today" || selected) && "bg-muted",
+        state === "today" && "bg-muted",
+        selected && "bg-muted shadow-[inset_2px_0_0_var(--foreground)]",
         className,
       )}
     >
@@ -97,7 +111,7 @@ export function SessionRow({
           aria-current={selected ? "true" : undefined}
           className={cn(
             layout,
-            "transition-colors duration-150 ease-stride hover:bg-muted",
+            "transition-colors duration-150 ease-stride not-aria-[current]:hover:bg-muted focus-visible:outline-offset-[-2px]",
           )}
         >
           {cells}

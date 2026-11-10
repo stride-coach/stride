@@ -12,7 +12,9 @@ function clampPercent(value: number) {
 
 export function plagePositions({ min, max, low, high, value }: PlageScale) {
   const span = max - min;
-  if (!(span > 0)) return { bandStart: 0, bandWidth: 100, point: 50 };
+  const finite = [min, max, low, high, value].every(Number.isFinite);
+  if (!finite || !(span > 0))
+    return { bandStart: 0, bandWidth: 100, point: 50 };
   const toPercent = (input: number) =>
     clampPercent(((input - min) / span) * 100);
   const bandStart = toPercent(Math.min(low, high));

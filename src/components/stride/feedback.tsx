@@ -15,7 +15,6 @@ export function FeedbackBanner({
 }) {
   return (
     <div
-      role={level === "alert" ? "alert" : "status"}
       data-slot="feedback-banner"
       data-level={level}
       className={cn(
@@ -25,7 +24,9 @@ export function FeedbackBanner({
       {...props}
     >
       <Status level={level}>{verdict}</Status>
-      <p className="min-w-0 text-secondary-foreground sm:flex-1">{children}</p>
+      <div className="min-w-0 text-secondary-foreground sm:flex-1">
+        {children}
+      </div>
       {action}
     </div>
   );

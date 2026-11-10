@@ -25,4 +25,10 @@ describe("habitual range positions", () => {
       plagePositions({ min: 5, max: 5, low: 5, high: 5, value: 5 }),
     ).toEqual({ bandStart: 0, bandWidth: 100, point: 50 });
   });
+
+  it("falls back to a centred point when a bound is not a number", () => {
+    expect(
+      plagePositions({ min: 0, max: 10, low: 2, high: 4, value: Number.NaN }),
+    ).toEqual({ bandStart: 0, bandWidth: 100, point: 50 });
+  });
 });

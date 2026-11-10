@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 
 export function Widget({
   title,
+  headingLevel = 3,
   icon,
   verdict,
   className,
@@ -9,9 +10,11 @@ export function Widget({
   ...props
 }: Omit<React.ComponentProps<"section">, "title"> & {
   title: React.ReactNode;
+  headingLevel?: 2 | 3 | 4;
   icon?: React.ReactNode;
   verdict?: React.ReactNode;
 }) {
+  const Heading = `h${headingLevel}` as const;
   return (
     <section
       data-slot="widget"
@@ -27,7 +30,9 @@ export function Widget({
             {icon}
           </span>
         )}
-        <h3 className="min-w-0 truncate text-body font-medium">{title}</h3>
+        <Heading className="min-w-0 truncate text-body font-medium">
+          {title}
+        </Heading>
         {verdict && <span className="ml-auto">{verdict}</span>}
       </header>
       <div className="rounded-lg border border-border bg-card px-4 py-3.5">

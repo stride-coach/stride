@@ -29,11 +29,13 @@ export function summarizeSession(blocks: readonly SessionBlock[]) {
       zone === undefined || block.zone > zone ? block.zone : zone,
     undefined,
   );
-  const parts = [`${minutes(kept)} minutes`];
+  const plural = (count: number) => (count > 1 ? "minutes" : "minute");
+  const keptMinutes = minutes(kept);
+  const parts = [`${keptMinutes} ${plural(keptMinutes)}`];
   if (hardest !== undefined) parts.push(`jusqu’en zone ${hardest}`);
   if (removed.length > 0)
     parts.push(
-      `${removed.length} ${removed.length === 1 ? "bloc retiré" : "blocs retirés"} (${minutes(removed)} minutes)`,
+      `${removed.length} ${removed.length === 1 ? "bloc retiré" : "blocs retirés"} (${minutes(removed)} ${plural(minutes(removed))})`,
     );
   return `Structure de la séance : ${parts.join(", ")}`;
 }

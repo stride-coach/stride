@@ -20,9 +20,9 @@ describe("session shape summary", () => {
 
   it("ignores negative durations and handles an empty session", () => {
     expect(summarizeSession([{ minutes: -5, zone: 3 }])).toBe(
-      "Structure de la séance : 0 minutes, jusqu’en zone 3",
+      "Structure de la séance : 0 minute, jusqu’en zone 3",
     );
-    expect(summarizeSession([])).toBe("Structure de la séance : 0 minutes");
+    expect(summarizeSession([])).toBe("Structure de la séance : 0 minute");
   });
 });
 

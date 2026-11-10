@@ -74,6 +74,7 @@ export function Plage({
       <span className="flex min-w-0 flex-col">
         <span className="text-secondary-foreground">{name}</span>
         <span className="text-label text-muted-foreground tabular-nums">
+          <span className="sr-only">Ta plage : </span>
           {range}
         </span>
       </span>
