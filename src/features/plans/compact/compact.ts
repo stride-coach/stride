@@ -28,29 +28,41 @@ const compactStepSchema = z.strictObject({
   target: z.string().max(40),
 });
 
-const compactSessionSchema = z.strictObject({
-  date: isoDate,
-  sport: z.enum(sessionSports).exclude(["rest"]),
-  kind: z.enum(sessionKinds).exclude(["rest"]),
-  title: z.string().min(1).max(80),
-  purpose: z.string().min(1).max(280),
-  key: z.boolean(),
-  km: z.number().min(0).max(400).nullable(),
-  elevationGainMeters: z.number().int().min(0).max(30000).nullable(),
-  terrain: z.enum(sessionTerrains).nullable(),
-  steps: z
-    .array(
-      z.union([
-        compactStepSchema,
-        z.strictObject({
-          repeat: z.number().int().min(2).max(50),
-          steps: z.array(compactStepSchema).min(1).max(10),
-        }),
-      ]),
-    )
-    .min(1)
-    .max(30),
-});
+export const raceStepsMessage =
+  "A race session contains only the race: no warmup or cooldown steps. Put pre-race advice in the purpose.";
+
+const compactSessionSchema = z
+  .strictObject({
+    date: isoDate,
+    sport: z.enum(sessionSports).exclude(["rest"]),
+    kind: z.enum(sessionKinds).exclude(["rest"]),
+    title: z.string().min(1).max(80),
+    purpose: z.string().min(1).max(280),
+    key: z.boolean(),
+    km: z.number().min(0).max(400).nullable(),
+    elevationGainMeters: z.number().int().min(0).max(30000).nullable(),
+    terrain: z.enum(sessionTerrains).nullable(),
+    steps: z
+      .array(
+        z.union([
+          compactStepSchema,
+          z.strictObject({
+            repeat: z.number().int().min(2).max(50),
+            steps: z.array(compactStepSchema).min(1).max(10),
+          }),
+        ]),
+      )
+      .min(1)
+      .max(30),
+  })
+  .refine(
+    (session) =>
+      session.kind !== "race" ||
+      session.steps
+        .flatMap((step) => ("repeat" in step ? step.steps : [step]))
+        .every((step) => step.type !== "warmup" && step.type !== "cooldown"),
+    { message: raceStepsMessage, path: ["steps"] },
+  );
 
 const compactWeekSchema = z.strictObject({
   weekStart: isoDate,

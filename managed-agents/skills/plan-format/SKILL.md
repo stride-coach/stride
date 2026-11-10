@@ -42,6 +42,7 @@ Rules:
 
 - Every session has at least one work step, and every work step has a target other than `"none"`. The session duration is the sum of its steps.
 - Every `run` and `trail` session has `km`, including quality sessions: estimate it from the steps' durations and paces (use the easy pace for warm-up, recoveries and cool-down). Leave `km` null only for `strength`, `cross` and `mobility`.
+- A session of kind `race` has work steps only, covering the race itself: no `warmup` or `cooldown` step, and `km` is the race distance.
 - Do not list rest days. The objective race is a session of kind `race` on the race date.
 - Every week from `startsOn` to `endsOn` is fully detailed.
 - Schedule sessions only on the athlete's available weekdays, keep the total of each weekday's sessions within the maximum weekday duration, respect the weekly maximum, and schedule nothing during unavailable periods.
