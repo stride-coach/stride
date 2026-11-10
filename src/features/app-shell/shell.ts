@@ -15,12 +15,6 @@ export type ShellRace = {
   raceDate: string | null;
 };
 export type ShellGoal = { name: string; detail: string; countdown?: string };
-export type ShellRaceLink = {
-  id: string;
-  name: string;
-  priority: string;
-  date: string | null;
-};
 export type ShellAccount = {
   profilePercent: number;
   questions: number;
@@ -37,14 +31,7 @@ export type ShellNavigation = {
   planHistoryCount: number | null;
   coachAttention: CoachAttention | null;
   todayBadge: ShellBadge | null;
-  gearBadge: ShellBadge | null;
 };
-
-export function gearBadge(count: number | null): ShellBadge | null {
-  if (!count) return null;
-  const label = count > 1 ? `${count} paires` : "1 paire";
-  return { value: label, label, attention: false };
-}
 
 export const displayTimeZone = "Europe/Paris";
 const dayMs = 86_400_000;
@@ -126,24 +113,6 @@ export function syncLabel(lastSyncAt: string | null, now: Date) {
   return localToday(synced) === localToday(now)
     ? `Synchronisé ${localTime.format(synced)}`
     : `Synchronisé le ${localDate.format(synced)}`;
-}
-
-const raceDay = new Intl.DateTimeFormat("fr-FR", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
-
-export function shellRaceDate(date: string | null) {
-  return date
-    ? raceDay.format(new Date(`${date}T00:00:00Z`)).replace(".", "")
-    : null;
-}
-
-export function shellRaces<T extends ShellRaceLink>(races: T[], today: string) {
-  return races
-    .filter((race) => race.date === null || race.date >= today)
-    .sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"));
 }
 
 export function shortSince(iso: string | null, now: Date) {

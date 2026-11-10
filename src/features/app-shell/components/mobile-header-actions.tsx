@@ -19,7 +19,7 @@ export function MobileHeaderActions({ className }: { className?: string }) {
         <Link
           href="/races"
           aria-label={`Objectif : ${goal.name}, ${goal.countdown}`}
-          className="inline-flex h-5 items-center rounded-sm border border-control-border px-1.75 text-label text-secondary-foreground tabular-nums"
+          className="relative inline-flex h-5 items-center rounded-sm border border-control-border px-1.75 text-label text-secondary-foreground tabular-nums after:absolute after:-inset-x-1 after:-inset-y-2.5"
         >
           {goal.countdown}
         </Link>

@@ -101,8 +101,12 @@ export function ProgressBreadcrumb() {
   );
 }
 
-export function ProgressTabs() {
+export function ProgressTabs({ mobileOnly = false }: { mobileOnly?: boolean }) {
+  const pathname = usePathname();
   const section = useSection();
+  const onNutrition =
+    pathname === "/nutrition" || pathname.startsWith("/nutrition/");
+  const currentHref = onNutrition ? "/nutrition" : section.href;
   return (
     <>
       <nav
@@ -114,11 +118,11 @@ export function ProgressTabs() {
             <SectionLink
               key={item.href}
               href={item.href}
-              current={item.href === section.href}
+              current={item.href === currentHref}
               keepPeriod={item.href !== "/nutrition"}
               className={cn(
                 "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-                item.href === section.href &&
+                item.href === currentHref &&
                   "bg-border font-semibold text-foreground",
               )}
             >
@@ -127,24 +131,26 @@ export function ProgressTabs() {
           ),
         )}
       </nav>
-      <nav
-        aria-label="Sections de Santé"
-        className="flex gap-5 text-body max-sm:hidden"
-      >
-        {progressSections.map((item) => (
-          <SectionLink
-            key={item.href}
-            href={item.href}
-            current={item.href === section.href}
-            className={cn(
-              "border-b-2 border-transparent py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              item.href === section.href && "border-primary text-foreground",
-            )}
-          >
-            {item.label}
-          </SectionLink>
-        ))}
-      </nav>
+      {!mobileOnly && (
+        <nav
+          aria-label="Sections de Santé"
+          className="flex gap-5 text-body max-sm:hidden"
+        >
+          {progressSections.map((item) => (
+            <SectionLink
+              key={item.href}
+              href={item.href}
+              current={item.href === section.href}
+              className={cn(
+                "border-b-2 border-transparent py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+                item.href === section.href && "border-primary text-foreground",
+              )}
+            >
+              {item.label}
+            </SectionLink>
+          ))}
+        </nav>
+      )}
     </>
   );
 }

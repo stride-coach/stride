@@ -24,12 +24,17 @@ export function AppMobileTabBar({
   const pathname = useShellPathname();
   if (!mobileTabBarVisible(pathname)) return null;
   const waiting = coachWaiting(attention);
-  const tab = (href: string, icon: React.ReactNode, label: string) => (
+  const tab = (
+    href: string,
+    icon: React.ReactNode,
+    label: string,
+    match: string[] = [],
+  ) => (
     <MobileTab
       href={href}
       icon={icon}
       label={label}
-      isActive={isActivePath(pathname, href)}
+      isActive={[href, ...match].some((path) => isActivePath(pathname, path))}
     />
   );
   return (
@@ -54,8 +59,8 @@ export function AppMobileTabBar({
           ) : undefined
         }
       />
-      {tab("/activities", <TabActivitiesIcon />, "Activités")}
-      {tab("/progress", <TabProgressIcon />, "Santé")}
+      {tab("/activities", <TabActivitiesIcon />, "Activités", ["/gear"])}
+      {tab("/progress", <TabProgressIcon />, "Santé", ["/nutrition"])}
     </MobileTabBar>
   );
 }

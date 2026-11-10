@@ -1,13 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import {
-  gearBadge,
   localToday,
   readinessBadge,
   shellAccount,
   shellAthlete,
   shellGoal,
-  shellRaces,
   type ShellNavigation,
 } from "@/features/app-shell/shell";
 import { profileRowSchema, profileValues } from "@/features/onboarding/profile";
@@ -19,7 +17,6 @@ import { countPlanProposals } from "@/server/plans/proposals";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { readGoals } from "@/server/onboarding/goals";
 import { athleteProfileColumns } from "@/server/onboarding/profile";
-import { countActiveShoes } from "@/server/gear/load";
 import { readNotificationFeed } from "@/server/notifications/feed";
 import { reconcileGarminNotificationsAfterResponse } from "@/server/notifications/garmin";
 import { requireAthlete, requireAthleteAccount } from "./session";
@@ -68,17 +65,6 @@ export async function loadShellIdentity(context: OnboardingContext, now: Date) {
           localToday(now),
         )
       : null,
-    races: goals
-      ? shellRaces(
-          goals.races.map(({ id, values }) => ({
-            id,
-            name: values.name ?? "Course sans nom",
-            priority: values.priority,
-            date: values.race_date,
-          })),
-          localToday(now),
-        )
-      : [],
     staffFaces: staffFacesOf(profile.data),
   };
 }
@@ -87,20 +73,19 @@ export async function loadShellNavigation(
   context: OnboardingContext,
   now: Date,
 ): Promise<ShellNavigation> {
-  const [plan, planHistoryCount, coachAttention, readiness, shoeCount] =
-    await Promise.all([
+  const [plan, planHistoryCount, coachAttention, readiness] = await Promise.all(
+    [
       loadPlanOverview(context).catch(() => null),
       countPlanProposals(context).catch(() => null),
       countCoachAttention(context).catch(() => null),
       readTodayReadiness(context, now).catch(() => null),
-      countActiveShoes(context).catch(() => null),
-    ]);
+    ],
+  );
   return {
     planNav: plan ? programNavigation(buildProgram(programInput(plan))) : null,
     planHistoryCount,
     coachAttention,
     todayBadge: readinessBadge(readiness),
-    gearBadge: gearBadge(shoeCount),
   };
 }
 
