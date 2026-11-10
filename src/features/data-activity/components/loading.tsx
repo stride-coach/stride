@@ -182,34 +182,46 @@ export function RacesLoading() {
   return (
     <LoadingScope
       label="Chargement des courses"
-      className="flex flex-col gap-5 sm:gap-9"
+      className="flex flex-col xl:flex-row xl:items-start"
     >
-      <RacesTitle
-        view={view}
-        subtitle={<Skeleton className="h-6 w-56 max-w-full" />}
-      />
-      <div aria-hidden="true" className="flex flex-col gap-5 sm:gap-9">
-        {view !== "past" && (
-          <>
-            <Skeleton className="h-36 w-full rounded-2xl" />
-            <Skeleton className="h-105 w-full rounded-2xl lg:h-100" />
-            <div className="grid gap-5 md:grid-cols-2">
-              <Skeleton className="h-44 w-full rounded-2xl" />
-              <Skeleton className="h-44 w-full rounded-2xl max-md:hidden" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <RacesTitle
+          view={view}
+          subtitle={<Skeleton className="h-6 w-56 max-w-full" />}
+        />
+        <div aria-hidden="true" className="flex flex-col">
+          {view !== "past" && (
+            <div className="flex flex-col gap-4 border-b border-border px-4 py-4.5 md:px-5">
+              <Skeleton className="h-7 w-2/3" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-24 w-full" />
             </div>
-          </>
-        )}
-        <div
-          className={cn(
-            "flex flex-col gap-3",
-            view === "upcoming" && "max-md:hidden",
           )}
-        >
-          <Skeleton className="h-6 w-44" />
-          {[0, 1, 2].map((item) => (
-            <Skeleton key={item} className="h-14 w-full" />
-          ))}
+          <div
+            className={cn(
+              "flex flex-col",
+              view === "upcoming" && "max-md:hidden",
+            )}
+          >
+            {[0, 1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="flex min-h-row-touch items-center gap-3 border-b border-border px-4 md:px-5 lg:min-h-row"
+              >
+                <Skeleton className="size-4.5 rounded-sm" />
+                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="ml-auto h-3 w-14" />
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
+      <div
+        aria-hidden="true"
+        className="flex flex-col gap-3 px-4 py-4.5 max-xl:hidden md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border"
+      >
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-20 w-full" />
       </div>
     </LoadingScope>
   );

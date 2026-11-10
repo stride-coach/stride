@@ -12,7 +12,7 @@ export default function RacesListLayout({
       <AppHeader
         title="Courses"
         actions={
-          <Button asChild size="md" className="shrink-0 rounded-lg text-body">
+          <Button asChild variant="outline" className="shrink-0">
             <Link href="/settings/goals">
               <span aria-hidden="true">+</span>
               <span className="max-sm:sr-only">Ajouter une course</span>
@@ -21,9 +21,7 @@ export default function RacesListLayout({
         }
       />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="mx-auto flex w-full max-w-360 flex-col gap-5 px-5 pt-3 pb-18 sm:gap-9 sm:px-[clamp(20px,4vw,56px)] md:pt-10">
-          {children}
-        </main>
+        <main className="flex w-full flex-col pb-18 md:pb-6">{children}</main>
       </div>
     </>
   );
