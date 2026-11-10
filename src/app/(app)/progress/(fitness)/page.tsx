@@ -28,7 +28,7 @@ import { requireAthlete } from "@/server/app/session";
 import { programInput } from "@/server/plans/overview";
 import { loadFitness } from "@/server/progress/fitness";
 
-export const metadata: Metadata = { title: "Forme · Progression" };
+export const metadata: Metadata = { title: "Forme · Santé" };
 
 export default async function ProgressFitnessPage({
   searchParams,

@@ -14,7 +14,7 @@ import { recordsView } from "@/features/progress/records-view";
 import { requireAthlete } from "@/server/app/session";
 import { loadRecords } from "@/server/progress/records";
 
-export const metadata: Metadata = { title: "Records · Progression" };
+export const metadata: Metadata = { title: "Records · Santé" };
 
 const titleClass =
   "text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[1.08] sm:tracking-[-0.03em]";

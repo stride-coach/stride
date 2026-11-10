@@ -17,7 +17,7 @@ import { SignOutMenuItem } from "./sign-out-menu-item";
 
 const itemClass = "min-h-8 gap-2 px-2.5 text-body";
 
-export function AccountMenuItems({
+function AccountMenuItems({
   athlete,
   modelDetail,
 }: {
@@ -87,7 +87,7 @@ export function AccountAvatarMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`${athlete.name} ${modelDetail}`}
+        aria-label={`Compte de ${athlete.name}, ${modelDetail}`}
         className="grid size-6.5 shrink-0 place-items-center rounded-full border border-control-border bg-muted text-micro font-semibold text-foreground transition-colors duration-150 ease-stride hover:border-muted-foreground aria-expanded:border-muted-foreground"
       >
         {athlete.initials}

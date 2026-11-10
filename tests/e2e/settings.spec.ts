@@ -28,7 +28,7 @@ test("keyboard help is searchable, platform-aware and available from the account
   await page.emulateMedia({ reducedMotion: "reduce" });
   await signIn(page);
   await page.goto("/activities");
-  await page.getByRole("button", { name: /^Jules Profil/ }).click();
+  await page.getByRole("button", { name: /^Compte de Jules/ }).click();
   await page.getByRole("menuitem", { name: "Raccourcis clavier" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Raccourcis clavier" });

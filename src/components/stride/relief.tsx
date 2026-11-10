@@ -60,7 +60,6 @@ export function Relief({
           <polygon
             key={index}
             points={contour.points}
-            vectorEffect="non-scaling-stroke"
             className={
               contour.strong
                 ? "stroke-relief-strong stroke-[1.4]"

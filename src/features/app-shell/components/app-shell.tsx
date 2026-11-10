@@ -349,7 +349,7 @@ export function AppShell({
                 </SidebarFooter>
                 <SidebarRail />
               </Sidebar>
-              <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:peer-data-[variant=inset]:mt-0 md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
+              <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
                 <DataActivityFeedback />
                 <PullToSync>{children}</PullToSync>
                 <Suspense fallback={<AppMobileTabBar attention={null} />}>

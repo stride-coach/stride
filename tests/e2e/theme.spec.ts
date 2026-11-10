@@ -10,7 +10,7 @@ test("the theme follows the system by default, switches from the account menu an
   const root = page.locator("html");
   await expect(root).toHaveAttribute("data-theme", "light");
 
-  const account = page.getByRole("button", { name: /^Jules Profil/ });
+  const account = page.getByRole("button", { name: /^Compte de Jules/ });
   const choose = async (label: string) => {
     await account.click();
     await page.getByRole("menuitemradio", { name: label }).click();

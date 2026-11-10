@@ -649,7 +649,7 @@ export function CoachScreen({
                   </Button>
                   <SidebarTrigger
                     aria-label="Afficher ou masquer la barre latérale"
-                    className="-mr-2 size-11"
+                    className="-mr-2 size-11 md:hidden"
                   />
                 </div>
                 <section

@@ -38,14 +38,17 @@ function useHref(href: string) {
 function SectionLink({
   href,
   current,
+  keepPeriod = true,
   ...props
 }: Omit<React.ComponentProps<typeof Link>, "href"> & {
   href: string;
   current: boolean;
+  keepPeriod?: boolean;
 }) {
+  const withPeriod = useHref(href);
   return (
     <Link
-      href={useHref(href)}
+      href={keepPeriod ? withPeriod : href}
       aria-current={current ? "page" : undefined}
       {...props}
     />
@@ -164,14 +167,21 @@ export function ProgressSidebarGroup() {
               ? item.href === "/nutrition"
               : item.href === section.href;
             return (
-              <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem
+                key={item.href}
+                className={cn(item.href === "/nutrition" && "max-md:hidden")}
+              >
                 <SidebarMenuButton
                   asChild
                   size="sm"
                   isActive={current}
                   className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
                 >
-                  <SectionLink href={item.href} current={current}>
+                  <SectionLink
+                    href={item.href}
+                    current={current}
+                    keepPeriod={item.href !== "/nutrition"}
+                  >
                     <span
                       aria-hidden="true"
                       className={cn(

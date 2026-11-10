@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -9,11 +10,12 @@ import { setThemePreference, useThemePreference } from "./theme-store";
 
 export function ThemeMenuGroup() {
   const preference = useThemePreference();
+  const labelId = useId();
   return (
     <div className="flex items-center gap-2 px-2.5 py-1">
-      <span id="theme-menu-label">Thème</span>
+      <span id={labelId}>Thème</span>
       <DropdownMenuRadioGroup
-        aria-labelledby="theme-menu-label"
+        aria-labelledby={labelId}
         value={preference}
         onValueChange={(value) =>
           setThemePreference(parseThemePreference(value))
