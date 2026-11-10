@@ -1,18 +1,21 @@
 import { expect, test } from "@playwright/test";
 import { signInAs } from "./support/session";
 
-test("the header theme menu switches, persists and follows the system", async ({
+test("the theme follows the system by default, switches and persists", async ({
   page,
 }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await signInAs(page, "athlete@example.com");
   const root = page.locator("html");
-  await expect(root).toHaveAttribute("data-theme", "dark");
+  await expect(root).toHaveAttribute("data-theme", "light");
 
-  await page.getByRole("button", { name: "Thème : Sombre" }).click();
+  await page.getByRole("button", { name: "Thème : Système" }).click();
   await expect(
-    page.getByRole("menuitemradio", { name: "Sombre" }),
+    page.getByRole("menuitemradio", { name: "Système" }),
   ).toBeChecked();
+  await page.getByRole("menuitemradio", { name: "Sombre" }).click();
+  await expect(root).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Thème : Sombre" }).click();
   await page.getByRole("menuitemradio", { name: "Clair" }).click();
   await expect(root).toHaveAttribute("data-theme", "light");
 

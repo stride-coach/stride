@@ -6,7 +6,7 @@ export type ThemePreference = (typeof themePreferences)[number];
 export type ResolvedTheme = "light" | "dark";
 
 export const themeStorageKey = "stride-theme";
-export const defaultThemePreference: ThemePreference = "dark";
+export const defaultThemePreference: ThemePreference = "system";
 export const lightSchemeQuery = "(prefers-color-scheme: light)";
 
 export const themeLabels: Record<ThemePreference, string> = {
@@ -34,4 +34,4 @@ export function themeButtonLabel(preference: ThemePreference) {
   return `Thème : ${themeLabels[preference]}`;
 }
 
-export const themeScript = `(function(){var p;try{p=localStorage.getItem(${JSON.stringify(themeStorageKey)})}catch(e){}if(p!=="light"&&p!=="system")p=${JSON.stringify(defaultThemePreference)};document.documentElement.dataset.theme=p==="system"?(matchMedia(${JSON.stringify(lightSchemeQuery)}).matches?"light":"dark"):p})()`;
+export const themeScript = `(function(){var p;try{p=localStorage.getItem(${JSON.stringify(themeStorageKey)})}catch(e){}if(${JSON.stringify(themePreferences)}.indexOf(p)<0)p=${JSON.stringify(defaultThemePreference)};document.documentElement.dataset.theme=p==="system"?(matchMedia(${JSON.stringify(lightSchemeQuery)}).matches?"light":"dark"):p})()`;
