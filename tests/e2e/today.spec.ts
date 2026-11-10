@@ -37,8 +37,8 @@ test("today weighs the session against the form and asks one question at a time"
     ),
   ).toBeVisible();
 
-  const form = page.getByRole("region", { name: "Forme du jour" });
-  await expect(form.getByRole("link", { name: "Corps" })).toHaveAttribute(
+  const form = page.getByRole("region", { name: "Ton corps ce matin" });
+  await expect(form.getByRole("link", { name: "Détail" })).toHaveAttribute(
     "href",
     "/progress/body",
   );
@@ -49,6 +49,9 @@ test("today weighs the session against the form and asks one question at a time"
   });
   await expect(week.getByRole("listitem")).toHaveCount(7);
   await expect(week.locator('[aria-current="date"]')).toHaveCount(1);
+  await expect(
+    week.locator('[data-slot="session-row"][data-state="today"]'),
+  ).toHaveCount(1);
   await expect(
     week.getByRole("progressbar", { name: "Volume de la semaine réalisé" }),
   ).toBeVisible();
@@ -127,7 +130,7 @@ test("today explains the missing plan and keeps Garmin data", async ({
     page.getByRole("region", { name: /^Cette semaine/ }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("region", { name: "Forme du jour" }),
+    page.getByRole("region", { name: "Ton corps ce matin" }),
   ).toBeVisible();
   await expect(page.getByRole("region", { name: "Objectif" })).toBeVisible();
 });
@@ -143,7 +146,7 @@ test("today stacks the day in reading order on mobile", async ({ page }) => {
     [
       "Séance du jour",
       "À faire",
-      "Forme du jour",
+      "Ton corps ce matin",
       /^Cette semaine/,
       "Objectif",
     ].map(async (name) => {

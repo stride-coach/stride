@@ -1,9 +1,11 @@
-import { CheckIcon, ChevronRightIcon, MessageCircleIcon } from "lucide-react";
+import { CheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PulseDot } from "@/components/stride/marks";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { SessionKindTile } from "@/components/stride/session-kind-tile";
+import { Chip } from "@/components/stride/chip";
+import { PlageTrack } from "@/components/stride/plage";
+import { SessionList, SessionRow } from "@/components/stride/session-row";
 import { SessionShape } from "@/components/stride/session-shape";
+import { Status, type StatusLevel } from "@/components/stride/status";
+import { Widget } from "@/components/stride/widget";
 import { coachRequestHref } from "@/features/coach/request";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SyncNowButton } from "@/features/data-activity/components/sync-request";
@@ -11,7 +13,6 @@ import {
   TodayShoeChip,
   TodayShoeRow,
 } from "@/features/gear/components/session-shoes";
-import { ScoreRing } from "@/features/progress/components/body-sections";
 import { bodyPath } from "@/features/progress/health";
 import { cn } from "@/lib/utils";
 import type {
@@ -20,6 +21,7 @@ import type {
   TodayGoal,
   TodaySession,
   TodayWeek,
+  TodayWeekDay,
 } from "../today";
 import {
   reviewRule,
@@ -29,129 +31,174 @@ import {
   type VerdictTone,
 } from "../verdict";
 
-export const todayCard =
-  "flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-5 py-5 sm:px-5.5";
+const toneLevels: Record<Exclude<VerdictTone, "muted">, StatusLevel> = {
+  success: "ok",
+  warning: "watch",
+  danger: "alert",
+};
 
-export function Eyebrow({
-  id,
+const statusLevels: Record<FormStatus, StatusLevel> = {
+  normal: "ok",
+  watch: "watch",
+  crossed: "alert",
+};
+
+function ToneStatus({
   tone,
   children,
 }: {
-  id?: string;
-  tone?: "accent" | "foreground";
+  tone: VerdictTone;
   children: React.ReactNode;
 }) {
-  return (
-    <MonoLabel id={id} size="nano" tone={tone} className="text-[9.5px]">
-      {children}
-    </MonoLabel>
-  );
+  if (tone === "muted")
+    return (
+      <span className="text-label font-medium text-secondary-foreground">
+        {children}
+      </span>
+    );
+  return <Status level={toneLevels[tone]}>{children}</Status>;
 }
-
-function MoreLink({
-  href,
-  className,
-  children,
-}: {
-  href: string;
-  className?: string;
-  children: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "ml-auto inline-flex min-h-8 items-center gap-1.5 rounded-md text-[13px] text-secondary-foreground hover:text-foreground",
-        className,
-      )}
-    >
-      {children}
-      <ChevronRightIcon aria-hidden="true" className="size-3" />
-    </Link>
-  );
-}
-
-const toneText: Record<VerdictTone, string> = {
-  success: "text-primary",
-  warning: "text-warning",
-  danger: "text-destructive",
-  muted: "text-secondary-foreground",
-};
-
-const toneDot: Record<
-  VerdictTone,
-  "success" | "warning" | "danger" | "foreground"
-> = {
-  success: "success",
-  warning: "warning",
-  danger: "danger",
-  muted: "foreground",
-};
-
-const verdictFrames: Record<VerdictTone, string> = {
-  success: "border-border bg-card",
-  warning: "border-border bg-warning/4",
-  danger: "border-border bg-card",
-  muted: "border-border bg-muted",
-};
 
 function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
   return (
     <div
       role="group"
       aria-label="Verdict du jour"
-      className={cn(
-        "flex flex-col gap-2.5 rounded-xl border px-3.5 py-3",
-        verdictFrames[verdict.tone],
-      )}
+      className="flex flex-col gap-3"
     >
-      <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span
-          className={cn(
-            "inline-flex items-center gap-2 text-[15px] font-semibold whitespace-nowrap",
-            toneText[verdict.tone],
-          )}
-        >
-          <PulseDot tone={toneDot[verdict.tone]} breathing={false} />
-          {verdict.label}
-        </span>
-        <span className="min-w-50 flex-1 text-[13.5px] leading-[1.45] text-foreground">
+      <p className="flex flex-col gap-1.5">
+        <ToneStatus tone={verdict.tone}>{verdict.label}</ToneStatus>
+        <span className="max-w-160 text-body-lg text-secondary-foreground">
           {verdict.text}
         </span>
       </p>
       {verdict.motif && (
-        <p className="flex items-center gap-2 text-[13px] text-secondary-foreground">
-          <span
-            aria-hidden="true"
-            className="size-1.5 shrink-0 rounded-full bg-destructive"
-          />
-          {verdict.motif}
-        </p>
+        <p className="text-label text-muted-foreground">{verdict.motif}</p>
       )}
       {(verdict.actions.length > 0 || verdict.sync) && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           {verdict.actions.map((action) => (
             <Button
               key={action.key}
               asChild
               variant={action.primary ? "default" : "outline"}
               size="md"
-              className="flex-1 max-sm:h-11"
             >
               <Link href={action.href}>
                 {(action.key === "lighter" || action.key === "review") && (
-                  <MessageCircleIcon aria-hidden="true" className="size-4" />
+                  <MessageCircleIcon aria-hidden="true" />
                 )}
                 {action.label}
               </Link>
             </Button>
           ))}
-          {verdict.sync && (
-            <SyncNowButton variant="outline" className="flex-1 max-sm:h-11" />
-          )}
+          {verdict.sync && <SyncNowButton variant="outline" />}
         </div>
       )}
     </div>
+  );
+}
+
+function DaySessionRow({ session }: { session: TodayDaySession }) {
+  return (
+    <Link
+      href={session.href}
+      aria-label={session.label}
+      className="flex min-h-row-touch items-center gap-3 border-t border-border py-2 transition-colors duration-150 ease-stride hover:bg-muted sm:min-h-row"
+    >
+      <span className="min-w-0 flex-1 truncate font-medium">
+        {session.title}
+      </span>
+      {session.summary && (
+        <span className="text-label text-muted-foreground tabular-nums max-sm:hidden">
+          {session.summary}
+        </span>
+      )}
+      <span
+        className={cn(
+          "flex items-center gap-1.5 text-label whitespace-nowrap",
+          session.status === "done"
+            ? "text-primary"
+            : session.status === "partial"
+              ? "text-warning"
+              : "text-muted-foreground",
+        )}
+      >
+        {(session.status === "done" || session.status === "partial") && (
+          <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
+        )}
+        {session.note}
+      </span>
+    </Link>
+  );
+}
+
+function PlannedSession({
+  session,
+  verdict,
+}: {
+  session: Extract<TodaySession, { kind: "session" }>;
+  verdict: TodayVerdict | null;
+}) {
+  const { panel } = session;
+  const done = panel.status === "done" || panel.status === "partial";
+  const stepsInVerdict =
+    !done && verdict?.actions.some((action) => action.key === "steps");
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <h2 className="text-title font-semibold">{panel.title}</h2>
+        {session.terrain && <Chip>{session.terrain}</Chip>}
+      </div>
+      {panel.purpose && (
+        <p className="max-w-160 text-body-lg text-secondary-foreground">
+          {panel.purpose}
+        </p>
+      )}
+      {done && panel.completion && (
+        <Status level={panel.status === "done" ? "ok" : "watch"}>
+          {panel.completion.headline}
+        </Status>
+      )}
+      {panel.checkIn?.done && <Status level="ok">Fait · noté par toi</Status>}
+      {session.stats.length > 0 && (
+        <dl className="flex flex-wrap gap-x-6 gap-y-2">
+          {session.stats.map((stat) => (
+            <div key={stat.key} className="flex items-baseline gap-1.5">
+              <dd className="text-body-lg font-semibold tabular-nums">
+                {stat.value}
+              </dd>
+              <dt className="text-label text-muted-foreground">{stat.label}</dt>
+            </div>
+          ))}
+        </dl>
+      )}
+      {panel.segments.length > 0 && (
+        <SessionShape
+          label={panel.structureLabel}
+          blocks={panel.segments.map((segment) => ({
+            minutes: segment.seconds / 60,
+            zone: segment.zone,
+          }))}
+          className="h-5.5"
+        />
+      )}
+      {verdict && !done && <VerdictBlock verdict={verdict} />}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        {!done && panel.shoes && (
+          <TodayShoeChip shoes={panel.shoes} href={session.href} />
+        )}
+        {!stepsInVerdict && (
+          <Link
+            href={session.href}
+            className="ml-auto rounded-md font-medium text-primary hover:underline"
+          >
+            Voir les étapes →
+          </Link>
+        )}
+      </div>
+      {!done && panel.shoes && <TodayShoeRow shoes={panel.shoes} />}
+    </>
   );
 }
 
@@ -164,34 +211,22 @@ export function SessionSection({
 }) {
   return (
     <section
-      aria-labelledby="today-session"
-      className={cn(todayCard, "gap-4 sm:px-6.5 sm:py-6")}
+      aria-label="Séance du jour"
+      className="flex min-w-0 flex-col gap-3 border-b border-border px-4 py-4.5 md:px-5"
     >
-      {session.kind === "session" && session.count > 1 ? (
-        <div className="flex items-center gap-2.5">
-          <Eyebrow id="today-session" tone="accent">
-            Séances du jour
-          </Eyebrow>
-          <span className="ml-auto text-label text-muted-foreground">
-            {session.count} séances
-          </span>
-        </div>
-      ) : (
-        <Eyebrow id="today-session" tone="accent">
-          Séance du jour
-        </Eyebrow>
-      )}
       {session.kind === "session" ? (
         session.count > 1 ? (
           <>
+            <p className="text-label text-muted-foreground">
+              {session.count} séances aujourd’hui
+            </p>
             {session.before.map((item) => (
               <DaySessionRow key={item.sessionKey} session={item} />
             ))}
             <div
               className={cn(
-                "flex flex-col gap-4",
-                session.before.length > 0 && "border-t border-border pt-4",
-                session.after.length > 0 && "border-b border-border pb-4",
+                "flex flex-col gap-3",
+                session.before.length > 0 && "border-t border-border pt-3",
               )}
             >
               <PlannedSession session={session} verdict={verdict} />
@@ -205,56 +240,36 @@ export function SessionSection({
         )
       ) : session.kind === "rest" ? (
         <>
-          <div className="flex items-start gap-3.5">
-            <SessionKindTile
-              kind="rest"
-              size="xl"
-              className="max-sm:size-10 max-sm:rounded-[10px]"
-            />
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <h2 className="text-[28px] leading-[1.05] font-semibold tracking-[-0.025em] sm:text-[34px]">
-                Jour de repos
-              </h2>
-              {session.next ? (
-                <p className="text-[15px] leading-normal text-secondary-foreground">
-                  Prochaine séance :{" "}
-                  <Link
-                    href={session.next.href}
-                    className="rounded-md text-foreground underline-offset-4 hover:underline"
-                  >
-                    {session.next.when} · {session.next.title}
-                  </Link>
-                </p>
-              ) : (
-                <p className="text-[15px] leading-normal text-secondary-foreground">
-                  Pas de séance prévue aujourd’hui.
-                </p>
-              )}
-            </div>
-          </div>
+          <h2 className="text-title font-semibold">Jour de repos</h2>
+          <p className="text-body-lg text-secondary-foreground">
+            {session.next ? (
+              <>
+                Prochaine séance :{" "}
+                <Link
+                  href={session.next.href}
+                  className="rounded-md text-foreground underline-offset-4 hover:underline"
+                >
+                  {session.next.when} · {session.next.title}
+                </Link>
+              </>
+            ) : (
+              "Pas de séance prévue aujourd’hui."
+            )}
+          </p>
           {verdict && <VerdictBlock verdict={verdict} />}
         </>
       ) : (
         <>
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <h2 className="text-[28px] leading-[1.05] font-semibold tracking-[-0.025em]">
-              Pas encore de plan
-            </h2>
-            <p className="text-[15px] leading-normal text-secondary-foreground">
-              Ajoute une course objectif : Stride construit ton plan et te dit
-              chaque matin quoi faire.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="md" className="flex-1 max-sm:h-11">
+          <h2 className="text-title font-semibold">Pas encore de plan</h2>
+          <p className="max-w-160 text-body-lg text-secondary-foreground">
+            Ajoute une course objectif : Stride construit ton plan et te dit
+            chaque matin quoi faire.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <Button asChild size="md">
               <Link href="/races">Ajouter une course</Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="md"
-              className="flex-1 max-sm:h-11"
-            >
+            <Button asChild variant="outline" size="md">
               <Link
                 href={coachRequestHref(
                   "Je n’ai pas encore de plan. Propose-moi une séance pour aujourd’hui.",
@@ -270,387 +285,146 @@ export function SessionSection({
   );
 }
 
-function DaySessionRow({ session }: { session: TodayDaySession }) {
-  return (
-    <Link
-      href={session.href}
-      aria-label={session.label}
-      className="grid min-h-11 grid-cols-[32px_minmax(0,1fr)_12px] items-center gap-3 rounded-xl border border-border px-3 py-2.5 hover:border-control-border sm:grid-cols-[32px_minmax(0,1fr)_auto_12px] sm:gap-3.5 sm:px-3.5"
-    >
-      <SessionKindTile kind={session.family} size="lg" />
-      <span className="flex min-w-0 flex-col gap-0.75 sm:gap-0.5">
-        <span className="text-[15px] font-semibold">{session.title}</span>
-        {session.summary && (
-          <span className="text-label text-muted-foreground">
-            {session.summary}
-          </span>
-        )}
-        <DaySessionNote session={session} className="sm:hidden" />
-      </span>
-      <DaySessionNote session={session} className="max-sm:hidden" />
-      <ChevronRightIcon
-        aria-hidden="true"
-        className="size-3 text-muted-foreground"
-      />
-    </Link>
-  );
-}
-
-function DaySessionNote({
-  session,
-  className,
-}: {
-  session: TodayDaySession;
-  className: string;
-}) {
-  return (
-    <span
-      className={cn(
-        "flex items-center gap-1.5 text-label whitespace-nowrap",
-        session.status === "done"
-          ? "text-primary"
-          : session.status === "partial"
-            ? "text-warning"
-            : "text-muted-foreground",
-        className,
-      )}
-    >
-      {(session.status === "done" || session.status === "partial") && (
-        <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
-      )}
-      {session.note}
-    </span>
-  );
-}
-
-function PlannedSession({
-  session,
-  verdict,
-}: {
-  session: Extract<TodaySession, { kind: "session" }>;
-  verdict: TodayVerdict | null;
-}) {
-  const { panel } = session;
-  const done = panel.status === "done" || panel.status === "partial";
-  return (
-    <>
-      <div className="flex items-start gap-3.5">
-        <SessionKindTile
-          kind={panel.family}
-          size="xl"
-          className="max-sm:size-10 max-sm:rounded-[10px]"
-        />
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className="text-[28px] leading-[1.05] font-semibold tracking-[-0.025em] sm:text-[34px]">
-            {panel.title}
-          </h2>
-          <p className="text-[15px] leading-normal text-secondary-foreground">
-            {panel.purpose}
-          </p>
-        </div>
-      </div>
-      {done && panel.completion && (
-        <p
-          className={cn(
-            "flex items-center gap-2 text-[13px]",
-            panel.status === "done" ? "text-primary" : "text-warning",
-          )}
-        >
-          <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
-          {panel.completion.headline}
-        </p>
-      )}
-      {panel.checkIn?.done && (
-        <p className="flex items-center gap-2 text-[13px] text-primary">
-          <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
-          Fait · noté par toi
-        </p>
-      )}
-      {session.stats.length > 0 && (
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-          {session.stats.map((stat) => (
-            <div key={stat.key} className="flex min-w-0 flex-col gap-0.75">
-              <dt className="order-2">
-                <Eyebrow>{stat.label}</Eyebrow>
-              </dt>
-              <dd className="order-1 truncate text-[26px] leading-none font-semibold tabular-nums sm:text-[28px]">
-                {stat.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      {panel.segments.length > 0 && (
-        <SessionShape
-          label={panel.structureLabel}
-          blocks={panel.segments.map((segment) => ({
-            minutes: segment.seconds / 60,
-            zone: segment.zone,
-          }))}
-          className="h-10"
-        />
-      )}
-      {verdict && !done ? (
-        <VerdictBlock verdict={verdict} />
-      ) : (
-        <div>
-          <Button asChild variant="outline" size="md">
-            <Link href={session.href}>Voir les étapes</Link>
-          </Button>
-        </div>
-      )}
-      {!done && panel.shoes && <TodayShoeRow shoes={panel.shoes} />}
-      {(session.terrain || (!done && panel.shoes?.chosen)) && (
-        <span className="flex items-center gap-2.5 text-label text-muted-foreground">
-          {session.terrain}
-          {!done && panel.shoes && (
-            <span className="ml-auto">
-              <TodayShoeChip shoes={panel.shoes} href={session.href} />
-            </span>
-          )}
-        </span>
-      )}
-    </>
-  );
-}
-
-const statusTones: Record<FormStatus, VerdictTone> = {
-  normal: "success",
-  watch: "warning",
-  crossed: "danger",
-};
-
-const markerFills: Record<FormStatus, string> = {
-  normal: "bg-primary",
-  watch: "bg-warning",
-  crossed: "bg-destructive",
-};
-
 function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
-  const tone = statusTones[indicator.status];
+  const level = statusLevels[indicator.status];
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 border-t border-border py-2.75">
-      <dt className="flex min-w-0 items-baseline gap-2.5">
-        <span className="w-18 shrink-0 text-[13px] text-secondary-foreground">
-          {indicator.label}
-        </span>
-        <span className="text-[19px] font-semibold tabular-nums">
-          {indicator.value}
-        </span>
-      </dt>
-      <dd
-        className={cn(
-          "inline-flex items-center gap-1.5 text-label whitespace-nowrap",
-          toneText[tone],
-        )}
-      >
-        <PulseDot tone={toneDot[tone]} breathing={false} />
-        {indicator.statusLabel}
-      </dd>
-      <dd className="col-span-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        {indicator.band && indicator.marker !== null ? (
-          <span aria-hidden="true" className="px-0.5">
-            <span className="relative block h-1.5 rounded-full bg-border">
-              <span
-                className="absolute inset-y-0 rounded-full bg-data-1"
-                style={{
-                  left: `${indicator.band.start}%`,
-                  width: `${indicator.band.end - indicator.band.start}%`,
-                }}
-              />
-              {indicator.threshold !== null && (
-                <span
-                  className="absolute -top-0.75 h-3 w-0.5 rounded-mark bg-destructive"
-                  style={{ left: `${indicator.threshold}%` }}
-                />
-              )}
-              <span
-                className={cn(
-                  "absolute -top-0.5 size-2.5 -translate-x-1/2 rounded-full ring-2 ring-card",
-                  markerFills[indicator.status],
-                )}
-                style={{ left: `${indicator.marker}%` }}
-              />
-            </span>
-          </span>
-        ) : (
-          <span />
-        )}
-        <span className="text-[11.5px] whitespace-nowrap text-muted-foreground">
+    <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3.5 border-t border-border py-2.75 first:border-t-0 sm:nth-2:border-t-0">
+      <dt className="flex min-w-0 flex-col">
+        <span className="text-secondary-foreground">{indicator.label}</span>
+        <span className="truncate text-label text-muted-foreground">
           {indicator.note}
         </span>
+      </dt>
+      <dd className="flex min-w-0 flex-col gap-1.5">
+        <span className="flex flex-wrap items-center gap-x-2.25 gap-y-0.5">
+          <b className="text-body-lg font-semibold whitespace-nowrap tabular-nums">
+            {indicator.value}
+          </b>
+          <Status level={level}>{indicator.statusLabel}</Status>
+        </span>
+        {indicator.band && indicator.marker !== null && (
+          <PlageTrack
+            level={level}
+            scale={{
+              min: 0,
+              max: 100,
+              low: indicator.band.start,
+              high: indicator.band.end,
+              value: indicator.marker,
+            }}
+          />
+        )}
       </dd>
     </div>
   );
 }
 
-export function FormSection({
+function bodyVerdict(indicators: FormIndicator[]) {
+  const off = indicators.filter((item) => item.status !== "normal").length;
+  if (indicators.length === 0) return null;
+  if (off === 0) return "Tout est dans ta plage";
+  return `${off} signa${off > 1 ? "ux" : "l"} sur ${indicators.length} hors de ta plage`;
+}
+
+export function BodySection({
   form,
   verdict,
 }: {
   form: TodayForm;
   verdict: TodayVerdict | null;
 }) {
+  const summary = bodyVerdict(form.indicators);
   return (
-    <section aria-labelledby="today-form" className={cn(todayCard, "gap-3")}>
-      <div className="flex items-baseline gap-2.5">
-        <h2>
-          <Eyebrow id="today-form">Forme du jour</Eyebrow>
-        </h2>
-        <span className="text-label whitespace-nowrap text-muted-foreground">
-          Garmin + ressenti
-        </span>
-        <MoreLink href={bodyPath}>Corps</MoreLink>
-      </div>
-      {form.score !== null ? (
-        <div className="flex items-center gap-3.5">
-          <ScoreRing
-            score={form.score}
-            tone={form.tone}
-            className="size-16"
-            metricClassName={cn("text-[27px] leading-16", toneText[form.tone])}
-          />
-          <span className="flex flex-col gap-0.5">
-            <span className="flex items-baseline gap-1.5">
-              <span className="text-title font-semibold">
-                {form.score} · {form.level}
-              </span>
-              <span className="text-[13px] text-muted-foreground">sur 100</span>
-            </span>
-            {form.gap && (
-              <span className="text-[13px] text-muted-foreground">
-                {form.gap}
-              </span>
+    <section
+      aria-labelledby="today-form"
+      className="border-b border-border px-4 py-4.5 md:px-5"
+    >
+      <Widget
+        headingLevel={2}
+        title={<span id="today-form">Ton corps ce matin</span>}
+        verdict={
+          <span className="flex items-center gap-3">
+            {form.level && (
+              <Status level={toneLevels[form.tone]}>
+                Forme {form.level.toLowerCase()}
+              </Status>
             )}
-          </span>
-        </div>
-      ) : (
-        <p className="text-body text-muted-foreground">
-          Garmin n’a pas transmis de forme du jour pour aujourd’hui.
-        </p>
-      )}
-      {form.indicators.length > 0 && (
-        <dl className="grid gap-x-7 sm:grid-cols-2">
-          {form.indicators.map((indicator) => (
-            <IndicatorRow key={indicator.key} indicator={indicator} />
-          ))}
-        </dl>
-      )}
-      {verdict?.compat && (
-        <div className="flex flex-col gap-1 rounded-xl bg-muted px-3.5 py-3">
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-secondary-foreground">
-            <span>{verdict.compat.question}</span>
-            <b
-              className={cn(
-                "ml-auto inline-flex items-center gap-1.5 font-semibold whitespace-nowrap",
-                toneText[verdict.compat.tone],
-              )}
+            <Link
+              href={bodyPath}
+              className="rounded-md text-label font-medium text-secondary-foreground hover:text-foreground"
             >
-              <PulseDot tone={toneDot[verdict.compat.tone]} breathing={false} />
-              {verdict.compat.answer}
-            </b>
-          </p>
-          <p className="text-label text-muted-foreground">
-            {verdict.compat.detail}
-          </p>
+              Détail
+            </Link>
+          </span>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          {summary || form.score !== null ? (
+            <div className="flex flex-col gap-1">
+              {summary && (
+                <p className="text-verdict font-semibold">{summary}</p>
+              )}
+              {form.score !== null && (
+                <p className="text-muted-foreground tabular-nums">
+                  Forme {form.score}
+                  {form.gap && ` · ${form.gap}`}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              Garmin n’a pas transmis de forme du jour pour aujourd’hui.
+            </p>
+          )}
+          {form.indicators.length > 0 && (
+            <dl className="grid gap-x-6 sm:grid-cols-2">
+              {form.indicators.map((indicator) => (
+                <IndicatorRow key={indicator.key} indicator={indicator} />
+              ))}
+            </dl>
+          )}
+          {verdict?.compat && (
+            <div className="flex flex-col gap-1 border-t border-border pt-3">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-secondary-foreground">
+                <span>{verdict.compat.question}</span>
+                <span className="ml-auto">
+                  <ToneStatus tone={verdict.compat.tone}>
+                    {verdict.compat.answer}
+                  </ToneStatus>
+                </span>
+              </p>
+              <p className="text-label text-muted-foreground">
+                {verdict.compat.detail}
+              </p>
+              <p className="text-label text-muted-foreground">{reviewRule}</p>
+            </div>
+          )}
         </div>
-      )}
-      {verdict?.compat && (
-        <p className="text-[11.5px] leading-normal text-muted-foreground">
-          {reviewRule}
-        </p>
-      )}
+      </Widget>
     </section>
   );
 }
 
-function DayMark({ state }: { state: TodayWeek["days"][number]["state"] }) {
-  if (state === "done" || state === "partial")
-    return (
-      <CheckIcon
-        className={cn(
-          "size-2.5",
-          state === "done" ? "text-primary" : "text-warning",
-        )}
-        strokeWidth={3}
-      />
-    );
-  if (state === "missed") return <PulseDot tone="danger" breathing={false} />;
-  if (state === "proposed")
-    return <PulseDot tone="warning" breathing={false} />;
-  return null;
+function rowState(day: TodayWeekDay) {
+  if (day.isToday) return "today" as const;
+  if (day.family === "rest") return "rest" as const;
+  if (day.state === "done" || day.state === "partial") return "done" as const;
+  return "upcoming" as const;
 }
 
 export function WeekSection({ week }: { week: TodayWeek }) {
   return (
-    <section aria-labelledby="today-week" className={todayCard}>
-      <div className="flex items-baseline gap-2.5">
-        <h2>
-          <Eyebrow id="today-week">
-            Cette semaine · S{week.number} / {week.total}
-          </Eyebrow>
-        </h2>
-        <span className="text-label text-muted-foreground">
-          {week.blockName}
-        </span>
-        <MoreLink href={week.href}>Plan</MoreLink>
-      </div>
-      <ol className="flex gap-1">
-        {week.days.map((day) => (
-          <li
-            key={day.date}
-            aria-current={day.isToday ? "date" : undefined}
-            className={cn(
-              "flex flex-1 flex-col items-center gap-1.5 rounded-lg border border-transparent py-2",
-              day.isToday && "border-foreground bg-muted",
-              day.isPast && "opacity-55",
-            )}
-          >
-            <span className="sr-only">{day.label}</span>
-            <MonoLabel
-              aria-hidden="true"
-              size="nano"
-              tone={day.isToday ? "accent" : "muted"}
-            >
-              {day.letter}
-            </MonoLabel>
-            <span aria-hidden="true" className="flex flex-col gap-1">
-              {day.families.map((family, index) => (
-                <SessionKindTile
-                  key={index}
-                  kind={family}
-                  size="lg"
-                  className="size-6.5"
-                />
-              ))}
-            </span>
-            <span aria-hidden="true" className="flex h-3 items-center">
-              {day.families.length > 1 ? (
-                <span className="text-[11px] leading-none text-secondary-foreground tabular-nums">
-                  {day.doneCount}/{day.families.length}
-                </span>
-              ) : (
-                <DayMark state={day.state} />
-              )}
-            </span>
-          </li>
-        ))}
-      </ol>
-      <div className="flex items-center gap-3">
-        <span className="text-[13px] text-secondary-foreground">
-          <b className="text-[17px] font-semibold text-foreground tabular-nums">
-            {week.done.duration}
-          </b>{" "}
-          sur {week.planned.duration}
-          {week.planned.distance && (
-            <>
-              {" · "}
-              <b className="text-[17px] font-semibold text-foreground tabular-nums">
-                {week.done.distance ?? "–"}
-              </b>{" "}
-              sur {week.planned.distance}
-            </>
-          )}
+    <section
+      aria-label={`Cette semaine · S${week.number} / ${week.total}`}
+      className="flex min-w-0 flex-col"
+    >
+      <div className="flex min-h-8 flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-muted px-4 py-1.5 text-label font-medium text-secondary-foreground md:px-5">
+        <h2>Semaine {week.number}</h2>
+        <span className="text-muted-foreground">{week.blockName}</span>
+        <span className="ml-auto text-muted-foreground tabular-nums">
+          {week.done.duration} / {week.planned.duration}
+          {week.planned.distance &&
+            ` · ${week.done.distance ?? "–"} / ${week.planned.distance}`}
         </span>
         <span
           role="progressbar"
@@ -658,85 +432,102 @@ export function WeekSection({ week }: { week: TodayWeek }) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={week.pct}
-          className="h-1 flex-1 overflow-hidden rounded-mark bg-border"
+          className="h-1 w-16 overflow-hidden rounded-full bg-control-border max-sm:hidden"
         >
           <span
             className="block h-full bg-primary"
             style={{ width: `${week.pct}%` }}
           />
         </span>
+        <Link
+          href={week.href}
+          className="rounded-md text-secondary-foreground hover:text-foreground"
+        >
+          Plan
+        </Link>
       </div>
+      <SessionList className="rounded-none border-0">
+        {week.days.map((day) => (
+          <SessionRow
+            key={day.date}
+            state={rowState(day)}
+            past={day.isPast && !day.isToday}
+            current={day.isToday ? "date" : undefined}
+            day={day.dayLabel}
+            title={day.title}
+            intensity={day.intensity}
+            duration={day.family === "rest" ? undefined : day.duration}
+            distance={day.family === "rest" ? undefined : day.distance}
+            elevation={day.elevation}
+            compliance={
+              day.compliance !== null ? `${day.compliance} %` : undefined
+            }
+            href={day.href ?? undefined}
+            label={day.label}
+            className="sm:px-2"
+          />
+        ))}
+      </SessionList>
     </section>
   );
 }
 
 export function GoalSection({ goal }: { goal: TodayGoal | null }) {
   return (
-    <section aria-labelledby="today-goal" className={cn(todayCard, "gap-3")}>
-      <div className="flex items-baseline gap-2.5">
-        <h2>
-          <Eyebrow id="today-goal">Objectif</Eyebrow>
-        </h2>
-        {goal && <MoreLink href="/races">Courses</MoreLink>}
-      </div>
+    <section aria-labelledby="today-goal" className="flex flex-col gap-3">
+      <h2
+        id="today-goal"
+        className="text-label font-medium text-muted-foreground"
+      >
+        {goal ? `Objectif ${goal.letter}` : "Objectif"}
+      </h2>
       {goal ? (
         <>
           <Link
             href={goal.href}
-            className="flex items-center gap-3 rounded-md hover:text-primary"
+            className="rounded-md text-body-lg font-semibold hover:text-primary"
           >
-            <span
-              aria-hidden="true"
-              className="inline-grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-[17px] font-bold text-primary-foreground tabular-nums"
-            >
-              {goal.letter}
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="truncate text-[15px] font-semibold">
-                {goal.name}
-              </span>
-              <span className="text-label text-muted-foreground">
-                {goal.detail}
-              </span>
-            </span>
-            <span className="text-[30px] leading-none font-semibold text-foreground tabular-nums">
-              {goal.days === 0 ? "Jour J" : `J-${goal.days}`}
-            </span>
+            {goal.name}
           </Link>
-          {(goal.block || goal.light) && (
-            <dl className="flex flex-col border-t border-border">
-              {goal.block && (
-                <div className="flex items-center gap-2.5 border-b border-border py-2.5 text-[13px] last:border-b-0">
-                  <dt className="flex-1 text-secondary-foreground">
-                    Bloc {goal.block.name}
-                  </dt>
-                  <dd className="text-body-lg font-semibold tabular-nums">
+          <dl className="flex flex-col">
+            <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
+              <dt className="text-muted-foreground">Échéance</dt>
+              <dd className="flex min-w-0 flex-col py-1 tabular-nums">
+                {goal.days === 0 ? "Jour J" : `J-${goal.days}`}
+                <span className="text-label text-muted-foreground">
+                  {goal.detail}
+                </span>
+              </dd>
+            </div>
+            {goal.block && (
+              <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
+                <dt className="text-muted-foreground">Phase</dt>
+                <dd className="flex items-baseline gap-2">
+                  {goal.block.name}
+                  <span className="text-muted-foreground tabular-nums">
                     {goal.block.week}
-                  </dd>
-                </div>
-              )}
-              {goal.light && (
-                <div className="flex items-center gap-2.5 py-2.5 text-[13px]">
-                  <dt className="flex-1 text-secondary-foreground">
-                    Semaine allégée
-                  </dt>
-                  <dd>{goal.light}</dd>
-                </div>
-              )}
-            </dl>
-          )}
+                  </span>
+                </dd>
+              </div>
+            )}
+            {goal.light && (
+              <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
+                <dt className="text-muted-foreground">Allégée</dt>
+                <dd>{goal.light}</dd>
+              </div>
+            )}
+          </dl>
         </>
       ) : (
-        <>
-          <p className="text-body text-muted-foreground">
-            Aucune course objectif pour l’instant.
-          </p>
-          <div>
-            <MoreLink href="/races" className="ml-0">
-              Voir les courses
-            </MoreLink>
-          </div>
-        </>
+        <p className="text-muted-foreground">
+          Aucune course objectif pour l’instant.{" "}
+          <Link
+            href="/races"
+            className="rounded-md text-primary hover:underline"
+          >
+            Voir les courses
+          </Link>
+        </p>
       )}
     </section>
   );

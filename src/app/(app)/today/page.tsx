@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import {
-  FormSection,
+  BodySection,
   GoalSection,
   SessionSection,
   WeekSection,
@@ -19,31 +19,32 @@ export default async function TodayPage() {
     <>
       <AppHeader title="Aujourd’hui" detail={view.header.date} />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="mx-auto flex w-full max-w-310 flex-col gap-4.5 px-4 pt-3 pb-18 sm:px-[clamp(20px,3vw,40px)] md:pt-7">
+        <main className="flex w-full flex-col pb-18 md:pb-6 xl:flex-row xl:items-start">
           <h1 className="sr-only">Aujourd’hui, {view.header.date}</h1>
-          <div className="flex flex-col gap-4.5 xl:grid xl:grid-cols-[minmax(0,1.7fr)_minmax(340px,1fr)] xl:items-start">
-            <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4.5">
-              <SessionSection session={view.session} verdict={view.verdict} />
-              <div className="max-xl:order-3">
-                <FormSection form={view.form} verdict={view.verdict} />
-              </div>
+          <div className="contents xl:flex xl:min-w-0 xl:flex-1 xl:flex-col">
+            <SessionSection session={view.session} verdict={view.verdict} />
+            <div className="max-xl:order-3">
+              <BodySection form={view.form} verdict={view.verdict} />
             </div>
-            <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4.5">
-              {view.queue.length > 0 && (
-                <div className="max-xl:order-2">
-                  <TodayQueue items={view.queue} />
-                </div>
-              )}
-              {view.week && (
-                <div className="max-xl:order-4">
-                  <WeekSection week={view.week} />
-                </div>
-              )}
-              <div className="max-xl:order-5">
-                <GoalSection goal={view.goal} />
+            {view.week && (
+              <div className="max-xl:order-4">
+                <WeekSection week={view.week} />
               </div>
-            </div>
+            )}
           </div>
+          <aside
+            aria-label="Contexte du jour"
+            className="contents xl:sticky xl:top-0 xl:flex xl:w-panel xl:shrink-0 xl:flex-col xl:gap-6 xl:self-stretch xl:border-l xl:border-border xl:px-5 xl:py-4.5"
+          >
+            {view.queue.length > 0 && (
+              <div className="border-b border-border px-4 py-4.5 max-xl:order-2 md:px-5 xl:border-0 xl:p-0">
+                <TodayQueue items={view.queue} />
+              </div>
+            )}
+            <div className="px-4 py-4.5 max-xl:order-5 md:px-5 xl:p-0">
+              <GoalSection goal={view.goal} />
+            </div>
+          </aside>
         </main>
       </div>
     </>

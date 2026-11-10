@@ -88,7 +88,7 @@ export function AppHeader({
         </Link>
       )}
       <div className="flex min-w-0 flex-1 items-baseline gap-2 md:hidden">
-        <p className="truncate text-body-lg font-semibold">{title}</p>
+        <p className="shrink-0 text-body-lg font-semibold">{title}</p>
         {detail && !back && (
           <span className="truncate text-muted-foreground">{detail}</span>
         )}
