@@ -3,12 +3,16 @@ import { Chip } from "@/components/stride/chip";
 import type { Zone } from "@/components/stride/session-blocks";
 import { cn } from "@/lib/utils";
 
-export type SessionRowState = "done" | "today" | "upcoming" | "rest";
+export type SessionRowState =
+  "done" | "partial" | "today" | "upcoming" | "missed" | "proposed" | "rest";
 
 export const sessionStateLabels: Record<SessionRowState, string> = {
   done: "Faite",
+  partial: "Faite en partie",
   today: "Aujourd’hui",
   upcoming: "À venir",
+  missed: "Non faite",
+  proposed: "Changement proposé",
   rest: "Repos",
 };
 
@@ -26,6 +30,10 @@ export function SessionStateMark({
       className={cn(
         "size-3.5 shrink-0 rounded-full border-[1.5px]",
         state === "done" && "border-primary bg-primary",
+        state === "partial" &&
+          "border-primary bg-[linear-gradient(0deg,var(--primary)_50%,transparent_50%)]",
+        state === "missed" && "border-destructive",
+        state === "proposed" && "border-dashed border-warning",
         state === "today" &&
           "border-warning bg-[linear-gradient(90deg,transparent_50%,var(--warning)_50%)]",
         state === "upcoming" && "border-muted-foreground",
@@ -55,7 +63,11 @@ export function SessionRow({
   intensity,
   duration,
   distance,
+  elevation,
+  compliance,
   href,
+  label,
+  current,
   className,
 }: {
   state: SessionRowState;
@@ -63,12 +75,17 @@ export function SessionRow({
   selected?: boolean;
   day: React.ReactNode;
   title: React.ReactNode;
-  intensity?: { level: Zone; label: string };
+  intensity?: { level?: Zone | null; label: string } | null;
   duration?: React.ReactNode;
   distance?: React.ReactNode;
+  elevation?: React.ReactNode;
+  compliance?: React.ReactNode;
   href?: string;
+  label?: string;
+  current?: "date" | "page";
   className?: string;
 }) {
+  const extended = elevation !== undefined || compliance !== undefined;
   const cells = (
     <>
       <SessionStateMark state={state} />
@@ -79,7 +96,9 @@ export function SessionRow({
       <span className="min-w-0 truncate font-medium">{title}</span>
       <span className="max-sm:hidden">
         {intensity && (
-          <Chip intensity={intensity.level}>{intensity.label}</Chip>
+          <Chip intensity={intensity.level ?? undefined}>
+            {intensity.label}
+          </Chip>
         )}
       </span>
       <span className="text-right tabular-nums">
@@ -88,15 +107,28 @@ export function SessionRow({
       <span className="text-right tabular-nums max-sm:hidden">
         <MissingValue value={distance} />
       </span>
+      {extended && (
+        <>
+          <span className="text-right text-muted-foreground tabular-nums max-lg:hidden">
+            {elevation}
+          </span>
+          <span className="text-right tabular-nums max-lg:hidden">
+            {compliance}
+          </span>
+        </>
+      )}
     </>
   );
-  const layout =
-    "grid min-h-row-touch grid-cols-[14px_48px_minmax(0,1fr)_56px] items-center gap-3 px-3 sm:min-h-row sm:grid-cols-[14px_52px_minmax(0,1fr)_100px_60px_60px]";
+  const layout = cn(
+    "grid min-h-row-touch grid-cols-[14px_48px_minmax(0,1fr)_56px] items-center gap-3 px-3 sm:min-h-row sm:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px]",
+    extended &&
+      "lg:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_62px_44px]",
+  );
   return (
     <li
       data-slot="session-row"
       data-state={state}
-      aria-current={selected && !href ? "true" : undefined}
+      aria-current={current ?? (selected && !href ? "true" : undefined)}
       className={cn(
         "border-b border-border last:border-b-0",
         past && "opacity-55",
@@ -108,6 +140,7 @@ export function SessionRow({
       {href ? (
         <Link
           href={href}
+          aria-label={label}
           aria-current={selected ? "true" : undefined}
           className={cn(
             layout,

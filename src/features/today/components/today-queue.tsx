@@ -3,8 +3,6 @@
 import { CheckIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { SessionKindTile } from "@/components/stride/session-kind-tile";
 import { FeelingPrompt } from "@/features/activities/components/feeling-prompt";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { PairQuestionCard } from "@/features/gear/components/activity-pair";
@@ -17,9 +15,8 @@ function ActivityRow({ activity }: { activity: TodayActivity }) {
   return (
     <Link
       href={activity.href}
-      className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 hover:bg-muted"
+      className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-colors duration-150 ease-stride hover:bg-muted"
     >
-      <SessionKindTile kind={activity.family} size="lg" className="size-8" />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-body font-semibold">
           {activity.heading} · {activity.title}
@@ -72,18 +69,14 @@ export function TodayQueue({ items }: { items: TodayQueueItem[] }) {
   return (
     <section
       aria-labelledby="today-queue"
-      className="flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-5 py-5 sm:px-5.5"
+      className="flex min-w-0 flex-col gap-3"
     >
       <div className="flex items-center gap-2.5">
-        <h2>
-          <MonoLabel
-            id="today-queue"
-            size="nano"
-            tone="foreground"
-            className="text-[9.5px]"
-          >
-            À faire
-          </MonoLabel>
+        <h2
+          id="today-queue"
+          className="text-label font-medium text-muted-foreground"
+        >
+          À faire
         </h2>
         <span aria-hidden="true" className="flex items-center gap-1">
           {items.map((item) => (
@@ -96,9 +89,12 @@ export function TodayQueue({ items }: { items: TodayQueueItem[] }) {
             />
           ))}
         </span>
-        <MonoLabel size="micro" aria-live="polite" className="ml-auto">
+        <span
+          aria-live="polite"
+          className="ml-auto text-label text-muted-foreground tabular-nums"
+        >
           {position} sur {items.length}
-        </MonoLabel>
+        </span>
       </div>
       <QueueItem key={current.key} item={current} />
       {next && (

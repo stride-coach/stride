@@ -17,7 +17,9 @@ import {
   formatDuration,
   formatLongDay,
 } from "@/features/plans/view/format";
+import type { SessionBlock, Zone } from "@/components/stride/session-blocks";
 import {
+  familyLabels,
   orderDaySessions,
   sessionFamilyOf,
   type DayState,
@@ -84,9 +86,18 @@ export type TodayForm = {
   indicators: FormIndicator[];
 };
 
+export type TodayIntensity = { level: Zone | null; label: string };
+
 export type TodayWeekDay = {
   date: string;
+  dayLabel: string;
   letter: string;
+  duration: string | null;
+  distance: string | null;
+  elevation: string | null;
+  intensity: TodayIntensity | null;
+  compliance: number | null;
+  href: string | null;
   family: SessionFamily;
   families: SessionFamily[];
   title: string;
@@ -96,6 +107,54 @@ export type TodayWeekDay = {
   isPast: boolean;
   label: string;
 };
+
+const intensityLabels: Record<Zone, string> = {
+  1: "Récup",
+  2: "Facile",
+  3: "Tempo",
+  4: "Seuil",
+  5: "Fractionné",
+};
+
+const unrankedFamilies: Partial<Record<SessionFamily, string>> = {
+  strength: "Renfo",
+  mobility: "Mobilité",
+  cross: "Sport croisé",
+  race: "Course",
+};
+
+export function dayIntensity(
+  family: SessionFamily,
+  blocks: readonly SessionBlock[],
+): TodayIntensity | null {
+  if (family === "rest") return null;
+  const unranked = unrankedFamilies[family];
+  if (unranked) return { level: null, label: unranked };
+  const peak = blocks.reduce<Zone | null>(
+    (zone, block) =>
+      block.removed
+        ? zone
+        : zone === null || block.zone > zone
+          ? block.zone
+          : zone,
+    null,
+  );
+  if (peak === null) return { level: null, label: familyLabels[family] };
+  if (family === "long" || family === "long_trail")
+    return { level: peak, label: "Long" };
+  return { level: peak, label: intensityLabels[peak] };
+}
+
+const shortDay = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+export function shortDayLabel(date: string) {
+  const label = shortDay.format(new Date(`${date}T00:00:00Z`)).replace(".", "");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 export type TodayWeek = {
   number: number;
@@ -451,7 +510,14 @@ function week(program: ProgramOverview | null): TodayWeek | null {
         : null;
       return {
         date: day.date,
+        dayLabel: shortDayLabel(day.date),
         letter: weekdayLetters[index] ?? day.weekday.charAt(0).toUpperCase(),
+        duration: multiple ? null : day.duration,
+        distance: multiple ? null : day.distance,
+        elevation: multiple ? null : day.elevation,
+        intensity: dayIntensity(day.family, day.blocks),
+        compliance: multiple ? null : day.compliancePct,
+        href: day.sessionKey ? sessionPanelHref(day.sessionKey) : null,
         family: day.family,
         families: multiple
           ? day.sessions.map((item) => item.family)

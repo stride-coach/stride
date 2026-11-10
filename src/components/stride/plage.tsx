@@ -14,13 +14,19 @@ const pointTones: Record<StatusLevel, string> = {
 export function PlageTrack({
   scale,
   level,
+  threshold,
   className,
 }: {
   scale: PlageScale;
   level: StatusLevel;
+  threshold?: number | null;
   className?: string;
 }) {
   const { bandStart, bandWidth, point } = plagePositions(scale);
+  const limit =
+    threshold === undefined || threshold === null
+      ? null
+      : plagePositions({ ...scale, value: threshold }).point;
   return (
     <div
       aria-hidden="true"
@@ -34,6 +40,12 @@ export function PlageTrack({
         className="absolute inset-y-0 border-x-2 border-primary bg-accent"
         style={{ left: `${bandStart}%`, width: `${bandWidth}%` }}
       />
+      {limit !== null && (
+        <span
+          className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-mark bg-destructive"
+          style={{ left: `${limit}%` }}
+        />
+      )}
       <span
         className={cn(
           "absolute top-1/2 size-2.75 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_0_2px_var(--card)]",
