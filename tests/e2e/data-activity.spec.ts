@@ -299,7 +299,7 @@ for (const width of [390, 700]) {
       route.fulfill({ json: observation() }),
     );
     await signIn(page);
-    await page.goto("/progress/body");
+    await page.goto("/health/recovery");
     const status = page
       .getByRole("button", { name: /État des données/ })
       .filter({ visible: true });
@@ -351,7 +351,7 @@ test("collapsed desktop navigation keeps the data panel accessible", async ({
     route.fulfill({ json: observation("complete") }),
   );
   await signIn(page);
-  await page.goto("/progress");
+  await page.goto("/health/fitness");
   await page
     .locator("header")
     .getByRole("button", { name: "Afficher ou masquer la barre latérale" })
@@ -586,7 +586,7 @@ test("a blocked server navigation starts the header thread before its response",
       .first(),
   ).toContainText("Reconnecter");
   const before = await list.boundingBox();
-  const gate = await holdNavigation(page, "/progress");
+  const gate = await holdNavigation(page, "/health/fitness");
   try {
     await page.getByRole("link", { name: "Santé", exact: true }).click();
     await gate.requested;
@@ -605,7 +605,7 @@ test("a blocked server navigation starts the header thread before its response",
   } finally {
     gate.release();
   }
-  await expect(page).toHaveURL("/progress");
+  await expect(page).toHaveURL("/health/fitness");
   await expect(
     page.getByTestId("data-activity-thread").filter({ visible: true }),
   ).toHaveCount(0);
@@ -619,7 +619,7 @@ test("a superseding navigation cleans up its pending header thread", async ({
   await expect(
     page.getByRole("region", { name: "Liste des activités" }),
   ).toBeVisible();
-  const gate = await holdNavigation(page, "/progress");
+  const gate = await holdNavigation(page, "/health/fitness");
   try {
     await page.getByRole("link", { name: "Santé", exact: true }).click();
     await gate.requested;
@@ -695,11 +695,11 @@ test("fitness period changes show loading before the server response", async ({
   page,
 }) => {
   await signIn(page);
-  await page.goto("/progress");
+  await page.goto("/health/fitness");
   const heading = page.getByRole("heading", { level: 1 });
   await expect(heading).toBeVisible();
   const before = await heading.textContent();
-  const gate = await holdNavigation(page, "/progress");
+  const gate = await holdNavigation(page, "/health/fitness");
   try {
     await page
       .getByRole("navigation", { name: "Période" })
@@ -711,7 +711,7 @@ test("fitness period changes show loading before the server response", async ({
   } finally {
     gate.release();
   }
-  await expect(page).toHaveURL("/progress?period=12w");
+  await expect(page).toHaveURL("/health/fitness?period=12w");
   await expect(
     page.getByTestId("data-activity-thread").filter({ visible: true }),
   ).toHaveCount(0);
@@ -754,8 +754,8 @@ test("progress tabs show the destination skeleton under the real tabs", async ({
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
-  await page.goto("/progress/records");
-  await page.goto("/progress");
+  await page.goto("/health/records");
+  await page.goto("/health/fitness");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const tabs = page
     .getByRole("navigation", { name: "Sections de Santé" })
@@ -767,7 +767,7 @@ test("progress tabs show the destination skeleton under the real tabs", async ({
       level: 2,
     });
   });
-  await expect(page).toHaveURL("/progress/records");
+  await expect(page).toHaveURL("/health/records");
   await expect(
     tabs.getByRole("link", { name: "Records", exact: true }),
   ).toHaveAttribute("aria-current", "page");

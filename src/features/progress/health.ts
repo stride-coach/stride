@@ -12,9 +12,9 @@ export const healthViewLabels: Record<HealthView, string> = {
   month: "30 jours",
 };
 
-export const bodyPath = "/progress/body";
+export const recoveryPath = "/health/recovery";
 
-export function bodyHref(
+export function recoveryHref(
   view: HealthView = "week",
   date: string | null = null,
 ) {
@@ -22,7 +22,7 @@ export function bodyHref(
   if (view !== "week") params.set("view", view);
   if (view === "day" && date) params.set("date", date);
   const query = params.toString();
-  return query ? `${bodyPath}?${query}` : bodyPath;
+  return query ? `${recoveryPath}?${query}` : recoveryPath;
 }
 
 const viewSchema = z.enum(healthViews).catch("week");

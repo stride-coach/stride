@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { formatClock, type HealthDayModel } from "../health-day";
 import type { HealthDayView } from "../health-day-view";
 import { formatStage } from "../health-view";
-import { bodyHref } from "../health";
+import { recoveryHref } from "../health";
 import { addDays } from "../period";
 
 const weekday = new Intl.DateTimeFormat("fr-FR", {
@@ -38,7 +38,7 @@ export function formatDayTitle(day: string, today: string) {
 }
 
 function dayHref(day: string, today: string) {
-  return bodyHref("day", day === today ? null : day);
+  return recoveryHref("day", day === today ? null : day);
 }
 
 export function DayNavigator({

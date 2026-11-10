@@ -1,7 +1,7 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { cn } from "@/lib/utils";
 import {
-  bodyHref,
+  recoveryHref,
   healthViewLabels,
   healthViews,
   type HealthView,
@@ -16,7 +16,7 @@ export function ScaleSwitch({ current }: { current: HealthView }) {
       {healthViews.map((view) => (
         <Link
           key={view}
-          href={bodyHref(view)}
+          href={recoveryHref(view)}
           aria-current={view === current ? "page" : undefined}
           scroll={false}
           className={cn(

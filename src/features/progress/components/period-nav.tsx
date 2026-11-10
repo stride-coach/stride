@@ -17,7 +17,9 @@ export function PeriodNav({ period }: { period: ProgressPeriod }) {
         <Link
           key={item}
           href={
-            item === defaultPeriod ? "/progress" : `/progress?period=${item}`
+            item === defaultPeriod
+              ? "/health/fitness"
+              : `/health/fitness?period=${item}`
           }
           aria-current={item === period ? "page" : undefined}
           scroll={false}

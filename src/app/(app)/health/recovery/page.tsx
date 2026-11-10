@@ -43,7 +43,7 @@ import { requireAthlete } from "@/server/app/session";
 import { loadBody } from "@/server/progress/body";
 import { loadHealthDay, loadHealthStrip } from "@/server/progress/health-day";
 
-export const metadata: Metadata = { title: "Corps · Santé" };
+export const metadata: Metadata = { title: "Récupération · Santé" };
 
 const titleClass =
   "text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[1.08] sm:tracking-[-0.03em]";

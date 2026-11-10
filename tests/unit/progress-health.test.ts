@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { bodyKpis } from "@/features/progress/body";
 import {
-  bodyHref,
+  recoveryHref,
   healthDays,
   healthModel,
   loadZone,
@@ -55,12 +55,12 @@ describe("health view", () => {
   });
 
   it("builds Corps links that keep the scale and the day", () => {
-    expect(bodyHref()).toBe("/progress/body");
-    expect(bodyHref("month")).toBe("/progress/body?view=month");
-    expect(bodyHref("day", "2026-10-10")).toBe(
-      "/progress/body?view=day&date=2026-10-10",
+    expect(recoveryHref()).toBe("/health/recovery");
+    expect(recoveryHref("month")).toBe("/health/recovery?view=month");
+    expect(recoveryHref("day", "2026-10-10")).toBe(
+      "/health/recovery?view=day&date=2026-10-10",
     );
-    expect(bodyHref("day")).toBe("/progress/body?view=day");
+    expect(recoveryHref("day")).toBe("/health/recovery?view=day");
   });
 
   it("formats sleep stages", () => {

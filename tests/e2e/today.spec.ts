@@ -40,7 +40,7 @@ test("today weighs the session against the form and asks one question at a time"
   const form = page.getByRole("region", { name: "Ton corps ce matin" });
   await expect(form.getByRole("link", { name: "Détail" })).toHaveAttribute(
     "href",
-    "/progress/body",
+    "/health/recovery",
   );
   await expect(form.getByText(/^Compatible avec .+ \?$/)).toBeVisible();
 
