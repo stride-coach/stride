@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ActivityPill } from "./plan-status";
+import type { ActivityPill, ActivityPlanCell } from "./plan-status";
 
 export const activityFilters = [
   "all",
@@ -423,6 +423,7 @@ export type ActivityListView = {
   counts: Record<ActivityFilter, number> | null;
   weeks: Record<string, ActivityWeekSummary>;
   pills: Record<string, ActivityPill[]>;
+  plans: Record<string, ActivityPlanCell>;
 };
 
 export type PlanWeekCounts = { planned: number; done: number };

@@ -249,13 +249,13 @@ export function ActivityData({
       className="flex min-w-0 flex-col gap-3"
     >
       <div className="flex flex-wrap items-center gap-2.5">
-        <MonoLabel asChild>
-          <h2 id="activity-data">Parcours et données</h2>
-        </MonoLabel>
+        <h2 id="activity-data" className="text-body font-medium">
+          Parcours et données
+        </h2>
         {route && (
-          <MonoLabel className="max-sm:w-full">
+          <span className="text-label text-muted-foreground max-sm:w-full">
             {kilometers.format(route.distanceKm)} km · tracé Garmin
-          </MonoLabel>
+          </span>
         )}
         {charts && available.length > 0 && (
           <ToggleGroup
@@ -269,13 +269,13 @@ export function ActivityData({
               );
               if (next.length > 0) setActive(next);
             }}
-            className="max-w-full gap-0.5 overflow-x-auto rounded-[9px] border border-border bg-card p-0.75 sm:ml-auto sm:flex-wrap"
+            className="max-w-full gap-0.5 overflow-x-auto rounded-md border border-border bg-card p-0.75 sm:ml-auto sm:flex-wrap"
           >
             {available.map((key) => (
               <ToggleGroupItem
                 key={key}
                 value={key}
-                className="min-h-7.5 gap-1.5 rounded-md border-l-0 px-2.75 text-[12.5px] data-[state=on]:bg-border data-[state=on]:font-semibold"
+                className="min-h-6 gap-1.5 rounded-sm border-l-0 px-2.5 text-label data-[state=on]:bg-muted data-[state=on]:font-medium"
               >
                 <span
                   aria-hidden="true"
@@ -287,7 +287,7 @@ export function ActivityData({
           </ToggleGroup>
         )}
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-background">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         {route ? (
           <div
             role={fullscreen ? "dialog" : undefined}

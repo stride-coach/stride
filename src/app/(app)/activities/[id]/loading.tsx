@@ -1,5 +1,5 @@
-import { ActivitiesLoading } from "@/features/data-activity/components/loading";
+import { ActivityDetailLoading } from "@/features/data-activity/components/loading";
 
 export default function Loading() {
-  return <ActivitiesLoading current />;
+  return <ActivityDetailLoading />;
 }

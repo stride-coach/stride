@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { parseRacesView } from "@/features/races/overview";
 import { RacesTitle } from "@/features/races/components/races-title";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ActivityListHeader,
-  ActivitySplitFrame,
   ActivityToolbar,
 } from "@/features/activities/components/activity-frame";
 import {
@@ -45,25 +43,21 @@ function ActivityRowsLoading() {
   return (
     <div
       aria-hidden="true"
-      className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:[scrollbar-gutter:stable]"
+      className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
     >
-      <div className="border-b border-border px-5 pt-2.5 pb-1 lg:px-3.5">
-        <Skeleton className="h-3 w-20" />
+      <div className="border-b border-border bg-muted px-4 py-2.5 md:px-5">
+        <Skeleton className="h-3 w-40" />
       </div>
       {Array.from({ length: 12 }, (_, item) => (
         <div
           key={item}
-          className="flex flex-col gap-1.5 border-b border-border px-5 py-3 lg:px-3.5"
+          className="flex min-h-row-touch items-center gap-3 border-b border-border px-4 md:min-h-row md:px-5"
         >
-          <div className="flex items-center justify-between gap-3">
-            <Skeleton className="h-5 w-36 lg:h-4" />
-            <Skeleton className="h-3 w-12" />
-          </div>
-          <div className="flex gap-3">
-            <Skeleton className="h-5 w-14" />
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-5 w-12" />
-          </div>
+          <Skeleton className="size-3.5 rounded-full" />
+          <Skeleton className="h-3 w-12 max-md:hidden" />
+          <Skeleton className="h-3 w-1/3" />
+          <Skeleton className="ml-auto h-3 w-12" />
+          <Skeleton className="h-3 w-12 max-md:hidden" />
         </div>
       ))}
     </div>
@@ -74,42 +68,31 @@ function ActivityContentLoading() {
   return (
     <div
       aria-hidden="true"
-      className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
+      className="flex min-h-0 flex-1 [scrollbar-gutter:stable] flex-col overflow-y-auto overscroll-contain xl:flex-row xl:items-start"
     >
-      <article className="flex w-full max-w-240 flex-col gap-6 px-5 pt-8 pb-12 lg:px-10 2xl:mx-auto 2xl:max-w-360">
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-3 w-48" />
-          <Skeleton className="h-8 w-64 max-w-full sm:h-10" />
-          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-6">
-            {Array.from({ length: 6 }, (_, item) => (
-              <div
-                key={item}
-                className="flex flex-col gap-2 bg-card px-3 py-2.5"
-              >
-                <Skeleton className="h-6 w-14" />
-                <Skeleton className="h-2.5 w-12" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <Skeleton className="h-36 w-full rounded-2xl" />
-        <section className="flex flex-col gap-3">
-          <MonoLabel>Parcours et données</MonoLabel>
-          <div className="overflow-hidden rounded-2xl border border-border bg-background">
-            <Skeleton className="h-60 w-full rounded-none lg:h-85" />
-            <div className="border-t border-border p-3">
-              <Skeleton className="h-42.5 w-full lg:h-55" />
+      <div className="flex min-w-0 flex-1 flex-col gap-4.5 px-4 py-4.5 md:px-5">
+        <Skeleton className="h-7 w-64 max-w-full" />
+        <Skeleton className="h-4 w-48" />
+        <div className="grid grid-cols-3 gap-4 border-y border-border py-3.5 sm:grid-cols-6">
+          {Array.from({ length: 6 }, (_, item) => (
+            <div key={item} className="flex flex-col gap-1.5">
+              <Skeleton className="h-5 w-14" />
+              <Skeleton className="h-3 w-12" />
             </div>
-          </div>
-        </section>
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </article>
+          ))}
+        </div>
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <Skeleton className="h-72 w-full rounded-xl" />
+      </div>
+      <div className="flex flex-col gap-3 px-4 py-4.5 md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border">
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-24 w-full" />
+      </div>
     </div>
   );
 }
 
-export function ActivitiesLoading({ current = false }: { current?: boolean }) {
-  const pathname = usePathname();
+export function ActivitiesLoading() {
   const params = useSearchParams();
   const queryValue = (key: string) => {
     const values = params.getAll(key);
@@ -119,46 +102,41 @@ export function ActivitiesLoading({ current = false }: { current?: boolean }) {
   const limit = parseActivityLimit(queryValue("limit"));
   const search = parseActivitySearch(queryValue("q"));
   const snapshot = useActivityListSnapshot({ filter, limit, search });
-  const selectedId = pathname.split("/")[2] ?? null;
 
   return (
     <LoadingScope
-      label={current ? "Chargement de l’activité" : "Chargement des activités"}
+      label="Chargement des activités"
       className="flex min-h-0 flex-1 flex-col"
     >
-      <ActivitySplitFrame
-        current={current}
-        list={
-          current && snapshot ? (
-            <ActivityListPane
-              {...snapshot}
-              selectedId={selectedId}
-              current
-              registerSnapshot={false}
-            />
-          ) : (
-            <>
-              <ActivityListHeader current={current} loading />
-              <ActivityRowsLoading />
-            </>
-          )
-        }
-      >
-        <ActivityToolbar
-          href={`/activities${activitiesQuery(filter, limit, search)}`}
-        />
-        <ActivityContentLoading />
-      </ActivitySplitFrame>
+      {snapshot ? (
+        <ActivityListPane {...snapshot} registerSnapshot={false} />
+      ) : (
+        <>
+          <ActivityListHeader loading />
+          <ActivityRowsLoading />
+        </>
+      )}
     </LoadingScope>
   );
 }
 
 export function ActivityDetailLoading() {
+  const params = useSearchParams();
+  const queryValue = (key: string) => {
+    const values = params.getAll(key);
+    return values.length === 1 ? values[0] : undefined;
+  };
+  const filter = parseActivityFilter(queryValue("filter"));
+  const limit = parseActivityLimit(queryValue("limit"));
+  const search = parseActivitySearch(queryValue("q"));
   return (
     <LoadingScope
       label="Chargement de l’activité"
       className="flex min-h-0 flex-1 flex-col"
     >
+      <ActivityToolbar
+        href={`/activities${activitiesQuery(filter, limit, search)}`}
+      />
       <ActivityContentLoading />
     </LoadingScope>
   );

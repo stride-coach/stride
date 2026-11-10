@@ -16,9 +16,9 @@ const labels: Record<SplitColumn, string> = {
 };
 
 const head =
-  "pb-2 pl-2 text-right tabular-nums text-[9.5px] font-normal whitespace-nowrap text-muted-foreground ";
+  "pb-2 pl-2 text-right tabular-nums text-label font-normal whitespace-nowrap text-muted-foreground ";
 const cell =
-  "py-2.5 pl-2 text-right tabular-nums text-[17px] font-semibold whitespace-nowrap ";
+  "py-2.5 pl-2 text-right tabular-nums font-semibold whitespace-nowrap ";
 
 function Missing() {
   return (
@@ -43,9 +43,7 @@ function KmTable({ splits }: { splits: KmSplits }) {
         scope="row"
         className={cn(
           "py-2.5 text-left",
-          average
-            ? "text-body font-semibold"
-            : "text-[17px] font-semibold tabular-nums",
+          average ? "text-body font-semibold" : "font-semibold tabular-nums",
         )}
       >
         {item.label}
@@ -166,10 +164,7 @@ export function SplitsSection({
   return (
     <section aria-labelledby="activity-splits" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <h2
-          id="activity-splits"
-          className="text-title font-semibold sm:text-verdict"
-        >
+        <h2 id="activity-splits" className="text-body font-medium">
           Splits
         </h2>
         {laps && (
@@ -181,17 +176,17 @@ export function SplitsSection({
             onValueChange={(value) => {
               if (value === "km" || value === "laps") setView(value);
             }}
-            className="ml-auto gap-0.5 rounded-[9px] border border-border bg-card p-0.75"
+            className="ml-auto gap-0.5 rounded-md border border-border bg-card p-0.75"
           >
             <ToggleGroupItem
               value="km"
-              className="min-h-7.5 rounded-md border-l-0 px-2.75 text-[12.5px] data-[state=on]:bg-border data-[state=on]:font-semibold"
+              className="min-h-6 rounded-sm border-l-0 px-2.5 text-label data-[state=on]:bg-muted data-[state=on]:font-medium"
             >
               Par km
             </ToggleGroupItem>
             <ToggleGroupItem
               value="laps"
-              className="min-h-7.5 gap-1 rounded-md border-l-0 px-2.75 text-[12.5px] data-[state=on]:bg-border data-[state=on]:font-semibold"
+              className="min-h-6 gap-1 rounded-sm border-l-0 px-2.5 text-label data-[state=on]:bg-muted data-[state=on]:font-medium"
             >
               {laps.title}
               <span className="font-normal text-muted-foreground">

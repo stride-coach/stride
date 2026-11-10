@@ -22,10 +22,7 @@ function Missing() {
 export function LapTableSection({ table }: { table: LapTable }) {
   return (
     <section aria-labelledby="activity-laps" className="flex flex-col gap-2.5">
-      <h2
-        id="activity-laps"
-        className="text-title font-semibold sm:text-verdict"
-      >
+      <h2 id="activity-laps" className="text-body font-medium">
         {table.title}
       </h2>
       <LapTableView table={table} />
@@ -40,7 +37,7 @@ export function LapTableView({ table }: { table: LapTable }) {
       <thead>
         <tr className="border-b border-control-border">
           <th scope="col" className="pb-2 font-normal">
-            <MonoLabel size="nano" className="text-[9.5px]">
+            <MonoLabel size="nano">
               {table.title === "Tours" ? "Tour" : "Segment"}
             </MonoLabel>
           </th>
@@ -53,7 +50,7 @@ export function LapTableView({ table }: { table: LapTable }) {
                 displays[column.display],
               )}
             >
-              <MonoLabel size="nano" className="text-[9.5px] whitespace-nowrap">
+              <MonoLabel size="nano" className="whitespace-nowrap">
                 {column.shortLabel === column.label ? (
                   column.label
                 ) : (
@@ -72,7 +69,7 @@ export function LapTableView({ table }: { table: LapTable }) {
           <tr key={row.key} className="border-b border-border">
             <th
               scope="row"
-              className="py-2.5 text-left text-[17px] font-semibold tabular-nums"
+              className="py-2.5 text-left font-semibold tabular-nums"
             >
               {row.label}
             </th>
@@ -80,7 +77,7 @@ export function LapTableView({ table }: { table: LapTable }) {
               <td
                 key={column.key}
                 className={cn(
-                  "py-2.5 pl-2 text-right text-[17px] font-semibold whitespace-nowrap text-foreground tabular-nums",
+                  "py-2.5 pl-2 text-right font-semibold whitespace-nowrap text-foreground tabular-nums",
                   displays[column.display],
                 )}
               >

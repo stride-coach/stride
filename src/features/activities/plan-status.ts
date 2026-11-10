@@ -6,12 +6,17 @@ import {
   type SessionStructure,
   type SimpleStep,
 } from "@/features/plans/model/structure";
-import { isRunningSession } from "@/features/plans/model/volume";
+import { hasIntensity, isRunningSession } from "@/features/plans/model/volume";
 import {
   overallVerdict,
   type DebriefMatch,
   type Verdict,
 } from "@/features/plans/debrief/debrief";
+import {
+  dayIntensity,
+  type SessionIntensity,
+} from "@/features/plans/view/intensity";
+import { sessionBlocks } from "@/features/plans/view/plan-view";
 import { familyLabels, sessionFamilyOf } from "@/features/plans/view/program";
 
 export type PillTone = "success" | "warning" | "off" | "todo";
@@ -90,6 +95,29 @@ export function plannedPill({
     verdictWord(resolved.title),
     resolved.tone === "warning" ? "warning" : "success",
   );
+}
+
+export type ActivityPlanCell = {
+  intensity: SessionIntensity | null;
+  compliance: number | null;
+};
+
+export function activityPlanCell(
+  session: PlanSession,
+  match: DebriefMatch,
+): ActivityPlanCell {
+  const blocks =
+    session.kind === "race" || !hasIntensity(session)
+      ? []
+      : sessionBlocks(session);
+  const ratio = match.compliance.duration;
+  return {
+    intensity: dayIntensity(sessionFamilyOf(session), blocks),
+    compliance:
+      match.status === "substituted" || ratio === null
+        ? null
+        : Math.round(ratio * 100),
+  };
 }
 
 export const unplannedPill: ActivityPill = { label: "Hors plan", tone: "off" };
