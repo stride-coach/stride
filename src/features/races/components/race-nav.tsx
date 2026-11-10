@@ -120,7 +120,7 @@ export function RaceTabs({
             aria-current={current ? "page" : undefined}
             className={cn(
               "-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-0.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              current && "border-accent text-foreground",
+              current && "border-primary text-foreground",
             )}
           >
             {section.label}

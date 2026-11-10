@@ -16,7 +16,7 @@ export function PublicWordmark({ className }: { className?: string }) {
       href="/"
       aria-label="Stride, accueil"
       className={cn(
-        "inline-flex w-fit items-center gap-2 rounded-control text-foreground md:gap-2.5",
+        "inline-flex w-fit items-center gap-2 rounded-md text-foreground md:gap-2.5",
         className,
       )}
     >
@@ -39,7 +39,7 @@ export function PublicHeader({ withSections = false }) {
               <a
                 key={section.href}
                 href={section.href}
-                className="rounded-control text-muted hover:text-foreground"
+                className="rounded-md text-secondary-foreground hover:text-foreground"
               >
                 {section.label}
               </a>
@@ -49,7 +49,7 @@ export function PublicHeader({ withSections = false }) {
         <div className="ml-auto flex items-center gap-2.5">
           <Link
             href="/sign-in"
-            className="rounded-control p-3 text-[15px] text-foreground hover:text-accent md:px-2.5 md:text-sm"
+            className="rounded-md p-3 text-[15px] text-foreground hover:text-primary md:px-2.5 md:text-sm"
           >
             Se connecter
           </Link>

@@ -35,7 +35,7 @@ function ConversationListLoading() {
               asChild
               variant="outline"
               size="icon"
-              className="ml-auto size-11 rounded-surface"
+              className="ml-auto size-11 rounded-lg"
             >
               <Link href="/coach/new" aria-label="Nouvelle conversation">
                 <PlusIcon aria-hidden="true" />
@@ -54,7 +54,7 @@ function ConversationListLoading() {
               {staffAgents.map((agent) => (
                 <span
                   key={agent}
-                  className="flex w-15.5 flex-col items-center gap-1.5 text-xs text-muted"
+                  className="flex w-15.5 flex-col items-center gap-1.5 text-xs text-secondary-foreground"
                 >
                   <StaffPortrait agent={agent} size={56} decorative />
                   <span aria-hidden="true">{staff[agent].name}</span>
@@ -69,7 +69,7 @@ function ConversationListLoading() {
             asChild
             variant="outline"
             size="sm"
-            className="ml-auto h-8 rounded-surface px-2.5"
+            className="ml-auto h-8 rounded-lg px-2.5"
           >
             <Link href="/coach/new">
               <PlusIcon aria-hidden="true" />
@@ -78,10 +78,10 @@ function ConversationListLoading() {
           </Button>
         </div>
         <div aria-hidden="true" className="flex flex-col gap-2.5">
-          <Skeleton className="h-9 w-full rounded-surface" />
+          <Skeleton className="h-9 w-full rounded-lg" />
           <div className="flex gap-1.5">
-            <Skeleton className="h-7.5 w-16 rounded-control" />
-            <Skeleton className="h-7.5 w-20 rounded-control" />
+            <Skeleton className="h-7.5 w-16 rounded-md" />
+            <Skeleton className="h-7.5 w-20 rounded-md" />
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@ function ThreadHeader({ title }: { title: string | null }) {
         asChild
         variant="ghost"
         size="icon"
-        className="size-11 text-muted min-[980px]:hidden"
+        className="size-11 text-secondary-foreground min-[980px]:hidden"
       >
         <Link href="/coach" aria-label="Retour aux conversations">
           <ChevronLeftIcon aria-hidden="true" />
@@ -161,7 +161,7 @@ function EmptyThread({ plan }: { plan: boolean }) {
       <h2 className="text-headline font-semibold">
         {plan ? `Demande ton plan à ${staff.coach.name}` : "Écris à ton staff"}
       </h2>
-      <p className="max-w-140 text-body leading-normal text-muted">
+      <p className="max-w-140 text-body leading-normal text-secondary-foreground">
         {plan
           ? `${staff.coach.name} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
           : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.name} te répond ou passe la main à ${staff.medical.name}, qui te parle directement quand c’est utile.`}
@@ -176,7 +176,7 @@ function ThreadLogLoading() {
       aria-hidden="true"
       className="mx-auto flex w-full max-w-205 flex-col gap-6 px-4 pt-6 pb-6 sm:px-[clamp(20px,3vw,44px)]"
     >
-      <Skeleton className="h-12 w-3/5 self-end rounded-card" />
+      <Skeleton className="h-12 w-3/5 self-end rounded-xl" />
       <div className="flex gap-3">
         <Skeleton className="size-8 shrink-0 rounded-[9px]" />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -186,7 +186,7 @@ function ThreadLogLoading() {
           <Skeleton className="h-4 w-2/3" />
         </div>
       </div>
-      <Skeleton className="h-10 w-2/5 self-end rounded-card" />
+      <Skeleton className="h-10 w-2/5 self-end rounded-xl" />
       <div className="flex gap-3">
         <Skeleton className="size-8 shrink-0 rounded-[9px]" />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -203,7 +203,7 @@ function ComposerLoading() {
   const staff = useStaff();
   return (
     <div className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border-subtle bg-surface-inset px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5">
-      <Skeleton aria-hidden="true" className="h-13 w-full rounded-card" />
+      <Skeleton aria-hidden="true" className="h-13 w-full rounded-xl" />
       <p className="text-xs text-muted-foreground max-sm:hidden">
         {staff.coach.name} lit chaque message et passe la main au bon
         spécialiste, deux au plus par demande. Les questions d’un spécialiste
@@ -295,11 +295,11 @@ export function TeamLoading() {
                 Une équipe autour de toi, dans une seule conversation.
               </span>
             </h1>
-            <p className="text-sm leading-normal text-muted md:hidden">
+            <p className="text-sm leading-normal text-secondary-foreground md:hidden">
               {coach.name} mène. Les spécialistes te parlent directement quand
               ta demande touche leur domaine, et tu valides chaque changement.
             </p>
-            <p className="max-w-170 text-base leading-[1.55] text-muted max-md:hidden">
+            <p className="max-w-170 text-base leading-[1.55] text-secondary-foreground max-md:hidden">
               Comme le staff d’un athlète pro : {coach.name} mène, et chaque
               spécialiste apporte son regard quand ta demande touche son
               domaine. Choisis le visage de chacun, leur expertise reste la

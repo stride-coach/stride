@@ -21,7 +21,7 @@ export function Wordmark({
         aria-hidden="true"
         viewBox="0 0 24 24"
         className={cn(
-          "fill-none stroke-accent",
+          "fill-none stroke-primary",
           compactOnMobile ? "size-4.5 md:size-6" : "size-6",
         )}
         strokeWidth="3"
@@ -58,7 +58,7 @@ function Terrain({ signup }: { signup: boolean }) {
         preserveAspectRatio="none"
         className="absolute inset-0 hidden h-full w-full fill-none md:block"
       >
-        <g className="stroke-surface-raised" strokeWidth="1.2">
+        <g className="stroke-muted" strokeWidth="1.2">
           {Array.from({ length: 9 }, (_, index) => (
             <path
               key={index}
@@ -104,7 +104,7 @@ function Terrain({ signup }: { signup: boolean }) {
         preserveAspectRatio="none"
         className="absolute inset-0 h-full w-full fill-none md:hidden"
       >
-        <g className="stroke-surface-raised" strokeWidth="1.1">
+        <g className="stroke-muted" strokeWidth="1.1">
           {Array.from({ length: 5 }, (_, index) => (
             <path
               key={index}
@@ -147,7 +147,7 @@ export function AuthShell({
               : "Ton coach sait déjà d’où tu viens."}
           </p>
           {signup ? (
-            <ol className="flex flex-col gap-2.5 text-[15px] text-muted">
+            <ol className="flex flex-col gap-2.5 text-[15px] text-secondary-foreground">
               {[
                 "Crée ton compte",
                 "Connecte Garmin — on importe ton historique",
@@ -158,7 +158,7 @@ export function AuthShell({
                   <span
                     className={cn(
                       "w-3.5 font-metric text-[17px]",
-                      index === 0 ? "text-accent" : "text-muted-foreground",
+                      index === 0 ? "text-primary" : "text-muted-foreground",
                     )}
                   >
                     {index + 1}
@@ -176,7 +176,7 @@ export function AuthShell({
       </section>
       <section
         aria-label={signup ? "Créer un compte" : "Se connecter"}
-        className="flex flex-1 flex-col px-6 pb-8 md:m-2 md:justify-center md:rounded-surface md:border md:border-border md:bg-surface-inset md:py-12"
+        className="flex flex-1 flex-col px-6 pb-8 md:m-2 md:justify-center md:rounded-lg md:border md:border-border md:bg-surface-inset md:py-12"
       >
         <div className="mx-auto flex w-full max-w-95 flex-1 flex-col md:flex-none">
           {children}

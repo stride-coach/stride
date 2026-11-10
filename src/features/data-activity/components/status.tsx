@@ -148,7 +148,7 @@ export function DataActivityStatus({
       <SheetTrigger asChild>
         <button
           className={cn(
-            "flex min-h-8 min-w-0 items-center gap-2 rounded-control text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+            "flex min-h-8 min-w-0 items-center gap-2 rounded-md text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
             className,
           )}
           aria-label="État des données Garmin"
@@ -176,7 +176,7 @@ export function DataActivityStatus({
       <SheetContent
         side={isMobile ? "bottom" : "right"}
         showCloseButton={false}
-        className="max-h-[85svh] gap-0 border-border-strong bg-surface-raised md:max-h-none md:w-110 md:max-w-110"
+        className="max-h-[85svh] gap-0 border-border-strong bg-muted md:max-h-none md:w-110 md:max-w-110"
       >
         <div
           aria-hidden="true"
@@ -349,7 +349,7 @@ export function DataActivityFeedback() {
       {activity.fresh.length > 0 && (
         <div
           role="status"
-          className="absolute right-4 bottom-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-border-strong bg-surface-raised py-1 pr-1 pl-3 text-xs max-md:group-has-[[data-slot=mobile-tab-bar]]/inset:bottom-[calc(5rem+env(safe-area-inset-bottom))] md:top-2 md:right-5 md:bottom-auto"
+          className="absolute right-4 bottom-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-border-strong bg-muted py-1 pr-1 pl-3 text-xs max-md:group-has-[[data-slot=mobile-tab-bar]]/inset:bottom-[calc(5rem+env(safe-area-inset-bottom))] md:top-2 md:right-5 md:bottom-auto"
         >
           <PulseDot tone="provider" breathing={false} />
           <span className="min-w-0 truncate">Nouvelles données Garmin</span>

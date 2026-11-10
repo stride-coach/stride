@@ -28,7 +28,7 @@ const emptyFilterMessages: Record<ActivityFilter, string> = {
 };
 
 export const filterChipClass =
-  "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-control border px-2.75 text-xs whitespace-nowrap transition-colors duration-150 ease-stride lg:min-h-7.5";
+  "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md border px-2.75 text-xs whitespace-nowrap transition-colors duration-150 ease-stride lg:min-h-7.5";
 
 export function ActivityFilters({
   filter,
@@ -60,7 +60,7 @@ export function ActivityFilters({
             className={cn(
               filterChipClass,
               item === filter
-                ? "border-border-strong bg-surface-raised text-foreground"
+                ? "border-border-strong bg-muted text-foreground"
                 : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
@@ -88,7 +88,7 @@ function WeekHeader({
       <MonoLabel
         size="nano"
         tone="muted"
-        className="text-[9.5px] whitespace-nowrap text-muted"
+        className="text-[9.5px] whitespace-nowrap text-secondary-foreground"
       >
         {label}
       </MonoLabel>
@@ -143,7 +143,7 @@ export function ActivityList({
 }) {
   if (groups.length === 0)
     return (
-      <p className="px-5 py-6 text-meta text-muted lg:px-3.5">
+      <p className="px-5 py-6 text-meta text-secondary-foreground lg:px-3.5">
         {search
           ? "Aucune activité ne correspond à ce nom."
           : filter === "all"
@@ -185,11 +185,11 @@ export function ActivityList({
                         : undefined
                     }
                     className={cn(
-                      "flex flex-col gap-1.75 border-b border-border-subtle px-5 py-3.5 transition-colors duration-150 ease-stride hover:bg-surface lg:px-3.5",
+                      "flex flex-col gap-1.75 border-b border-border-subtle px-5 py-3.5 transition-colors duration-150 ease-stride hover:bg-card lg:px-3.5",
                       selected &&
                         (current
-                          ? "bg-surface-raised shadow-[inset_2px_0_0_var(--color-accent)]"
-                          : "lg:bg-surface-raised lg:shadow-[inset_2px_0_0_var(--color-accent)]"),
+                          ? "bg-muted shadow-[inset_2px_0_0_var(--color-primary)]"
+                          : "lg:bg-muted lg:shadow-[inset_2px_0_0_var(--color-primary)]"),
                     )}
                   >
                     <span className="flex items-baseline justify-between gap-3">
@@ -263,7 +263,7 @@ export function ActivityListFooter({
         <Link
           href={`/activities${activitiesQuery(filter, next, search)}`}
           scroll={false}
-          className="inline-flex min-h-11 items-center rounded-control border border-border-strong px-3.5 text-sm text-foreground transition-colors duration-150 ease-stride hover:bg-surface-raised lg:min-h-8 lg:text-xs"
+          className="inline-flex min-h-11 items-center rounded-md border border-border-strong px-3.5 text-sm text-foreground transition-colors duration-150 ease-stride hover:bg-muted lg:min-h-8 lg:text-xs"
         >
           Charger les suivantes
         </Link>

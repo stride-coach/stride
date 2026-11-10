@@ -67,13 +67,13 @@ export function SignInForm({
         latest === "password" &&
         state.email && (
           <div
-            className="rounded-surface border border-warning/40 bg-surface-raised p-4 text-sm"
+            className="rounded-lg border border-warning/40 bg-muted p-4 text-sm"
             role="status"
           >
             <p className="font-semibold text-warning">
               Confirme ton e-mail pour continuer
             </p>
-            <p className="mt-1 text-muted">{state.message}</p>
+            <p className="mt-1 text-secondary-foreground">{state.message}</p>
             <div className="mt-3">
               <ConfirmationResend
                 action={resendAction}
@@ -83,7 +83,7 @@ export function SignInForm({
             </div>
             <button
               type="button"
-              className="mt-3 text-accent hover:underline"
+              className="mt-3 text-primary hover:underline"
               onClick={() => {
                 setEmail("");
                 setPassword("");
@@ -140,7 +140,7 @@ export function SignInForm({
             trailing={
               <Link
                 href="/forgot-password"
-                className="text-[13px] text-accent hover:underline"
+                className="text-[13px] text-primary hover:underline"
               >
                 Mot de passe oublié ?
               </Link>
@@ -156,7 +156,7 @@ export function SignInForm({
             />
             <FieldLabel
               htmlFor="remember"
-              className="text-sm font-normal text-muted"
+              className="text-sm font-normal text-secondary-foreground"
             >
               Rester connecté sur cet appareil
             </FieldLabel>
@@ -192,9 +192,9 @@ export function SignInForm({
         >
           {magicPending ? "Envoi du lien…" : "M’envoyer un lien de connexion"}
         </Button>
-        <p className="mt-auto pt-4 text-center text-sm text-muted md:mt-0 md:pt-0">
+        <p className="mt-auto pt-4 text-center text-sm text-secondary-foreground md:mt-0 md:pt-0">
           Nouveau sur Stride ?{" "}
-          <Link href="/sign-up" className="text-accent hover:underline">
+          <Link href="/sign-up" className="text-primary hover:underline">
             Créer un compte
           </Link>
         </p>

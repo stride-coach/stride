@@ -101,7 +101,7 @@ function Plot({
           );
         })}
       </g>
-      <g className="fill-danger" opacity="0.12">
+      <g className="fill-destructive" opacity="0.12">
         {chart.overload.map((range) => {
           const left = x(range.from);
           const right = Math.max(left + 2, x(range.to));
@@ -138,7 +138,7 @@ function Plot({
         strokeWidth="1.6"
         strokeDasharray="5 4"
         strokeLinejoin="round"
-        className="stroke-danger"
+        className="stroke-destructive"
       />
       <g
         className="font-mono uppercase"
@@ -204,12 +204,12 @@ export function LoadLegend({ className }: { className?: string }) {
       <li className="flex items-center gap-1.5">
         <span
           aria-hidden="true"
-          className="w-3.5 border-t-2 border-dashed border-danger"
+          className="w-3.5 border-t-2 border-dashed border-destructive"
         />
         Fatigue · 7 j
       </li>
       <li className="flex items-center gap-1.5">
-        <span aria-hidden="true" className="h-2 w-2.5 bg-danger/20" />
+        <span aria-hidden="true" className="h-2 w-2.5 bg-destructive/20" />
         Fatigue &gt; condition
       </li>
     </ul>

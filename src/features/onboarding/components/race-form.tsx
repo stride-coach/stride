@@ -236,7 +236,7 @@ export function RaceForm({
       {state.conflicts.length > 0 && (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-surface border border-warning-border p-3 text-sm"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning-border p-3 text-sm"
         >
           <span>Cette course a changé sur un autre appareil.</span>
           <span className="flex gap-2">

@@ -36,7 +36,9 @@ export default async function PlanHistoryPage({
             Historique du plan
           </h1>
           {history.subtitle && (
-            <p className="text-sm text-muted">{history.subtitle}</p>
+            <p className="text-sm text-secondary-foreground">
+              {history.subtitle}
+            </p>
           )}
         </div>
         {!history.empty && (
@@ -70,12 +72,12 @@ export default async function PlanHistoryPage({
         )}
       </div>
       {history.empty ? (
-        <p className="rounded-card border border-border bg-surface px-4 py-3.5 text-sm leading-normal text-muted">
+        <p className="rounded-xl border border-border bg-card px-4 py-3.5 text-sm leading-normal text-secondary-foreground">
           Aucune proposition pour l’instant. Les changements proposés par Claire
           apparaîtront ici, avec ta décision.
         </p>
       ) : history.groups.length === 0 ? (
-        <p className="text-sm text-muted">
+        <p className="text-sm text-secondary-foreground">
           Aucune proposition ne correspond à ce filtre.
         </p>
       ) : (

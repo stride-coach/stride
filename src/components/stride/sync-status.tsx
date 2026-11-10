@@ -34,7 +34,7 @@ function SyncMark({ state }: { state: SyncState }) {
       return (
         <span
           aria-hidden="true"
-          className="size-3 shrink-0 rounded-full border-[1.5px] border-danger"
+          className="size-3 shrink-0 rounded-full border-[1.5px] border-destructive"
         />
       );
   }
@@ -60,7 +60,7 @@ export function SyncStatus({
       data-slot="sync-status"
       data-state={state}
       className={cn(
-        "flex min-h-11 items-center gap-3 rounded-card border px-3.5 py-2.75 text-meta",
+        "flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.75 text-meta",
         frames[state],
         className,
       )}

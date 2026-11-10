@@ -51,9 +51,9 @@ export function Sparkline({
           vectorEffect="non-scaling-stroke"
           className={cn(
             tone === "success" && "stroke-success",
-            tone === "muted" && "stroke-muted",
+            tone === "muted" && "stroke-secondary-foreground",
             tone === "warning" && "stroke-warning",
-            tone === "danger" && "stroke-danger",
+            tone === "danger" && "stroke-destructive",
           )}
         />
       ) : (

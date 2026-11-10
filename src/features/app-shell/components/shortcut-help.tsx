@@ -30,7 +30,7 @@ function isEditableTarget(target: EventTarget | null) {
 
 function Shortcut({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded-control border border-border-strong bg-surface px-1.5 py-0.5 font-mono text-xs text-foreground">
+    <kbd className="rounded-md border border-border-strong bg-card px-1.5 py-0.5 font-mono text-xs text-foreground">
       {children}
     </kbd>
   );
@@ -163,7 +163,7 @@ export function ShortcutHelp() {
       >
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-background/75 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
-          <DialogPrimitive.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(90svh,54rem)] w-[min(820px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-surface border border-border-strong bg-popover text-popover-foreground shadow-xl outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0">
+          <DialogPrimitive.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(90svh,54rem)] w-[min(820px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border-strong bg-popover text-popover-foreground shadow-xl outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
               <div>
                 <DialogPrimitive.Title className="font-semibold text-foreground">
@@ -174,7 +174,7 @@ export function ShortcutHelp() {
                 </DialogPrimitive.Description>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex rounded-control border border-border p-0.5">
+                <div className="flex rounded-md border border-border p-0.5">
                   <Button
                     size="sm"
                     variant={isMac ? "secondary" : "ghost"}
@@ -317,7 +317,7 @@ export function ShortcutHelp() {
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[92svh] gap-0 overflow-hidden rounded-t-card border-border-strong bg-popover px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          className="max-h-[92svh] gap-0 overflow-hidden rounded-t-xl border-border-strong bg-popover px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border-strong" />
           <div className="mb-4 flex items-start justify-between gap-3">
@@ -342,7 +342,7 @@ export function ShortcutHelp() {
             className="mb-3 h-12 justify-start gap-3"
           >
             <Link href="/activities" onClick={() => setSurface(null)}>
-              <ActivityIcon className="text-accent" /> Voir les activités
+              <ActivityIcon className="text-primary" /> Voir les activités
             </Link>
           </Button>
           <div className="mb-5 flex flex-wrap gap-2">
@@ -413,7 +413,7 @@ function GestureRow({
 }) {
   return (
     <div className="flex gap-3 py-3">
-      <span className="grid size-9 shrink-0 place-items-center rounded-control border border-border bg-surface-raised font-mono text-muted-foreground">
+      <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-muted font-mono text-muted-foreground">
         {icon}
       </span>
       <span className="min-w-0">

@@ -15,7 +15,7 @@ export function NotificationEmpty({
         className,
       )}
     >
-      <span className="grid size-14 place-items-center rounded-panel border border-dashed border-border-strong text-muted-foreground">
+      <span className="grid size-14 place-items-center rounded-2xl border border-dashed border-border-strong text-muted-foreground">
         <BellIcon className="size-5.5" />
       </span>
       <h2 className="text-lg font-semibold">

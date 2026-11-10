@@ -58,11 +58,11 @@ export function ExpiredLinkForm({ action }: { action: AuthAction }) {
         />
       </form>
       <p className="text-center text-sm">
-        <Link href="/sign-in" className="text-accent hover:underline">
+        <Link href="/sign-in" className="text-primary hover:underline">
           Retour à la connexion
         </Link>
       </p>
-      <p className="mt-auto text-center text-sm text-muted md:mt-0">
+      <p className="mt-auto text-center text-sm text-secondary-foreground md:mt-0">
         Déjà confirmé ? Connecte-toi simplement.
       </p>
     </div>

@@ -44,17 +44,14 @@ export function RaceEntryLoading() {
                 <Skeleton className="h-11 w-48" />
               </div>
               <div className="flex flex-col gap-5 md:items-end md:gap-3.5">
-                <Skeleton className="h-30 w-full rounded-card md:h-11 md:w-110" />
+                <Skeleton className="h-30 w-full rounded-xl md:h-11 md:w-110" />
                 <Skeleton className="h-11 w-full md:h-9.5 md:w-120" />
               </div>
             </div>
+            <Skeleton aria-hidden="true" className="h-56 w-full rounded-2xl" />
             <Skeleton
               aria-hidden="true"
-              className="h-56 w-full rounded-panel"
-            />
-            <Skeleton
-              aria-hidden="true"
-              className="h-56 w-full rounded-panel md:h-105"
+              className="h-56 w-full rounded-2xl md:h-105"
             />
           </LoadingScope>
         </main>

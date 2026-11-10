@@ -33,7 +33,7 @@ function ZoneCard({
   return (
     <section
       aria-label={title}
-      className="overflow-hidden rounded-panel border border-border bg-surface min-[1100px]:rounded-surface"
+      className="overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-lg"
     >
       <div className="flex flex-col gap-1.5 px-4 pt-3.5 pb-2.5 min-[1100px]:gap-2.5 min-[1100px]:px-5 min-[1100px]:pt-4.5">
         <div className="flex items-baseline justify-between gap-3">
@@ -74,7 +74,7 @@ function ZoneCard({
           </tbody>
         </table>
       ) : (
-        <p className="border-t border-border-subtle px-4 py-3.5 text-sm text-muted min-[1100px]:mx-5 min-[1100px]:px-0">
+        <p className="border-t border-border-subtle px-4 py-3.5 text-sm text-secondary-foreground min-[1100px]:mx-5 min-[1100px]:px-0">
           {empty}
         </p>
       )}
@@ -117,7 +117,7 @@ export function ProfileZones({
           aside={
             <a
               href="#entrainement"
-              className="-my-2.5 inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground min-[1100px]:my-0 min-[1100px]:min-h-8"
+              className="-my-2.5 inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground min-[1100px]:my-0 min-[1100px]:min-h-8"
             >
               <span className="min-[1100px]:hidden">Modifier</span>
               <span className="hidden min-[1100px]:inline">
@@ -140,7 +140,7 @@ export function ProfileZones({
           caption="Zones d’allure"
           aside={
             paces?.threshold && (
-              <span className="font-metric text-body font-semibold text-muted">
+              <span className="font-metric text-body font-semibold text-secondary-foreground">
                 Seuil {paces.threshold} /km
               </span>
             )

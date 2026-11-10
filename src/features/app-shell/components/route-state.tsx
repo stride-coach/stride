@@ -19,14 +19,14 @@ function BrokenTrail() {
       viewBox="0 0 520 200"
       className="-mx-6 h-auto w-[calc(100%+3rem)] fill-none md:mx-0 md:w-full"
     >
-      <g className="stroke-surface-raised" strokeWidth="1.1">
+      <g className="stroke-muted" strokeWidth="1.1">
         {contours.map((path) => (
           <path key={path} d={path} />
         ))}
       </g>
       <path
         d="M0 196C50 170 100 160 150 150S220 120 250 100"
-        className="stroke-accent"
+        className="stroke-primary"
         strokeWidth="2"
       />
       <path
@@ -39,10 +39,10 @@ function BrokenTrail() {
         cx="250"
         cy="100"
         r="11"
-        className="stroke-accent opacity-50"
+        className="stroke-primary opacity-50"
         strokeWidth="1.5"
       />
-      <circle cx="250" cy="100" r="4.5" className="fill-accent" />
+      <circle cx="250" cy="100" r="4.5" className="fill-primary" />
     </svg>
   );
 }
@@ -94,7 +94,7 @@ export function RouteError({
         >
           Cette page n’a pas pu se charger.
         </h1>
-        <p className="text-body text-muted">
+        <p className="text-body text-secondary-foreground">
           Un service n’a pas répondu à temps. Tes données sont en sécurité :
           réessaie, ou repars d’Aujourd’hui.
         </p>
@@ -122,7 +122,7 @@ export function RouteNotFound({ item }: { item: MissingItem }) {
         <MonoLabel size="micro">Erreur 404</MonoLabel>
         <p
           aria-hidden="true"
-          className="font-metric text-[5.5rem] leading-[0.9] font-bold tracking-[-0.02em] text-accent italic md:text-[6rem]"
+          className="font-metric text-[5.5rem] leading-[0.9] font-bold tracking-[-0.02em] text-primary italic md:text-[6rem]"
         >
           404
         </p>
@@ -134,7 +134,7 @@ export function RouteNotFound({ item }: { item: MissingItem }) {
         >
           {title}
         </h1>
-        <p className="text-body text-muted">{message}</p>
+        <p className="text-body text-secondary-foreground">{message}</p>
       </div>
       <div className={actionsClass}>
         {action && (

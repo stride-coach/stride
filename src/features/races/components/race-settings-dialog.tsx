@@ -125,7 +125,7 @@ export function RaceSettingsDialog({
               id="race-kind"
               name="race-kind"
               defaultValue={kind}
-              className="h-10 w-full rounded-control border border-border-strong bg-surface px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+              className="h-10 w-full rounded-md border border-border-strong bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
             >
               <option value="road">Route</option>
               <option value="trail">Trail</option>

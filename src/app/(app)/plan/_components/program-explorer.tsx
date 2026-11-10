@@ -19,9 +19,9 @@ import type { WatchDayTag } from "@/features/garmin/watch";
 
 const milestoneTones: Record<MilestoneTone, string> = {
   provider: "bg-provider",
-  accent: "bg-accent",
-  terrain: "bg-zone-3",
-  quality: "bg-zone-4",
+  accent: "bg-primary",
+  terrain: "bg-intensity-3",
+  quality: "bg-intensity-4",
   success: "bg-success",
 };
 
@@ -52,7 +52,7 @@ function Milestones({
             <button
               type="button"
               onClick={() => onSelect(milestone.weekKey)}
-              className="flex min-h-8.5 items-center gap-2 rounded-full border border-border px-3 text-[13px] whitespace-nowrap hover:border-border-strong hover:bg-surface"
+              className="flex min-h-8.5 items-center gap-2 rounded-full border border-border px-3 text-[13px] whitespace-nowrap hover:border-border-strong hover:bg-card"
             >
               <span
                 aria-hidden="true"

@@ -53,7 +53,7 @@ function Readiness({
         <span className="font-metric text-[2.125rem] leading-none font-semibold tracking-[-0.01em] whitespace-nowrap tabular-nums md:text-[2.5rem]">
           {readiness.ready} / {readiness.total}
         </span>
-        <span className="text-meta text-muted md:text-sm">
+        <span className="text-meta text-secondary-foreground md:text-sm">
           <span className="md:hidden">
             {readinessDetail(readiness, { short: true })}
           </span>
@@ -87,24 +87,24 @@ function groupKey(items: ChecklistItem[]) {
 function PairLead({ pair }: { pair: RacePairView | null }) {
   if (!pair)
     return (
-      <p className="pb-2 text-meta text-muted">
+      <p className="pb-2 text-meta text-secondary-foreground">
         Aucune paire choisie pour cette course. Lie une paire à une ligne
         ci-dessous ou réserve-la dans Matériel.
       </p>
     );
   return (
     <div className="flex flex-col gap-2.5 pb-2">
-      <div className="flex items-center gap-3 rounded-card border border-accent/25 p-2.5 md:gap-3.5 md:p-3">
+      <div className="flex items-center gap-3 rounded-xl border border-primary/25 p-2.5 md:gap-3.5 md:p-3">
         <span
           aria-hidden="true"
-          className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-surface-raised max-md:hidden"
+          className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-muted max-md:hidden"
         >
           <NavGearIcon className="size-5.5" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <Link
             href={`/gear/${pair.id}`}
-            className="self-start text-[15px] font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
+            className="self-start text-[15px] font-semibold hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
           >
             {pair.name}
           </Link>
@@ -120,7 +120,9 @@ function PairLead({ pair }: { pair: RacePairView | null }) {
           {pair.badge}
         </StatusPill>
       </div>
-      <p className="text-meta text-muted max-md:hidden">{pair.advice}</p>
+      <p className="text-meta text-secondary-foreground max-md:hidden">
+        {pair.advice}
+      </p>
     </div>
   );
 }
@@ -249,7 +251,7 @@ export default async function RaceGearPage({
             aside: (
               <Link
                 href="/gear"
-                className="text-meta text-accent underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
+                className="text-meta text-primary underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
               >
                 Matériel →
               </Link>

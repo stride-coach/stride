@@ -118,8 +118,8 @@ function Chips<T extends string>({
     >
       <legend
         className={cn(
-          "flex w-full items-center pb-2 text-meta text-muted",
-          invalid && "text-danger",
+          "flex w-full items-center pb-2 text-meta text-secondary-foreground",
+          invalid && "text-destructive",
         )}
       >
         {legend}
@@ -135,7 +135,7 @@ function Chips<T extends string>({
               checked={value === option}
               onChange={() => onChange(option)}
             />
-            <span className="inline-flex min-h-10 items-center rounded-control border border-border-strong px-3 text-sm text-muted peer-checked:border-foreground peer-checked:bg-foreground peer-checked:font-semibold peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+            <span className="inline-flex min-h-10 items-center rounded-md border border-border-strong px-3 text-sm text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:font-semibold peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
               {labels[option]}
             </span>
           </label>
@@ -367,7 +367,7 @@ export function ShoeForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
-      <section className="flex flex-col gap-4 rounded-panel border border-border bg-surface p-5 sm:p-6">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
         {mode === "create" && (
           <div className="flex flex-col gap-3">
             <label htmlFor="shoe-name" className="text-sm font-semibold">
@@ -397,13 +397,13 @@ export function ShoeForm({
               >
                 <StrideMark
                   data-icon="inline-start"
-                  className="size-3.5 text-accent"
+                  className="size-3.5 text-primary"
                 />
                 {suggesting ? "Stride cherche…" : "Compléter avec Stride"}
               </Button>
             </div>
             {suggestion && (
-              <p role="status" className="text-meta text-muted">
+              <p role="status" className="text-meta text-secondary-foreground">
                 {suggestion}
               </p>
             )}
@@ -441,7 +441,7 @@ export function ShoeForm({
         </div>
       </section>
 
-      <section className="flex flex-col gap-4.5 rounded-panel border border-border bg-surface p-5 sm:p-6">
+      <section className="flex flex-col gap-4.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-lead font-semibold">La paire</h2>
         <Chips
           legend="Type"
@@ -512,7 +512,7 @@ export function ShoeForm({
       </section>
 
       {mode === "create" && (
-        <section className="flex flex-col gap-4.5 rounded-panel border border-border bg-surface p-5 sm:p-6">
+        <section className="flex flex-col gap-4.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
           <h2 className="text-lead font-semibold">Kilomètres</h2>
           <Chips
             legend="Cette paire a-t-elle déjà couru ?"
@@ -562,12 +562,12 @@ export function ShoeForm({
       )}
 
       {mode === "create" && (
-        <section className="flex flex-col gap-3.5 rounded-panel border border-border bg-surface p-5 sm:p-6">
+        <section className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
           <h2 className="flex items-center gap-2.5 text-lead font-semibold">
             <SourceMark source="provider" />
             Dans Garmin
           </h2>
-          <p className="text-sm leading-normal text-muted">
+          <p className="text-sm leading-normal text-secondary-foreground">
             Stride crée la paire dans Garmin Connect. Garmin comptera ensuite
             chaque sortie et te préviendra quand elle atteindra sa durée de vie.
           </p>
@@ -585,7 +585,7 @@ export function ShoeForm({
       )}
 
       {message && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-destructive">
           {message}
         </p>
       )}

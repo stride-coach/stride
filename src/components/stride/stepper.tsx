@@ -26,13 +26,13 @@ function StepMark({ status, index }: { status: StepStatus; index: number }) {
       aria-hidden="true"
       className={cn(
         "grid size-6.5 shrink-0 place-items-center rounded-full border-[1.5px] font-metric text-sm font-semibold",
-        status === "background" && "border-dashed border-accent",
-        status === "current" && "border-accent text-accent",
+        status === "background" && "border-dashed border-primary",
+        status === "current" && "border-primary text-primary",
         status === "upcoming" && "border-border-strong text-muted-foreground",
       )}
     >
       {status === "background" ? (
-        <span className="size-1.5 rounded-full bg-accent" />
+        <span className="size-1.5 rounded-full bg-primary" />
       ) : (
         index
       )}
@@ -73,7 +73,7 @@ export function StepperItem({
             "text-sm",
             status === "current"
               ? "font-semibold text-foreground"
-              : "text-muted",
+              : "text-secondary-foreground",
           )}
         >
           {label}
@@ -124,7 +124,7 @@ export function StepperSegments({
         >
           {status === "current" && (
             <span
-              className="absolute inset-y-0 left-0 bg-accent transition-[width] duration-320 ease-stride"
+              className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-320 ease-stride"
               style={{ width: `${fill}%` }}
             />
           )}

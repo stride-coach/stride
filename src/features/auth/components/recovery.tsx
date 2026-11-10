@@ -11,7 +11,7 @@ export function RecoveryShell({ children }: { children: ReactNode }) {
       <header className="flex min-h-15 items-center gap-4 px-5 pt-4 md:min-h-0 md:justify-between md:px-8 md:py-5">
         <Link
           href="/sign-in"
-          className="order-first -ml-2.5 inline-flex min-h-11 items-center gap-1.5 rounded-control pr-2 text-sm text-muted hover:text-foreground md:order-last md:ml-0 md:min-h-0 md:pr-0 md:text-accent md:hover:text-accent md:hover:underline"
+          className="order-first -ml-2.5 inline-flex min-h-11 items-center gap-1.5 rounded-md pr-2 text-sm text-secondary-foreground hover:text-foreground md:order-last md:ml-0 md:min-h-0 md:pr-0 md:text-primary md:hover:text-primary md:hover:underline"
         >
           <ChevronLeftIcon
             aria-hidden="true"
@@ -26,7 +26,7 @@ export function RecoveryShell({ children }: { children: ReactNode }) {
           <Wordmark compactOnMobile />
         </div>
       </header>
-      <div className="flex flex-1 flex-col md:mx-2 md:mb-2 md:rounded-surface md:border md:border-border md:bg-surface-inset">
+      <div className="flex flex-1 flex-col md:mx-2 md:mb-2 md:rounded-lg md:border md:border-border md:bg-surface-inset">
         <div className="flex flex-col gap-2 px-5 pt-5 pb-5.5 md:px-8 md:pt-10 md:pb-2">
           <MonoLabel className="text-micro md:text-label">
             Mot de passe oublié · trois étapes
@@ -62,7 +62,7 @@ export function RecoveryStage({
           className={cn(
             "flex size-6.5 shrink-0 items-center justify-center rounded-full font-metric text-body font-semibold",
             active
-              ? "bg-accent text-accent-foreground"
+              ? "bg-primary text-primary-foreground"
               : "border-[1.5px] border-border-strong text-foreground",
           )}
         >
@@ -91,7 +91,7 @@ export function EnvelopeMark() {
         rx="4"
         className="stroke-foreground"
       />
-      <path d="M2 3 18 15 34 3" className="stroke-accent" />
+      <path d="M2 3 18 15 34 3" className="stroke-primary" />
     </svg>
   );
 }

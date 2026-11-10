@@ -54,20 +54,20 @@ function FormLoading({ create }: { create: boolean }) {
       <Skeleton
         className={
           create
-            ? "h-80 w-full rounded-panel sm:h-52"
-            : "h-60 w-full rounded-panel sm:h-28"
+            ? "h-80 w-full rounded-2xl sm:h-52"
+            : "h-60 w-full rounded-2xl sm:h-28"
         }
       />
-      <Skeleton className="h-96 w-full rounded-panel sm:h-80" />
+      <Skeleton className="h-96 w-full rounded-2xl sm:h-80" />
       {create && (
         <>
-          <Skeleton className="h-60 w-full rounded-panel sm:h-44" />
-          <Skeleton className="h-52 w-full rounded-panel sm:h-44" />
+          <Skeleton className="h-60 w-full rounded-2xl sm:h-44" />
+          <Skeleton className="h-52 w-full rounded-2xl sm:h-44" />
         </>
       )}
       <div className="flex flex-wrap justify-end gap-2">
-        <Skeleton className="h-9.5 w-24 rounded-surface" />
-        <Skeleton className="h-9.5 w-40 rounded-surface" />
+        <Skeleton className="h-9.5 w-24 rounded-lg" />
+        <Skeleton className="h-9.5 w-40 rounded-lg" />
       </div>
     </div>
   );
@@ -101,15 +101,15 @@ export function GearListLoading() {
           className="grid grid-cols-[repeat(auto-fill,minmax(228px,1fr))] gap-3.5"
         >
           {[0, 1, 2, 3].map((item) => (
-            <Skeleton key={item} className="h-70 rounded-panel" />
+            <Skeleton key={item} className="h-70 rounded-2xl" />
           ))}
         </div>
         <div
           aria-hidden="true"
           className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,460px),1fr))] gap-3.5"
         >
-          <Skeleton className="h-64 rounded-panel" />
-          <Skeleton className="h-64 rounded-panel max-md:hidden" />
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-2xl max-md:hidden" />
         </div>
       </LoadingScope>
     </GearFrame>
@@ -133,8 +133,8 @@ export function GearDetailLoading() {
         >
           <div className="flex flex-col gap-2.5">
             <div className="flex gap-2">
-              <Skeleton className="h-5 w-16 rounded-tag" />
-              <Skeleton className="h-5 w-14 rounded-tag" />
+              <Skeleton className="h-5 w-16 rounded-sm" />
+              <Skeleton className="h-5 w-14 rounded-sm" />
             </div>
             <div className="flex flex-col gap-1">
               <Skeleton className="h-5 w-20" />
@@ -143,20 +143,20 @@ export function GearDetailLoading() {
             <Skeleton className="h-4 w-72 max-w-full" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Skeleton className="h-9.5 w-36 rounded-surface" />
-            <Skeleton className="h-9.5 w-32 rounded-surface" />
+            <Skeleton className="h-9.5 w-36 rounded-lg" />
+            <Skeleton className="h-9.5 w-32 rounded-lg" />
           </div>
         </section>
         <Skeleton
           aria-hidden="true"
-          className="h-140 w-full rounded-panel sm:h-100"
+          className="h-140 w-full rounded-2xl sm:h-100"
         />
         <div
           aria-hidden="true"
           className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-2"
         >
-          <Skeleton className="h-80 rounded-panel" />
-          <Skeleton className="h-80 rounded-panel" />
+          <Skeleton className="h-80 rounded-2xl" />
+          <Skeleton className="h-80 rounded-2xl" />
         </div>
       </LoadingScope>
     </GearFrame>
@@ -200,7 +200,7 @@ export function GearNewLoading() {
       >
         <section className="flex flex-col gap-2.5">
           <h1 className={pageTitle}>Ajouter une paire</h1>
-          <p className="max-w-155 text-sm text-muted">
+          <p className="max-w-155 text-sm text-secondary-foreground">
             Donne le nom de la paire : Stride propose son type, son terrain et
             une phrase pour la décrire. Tu corriges si besoin.
           </p>
@@ -227,13 +227,13 @@ export function GearImportLoading() {
       >
         <section className="flex flex-col gap-2.5">
           <h1 className={pageTitle}>Importer depuis Garmin</h1>
-          <p className="max-w-160 text-sm text-muted">
+          <p className="max-w-160 text-sm text-secondary-foreground">
             Vérifie les kilomètres de chaque paire : si elle a couru avant
             d’être dans Garmin, saisis son vrai total.
           </p>
         </section>
         <AddTabs current="garmin" />
-        <section className="flex flex-col rounded-panel border border-border bg-surface p-5 sm:p-6">
+        <section className="flex flex-col rounded-2xl border border-border bg-card p-5 sm:p-6">
           <div className="hidden grid-cols-[28px_minmax(0,1fr)_120px_170px] gap-3.5 pb-2.5 sm:grid">
             <span />
             <MonoLabel size="nano">Paire</MonoLabel>
@@ -250,13 +250,13 @@ export function GearImportLoading() {
               key={row}
               className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-3.5 border-t border-border py-3.5 sm:grid-cols-[28px_minmax(0,1fr)_120px_170px]"
             >
-              <Skeleton className="size-5 rounded-tag" />
+              <Skeleton className="size-5 rounded-sm" />
               <div className="flex min-w-0 flex-col gap-2">
                 <Skeleton className="h-4 w-48 max-w-full" />
-                <Skeleton className="h-9 w-56 max-w-full rounded-control" />
+                <Skeleton className="h-9 w-56 max-w-full rounded-md" />
               </div>
               <Skeleton className="col-start-2 h-5 w-20 sm:col-start-auto sm:justify-self-end" />
-              <Skeleton className="col-start-2 h-9 w-32 rounded-control sm:col-start-auto sm:justify-self-end" />
+              <Skeleton className="col-start-2 h-9 w-32 rounded-md sm:col-start-auto sm:justify-self-end" />
             </div>
           ))}
         </section>

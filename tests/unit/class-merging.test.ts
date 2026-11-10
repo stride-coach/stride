@@ -12,7 +12,7 @@ describe("class merging with Night Track tokens", () => {
   it("lets a later Stride size or radius override an earlier one", () => {
     expect(cn("text-body", "text-sm")).toBe("text-sm");
     expect(cn("text-sm", "text-meta")).toBe("text-meta");
-    expect(cn("rounded-control", "rounded-surface")).toBe("rounded-surface");
-    expect(cn("rounded-panel", "rounded-none")).toBe("rounded-none");
+    expect(cn("rounded-md", "rounded-lg")).toBe("rounded-lg");
+    expect(cn("rounded-2xl", "rounded-none")).toBe("rounded-none");
   });
 });

@@ -24,24 +24,24 @@ const kilometers = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 const strokes: Record<DataSeriesKey, string> = {
   pace: "stroke-provider",
-  heartRate: "stroke-danger",
-  power: "stroke-accent",
+  heartRate: "stroke-destructive",
+  power: "stroke-primary",
   cadence: "stroke-foreground",
   elevation: "stroke-muted-foreground",
 };
 
 const swatches: Record<DataSeriesKey, string> = {
   pace: "bg-provider",
-  heartRate: "bg-danger",
-  power: "bg-accent",
+  heartRate: "bg-destructive",
+  power: "bg-primary",
   cadence: "bg-foreground",
   elevation: "bg-muted-foreground",
 };
 
 const texts: Record<DataSeriesKey, string> = {
   pace: "text-provider",
-  heartRate: "text-danger",
-  power: "text-accent",
+  heartRate: "text-destructive",
+  power: "text-primary",
   cadence: "text-foreground",
   elevation: "text-muted-foreground",
 };
@@ -76,7 +76,7 @@ function DataChart({
         role="group"
         aria-label={`Inspecter ${names} · flèches pour parcourir, Échap pour fermer`}
         tabIndex={0}
-        className="relative touch-pan-y rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        className="relative touch-pan-y rounded-md outline-none focus-visible:ring-2 focus-visible:ring-focus"
         onFocus={() => onCursor(cursor ?? 0)}
         onBlur={() => onCursor(null)}
         onPointerMove={inspect}
@@ -126,9 +126,7 @@ function DataChart({
               className="fill-surface-current"
             />
           ))}
-          {view.relief && (
-            <path d={view.relief} className="fill-surface-raised" />
-          )}
+          {view.relief && <path d={view.relief} className="fill-muted" />}
           {shown.map((series) => (
             <path
               key={series.key}
@@ -156,7 +154,7 @@ function DataChart({
           <div
             role="status"
             className={cn(
-              "pointer-events-none absolute top-0.5 flex flex-col gap-0.5 rounded-surface border border-border-strong bg-surface-raised px-2.25 py-1.5 text-xs",
+              "pointer-events-none absolute top-0.5 flex flex-col gap-0.5 rounded-lg border border-border-strong bg-muted px-2.25 py-1.5 text-xs",
               x > chartWidth * 0.6 ? "-translate-x-full" : "",
             )}
             style={{
@@ -271,13 +269,13 @@ export function ActivityData({
               );
               if (next.length > 0) setActive(next);
             }}
-            className="max-w-full gap-0.5 overflow-x-auto rounded-[9px] border border-border bg-surface p-0.75 sm:ml-auto sm:flex-wrap"
+            className="max-w-full gap-0.5 overflow-x-auto rounded-[9px] border border-border bg-card p-0.75 sm:ml-auto sm:flex-wrap"
           >
             {available.map((key) => (
               <ToggleGroupItem
                 key={key}
                 value={key}
-                className="min-h-7.5 gap-1.5 rounded-control border-l-0 px-2.75 text-[12.5px] data-[state=on]:bg-border data-[state=on]:font-semibold"
+                className="min-h-7.5 gap-1.5 rounded-md border-l-0 px-2.75 text-[12.5px] data-[state=on]:bg-border data-[state=on]:font-semibold"
               >
                 <span
                   aria-hidden="true"
@@ -289,7 +287,7 @@ export function ActivityData({
           </ToggleGroup>
         )}
       </div>
-      <div className="overflow-hidden rounded-panel border border-border bg-surface-panel">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel">
         {route ? (
           <div
             role={fullscreen ? "dialog" : undefined}
@@ -318,7 +316,7 @@ export function ActivityData({
         ) : (
           <div aria-label="Parcours" role="region" className="px-4 py-5">
             <MonoLabel>Parcours</MonoLabel>
-            <p className="mt-2 text-body text-muted">
+            <p className="mt-2 text-body text-secondary-foreground">
               Aucun tracé GPS n’est disponible pour cette activité.
             </p>
           </div>

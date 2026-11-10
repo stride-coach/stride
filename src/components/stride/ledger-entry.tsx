@@ -37,16 +37,20 @@ export function LedgerEntry({
       {...props}
     >
       <LedgerStatus status={status} />
-      <div className="flex flex-col gap-2 rounded-card border border-border p-3.5">
+      <div className="flex flex-col gap-2 rounded-xl border border-border p-3.5">
         <h3 className="text-body font-semibold">
           <span className="sr-only">{decisionLabels[status]}: </span>
           {title}
         </h3>
-        {children && <p className="text-meta text-muted">{children}</p>}
+        {children && (
+          <p className="text-meta text-secondary-foreground">{children}</p>
+        )}
         {attribution && (
           <p className="text-xs text-muted-foreground">{attribution}</p>
         )}
-        {action && <div className="text-xs text-muted">{action}</div>}
+        {action && (
+          <div className="text-xs text-secondary-foreground">{action}</div>
+        )}
       </div>
     </article>
   );
@@ -60,7 +64,12 @@ export function DecisionLegend({
   statuses?: DecisionStatus[];
 }) {
   return (
-    <ul className={cn("flex flex-wrap gap-3.5 text-xs text-muted", className)}>
+    <ul
+      className={cn(
+        "flex flex-wrap gap-3.5 text-xs text-secondary-foreground",
+        className,
+      )}
+    >
       {statuses.map((status) => (
         <li key={status} className="flex items-center gap-1.5">
           <DecisionMark status={status} />

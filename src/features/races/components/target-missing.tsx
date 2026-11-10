@@ -13,7 +13,7 @@ export function TargetMissing({
   return (
     <RaceCard>
       <CardLabel>Simulation à compléter</CardLabel>
-      <p className="max-w-150 text-sm leading-relaxed text-muted">
+      <p className="max-w-150 text-sm leading-relaxed text-secondary-foreground">
         Indique ton temps objectif pour calculer les heures de passage, les
         portions de nuit et le plan de nutrition.
       </p>

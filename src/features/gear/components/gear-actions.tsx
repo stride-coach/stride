@@ -145,7 +145,7 @@ export function CurrentKmButton({
               </FieldDescription>
             </Field>
             {message && (
-              <p role="alert" className="text-sm text-danger">
+              <p role="alert" className="text-sm text-destructive">
                 {message}
               </p>
             )}

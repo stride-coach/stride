@@ -5,13 +5,13 @@ import type { HealthKpi, Tone } from "../health-view";
 const toneDot: Record<Tone, string> = {
   success: "bg-success",
   warning: "bg-warning",
-  danger: "bg-danger",
+  danger: "bg-destructive",
   muted: "bg-muted-foreground",
 };
 
 export function KpiStrip({ kpis }: { kpis: HealthKpi[] }) {
   return (
-    <dl className="grid grid-cols-2 overflow-hidden rounded-panel border border-border bg-surface sm:grid-cols-3 lg:grid-cols-6">
+    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-3 lg:grid-cols-6">
       {kpis.map((kpi) => (
         <div
           key={kpi.key}
@@ -28,7 +28,7 @@ export function KpiStrip({ kpis }: { kpis: HealthKpi[] }) {
               <span className="text-xs text-muted-foreground">{kpi.unit}</span>
             )}
           </dd>
-          <dd className="flex items-center gap-1.5 text-xs text-muted">
+          <dd className="flex items-center gap-1.5 text-xs text-secondary-foreground">
             <span
               aria-hidden="true"
               className={cn(

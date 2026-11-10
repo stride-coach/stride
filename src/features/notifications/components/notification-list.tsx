@@ -27,7 +27,7 @@ const familyIcons: Record<
 > = {
   plan: {
     icon: NavPlanIcon,
-    className: "border-accent/30 bg-accent/14 text-accent",
+    className: "border-primary/30 bg-primary/14 text-primary",
   },
   activity: {
     icon: NavActivitiesIcon,
@@ -35,11 +35,12 @@ const familyIcons: Record<
   },
   sync: {
     icon: RefreshCwIcon,
-    className: "border-danger/30 bg-danger/14 text-danger",
+    className: "border-destructive/30 bg-destructive/14 text-destructive",
   },
   watch: {
     icon: WatchIcon,
-    className: "border-muted/30 bg-muted/14 text-muted",
+    className:
+      "border-secondary-foreground/30 bg-secondary-foreground/14 text-secondary-foreground",
   },
   shoe: {
     icon: NavGearIcon,
@@ -50,7 +51,7 @@ const familyIcons: Record<
 function NotificationIcon({ view }: { view: NotificationView }) {
   if (view.agent)
     return (
-      <StaffPortrait agent={view.agent} size={32} className="rounded-surface" />
+      <StaffPortrait agent={view.agent} size={32} className="rounded-lg" />
     );
   const { icon: Icon, className } =
     familyIcons[view.family === "staff" ? "plan" : view.family];
@@ -58,7 +59,7 @@ function NotificationIcon({ view }: { view: NotificationView }) {
     <span
       aria-hidden="true"
       className={cn(
-        "grid size-8 place-items-center rounded-surface border",
+        "grid size-8 place-items-center rounded-lg border",
         className,
       )}
     >
@@ -98,25 +99,25 @@ function NotificationRow({ view }: { view: NotificationView }) {
     <li
       className={cn(
         "border-t border-border-subtle first:border-t-0",
-        view.unread && "bg-surface",
+        view.unread && "bg-card",
       )}
     >
       <form
         action={openNotification}
-        className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 px-3.5 py-3 hover:bg-surface-raised/50"
+        className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 px-3.5 py-3 hover:bg-muted/50"
       >
         <input type="hidden" name="id" value={view.id} />
         <NotificationIcon view={view} />
         <button
           type="submit"
-          className="flex min-w-0 flex-col gap-0.75 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="flex min-w-0 flex-col gap-0.75 rounded-md text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <span
             className={cn(
               "text-sm leading-[1.35]",
               view.unread
                 ? "font-semibold text-foreground"
-                : "font-medium text-muted",
+                : "font-medium text-secondary-foreground",
             )}
           >
             {view.title}
@@ -133,7 +134,7 @@ function NotificationRow({ view }: { view: NotificationView }) {
         >
           <time dateTime={view.occurredAt}>{view.time}</time>
           {view.unread && (
-            <span className="size-2 shrink-0 rounded-full bg-accent">
+            <span className="size-2 shrink-0 rounded-full bg-primary">
               <span className="sr-only">Non lue</span>
             </span>
           )}
@@ -143,7 +144,7 @@ function NotificationRow({ view }: { view: NotificationView }) {
             {view.action && (
               <button
                 type="submit"
-                className="inline-flex min-h-11 items-center justify-center rounded-surface border border-border-strong px-3 text-[12.5px] whitespace-nowrap text-foreground hover:border-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:min-h-8"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border-strong px-3 text-[12.5px] whitespace-nowrap text-foreground hover:border-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:min-h-8"
               >
                 {view.action}
               </button>

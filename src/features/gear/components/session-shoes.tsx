@@ -38,8 +38,8 @@ function Badge({ label }: { label: string }) {
       className={cn(
         "inline-flex items-center rounded-full px-2.25 py-0.75 text-[11px] font-semibold whitespace-nowrap",
         label === "Réservée"
-          ? "border border-border-strong font-normal text-muted"
-          : "bg-accent text-accent-foreground",
+          ? "border border-border-strong font-normal text-secondary-foreground"
+          : "bg-primary text-primary-foreground",
       )}
     >
       {label}
@@ -83,7 +83,7 @@ export function PairSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="gap-3.5 rounded-t-[18px] border-border-strong bg-surface px-5 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] text-foreground sm:mx-auto sm:w-full sm:max-w-120"
+        className="gap-3.5 rounded-t-[18px] border-border-strong bg-card px-5 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] text-foreground sm:mx-auto sm:w-full sm:max-w-120"
       >
         <span
           aria-hidden="true"
@@ -101,8 +101,8 @@ export function PairSheet({
             <label
               key={item.id}
               className={cn(
-                "grid cursor-pointer grid-cols-[22px_minmax(0,1fr)] gap-3 rounded-card border p-3.5 has-focus-visible:outline-2 has-focus-visible:outline-ring",
-                selected === item.id ? "border-accent" : "border-border",
+                "grid cursor-pointer grid-cols-[22px_minmax(0,1fr)] gap-3 rounded-xl border p-3.5 has-focus-visible:outline-2 has-focus-visible:outline-ring",
+                selected === item.id ? "border-primary" : "border-border",
               )}
             >
               <input
@@ -111,7 +111,7 @@ export function PairSheet({
                 value={item.id}
                 checked={selected === item.id}
                 onChange={() => setSelected(item.id)}
-                className="mt-0.5 size-4.5 accent-(--accent)"
+                className="mt-0.5 size-4.5 accent-(--primary)"
               />
               <span className="flex min-w-0 flex-col gap-1">
                 <span className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export function PairSheet({
                   {item.detail}
                 </span>
                 {item.sentence && (
-                  <span className="text-[13px] leading-[1.45] text-muted">
+                  <span className="text-[13px] leading-[1.45] text-secondary-foreground">
                     {item.sentence}
                   </span>
                 )}
@@ -217,7 +217,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           href={`/gear/${shoes.chosen.id}`}
           className="flex items-center gap-3 text-foreground"
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-border-strong bg-surface-raised">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-border-strong bg-muted">
             <NavGearIcon className="size-4" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -231,7 +231,9 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           <Badge label={shoes.chosen.badge} />
         </Link>
       )}
-      <p className="text-[13px] leading-normal text-muted">{shoes.sentence}</p>
+      <p className="text-[13px] leading-normal text-secondary-foreground">
+        {shoes.sentence}
+      </p>
       {!shoes.hasPairs ? (
         <Button
           asChild

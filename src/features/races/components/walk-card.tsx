@@ -71,7 +71,7 @@ export function WalkCard({
           aria-expanded={open}
           aria-controls="walk-settings"
           onClick={() => setOpen((current) => !current)}
-          className="rounded-surface text-meta max-md:min-h-11 md:ml-auto"
+          className="rounded-lg text-meta max-md:min-h-11 md:ml-auto"
         >
           Régler la marche
         </Button>
@@ -88,7 +88,7 @@ export function WalkCard({
         </div>
         <label htmlFor="walk-grade" className="text-body">
           Je marche dès{" "}
-          <b className="font-metric text-[1.375rem] font-semibold text-accent">
+          <b className="font-metric text-[1.375rem] font-semibold text-primary">
             {value} %
           </b>{" "}
           de pente

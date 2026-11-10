@@ -22,7 +22,7 @@ import { Legend, nightTitle, RangeChart } from "./charts";
 const ringTones = {
   success: "stroke-success",
   warning: "stroke-warning",
-  danger: "stroke-danger",
+  danger: "stroke-destructive",
 } as const;
 
 export function ScoreRing({
@@ -85,7 +85,7 @@ export function ReadinessCard({
   return (
     <section
       aria-labelledby="body-readiness"
-      className="flex flex-col gap-4 rounded-card border border-border bg-surface p-4 sm:p-5"
+      className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5"
     >
       {summary ? (
         <div className="flex items-center gap-4">
@@ -122,16 +122,18 @@ export function ReadinessCard({
         (session && planHref ? (
           <Link
             href={planHref}
-            className="flex flex-col gap-1 rounded-surface border border-border p-3.5 transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring"
+            className="flex flex-col gap-1 rounded-lg border border-border p-3.5 transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring"
           >
             <MonoLabel size="micro">Séance du jour</MonoLabel>
             <span className="font-semibold">{session.title}</span>
-            <span className="text-meta leading-normal text-muted">
+            <span className="text-meta leading-normal text-secondary-foreground">
               {advice.text}
             </span>
           </Link>
         ) : (
-          <p className="text-meta leading-normal text-muted">{advice.text}</p>
+          <p className="text-meta leading-normal text-secondary-foreground">
+            {advice.text}
+          </p>
         ))}
       {session && planHref && (
         <div className="flex gap-2 [&>*]:flex-1">
@@ -160,9 +162,9 @@ export function ReadinessCard({
 }
 
 const factorTones = {
-  danger: "text-danger",
+  danger: "text-destructive",
   warning: "text-warning",
-  muted: "text-muted",
+  muted: "text-secondary-foreground",
   success: "text-success",
 } as const;
 
@@ -213,7 +215,9 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
           Nuits
         </h2>
         {nights.summary && (
-          <span className="text-meta text-muted">{nights.summary}</span>
+          <span className="text-meta text-secondary-foreground">
+            {nights.summary}
+          </span>
         )}
       </div>
       {hasNight ? (
@@ -268,7 +272,7 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
                     className={cn(
                       "flex flex-1 flex-col overflow-hidden rounded-t-[3px]",
                       night.short &&
-                        "outline-[1.5px] outline-offset-2 outline-danger",
+                        "outline-[1.5px] outline-offset-2 outline-destructive",
                       !staged && "bg-provider/60",
                     )}
                     style={{
@@ -315,7 +319,8 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
               },
               {
                 label: "Nuit courte",
-                swatch: "size-2.5 rounded-mark outline-[1.5px] outline-danger",
+                swatch:
+                  "size-2.5 rounded-mark outline-[1.5px] outline-destructive",
               },
             ]}
           />
@@ -375,7 +380,7 @@ function RangeCard({
   return (
     <section
       aria-labelledby={id}
-      className="flex min-w-0 flex-col gap-2 rounded-card border border-border bg-surface p-4"
+      className="flex min-w-0 flex-col gap-2 rounded-xl border border-border bg-card p-4"
     >
       <div className="flex items-baseline justify-between gap-3">
         <h3 id={id}>
@@ -486,7 +491,7 @@ export function KpiCards({ kpis }: { kpis: BodyKpi[] }) {
       {kpis.map((kpi) => (
         <div
           key={kpi.key}
-          className="flex flex-col gap-1 rounded-card border border-border bg-surface p-3.5"
+          className="flex flex-col gap-1 rounded-xl border border-border bg-card p-3.5"
         >
           <dt>
             <MonoLabel size="micro">{kpi.label}</MonoLabel>
@@ -526,7 +531,7 @@ export function RaceRecoveries({
                 {race.name} ·{" "}
                 {monthShort.format(new Date(`${race.day}T00:00:00Z`))}
               </dt>
-              <dd className="text-meta text-muted">
+              <dd className="text-meta text-secondary-foreground">
                 {race.ongoing ? "VFC basse depuis " : "VFC normale en "}
                 <Metric
                   value={`${formatInteger(race.days)} j`}

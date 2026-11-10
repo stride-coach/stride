@@ -5,10 +5,10 @@ const tones: Record<PillTone, { pill: string; dot: string }> = {
   success: { pill: "border-success-border text-success", dot: "bg-success" },
   warning: { pill: "border-warning-border text-warning", dot: "bg-warning" },
   off: {
-    pill: "border-border-strong text-muted",
+    pill: "border-border-strong text-secondary-foreground",
     dot: "border-[1.5px] border-muted-foreground",
   },
-  todo: { pill: "border-accent/30 text-accent", dot: "bg-accent" },
+  todo: { pill: "border-primary/30 text-primary", dot: "bg-primary" },
 };
 
 export function PlanPill({

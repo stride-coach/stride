@@ -31,7 +31,7 @@ import {
 const toneDots: Record<PanelTone, string> = {
   success: "bg-success",
   warning: "bg-warning",
-  danger: "bg-danger",
+  danger: "bg-destructive",
   muted: "bg-muted-foreground",
 };
 
@@ -47,7 +47,7 @@ function Status({ status }: { status: Exclude<PanelStatus, null> }) {
   const label = panelStatusLabel(status);
   if (status === "today")
     return (
-      <span className="flex items-center gap-1.5 text-xs text-accent">
+      <span className="flex items-center gap-1.5 text-xs text-primary">
         <PulseDot breathing={false} />
         {label}
       </span>
@@ -83,7 +83,7 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
         >
           {panel.title}
         </SheetTitle>
-        <p className="text-sm leading-normal text-muted max-sm:hidden">
+        <p className="text-sm leading-normal text-secondary-foreground max-sm:hidden">
           {panel.purpose}
         </p>
       </div>
@@ -110,7 +110,7 @@ function Proposal({
   return (
     <section
       aria-label="Changement proposé"
-      className="flex flex-col gap-2.5 rounded-card border border-warning-border bg-warning/4 p-3.5"
+      className="flex flex-col gap-2.5 rounded-xl border border-warning-border bg-warning/4 p-3.5"
     >
       <span className="flex items-center gap-2 text-[13px] text-warning">
         <PulseDot tone="warning" breathing={false} />
@@ -225,7 +225,7 @@ function Steps({ panel }: { panel: SessionPanel }) {
               <span className="font-metric text-[17px] leading-[1.1] font-semibold tabular-nums">
                 {step.duration}
               </span>
-              <span className="text-[11.5px] whitespace-nowrap text-muted">
+              <span className="text-[11.5px] whitespace-nowrap text-secondary-foreground">
                 {step.target}
                 {step.pace && (
                   <>
@@ -277,7 +277,7 @@ function Untracked() {
 
 function CheckedIn({ day }: { day: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-card border border-success-border bg-success-surface p-3.5">
+    <div className="flex items-center gap-3 rounded-xl border border-success-border bg-success-surface p-3.5">
       <CheckIcon
         aria-hidden="true"
         className="size-4.5 shrink-0 text-success"
@@ -300,7 +300,9 @@ function Contingencies({ items }: { items: string[] }) {
       className="flex flex-col gap-2 rounded-[10px] border border-border bg-surface-panel px-3.5 py-3"
     >
       <Dk id="panel-contingencies">Si ça se passe mal</Dk>
-      <p className="text-[13px] leading-normal text-muted">{items.join(" ")}</p>
+      <p className="text-[13px] leading-normal text-secondary-foreground">
+        {items.join(" ")}
+      </p>
     </section>
   );
 }
@@ -316,11 +318,11 @@ function SurgeIdeas({ items }: { items: string[] }) {
         {items.map((item) => (
           <li
             key={item}
-            className="flex items-start gap-2 text-[13px] leading-[1.45] text-muted"
+            className="flex items-start gap-2 text-[13px] leading-[1.45] text-secondary-foreground"
           >
             <span
               aria-hidden="true"
-              className="mt-1.75 size-1.25 shrink-0 rounded-full bg-zone-4"
+              className="mt-1.75 size-1.25 shrink-0 rounded-full bg-intensity-4"
             />
             {item}
           </li>
@@ -365,7 +367,10 @@ function Completion({ completion }: { completion: PanelCompletion }) {
       <tbody>
         {completion.rows.map((row) => (
           <tr key={row.key} className="border-t border-border">
-            <th scope="row" className="py-2.5 text-left font-normal text-muted">
+            <th
+              scope="row"
+              className="py-2.5 text-left font-normal text-secondary-foreground"
+            >
               {row.label}
             </th>
             <td className="py-2.5 pl-2.5 font-metric text-base font-semibold text-muted-foreground tabular-nums">
@@ -410,7 +415,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
           {debrief.aligned && <DebriefSteps steps={debrief.steps} />}
         </>
       ) : (
-        <div className="flex items-center gap-3 rounded-card border border-success-border bg-success-surface p-3.5">
+        <div className="flex items-center gap-3 rounded-xl border border-success-border bg-success-surface p-3.5">
           <CheckIcon
             aria-hidden="true"
             className="size-4.5 shrink-0 text-success"
@@ -521,7 +526,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
           asChild
           variant="outline"
           size="md"
-          className="min-h-9.5 self-start rounded-control text-[13px]"
+          className="min-h-9.5 self-start rounded-md text-[13px]"
         >
           <Link href={`/activities/${completion.activityId}`}>
             Voir l’activité Garmin

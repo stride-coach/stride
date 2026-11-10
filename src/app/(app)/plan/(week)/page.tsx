@@ -86,7 +86,7 @@ export default async function PlanPage({
           />
           <Link
             href="/plan/history"
-            className="flex min-h-9 shrink-0 items-center gap-2 rounded-surface border border-border px-3 text-[13px] text-muted hover:text-foreground max-sm:min-h-11"
+            className="flex min-h-9 shrink-0 items-center gap-2 rounded-lg border border-border px-3 text-[13px] text-secondary-foreground hover:text-foreground max-sm:min-h-11"
           >
             <HistoryIcon aria-hidden="true" className="size-3.5" />
             Historique

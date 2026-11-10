@@ -4,15 +4,15 @@ import { cn } from "@/lib/utils";
 import { Slot } from "radix-ui";
 
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-tag border px-1.75 py-0.75 font-mono text-micro leading-none whitespace-nowrap uppercase [&>svg]:pointer-events-none [&>svg]:size-2.5",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-sm border px-1.75 py-0.75 font-mono text-micro leading-none whitespace-nowrap uppercase [&>svg]:pointer-events-none [&>svg]:size-2.5",
   {
     variants: {
       variant: {
-        outline: "border-border-strong text-muted",
-        accent: "border-accent/40 text-accent",
+        outline: "border-border-strong text-secondary-foreground",
+        accent: "border-primary/40 text-primary",
         success: "border-success-border text-success",
         warning: "border-warning/30 text-warning",
-        danger: "border-danger-border text-danger",
+        danger: "border-danger-border text-destructive",
       },
     },
     defaultVariants: {

@@ -30,13 +30,13 @@ export function ResetForm({
   return (
     <div className="grid flex-1 content-start md:grid-cols-3 md:content-stretch">
       <RecoveryStage number={1} title="Demande un lien" active={false}>
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="text-sm leading-relaxed text-secondary-foreground">
           Besoin d’un autre lien ? Demande-en un nouveau avec l’e-mail de ton
           compte.
         </p>
         <Link
           href="/forgot-password"
-          className="text-sm text-accent hover:underline"
+          className="text-sm text-primary hover:underline"
         >
           Demander un lien de réinitialisation
         </Link>
@@ -111,7 +111,7 @@ export function ResetForm({
               {pending ? "Enregistrement…" : "Enregistrer et se connecter"}
             </Button>
             {state.status === "success" && (
-              <Link href="/" className="text-sm text-accent hover:underline">
+              <Link href="/" className="text-sm text-primary hover:underline">
                 Continuer vers Stride
               </Link>
             )}
@@ -131,7 +131,7 @@ export function ResetForm({
             />
             <Link
               href="/forgot-password"
-              className="text-sm text-accent hover:underline"
+              className="text-sm text-primary hover:underline"
             >
               Obtenir un nouveau lien
             </Link>

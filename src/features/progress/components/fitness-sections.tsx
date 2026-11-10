@@ -50,19 +50,19 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
     return (
       <section
         aria-labelledby="progress-goal"
-        className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4 sm:p-5"
+        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:p-5"
       >
         <h2 id="progress-goal">
           <MonoLabel size="micro">Objectif</MonoLabel>
         </h2>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-secondary-foreground">
           Aucune course A ou B à venir. Ajoute ton prochain objectif pour suivre
           ta préparation ici.
         </p>
         <Link
           href="/races"
           className={cn(
-            "w-fit text-sm text-accent hover:text-foreground",
+            "w-fit text-sm text-primary hover:text-foreground",
             linkFocus,
           )}
         >
@@ -76,7 +76,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
       <Link
         href={`/races/${goal.id}`}
         className={cn(
-          "flex flex-col gap-4 rounded-card border border-border bg-surface p-4 transition-colors hover:border-border-strong sm:p-5",
+          "flex flex-col gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-border-strong sm:p-5",
           linkFocus,
         )}
       >
@@ -111,7 +111,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
               </MonoLabel>
               <Metric
                 value={goal.road.prediction ?? "—"}
-                className="text-[30px] text-muted"
+                className="text-[30px] text-secondary-foreground"
               />
             </span>
             <span
@@ -174,7 +174,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
         )}
         {goal.phase ? (
           <span className="flex flex-col gap-1.5">
-            <span className="flex justify-between gap-3 text-xs text-muted">
+            <span className="flex justify-between gap-3 text-xs text-secondary-foreground">
               <span>{goal.phase.label}</span>
               {goal.phase.taper && <span>{goal.phase.taper}</span>}
             </span>
@@ -195,7 +195,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
                   <span
                     className={cn(
                       "block h-full",
-                      segment.state === "past" ? "bg-provider" : "bg-accent",
+                      segment.state === "past" ? "bg-provider" : "bg-primary",
                     )}
                     style={{ width: `${segment.progress * 100}%` }}
                   />
@@ -228,7 +228,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
 
 export function LoadAdviceCard({ advice }: { advice: LoadAdvice }) {
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4 sm:flex-row sm:items-center sm:gap-4">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:gap-4">
       <p className="flex flex-1 items-start gap-2.5 text-sm leading-normal text-pretty">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
         {advice.text}
@@ -329,7 +329,7 @@ export function PredictionSection({
 const intensityColors = {
   easy: "bg-success",
   tempo: "bg-warning",
-  hard: "bg-danger",
+  hard: "bg-destructive",
 } as const;
 
 export function IntensitySection({
@@ -352,7 +352,7 @@ export function IntensitySection({
         <>
           <div
             aria-hidden="true"
-            className="flex h-3.5 gap-0.5 overflow-hidden rounded-tag"
+            className="flex h-3.5 gap-0.5 overflow-hidden rounded-sm"
           >
             {intensity.shares.map((share) => (
               <span
@@ -365,7 +365,7 @@ export function IntensitySection({
           <dl className="grid grid-cols-3 gap-2 text-xs">
             {intensity.shares.map((share) => (
               <div key={share.key} className="flex flex-col gap-0.5">
-                <dt className="text-muted">{share.label}</dt>
+                <dt className="text-secondary-foreground">{share.label}</dt>
                 <dd>
                   <Metric
                     value={`${formatInteger(share.share * 100)} %`}
@@ -385,12 +385,12 @@ export function IntensitySection({
             <Link
               href="/activities"
               className={cn(
-                "text-meta leading-normal text-muted hover:text-foreground",
+                "text-meta leading-normal text-secondary-foreground hover:text-foreground",
                 linkFocus,
               )}
             >
               {intensity.drift.note}{" "}
-              <span className="text-accent">Voir ces sorties ›</span>
+              <span className="text-primary">Voir ces sorties ›</span>
             </Link>
           )}
         </>
@@ -454,7 +454,7 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
                 aria-hidden="true"
                 className={cn(
                   "absolute inset-x-0 bottom-0 border-[1.5px] border-b-0 border-dashed",
-                  week.current ? "border-accent" : "border-dim",
+                  week.current ? "border-primary" : "border-dim",
                 )}
                 style={{ height: `${(week.plannedMeters / max) * 100}%` }}
               />
@@ -463,7 +463,7 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
               aria-hidden="true"
               className={cn(
                 "w-full rounded-t-mark",
-                week.current ? "bg-accent" : "bg-foreground",
+                week.current ? "bg-primary" : "bg-foreground",
               )}
               style={{
                 height: `${Math.max(week.doneMeters > 0 ? 2 : 0, (week.doneMeters / max) * 100)}%`,
@@ -479,7 +479,9 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
         <span>{formatDayMonth(volume.weeks[0].start)}</span>
         <span>Cette semaine</span>
       </div>
-      <p className="text-sm leading-normal text-muted">{volume.summary}</p>
+      <p className="text-sm leading-normal text-secondary-foreground">
+        {volume.summary}
+      </p>
       {!hasPlan && (
         <p className="text-xs text-muted-foreground">
           Sans plan actif, Stride affiche seulement les kilomètres réalisés.
@@ -491,9 +493,9 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
 
 const toneText = {
   success: "text-success",
-  muted: "text-muted",
+  muted: "text-secondary-foreground",
   warning: "text-warning",
-  danger: "text-danger",
+  danger: "text-destructive",
 } as const;
 
 export function MeasureSection({
@@ -515,7 +517,7 @@ export function MeasureSection({
             <Link
               href={row.href}
               className={cn(
-                "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-3.5 transition-colors hover:bg-surface-raised/40",
+                "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-3.5 transition-colors hover:bg-muted/40",
                 linkFocus,
               )}
             >
@@ -536,7 +538,7 @@ export function MeasureSection({
                 )}
               >
                 {row.trend && <TrendMark trend={row.trend} />}
-                <span className="text-muted">{row.verdict}</span>
+                <span className="text-secondary-foreground">{row.verdict}</span>
                 <ChevronRightIcon
                   aria-hidden="true"
                   className="ml-auto size-4 text-muted-foreground"

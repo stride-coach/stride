@@ -9,7 +9,7 @@ export default function OnboardingError({ reset }: { reset: () => void }) {
       <h1 className="text-headline">
         Ton parcours est temporairement indisponible.
       </h1>
-      <p role="alert" className="text-muted">
+      <p role="alert" className="text-secondary-foreground">
         Réessaie pour retrouver ta progression.
       </p>
       <Button onClick={reset}>Réessayer</Button>

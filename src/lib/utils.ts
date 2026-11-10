@@ -18,7 +18,7 @@ export const cn = createCn({
         "metric-lg",
         "metric-hero",
       ],
-      radius: ["mark", "tag", "control", "surface", "card", "panel"],
+      radius: ["mark"],
     },
   },
 });

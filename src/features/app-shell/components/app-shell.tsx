@@ -258,14 +258,14 @@ export function AppShell({
                   syncDot={false}
                 >
                   <DropdownMenuContent
-                    className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-surface border border-border-strong bg-popover p-1.5"
+                    className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-lg border border-border-strong bg-popover p-1.5"
                     side="top"
                     align="start"
                   >
                     <div className="mb-1 flex items-center gap-2.5 border-b border-border-strong px-2.5 pt-2 pb-2.5">
                       <span
                         aria-hidden="true"
-                        className="grid size-8 shrink-0 place-items-center rounded-control bg-border-strong text-xs font-semibold"
+                        className="grid size-8 shrink-0 place-items-center rounded-md bg-border-strong text-xs font-semibold"
                       >
                         {athlete.initials}
                       </span>

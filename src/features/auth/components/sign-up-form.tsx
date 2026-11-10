@@ -58,11 +58,11 @@ export function SignUpForm({
   if (state.status === "success" && state.email) {
     return (
       <div className="flex flex-1 flex-col gap-6 md:flex-none">
-        <p className="font-mono text-xs tracking-widest text-accent uppercase">
+        <p className="font-mono text-xs tracking-widest text-primary uppercase">
           Étape 1 sur 4 · Confirme ton e-mail
         </p>
         <div
-          className="grid size-12 place-items-center rounded-control border border-border text-2xl text-accent"
+          className="grid size-12 place-items-center rounded-md border border-border text-2xl text-primary"
           aria-hidden="true"
         >
           ✉
@@ -71,7 +71,7 @@ export function SignUpForm({
           title="Vérifie ta boîte mail"
           description={`On a envoyé un lien de confirmation à ${state.email}. Ouvre-le pour activer ton compte.`}
         />
-        <ol className="flex flex-col gap-3 rounded-surface border border-border bg-surface-raised p-4 text-sm text-muted">
+        <ol className="flex flex-col gap-3 rounded-lg border border-border bg-muted p-4 text-sm text-secondary-foreground">
           {[
             "Ouvre l’e-mail de Stride",
             "Clique sur « Confirmer l’adresse e-mail »",
@@ -90,19 +90,23 @@ export function SignUpForm({
           email={state.email}
           sentAt={state.sentAt}
         />
-        <form action="/sign-up" method="get" className="text-sm text-muted">
+        <form
+          action="/sign-up"
+          method="get"
+          className="text-sm text-secondary-foreground"
+        >
           Mauvaise adresse ?{" "}
-          <button type="submit" className="text-accent hover:underline">
+          <button type="submit" className="text-primary hover:underline">
             Changer d’e-mail
           </button>
         </form>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-secondary-foreground">
           Introuvable ? Regarde dans les spams ou promotions. Les liens expirent
           : utilise l’e-mail le plus récent.
         </p>
-        <p className="mt-auto border-t border-border pt-5 text-center text-sm text-muted md:mt-0">
+        <p className="mt-auto border-t border-border pt-5 text-center text-sm text-secondary-foreground md:mt-0">
           Déjà confirmé ?{" "}
-          <Link href="/sign-in" className="text-accent hover:underline">
+          <Link href="/sign-in" className="text-primary hover:underline">
             Se connecter
           </Link>
         </p>
@@ -145,7 +149,7 @@ export function SignUpForm({
                 : "full-name-help"
             }
           />
-          <p id="full-name-help" className="text-xs text-muted">
+          <p id="full-name-help" className="text-xs text-secondary-foreground">
             C’est ainsi que ton coach t’appellera.
           </p>
           {!edited.fullName && state.errors?.fullName && (
@@ -204,23 +208,23 @@ export function SignUpForm({
       <Button type="submit" disabled={pending || !valid} className="w-full">
         {pending ? "Création du compte…" : "Créer un compte"}
       </Button>
-      <p className="text-xs text-muted">
+      <p className="text-xs text-secondary-foreground">
         On t’envoie un lien par e-mail pour confirmer ton adresse.
       </p>
       <p className="text-xs leading-relaxed text-muted-foreground">
         En créant un compte, tu acceptes les{" "}
-        <Link href="/terms" className="text-accent hover:underline">
+        <Link href="/terms" className="text-primary hover:underline">
           Conditions d’utilisation
         </Link>{" "}
         et la{" "}
-        <Link href="/privacy" className="text-accent hover:underline">
+        <Link href="/privacy" className="text-primary hover:underline">
           Politique de confidentialité
         </Link>
         . Tes données ne sont jamais vendues.
       </p>
-      <p className="text-center text-sm text-muted">
+      <p className="text-center text-sm text-secondary-foreground">
         Déjà un compte ?{" "}
-        <Link href="/sign-in" className="text-accent hover:underline">
+        <Link href="/sign-in" className="text-primary hover:underline">
           Se connecter
         </Link>
       </p>

@@ -22,12 +22,12 @@ export type InspectorPoint = {
 
 const dots: Record<InspectorTone, string> = {
   foreground: "bg-foreground",
-  danger: "bg-danger",
+  danger: "bg-destructive",
   provider: "bg-provider",
   success: "bg-success",
   warning: "bg-warning",
-  accent: "bg-accent",
-  "zone-3": "bg-zone-3",
+  accent: "bg-primary",
+  "zone-3": "bg-intensity-3",
   muted: "bg-muted-foreground",
 };
 
@@ -63,7 +63,7 @@ export function ChartInspector({
       aria-label={`${label} · survole ou utilise les flèches pour lire chaque valeur`}
       tabIndex={points.length ? 0 : -1}
       className={cn(
-        "relative touch-pan-y rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus",
+        "relative touch-pan-y rounded-md outline-none focus-visible:ring-2 focus-visible:ring-focus",
         className,
       )}
       onFocus={() => setSelected((current) => current ?? last)}
@@ -101,13 +101,13 @@ export function ChartInspector({
         <>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 w-px bg-accent/70"
+            className="pointer-events-none absolute inset-y-0 w-px bg-primary/70"
             style={{ left: `${point.x * 100}%` }}
           />
           <div
             role="status"
             className={cn(
-              "pointer-events-none absolute top-0 z-10 flex w-max max-w-64 min-w-40 flex-col gap-1.5 rounded-surface border border-border-strong bg-surface px-3 py-2.5 shadow-lg",
+              "pointer-events-none absolute top-0 z-10 flex w-max max-w-64 min-w-40 flex-col gap-1.5 rounded-lg border border-border-strong bg-card px-3 py-2.5 shadow-lg",
               point.x > 0.6 ? "-translate-x-full" : "",
             )}
             style={{
@@ -122,7 +122,7 @@ export function ChartInspector({
                 key={`${row.label}-${index}`}
                 className="flex items-baseline justify-between gap-4 text-xs"
               >
-                <span className="flex items-center gap-1.5 text-muted">
+                <span className="flex items-center gap-1.5 text-secondary-foreground">
                   {row.tone && (
                     <span
                       aria-hidden="true"

@@ -18,10 +18,10 @@ const toneClasses: Record<WatchCopy["tone"], string> = {
   danger: "border-danger-border bg-danger-surface",
 };
 const iconTones: Record<WatchCopy["tone"], string> = {
-  muted: "text-muted",
-  success: "text-muted",
+  muted: "text-secondary-foreground",
+  success: "text-secondary-foreground",
   warning: "text-warning",
-  danger: "text-danger",
+  danger: "text-destructive",
 };
 
 export function failureMessage(result: WatchActionResult) {
@@ -116,7 +116,7 @@ export function WatchSendButton({
       disabled={pending}
       aria-label={iconOnly ? action.label : undefined}
       onClick={() => onSend(action.kind)}
-      className={cn("rounded-control", className)}
+      className={cn("rounded-md", className)}
     >
       <WatchIcon aria-hidden="true" />
       {!iconOnly && action.label}

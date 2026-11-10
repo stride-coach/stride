@@ -79,7 +79,7 @@ export function ActivityListHeader({
       </div>
       {loading ? (
         <>
-          <Skeleton className="h-11 w-full rounded-surface lg:h-8" />
+          <Skeleton className="h-11 w-full rounded-lg lg:h-8" />
           <div
             aria-hidden="true"
             className="-mx-5 flex gap-1.25 overflow-hidden px-5 lg:mx-0 lg:flex-wrap lg:px-0"

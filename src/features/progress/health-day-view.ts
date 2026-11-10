@@ -222,13 +222,13 @@ export function healthDayView(
             key: "rem",
             label: "Paradoxal",
             seconds: sleep.remSeconds,
-            swatch: "bg-zone-3",
+            swatch: "bg-intensity-3",
           },
           {
             key: "awake",
             label: "Éveil",
             seconds: sleep.awakeSeconds ?? 0,
-            swatch: "bg-danger",
+            swatch: "bg-destructive",
           },
         ]
       : [];

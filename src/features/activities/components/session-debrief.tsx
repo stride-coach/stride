@@ -14,12 +14,12 @@ import type {
 const chipTones: Record<DebriefStatusTone, string> = {
   success: "border-success-border bg-success-surface text-success",
   warning: "border-warning-border bg-warning/4 text-warning",
-  danger: "border-danger-border bg-danger-surface text-danger",
+  danger: "border-danger-border bg-danger-surface text-destructive",
 };
 
 const actualTones: Record<DebriefStepView["actualTone"], string> = {
   default: "",
-  danger: "text-danger",
+  danger: "text-destructive",
   warning: "text-warning",
 };
 
@@ -37,7 +37,7 @@ export function DebriefVerdict({
     <section
       aria-labelledby="debrief-verdict"
       className={cn(
-        "flex flex-col gap-2 rounded-card border p-3.5 sm:gap-2.5 sm:px-4",
+        "flex flex-col gap-2 rounded-xl border p-3.5 sm:gap-2.5 sm:px-4",
         warning
           ? "border-warning-border bg-warning/4"
           : "border-success-border bg-success-surface",
@@ -60,7 +60,7 @@ export function DebriefVerdict({
           >
             {debrief.verdict.title}
           </span>
-          <span className="text-[13px] leading-normal text-muted">
+          <span className="text-[13px] leading-normal text-secondary-foreground">
             {debrief.verdict.body}
           </span>
         </span>
@@ -89,7 +89,7 @@ export function DebriefNote({ children }: { children: React.ReactNode }) {
   return (
     <p
       role="note"
-      className="flex items-start gap-2.5 rounded-surface border border-border bg-surface-raised px-3.5 py-3 text-[13px] leading-normal text-muted"
+      className="flex items-start gap-2.5 rounded-lg border border-border bg-muted px-3.5 py-3 text-[13px] leading-normal text-secondary-foreground"
     >
       <InfoIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
       {children}
@@ -187,7 +187,7 @@ export function DebriefSteps({
                 className={cn(
                   "font-metric font-semibold tabular-nums",
                   step.compact
-                    ? "text-sm text-muted"
+                    ? "text-sm text-secondary-foreground"
                     : "text-base leading-[1.1] sm:text-[15px]",
                   actualTones[step.actualTone],
                 )}
@@ -222,11 +222,11 @@ export function DebriefCoach({
   return (
     <div
       className={cn(
-        "flex gap-3 rounded-card border border-border bg-surface p-3.5",
+        "flex gap-3 rounded-xl border border-border bg-card p-3.5",
         stacked ? "flex-col" : "flex-col sm:flex-row sm:items-center",
       )}
     >
-      <p className="flex flex-1 items-start gap-2 text-[13px] leading-[1.45] text-muted">
+      <p className="flex flex-1 items-start gap-2 text-[13px] leading-[1.45] text-secondary-foreground">
         <StrideMark aria-hidden="true" className="mt-0.75 size-3.25 shrink-0" />
         Le coach reçoit la séance, ce débrief et ton ressenti.
       </p>

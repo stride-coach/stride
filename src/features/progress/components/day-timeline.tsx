@@ -20,8 +20,8 @@ const stageLabels: Record<SleepStage, string> = {
 const stageFill: Record<SleepStage, string> = {
   deep: "fill-provider",
   light: "fill-dim",
-  rem: "fill-zone-3",
-  awake: "fill-danger",
+  rem: "fill-intensity-3",
+  awake: "fill-destructive",
 };
 const stressFill = {
   rest: "fill-provider",
@@ -167,7 +167,7 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
   return (
     <section
       aria-labelledby="health-day-timeline"
-      className="flex flex-col gap-4 rounded-panel border border-border bg-surface p-4.5 sm:p-6"
+      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4.5 sm:p-6"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="health-day-timeline">
@@ -186,7 +186,7 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
             <div className="pointer-events-none absolute inset-y-0 right-0 left-28 max-sm:left-20">
               {sleepBand && (
                 <span
-                  className="absolute inset-y-0 bg-surface-raised/60"
+                  className="absolute inset-y-0 bg-muted/60"
                   style={{
                     left: `${sleepBand.left}%`,
                     width: `${sleepBand.right - sleepBand.left}%`,
@@ -250,7 +250,7 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
                       fill="none"
                       strokeWidth={1.5}
                       vectorEffect="non-scaling-stroke"
-                      className="stroke-danger"
+                      className="stroke-destructive"
                     />
                   ),
                 )}
@@ -326,9 +326,12 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
         items={[
           { label: "Profond", swatch: "size-2.5 rounded-mark bg-provider" },
           { label: "Léger", swatch: "size-2.5 rounded-mark bg-dim" },
-          { label: "Paradoxal", swatch: "size-2.5 rounded-mark bg-zone-3" },
-          { label: "Éveil", swatch: "size-2.5 rounded-mark bg-danger" },
-          { label: "FC", swatch: "h-0.5 w-3.5 bg-danger" },
+          {
+            label: "Paradoxal",
+            swatch: "size-2.5 rounded-mark bg-intensity-3",
+          },
+          { label: "Éveil", swatch: "size-2.5 rounded-mark bg-destructive" },
+          { label: "FC", swatch: "h-0.5 w-3.5 bg-destructive" },
           ...(model.restingHeartRate !== null
             ? [
                 {
@@ -350,8 +353,7 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
           { label: "Body Battery", swatch: "h-0.5 w-3.5 bg-success" },
           {
             label: "Nuit",
-            swatch:
-              "size-2.5 rounded-mark bg-surface-raised ring-1 ring-border-strong",
+            swatch: "size-2.5 rounded-mark bg-muted ring-1 ring-border-strong",
           },
         ]}
       />

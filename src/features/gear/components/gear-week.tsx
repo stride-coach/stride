@@ -18,7 +18,7 @@ function PairChip({ name, href }: { name: string; href: string }) {
 
 export function PlannedPairs({ rows }: { rows: WeekShoeRow[] }) {
   return (
-    <section className="flex min-w-0 flex-col gap-3.5 rounded-panel border border-border bg-surface p-5 max-md:border-0 max-md:bg-transparent max-md:p-0">
+    <section className="flex min-w-0 flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 max-md:border-0 max-md:bg-transparent max-md:p-0">
       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <h2 className="text-[17px] font-semibold">
           <span className="md:hidden">Cette semaine</span>
@@ -29,7 +29,7 @@ export function PlannedPairs({ rows }: { rows: WeekShoeRow[] }) {
         </span>
       </div>
       {rows.length === 0 ? (
-        <p className="border-t border-border pt-3 text-sm text-muted">
+        <p className="border-t border-border pt-3 text-sm text-secondary-foreground">
           Plus de séance de course prévue cette semaine.
         </p>
       ) : (
@@ -74,7 +74,7 @@ function dotSize(km: number) {
 export function RotationStrip({ view }: { view: RotationView }) {
   if (view.rows.length === 0) return null;
   return (
-    <section className="flex min-w-0 flex-col gap-3.5 rounded-panel border border-border bg-surface p-5 max-md:hidden">
+    <section className="flex min-w-0 flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 max-md:hidden">
       <div className="flex flex-wrap items-baseline gap-2.5">
         <h2 className="text-[17px] font-semibold">
           Rotation · 14 derniers jours
@@ -161,7 +161,7 @@ export function RotationStrip({ view }: { view: RotationView }) {
           </span>
         )}
       </div>
-      <p className="text-[13px] leading-normal text-muted">
+      <p className="text-[13px] leading-normal text-secondary-foreground">
         Évite d’enchaîner deux jours la même paire : Stride en tient compte dans
         ses choix.
       </p>

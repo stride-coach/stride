@@ -57,7 +57,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
   return (
     <div className="grid flex-1 content-start md:grid-cols-3 md:content-stretch">
       <RecoveryStage number={1} title="Demande un lien" active={!sent}>
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="text-sm leading-relaxed text-secondary-foreground">
           Saisis l’e-mail de ton inscription. On t’envoie un lien à utiliser
           avant qu’il n’expire.
         </p>
@@ -89,7 +89,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
           <>
             <div
               role="status"
-              className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4.5 md:gap-3.5 md:p-5"
+              className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4.5 md:gap-3.5 md:p-5"
             >
               <EnvelopeMark />
               <p className="text-body">

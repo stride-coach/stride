@@ -155,7 +155,7 @@ function TranscriptLine({ item }: { item: TranscriptItem }) {
     return <p className="whitespace-pre-wrap">{item.text}</p>;
   if (item.type === "delegation")
     return (
-      <details className="text-sm text-muted">
+      <details className="text-sm text-secondary-foreground">
         <summary>
           {item.from} → {item.to}
         </summary>
@@ -164,14 +164,18 @@ function TranscriptLine({ item }: { item: TranscriptItem }) {
     );
   if (item.type === "tool")
     return (
-      <p className="font-mono text-xs text-muted">
+      <p className="font-mono text-xs text-secondary-foreground">
         outil {item.name} ({item.ok ? "ok" : "erreur"},{" "}
         {seconds.format(item.ms / 1000)} s)
       </p>
     );
   if (item.type === "mcp")
-    return <p className="font-mono text-xs text-muted">Garmin {item.name}</p>;
-  return <p className="text-sm text-danger">{item.text}</p>;
+    return (
+      <p className="font-mono text-xs text-secondary-foreground">
+        Garmin {item.name}
+      </p>
+    );
+  return <p className="text-sm text-destructive">{item.text}</p>;
 }
 
 export function CoachSpike({
@@ -276,7 +280,7 @@ export function CoachSpike({
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-2 rounded-surface bg-surface-raised p-4 text-sm">
+      <section className="flex flex-col gap-2 rounded-lg bg-muted p-4 text-sm">
         <p>
           {hasPlan
             ? `Plan actif en version ${planVersion}.`
@@ -291,7 +295,7 @@ export function CoachSpike({
             Réinitialiser le plan
           </Button>
         )}
-        {notice && <p className="text-muted">{notice}</p>}
+        {notice && <p className="text-secondary-foreground">{notice}</p>}
       </section>
 
       {proposals.length > 0 && (
@@ -300,14 +304,16 @@ export function CoachSpike({
           {proposals.map((proposal) => (
             <div
               key={proposal.id}
-              className="flex flex-col gap-2 rounded-surface border border-border p-4"
+              className="flex flex-col gap-2 rounded-lg border border-border p-4"
             >
               <div className="flex items-center gap-2">
                 <Badge variant="outline">{proposal.status}</Badge>
                 <span className="font-medium">{proposal.title}</span>
               </div>
               {proposal.summary && (
-                <p className="text-sm text-muted">{proposal.summary}</p>
+                <p className="text-sm text-secondary-foreground">
+                  {proposal.summary}
+                </p>
               )}
               {proposal.weeks && (
                 <details className="text-sm">
@@ -326,7 +332,7 @@ export function CoachSpike({
                           Semaine du {frDate(week.weekStart)} ·{" "}
                           {Math.round(week.minutes)} min
                         </p>
-                        <ul className="text-muted">
+                        <ul className="text-secondary-foreground">
                           {week.sessions.map((session, index) => (
                             <li key={index}>
                               {frDate(session.date)} · {session.title} ·{" "}
@@ -376,11 +382,11 @@ export function CoachSpike({
       <section className="flex flex-col gap-4">
         {entries.map((entry, index) => (
           <div key={index} className="flex flex-col gap-2">
-            <p className="self-end rounded-control bg-surface-raised px-3 py-2">
+            <p className="self-end rounded-md bg-muted px-3 py-2">
               {entry.athlete}
             </p>
             {entry.failed && (
-              <p className="text-sm text-danger">{entry.failed}</p>
+              <p className="text-sm text-destructive">{entry.failed}</p>
             )}
             {!entry.failed && (
               <div className="flex flex-col gap-2">
@@ -388,12 +394,12 @@ export function CoachSpike({
                   <TranscriptLine key={line} item={item} />
                 ))}
                 {entry.turn.pendingQuestion && (
-                  <p className="rounded-control border border-primary px-3 py-2">
+                  <p className="rounded-md border border-primary px-3 py-2">
                     {entry.turn.pendingQuestion.question}
                   </p>
                 )}
                 {entry.turn.done && entry.turn.consoleUrl && (
-                  <p className="font-mono text-xs text-muted">
+                  <p className="font-mono text-xs text-secondary-foreground">
                     arrêt {entry.turn.done.stopReason} · statut{" "}
                     {entry.turn.done.status} · Garmin{" "}
                     {entry.turn.done.garmin === "available"

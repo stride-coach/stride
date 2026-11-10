@@ -36,8 +36,8 @@ export function NavGoalSwitcher({
               tooltip={name}
               className="gap-2.5 px-1.5"
             >
-              <span className="grid size-7.5 shrink-0 place-items-center rounded-control bg-accent">
-                <StrideMark className="stroke-accent-foreground" />
+              <span className="grid size-7.5 shrink-0 place-items-center rounded-md bg-primary">
+                <StrideMark className="stroke-primary-foreground" />
               </span>
               <span className="flex min-w-0 flex-1 flex-col text-left">
                 <span className="truncate text-meta leading-tight font-semibold text-foreground">
@@ -61,7 +61,7 @@ const valueTones = {
   muted: "text-muted-foreground",
   success: "text-success",
   warning: "text-warning",
-  danger: "text-danger",
+  danger: "text-destructive",
 } as const;
 
 export function NavBadge({
@@ -114,7 +114,7 @@ export function NavItem({
         asChild
         isActive={isActive}
         tooltip={label}
-        className="relative [&>svg]:text-muted-foreground data-[active=true]:[&>svg]:text-accent"
+        className="relative [&>svg]:text-muted-foreground data-[active=true]:[&>svg]:text-primary"
       >
         <Link href={href} aria-current={isActive ? "page" : undefined}>
           {icon}
@@ -155,7 +155,7 @@ export function NavDayRow({
         asChild
         size="sm"
         isActive={isToday}
-        className="grid min-h-7 grid-cols-[3px_2.625rem_minmax(0,1fr)_0.75rem] gap-2 text-xs data-[active=true]:bg-surface"
+        className="grid min-h-7 grid-cols-[3px_2.625rem_minmax(0,1fr)_0.75rem] gap-2 text-xs data-[active=true]:bg-card"
       >
         <Link href={href} aria-current={isToday ? "date" : undefined}>
           <span
@@ -175,7 +175,7 @@ export function NavDayRow({
             )}
             {status === "done" && (
               <>
-                <span aria-hidden="true" className="text-muted">
+                <span aria-hidden="true" className="text-secondary-foreground">
                   ✓
                 </span>
                 <span className="sr-only">Done</span>
@@ -221,7 +221,7 @@ export function NavUser({
             >
               <span
                 aria-hidden="true"
-                className="grid size-8 shrink-0 place-items-center rounded-control bg-border text-xs font-semibold text-foreground"
+                className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-xs font-semibold text-foreground"
               >
                 {initials}
               </span>

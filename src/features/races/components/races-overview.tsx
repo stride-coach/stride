@@ -43,13 +43,11 @@ export function PriorityBadge({
       aria-hidden="true"
       className={cn(
         "flex shrink-0 items-center justify-center font-metric font-bold",
-        small
-          ? "size-6 rounded-tag text-sm"
-          : "size-8 rounded-control text-base",
+        small ? "size-6 rounded-sm text-sm" : "size-8 rounded-md text-base",
         priority === "A"
-          ? "bg-accent text-accent-foreground"
+          ? "bg-primary text-primary-foreground"
           : cn(
-              "border-[1.5px] text-muted",
+              "border-[1.5px] text-secondary-foreground",
               planned ? "border-border-strong" : "border-dashed border-dim",
             ),
       )}
@@ -59,7 +57,7 @@ export function PriorityBadge({
   );
 }
 
-const phaseTones = ["bg-border", "bg-accent/12", "bg-accent/22", "bg-border"];
+const phaseTones = ["bg-border", "bg-primary/12", "bg-primary/22", "bg-border"];
 
 function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
   return (
@@ -68,8 +66,8 @@ function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
       className={cn(
         "flex items-center justify-center font-metric leading-none font-bold",
         priority === "A"
-          ? "size-5.5 rounded-control bg-accent text-sm text-accent-foreground"
-          : "size-5 rounded-tag border-[1.5px] border-dim bg-background text-meta text-muted",
+          ? "size-5.5 rounded-md bg-primary text-sm text-primary-foreground"
+          : "size-5 rounded-sm border-[1.5px] border-dim bg-background text-meta text-secondary-foreground",
       )}
     >
       {priority}
@@ -115,7 +113,7 @@ function SeasonGraphic({
         <span
           key={phase.key}
           className={cn(
-            "absolute flex h-4 items-center overflow-hidden rounded-tag border-r-2 border-surface px-1.5 whitespace-nowrap text-muted",
+            "absolute flex h-4 items-center overflow-hidden rounded-sm border-r-2 border-card px-1.5 whitespace-nowrap text-secondary-foreground",
             compact ? "text-micro" : "text-label",
             "tracking-normal",
             phaseTones[phase.stage],
@@ -188,7 +186,7 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
     .map((marker) => `${marker.name} le ${formatShortDate(marker.date)}`)
     .join(", ")}`;
   return (
-    <section className="flex min-w-0 flex-col gap-1.5 rounded-panel border border-border bg-surface px-3.5 pt-3.5 pb-2 md:gap-2 md:px-5.5 md:pt-4.5 md:pb-2.5">
+    <section className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-card px-3.5 pt-3.5 pb-2 md:gap-2 md:px-5.5 md:pt-4.5 md:pb-2.5">
       <div className="flex items-baseline gap-3">
         <MonoLabel size="nano" className="md:text-micro">
           Ta saison
@@ -200,7 +198,7 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
         </span>
         <Link
           href="/plan"
-          className="ml-auto text-xs text-accent hover:text-foreground md:text-meta"
+          className="ml-auto text-xs text-primary hover:text-foreground md:text-meta"
         >
           <span className="md:hidden">Plan →</span>
           <span className="max-md:hidden">Voir le plan →</span>
@@ -246,7 +244,7 @@ export function FeaturedRace({
   return (
     <section
       aria-label={race.name}
-      className="flex flex-col gap-4 rounded-[16px] border border-accent/30 bg-surface p-4.5 sm:gap-5 sm:px-7 sm:py-6.5"
+      className="flex flex-col gap-4 rounded-[16px] border border-primary/30 bg-card p-4.5 sm:gap-5 sm:px-7 sm:py-6.5"
     >
       <div className="flex items-center gap-3">
         <PriorityBadge priority={race.priority} />
@@ -276,16 +274,12 @@ export function FeaturedRace({
           {meta.join(" · ")}
           {objective && <span className="max-sm:hidden"> · {objective}</span>}
         </span>
-        <Button
-          asChild
-          size="md"
-          className="ml-auto rounded-surface max-sm:hidden"
-        >
+        <Button asChild size="md" className="ml-auto rounded-lg max-sm:hidden">
           <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
         </Button>
       </div>
       {onTrack && <OnTrack onTrack={onTrack} />}
-      <Button asChild size="lg" className="w-full rounded-surface sm:hidden">
+      <Button asChild size="lg" className="w-full rounded-lg sm:hidden">
         <Link href={`/races/${race.id}`}>Ouvrir la course</Link>
       </Button>
     </section>
@@ -334,7 +328,7 @@ export function CalendarCard({
     <Link
       href={`/races/${race.id}`}
       prefetch={false}
-      className="flex min-w-0 flex-col gap-2.5 rounded-panel border border-border bg-surface p-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring md:gap-3.5 md:px-6 md:py-5.5"
+      className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-border bg-card p-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring md:gap-3.5 md:px-6 md:py-5.5"
     >
       <span className="flex items-center gap-2.5">
         <PriorityBadge priority={race.priority} small />
@@ -396,12 +390,12 @@ export function CalendarCard({
 
 export function OpenSlot({ priority }: { priority: "B" }) {
   return (
-    <section className="flex min-w-0 flex-col gap-3 rounded-panel border border-dashed border-dim px-6 py-5.5">
+    <section className="flex min-w-0 flex-col gap-3 rounded-2xl border border-dashed border-dim px-6 py-5.5">
       <div className="flex items-center gap-2.5">
         <PriorityBadge priority={priority} planned={false} small />
         <h3 className="text-[15px] font-semibold">Place pour une course B</h3>
       </div>
-      <p className="text-meta leading-relaxed text-pretty text-muted">
+      <p className="text-meta leading-relaxed text-pretty text-secondary-foreground">
         Une course B sert de répétition générale avant l’objectif : départ,
         nutrition et équipement testés dans les conditions réelles.
       </p>
@@ -409,7 +403,7 @@ export function OpenSlot({ priority }: { priority: "B" }) {
         asChild
         variant="outline"
         size="md"
-        className="self-start rounded-surface"
+        className="self-start rounded-lg"
       >
         <Link href="/settings/goals">Ajouter une course B</Link>
       </Button>
@@ -441,7 +435,7 @@ export function PastRaces({
             <Link
               href={`/races/${race.id}`}
               prefetch={false}
-              className="min-w-0 truncate text-[15px] font-semibold hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
+              className="min-w-0 truncate text-[15px] font-semibold hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
             >
               {race.name}
             </Link>
@@ -485,7 +479,7 @@ export function PastRaces({
               <Link
                 href={`/activities/${result.activityId}`}
                 prefetch={false}
-                className="text-xs text-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-md:order-5 max-md:col-span-2 md:text-right md:text-meta"
+                className="text-xs text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-md:order-5 max-md:col-span-2 md:text-right md:text-meta"
               >
                 Voir l’activité ›
               </Link>

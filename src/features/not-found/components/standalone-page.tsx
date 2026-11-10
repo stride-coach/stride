@@ -29,7 +29,7 @@ function TrailIllustration() {
         preserveAspectRatio="none"
         className="absolute inset-0 hidden size-full fill-none md:block"
       >
-        <g className="stroke-surface-raised" strokeWidth="1.2">
+        <g className="stroke-muted" strokeWidth="1.2">
           {desktopContours.map((path) => (
             <path key={path} d={path} />
           ))}
@@ -43,17 +43,17 @@ function TrailIllustration() {
         />
         <path
           d="M-20 830C52 780 110 723 170 706S264 682 309 581s65-94 105-110"
-          className="stroke-accent"
+          className="stroke-primary"
           strokeWidth="2"
         />
         <circle
           cx="414"
           cy="471"
           r="14"
-          className="stroke-accent"
+          className="stroke-primary"
           strokeWidth="1.5"
         />
-        <circle cx="414" cy="471" r="5" className="fill-accent" />
+        <circle cx="414" cy="471" r="5" className="fill-primary" />
       </svg>
       <svg
         aria-hidden="true"
@@ -61,24 +61,24 @@ function TrailIllustration() {
         preserveAspectRatio="none"
         className="absolute inset-x-0 top-0 h-65 w-full fill-none md:hidden"
       >
-        <g className="stroke-surface-raised" strokeWidth="1.1">
+        <g className="stroke-muted" strokeWidth="1.1">
           {mobileContours.map((path) => (
             <path key={path} d={path} />
           ))}
         </g>
         <path
           d="M-10 240C60 193 114 189 160 173S225 142 261 105 339 62 402 50"
-          className="stroke-accent"
+          className="stroke-primary"
           strokeWidth="2"
         />
         <circle
           cx="230"
           cy="135"
           r="10"
-          className="stroke-accent"
+          className="stroke-primary"
           strokeWidth="1.5"
         />
-        <circle cx="230" cy="135" r="4" className="fill-accent" />
+        <circle cx="230" cy="135" r="4" className="fill-primary" />
       </svg>
     </>
   );
@@ -89,7 +89,7 @@ function Wordmark() {
     <Link
       href="/"
       aria-label="Accueil Stride"
-      className="relative z-10 inline-flex w-fit items-center gap-2 rounded-control text-foreground"
+      className="relative z-10 inline-flex w-fit items-center gap-2 rounded-md text-foreground"
     >
       <StrideMark className="size-5" />
       <span className="font-metric text-xl font-bold tracking-wider italic">
@@ -137,7 +137,7 @@ export function StandalonePage({
       <section
         role={alert ? "alert" : undefined}
         aria-labelledby="standalone-title"
-        className="flex min-h-[calc(100svh-16.25rem)] flex-col px-6 pb-8 md:m-0 md:min-h-[calc(100svh-1rem)] md:justify-center md:rounded-panel md:border md:border-border md:bg-surface-inset md:px-8"
+        className="flex min-h-[calc(100svh-16.25rem)] flex-col px-6 pb-8 md:m-0 md:min-h-[calc(100svh-1rem)] md:justify-center md:rounded-2xl md:border md:border-border md:bg-surface-inset md:px-8"
       >
         <div className="mx-auto flex w-full max-w-95 flex-1 flex-col md:flex-none">
           <div>
@@ -145,7 +145,7 @@ export function StandalonePage({
             {numeral && (
               <p
                 aria-hidden="true"
-                className="mt-3 font-metric text-[7rem] leading-[0.85] font-bold tracking-[-0.04em] text-accent italic sm:text-[8rem]"
+                className="mt-3 font-metric text-[7rem] leading-[0.85] font-bold tracking-[-0.04em] text-primary italic sm:text-[8rem]"
               >
                 {numeral}
               </p>
@@ -156,7 +156,9 @@ export function StandalonePage({
             >
               {title}
             </h1>
-            <p className="mt-3 max-w-90 text-body text-muted">{message}</p>
+            <p className="mt-3 max-w-90 text-body text-secondary-foreground">
+              {message}
+            </p>
           </div>
           <div className="mt-auto flex flex-col gap-2.5 pt-10 md:mt-7 md:pt-0">
             {children}

@@ -43,7 +43,7 @@ const toneClasses: Record<LineTone | "accent", string> = {
   muted: "text-muted-foreground",
   success: "text-success",
   warning: "text-warning",
-  accent: "text-accent",
+  accent: "text-primary",
 };
 export function StepNavigation({
   progress,
@@ -123,7 +123,7 @@ export function StepNavigation({
                   label={
                     <button
                       type="button"
-                      className="rounded-control text-left disabled:cursor-default disabled:opacity-100"
+                      className="rounded-md text-left disabled:cursor-default disabled:opacity-100"
                       aria-disabled={!isStepAllowed(progress, target)}
                       disabled={pending || !isStepAllowed(progress, target)}
                       onClick={() => navigate(target)}
@@ -151,7 +151,7 @@ export function StepNavigation({
       </aside>
       <main
         id="onboarding-content"
-        className="relative isolate flex min-w-0 flex-1 flex-col overflow-clip bg-surface-inset lg:my-2 lg:mr-2 lg:rounded-panel lg:border lg:border-border"
+        className="relative isolate flex min-w-0 flex-1 flex-col overflow-clip bg-surface-inset lg:my-2 lg:mr-2 lg:rounded-2xl lg:border lg:border-border"
       >
         <header className="flex flex-col gap-5 px-5 pt-8 pb-5 lg:flex-row lg:items-center lg:gap-3 lg:border-b lg:border-border lg:px-6 lg:py-5">
           {previous && step === "profile" && (
@@ -183,7 +183,7 @@ export function StepNavigation({
               {status.tone === "accent" && (
                 <span
                   aria-hidden="true"
-                  className="size-1.5 rounded-full bg-accent"
+                  className="size-1.5 rounded-full bg-primary"
                 />
               )}
               {status.text}
@@ -213,7 +213,7 @@ export function StepNavigation({
               onChange={(event) =>
                 navigate(event.target.value as OnboardingStep)
               }
-              className="w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border-strong bg-card px-3 py-2 text-sm"
             >
               {onboardingSteps.map((target) => (
                 <option

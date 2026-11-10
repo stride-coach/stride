@@ -27,7 +27,9 @@ export function GallerySection({
           {title}
         </h2>
         {description && (
-          <p className="text-body text-pretty text-muted">{description}</p>
+          <p className="text-body text-pretty text-secondary-foreground">
+            {description}
+          </p>
         )}
       </header>
       {children}

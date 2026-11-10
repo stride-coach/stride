@@ -65,7 +65,7 @@ export function StopsEditor({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="rounded-tag text-left decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+          className="rounded-sm text-left decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
         >
           {children}
           <span className="sr-only">, modifier les durées d’arrêt</span>
@@ -97,14 +97,14 @@ export function StopsEditor({
             </div>
           </div>
           {!valid && (
-            <p className="text-xs text-danger">
+            <p className="text-xs text-destructive">
               Indique un nombre entier de minutes, entre 0 et 60.
             </p>
           )}
           <Button
             type="submit"
             size="md"
-            className="self-start rounded-surface text-meta"
+            className="self-start rounded-lg text-meta"
             disabled={!valid || pending}
             aria-busy={pending}
           >

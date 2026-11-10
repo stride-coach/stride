@@ -66,7 +66,7 @@ export function NutritionistBanner({
   return (
     <section
       aria-label="Plan de nutrition"
-      className="flex min-w-0 flex-col gap-2.5 rounded-panel border border-border bg-surface p-4 md:flex-row md:items-center md:gap-4.5 md:px-6 md:py-5.5"
+      className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-4.5 md:px-6 md:py-5.5"
     >
       <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4.5">
         <StaffPortrait
@@ -86,7 +86,7 @@ export function NutritionistBanner({
             <span className="max-md:hidden">{title}</span>
             <span className="md:hidden">{mobileTitle}</span>
           </span>
-          <span className="text-xs text-muted-foreground md:text-meta md:text-muted">
+          <span className="text-xs text-muted-foreground md:text-meta md:text-secondary-foreground">
             <span className="max-md:hidden">{detail}</span>
             <span className="md:hidden">{mobileDetail}</span>
           </span>
@@ -101,7 +101,7 @@ export function NutritionistBanner({
         <Button
           asChild
           size="md"
-          className="rounded-surface text-meta max-md:min-h-11"
+          className="rounded-lg text-meta max-md:min-h-11"
         >
           <Link href={examine} scroll={false} data-proposal-id={proposal.id}>
             <span className="max-md:hidden">Examiner</span>
@@ -115,7 +115,7 @@ export function NutritionistBanner({
         asChild
         variant="outline"
         size="md"
-        className="rounded-surface text-meta max-md:min-h-11"
+        className="rounded-lg text-meta max-md:min-h-11"
       >
         <Link href={adjust}>Ajuster avec {name}</Link>
       </Button>

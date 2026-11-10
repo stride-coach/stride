@@ -15,7 +15,7 @@ export function NutritionLoading() {
         <Skeleton className="h-7 w-3/4 sm:h-12" />
         <Skeleton className="h-10 w-full sm:h-12" />
         <div className="flex gap-2.5 pt-1.5 max-sm:hidden">
-          <Skeleton className="h-9 w-40 rounded-surface" />
+          <Skeleton className="h-9 w-40 rounded-lg" />
         </div>
       </section>
       <section
@@ -25,7 +25,7 @@ export function NutritionLoading() {
         {[0, 1, 2, 3].map((item) => (
           <div
             key={item}
-            className="flex flex-col gap-1.5 rounded-panel border border-border bg-surface-raised p-3.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
+            className="flex flex-col gap-1.5 rounded-2xl border border-border bg-muted p-3.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
           >
             <Skeleton className="h-3 w-20" />
             <Skeleton className="h-8 w-24 sm:h-12" />

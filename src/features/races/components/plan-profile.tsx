@@ -7,7 +7,7 @@ import type { PlanProfileData, PlanProfileStation } from "../timeline";
 const stationStroke: Record<PlanProfileStation["tone"], string> = {
   start: "stroke-foreground",
   finish: "stroke-foreground",
-  aid: "stroke-accent",
+  aid: "stroke-primary",
   water: "stroke-provider",
   base: "stroke-warning",
 };
@@ -113,21 +113,21 @@ export function PlanProfile({
             {...band(segment)}
             y={0}
             height={bottom}
-            className="fill-accent opacity-10"
+            className="fill-primary opacity-10"
           />
         )}
         {line && (
           <>
             <polygon
               points={`0,${bottom} ${line} ${width},${bottom}`}
-              className="fill-surface-raised"
+              className="fill-muted"
             />
             <polyline
               points={line}
               fill="none"
               strokeWidth={1.6}
               vectorEffect="non-scaling-stroke"
-              className="stroke-muted"
+              className="stroke-secondary-foreground"
             />
           </>
         )}

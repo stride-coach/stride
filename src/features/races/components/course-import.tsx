@@ -195,12 +195,12 @@ export function CourseImport({
             sendFile(event.dataTransfer.files[0]);
           }}
           className={cn(
-            "m-5 flex flex-col items-center gap-3.5 rounded-panel border-[1.5px] border-dashed border-dim bg-surface-inset px-6 py-8 text-center transition-colors sm:m-6 sm:py-12",
-            dragging && "border-accent bg-surface-raised",
+            "m-5 flex flex-col items-center gap-3.5 rounded-2xl border-[1.5px] border-dashed border-dim bg-surface-inset px-6 py-8 text-center transition-colors sm:m-6 sm:py-12",
+            dragging && "border-primary bg-muted",
           )}
           aria-busy={pending}
         >
-          <span className="grid size-13 place-items-center rounded-panel border border-border-strong bg-surface-raised text-accent">
+          <span className="grid size-13 place-items-center rounded-2xl border border-border-strong bg-muted text-primary">
             <UploadIcon className="size-4.5" />
           </span>
           <h2 className="text-title font-semibold tracking-[-0.02em]">
@@ -208,7 +208,7 @@ export function CourseImport({
               ? "Remplace le GPX de la course"
               : "Ajoute le GPX de la course"}
           </h2>
-          <p className="max-w-105 text-sm leading-[1.55] text-muted">
+          <p className="max-w-105 text-sm leading-[1.55] text-secondary-foreground">
             <span className="max-sm:hidden">
               Glisse ici le fichier .gpx fourni par l’organisation. Un seul
               fichier, 20 Mo maximum.
@@ -240,7 +240,7 @@ export function CourseImport({
             <Button
               type="button"
               size="md"
-              className="min-h-10.5 rounded-surface"
+              className="min-h-10.5 rounded-lg"
               onClick={() => input.current?.click()}
               disabled={pending}
               aria-busy={pending}
@@ -251,7 +251,7 @@ export function CourseImport({
               type="button"
               variant="outline"
               size="md"
-              className="min-h-10.5 rounded-surface sm:hidden"
+              className="min-h-10.5 rounded-lg sm:hidden"
               onClick={() => setDialog("link")}
             >
               Coller un lien
@@ -269,9 +269,9 @@ export function CourseImport({
                 else setDialog(option.key === "link" ? "link" : "activity");
               }}
               disabled={option.disabled || pending}
-              className="flex w-full items-start gap-3 border-t border-border py-3 text-left transition-colors first-of-type:mt-2 focus-visible:outline-2 focus-visible:outline-ring enabled:hover:bg-surface-raised/40 disabled:opacity-50"
+              className="flex w-full items-start gap-3 border-t border-border py-3 text-left transition-colors first-of-type:mt-2 focus-visible:outline-2 focus-visible:outline-ring enabled:hover:bg-muted/40 disabled:opacity-50"
             >
-              <span className="grid size-7 shrink-0 place-items-center rounded-control border border-border-strong text-muted">
+              <span className="grid size-7 shrink-0 place-items-center rounded-md border border-border-strong text-secondary-foreground">
                 {option.icon}
               </span>
               <span className="flex flex-col gap-0.5">
@@ -291,7 +291,7 @@ export function CourseImport({
             {benefits.map(([long, short]) => (
               <li
                 key={long}
-                className="flex gap-2.5 py-2 text-sm text-muted max-sm:border-t max-sm:border-border"
+                className="flex gap-2.5 py-2 text-sm text-secondary-foreground max-sm:border-t max-sm:border-border"
               >
                 <CheckIcon className="mt-0.5 size-3.5 shrink-0 text-success" />
                 <span className="max-sm:hidden">{long}</span>
@@ -303,7 +303,7 @@ export function CourseImport({
         {!replacing && (
           <RaceCard>
             <CardLabel coach>En attendant</CardLabel>
-            <p className="text-sm leading-[1.55] text-muted">
+            <p className="text-sm leading-[1.55] text-secondary-foreground">
               Sans GPX, Stride ne connaît que{" "}
               {race.distanceKm
                 ? `les ${formatInteger(race.distanceKm)} km`
@@ -378,7 +378,7 @@ export function CourseImport({
                   type="button"
                   disabled={pending}
                   onClick={() => pickActivity(activity.id)}
-                  className="flex w-full items-center justify-between gap-3 rounded-control px-2 py-2.5 text-left hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
+                  className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2.5 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
                 >
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate text-sm">{activity.title}</span>

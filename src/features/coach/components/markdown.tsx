@@ -12,7 +12,7 @@ function Spans({ spans }: { spans: readonly MarkdownSpan[] }) {
     let node: React.ReactNode = splitMentions(span.text).map(
       (part, partIndex) =>
         partIndex % 2 === 1 ? (
-          <span key={partIndex} className="font-medium text-accent">
+          <span key={partIndex} className="font-medium text-primary">
             {part}
           </span>
         ) : (

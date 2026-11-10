@@ -19,7 +19,7 @@ const tones: Record<Comparison["tone"], string> = {
 function ComparisonDetails({ comparison }: { comparison: Comparison }) {
   return (
     <details className="group border-t border-border pt-2.5">
-      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-[13.5px] text-muted [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-[13.5px] text-secondary-foreground [&::-webkit-details-marker]:hidden">
         <span className="flex-1">
           {comparison.lead}
           <strong className={cn("font-semibold", tones[comparison.tone])}>
@@ -71,7 +71,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                     "py-2.5 text-left text-meta",
                     row.current
                       ? "font-semibold text-foreground"
-                      : "font-normal text-muted",
+                      : "font-normal text-secondary-foreground",
                   )}
                 >
                   {row.date}
@@ -81,7 +81,9 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                     key={column.key}
                     className={cn(
                       "py-2.5 text-right font-metric text-[17px] font-semibold whitespace-nowrap tabular-nums",
-                      row.current ? "text-foreground" : "text-muted",
+                      row.current
+                        ? "text-foreground"
+                        : "text-secondary-foreground",
                     )}
                   >
                     {row.cells[column.key] ?? (
@@ -118,7 +120,7 @@ function Programme({ items }: { items: ProgrammeItem[] }) {
             className="flex justify-between gap-3 border-t border-border py-2.25 text-sm"
           >
             <span>{item.label}</span>
-            <span className="font-metric text-base font-semibold whitespace-nowrap text-muted tabular-nums">
+            <span className="font-metric text-base font-semibold whitespace-nowrap text-secondary-foreground tabular-nums">
               {item.value}
             </span>
           </li>
@@ -163,7 +165,7 @@ export function PlanCard({ card }: { card: PlanCardView }) {
             </span>
             <Link
               href={card.planHref}
-              className="ml-auto inline-flex min-h-8 items-center gap-1 text-[12.5px] text-muted hover:text-foreground"
+              className="ml-auto inline-flex min-h-8 items-center gap-1 text-[12.5px] text-secondary-foreground hover:text-foreground"
             >
               Voir dans le plan
               <ChevronRightIcon aria-hidden="true" className="size-3.5" />
@@ -180,7 +182,7 @@ export function PlanCard({ card }: { card: PlanCardView }) {
     <section
       aria-label={planned ? "Séance du plan" : "Hors plan"}
       className={cn(
-        "flex flex-col rounded-panel border border-border bg-surface px-4 py-3.5 sm:px-5 sm:py-4",
+        "flex flex-col rounded-2xl border border-border bg-card px-4 py-3.5 sm:px-5 sm:py-4",
         card.strength ? "gap-3" : "gap-2.5",
       )}
     >

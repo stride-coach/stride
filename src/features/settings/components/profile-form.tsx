@@ -230,7 +230,7 @@ export function ProfileForm({
           {unit ? (
             <InputGroup
               className={cn(
-                "h-11 w-40 shrink-0 bg-surface-raised min-[1100px]:h-10! min-[1100px]:w-full min-[1100px]:bg-surface",
+                "h-11 w-40 shrink-0 bg-muted min-[1100px]:h-10! min-[1100px]:w-full min-[1100px]:bg-card",
                 sources[field]?.source === "garmin" && "border-dashed",
               )}
             >
@@ -253,7 +253,7 @@ export function ProfileForm({
               aria-invalid={invalid}
               value={display}
               onChange={onChange}
-              className="h-11 w-40 shrink-0 bg-surface-raised min-[1100px]:h-10! min-[1100px]:w-full min-[1100px]:bg-surface"
+              className="h-11 w-40 shrink-0 bg-muted min-[1100px]:h-10! min-[1100px]:w-full min-[1100px]:bg-card"
               autoComplete={field === "first_name" ? "given-name" : "bday"}
               placeholder={
                 field === "birth_date" ? "JJ / MM / AAAA" : undefined
@@ -262,7 +262,7 @@ export function ProfileForm({
           )}
         </div>
         {invalid ? (
-          <span role="status" className="text-xs text-danger">
+          <span role="status" className="text-xs text-destructive">
             {field === "birth_date"
               ? "Saisis une date valide : JJ / MM / AAAA."
               : numeric
@@ -311,7 +311,7 @@ export function ProfileForm({
         <h1 className="text-2xl font-semibold tracking-tight min-[1100px]:text-[32px]">
           Profil
         </h1>
-        <p className="text-sm leading-relaxed text-muted min-[1100px]:text-body">
+        <p className="text-sm leading-relaxed text-secondary-foreground min-[1100px]:text-body">
           Corrige ce que Garmin a mal relevé. Une valeur modifiée devient la
           tienne et n’est plus écrasée.
         </p>
@@ -325,7 +325,7 @@ export function ProfileForm({
         <legend className="mb-2 w-full px-1.5 font-mono text-micro font-normal tracking-wider text-muted-foreground uppercase min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-border-strong min-[1100px]:px-0 min-[1100px]:pb-2.5 min-[1100px]:text-label">
           Toi
         </legend>
-        <FieldGroup className="gap-0 overflow-hidden rounded-panel border border-border bg-surface min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child]:border-b-0">
+        <FieldGroup className="gap-0 overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child]:border-b-0">
           <Field className={rowClass}>
             <div className="flex min-h-11 items-center justify-between gap-3 min-[1100px]:contents">
               <FieldLabel className="font-normal">Photo</FieldLabel>
@@ -333,7 +333,7 @@ export function ProfileForm({
                 <span className="text-xs text-muted-foreground min-[1100px]:hidden">
                   Facultatif
                 </span>
-                <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-card bg-border font-semibold">
+                <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-border font-semibold">
                   {(preview || saved.photoUrl) &&
                   (preview ?? saved.photoUrl) !== failedPhoto ? (
                     <Image
@@ -444,7 +444,7 @@ export function ProfileForm({
             Lu dans tes données · modifie seulement si tu sais mieux
           </p>
         </div>
-        <div className="overflow-hidden rounded-panel border border-border bg-surface min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child>div]:border-b-0">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child>div]:border-b-0">
           {metrics.map((metric) => {
             const value =
               metric.key === "maximum"
@@ -536,13 +536,13 @@ export function ProfileForm({
       </section>
       {children}
       {attempted && !valid && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-destructive">
           Vérifie le prénom, la date de naissance, la taille (100 à 250 cm) et
           le poids (25 à 250 kg).
         </p>
       )}
       {count > 0 && (
-        <div className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-card border border-border-strong bg-surface-raised p-3 min-[1100px]:bottom-4 min-[1100px]:w-fit min-[1100px]:gap-3 min-[1100px]:px-4.5">
+        <div className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-border-strong bg-muted p-3 min-[1100px]:bottom-4 min-[1100px]:w-fit min-[1100px]:gap-3 min-[1100px]:px-4.5">
           <span className="flex-1 text-sm">
             {count}{" "}
             {count === 1
@@ -584,7 +584,7 @@ export function ProfileForm({
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[95svh] gap-4 overflow-y-auto rounded-t-[18px] border-border-strong bg-surface-raised px-5 pt-2 pb-7.5"
+          className="max-h-[95svh] gap-4 overflow-y-auto rounded-t-[18px] border-border-strong bg-muted px-5 pt-2 pb-7.5"
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             (lastEditor.current === "maximum"

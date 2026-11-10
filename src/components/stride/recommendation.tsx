@@ -11,7 +11,7 @@ export function Recommendation({
     <article
       data-slot="recommendation"
       className={cn(
-        "flex flex-col rounded-card border border-border bg-surface motion-safe:animate-rise",
+        "flex flex-col rounded-xl border border-border bg-card motion-safe:animate-rise",
         className,
       )}
       {...props}

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { statusLabels, type ThreadStatus } from "../conversations";
 
 const toneText = {
-  accent: "text-accent",
+  accent: "text-primary",
   warning: "text-warning",
   success: "text-success",
   muted: "text-muted-foreground",

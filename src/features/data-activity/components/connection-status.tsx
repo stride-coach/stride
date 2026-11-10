@@ -10,7 +10,7 @@ import {
 const toneText: Record<GarminTone, string> = {
   success: "text-success",
   warning: "text-warning",
-  danger: "text-danger",
+  danger: "text-destructive",
   provider: "text-provider",
 };
 

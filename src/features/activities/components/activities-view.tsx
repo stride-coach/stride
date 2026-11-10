@@ -65,7 +65,7 @@ export function ActivitiesView({
           {selected ? (
             children
           ) : (
-            <p className="px-5 pt-8 text-body text-muted sm:px-10">
+            <p className="px-5 pt-8 text-body text-secondary-foreground sm:px-10">
               {search
                 ? "Aucune activité ne correspond à ce nom."
                 : "Les activités importées depuis Garmin apparaîtront ici."}

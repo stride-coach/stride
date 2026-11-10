@@ -31,7 +31,7 @@ export function ReachSection({
         À portée
       </h2>
       {reach ? (
-        <div className="flex flex-col gap-3.5 rounded-card border border-border bg-surface p-4 sm:p-5">
+        <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-card p-4 sm:p-5">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[15px] font-semibold sm:text-base">
               {reach.label}
@@ -62,7 +62,7 @@ export function ReachSection({
               <dd>
                 <Metric
                   value={reach.prediction}
-                  className="text-[28px] text-muted sm:text-4xl"
+                  className="text-[28px] text-secondary-foreground sm:text-4xl"
                 />
               </dd>
             </div>
@@ -72,7 +72,7 @@ export function ReachSection({
             className="relative h-2 overflow-hidden rounded-full bg-border"
           >
             <span
-              className="absolute inset-y-0 left-0 rounded-full bg-accent"
+              className="absolute inset-y-0 left-0 rounded-full bg-primary"
               style={{ width: `${reach.progress * 100}%` }}
             />
           </span>
@@ -97,7 +97,7 @@ export function ReachSection({
         <Link
           href={`/races/${goal.id}`}
           className={cn(
-            "flex items-center justify-between gap-3 rounded-card border border-border bg-surface px-4 py-3.5 transition-colors hover:border-border-strong sm:px-4.5",
+            "flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-border-strong sm:px-4.5",
             focus,
           )}
         >
@@ -105,7 +105,9 @@ export function ReachSection({
             <span className="text-[15px] font-semibold">
               {goal.name} · {goal.date}
             </span>
-            <span className="text-meta text-muted">{goalSummary(goal)}</span>
+            <span className="text-meta text-secondary-foreground">
+              {goalSummary(goal)}
+            </span>
           </span>
           <ChevronRightIcon
             aria-hidden="true"
@@ -127,7 +129,7 @@ export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
         <Link
           href="/settings/profile#entrainement"
           className={cn(
-            "text-meta text-accent hover:text-foreground max-sm:hidden",
+            "text-meta text-primary hover:text-foreground max-sm:hidden",
             focus,
           )}
         >
@@ -139,7 +141,7 @@ export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
           <div
             key={marker.key}
             className={cn(
-              "flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface p-3 sm:p-4",
+              "flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card p-3 sm:p-4",
               marker.key === "vam" && "max-sm:hidden",
             )}
           >
@@ -165,7 +167,7 @@ export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
       <Link
         href="/settings/profile#entrainement"
         className={cn(
-          "flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:hidden",
+          "flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:hidden",
           focus,
         )}
       >
@@ -214,11 +216,7 @@ function Row({ row }: { row: RecordRow }) {
       <Link
         href={row.href}
         prefetch={false}
-        className={cn(
-          className,
-          "transition-colors hover:bg-surface-raised/40",
-          focus,
-        )}
+        className={cn(className, "transition-colors hover:bg-muted/40", focus)}
       >
         {content}
       </Link>

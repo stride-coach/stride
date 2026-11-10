@@ -35,7 +35,7 @@ export function ConnectStages({
             className={cn(
               "flex items-center gap-1.5",
               status === "done" && "text-success",
-              status === "current" && "font-medium text-accent",
+              status === "current" && "font-medium text-primary",
               status === "upcoming" && "text-muted-foreground",
             )}
           >
@@ -50,7 +50,7 @@ export function ConnectStages({
                 className={cn(
                   "size-1.5 rounded-full",
                   status === "current"
-                    ? "bg-accent"
+                    ? "bg-primary"
                     : "border border-muted-foreground",
                 )}
               />
@@ -73,7 +73,7 @@ export function GarminNoticeBox({
   return (
     <div
       role="alert"
-      className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 rounded-surface border border-warning-border bg-surface px-4.5 py-4"
+      className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 rounded-lg border border-warning-border bg-card px-4.5 py-4"
     >
       <CircleAlertIcon
         aria-hidden="true"
@@ -81,7 +81,9 @@ export function GarminNoticeBox({
       />
       <p className="text-body font-semibold">{title}</p>
       {children && (
-        <div className="col-start-2 text-meta text-muted">{children}</div>
+        <div className="col-start-2 text-meta text-secondary-foreground">
+          {children}
+        </div>
       )}
     </div>
   );
@@ -89,7 +91,7 @@ export function GarminNoticeBox({
 
 export function SecureNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex gap-2.5 text-meta text-muted">
+    <p className="flex gap-2.5 text-meta text-secondary-foreground">
       <LockIcon aria-hidden="true" className="mt-0.75 size-3.5 shrink-0" />
       <span>{children}</span>
     </p>
@@ -126,7 +128,7 @@ export function AsideList({
             className="grid grid-cols-[auto_1fr] gap-x-4 border-b border-border py-3.5"
           >
             {numbered ? (
-              <span className="font-metric text-sm font-semibold text-muted">
+              <span className="font-metric text-sm font-semibold text-secondary-foreground">
                 {index + 1}
               </span>
             ) : (
@@ -136,7 +138,9 @@ export function AsideList({
               {item.title && (
                 <span className="text-sm font-semibold">{item.title}</span>
               )}
-              <span className="text-meta text-muted">{item.body}</span>
+              <span className="text-meta text-secondary-foreground">
+                {item.body}
+              </span>
             </span>
           </li>
         ))}
@@ -186,7 +190,7 @@ export function StepHeading({
         {title}
       </h1>
       {children && (
-        <p className="text-body text-pretty text-muted lg:text-lead">
+        <p className="text-body text-pretty text-secondary-foreground lg:text-lead">
           {children}
         </p>
       )}

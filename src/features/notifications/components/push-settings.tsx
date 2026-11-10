@@ -350,7 +350,7 @@ function DeviceRow({
           {status && (
             <span
               aria-hidden="true"
-              className="text-sm text-muted max-md:hidden"
+              className="text-sm text-secondary-foreground max-md:hidden"
             >
               {checked ? "Activées" : "Désactivées"}
             </span>
@@ -400,9 +400,9 @@ function CategoryRow({
 function InstallSteps({ label }: { label: DeviceLabel | null }) {
   const device = label === "iPad" ? "iPad" : "iPhone";
   return (
-    <PreferenceGroup className="gap-3.5 p-4 md:rounded-card md:border md:bg-surface">
+    <PreferenceGroup className="gap-3.5 p-4 md:rounded-xl md:border md:bg-card">
       <div className="flex items-center gap-3">
-        <span className="grid size-9.5 shrink-0 place-items-center rounded-surface bg-accent">
+        <span className="grid size-9.5 shrink-0 place-items-center rounded-lg bg-primary">
           <StrideMark className="size-5 stroke-background" />
         </span>
         <div className="flex flex-col gap-0.5">

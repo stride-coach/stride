@@ -75,7 +75,7 @@ export function ModelQuestions({
       <QuestionList questions={questions.slice(0, visibleQuestions)} />
       {rest.length > 0 && (
         <details className="group border-t border-border">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
             <ChevronRightIcon
               aria-hidden
               className="size-3.5 transition-transform group-open:rotate-90 motion-reduce:transition-none"

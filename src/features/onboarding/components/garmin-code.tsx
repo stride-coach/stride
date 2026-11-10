@@ -84,14 +84,14 @@ export function GarminCode({
             <h2 className="font-mono text-label text-muted-foreground uppercase">
               Connexion en cours
             </h2>
-            <div className="flex flex-col gap-1 rounded-card border border-border p-4">
+            <div className="flex flex-col gap-1 rounded-xl border border-border p-4">
               <span className="text-xs text-muted-foreground">
                 Compte Garmin Connect
               </span>
               <span className="text-body break-all">{email}</span>
               <button
                 type="button"
-                className="mt-1 self-start rounded-control text-sm text-accent hover:underline"
+                className="mt-1 self-start rounded-md text-sm text-primary hover:underline"
                 onClick={onUseAnotherAccount}
               >
                 Utiliser un autre compte
@@ -99,7 +99,7 @@ export function GarminCode({
             </div>
           </section>
           {notice ? (
-            <p className="text-sm text-muted">
+            <p className="text-sm text-secondary-foreground">
               Les codes expirent au bout de quelques minutes. Si tu en as reçu
               plusieurs, utilise le plus récent.
             </p>
@@ -142,16 +142,16 @@ export function GarminCode({
                   key={index}
                   aria-hidden="true"
                   className={cn(
-                    "grid h-14 place-items-center rounded-surface border border-border-strong bg-surface font-metric text-metric-lg font-semibold lg:h-16",
-                    active && "border-accent ring-3 ring-accent/20",
+                    "grid h-14 place-items-center rounded-lg border border-border-strong bg-card font-metric text-metric-lg font-semibold lg:h-16",
+                    active && "border-primary ring-3 ring-primary/20",
                     selected && "border-warning-border bg-warning/5",
                     verified && "border-success-border text-success",
-                    submitting && "text-muted",
+                    submitting && "text-secondary-foreground",
                   )}
                 >
                   {code[index] ??
                     (active && (
-                      <span className="h-6 w-px bg-accent motion-safe:animate-pulse" />
+                      <span className="h-6 w-px bg-primary motion-safe:animate-pulse" />
                     ))}
                 </span>
               );
@@ -172,7 +172,7 @@ export function GarminCode({
               }
               aria-describedby="garmin-code-hint"
               aria-invalid={Boolean(message) || undefined}
-              className="absolute inset-0 size-full cursor-text rounded-surface text-transparent caret-transparent opacity-0 outline-none selection:bg-transparent"
+              className="absolute inset-0 size-full cursor-text rounded-lg text-transparent caret-transparent opacity-0 outline-none selection:bg-transparent"
             />
           </div>
           <p id="garmin-code-hint" className="text-xs text-muted-foreground">
@@ -203,7 +203,7 @@ export function GarminCode({
             Regarde tes spams, puis{" "}
             <button
               type="button"
-              className="rounded-control font-medium text-accent hover:underline"
+              className="rounded-md font-medium text-primary hover:underline"
               onClick={onSignInAgain}
             >
               reviens te connecter
@@ -244,7 +244,7 @@ export function GarminCode({
             </Button>
           </div>
           {slow && (
-            <p role="status" className="text-sm text-muted">
+            <p role="status" className="text-sm text-secondary-foreground">
               Toujours en contact avec Garmin…
             </p>
           )}

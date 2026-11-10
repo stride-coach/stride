@@ -68,7 +68,7 @@ export function HistoryStep({
           <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
             Création de ton profil d’athlète
           </h1>
-          <p className="text-body text-pretty text-muted lg:text-lead">
+          <p className="text-body text-pretty text-secondary-foreground lg:text-lead">
             <span className="hidden lg:inline">
               Je lis tout ce que Garmin a gardé, du plus récent au plus ancien,
               pour pouvoir te coacher avant l’arrivée des plus vieilles années.
@@ -183,7 +183,7 @@ function HistoryTimeline({
           Historique lu
         </h2>
         {reading && (
-          <p className="text-sm text-muted">
+          <p className="text-sm text-secondary-foreground">
             Actuellement :{" "}
             <span className="font-metric font-semibold text-foreground">
               {reading}
@@ -200,12 +200,12 @@ function HistoryTimeline({
                 "relative h-3 overflow-hidden rounded-mark lg:h-5.5",
                 fill === 0
                   ? "border border-dashed border-border-strong"
-                  : "bg-surface-raised",
+                  : "bg-muted",
               )}
             >
               {fill > 0 && (
                 <span
-                  className="absolute inset-y-0 right-0 bg-accent"
+                  className="absolute inset-y-0 right-0 bg-primary"
                   style={{ width: `${Math.round(fill * 100)}%` }}
                 />
               )}
@@ -263,8 +263,8 @@ function CategoryRow({
         >
           {view?.bar === "active" && (
             <>
-              <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-accent to-transparent motion-safe:animate-trace motion-reduce:hidden" />
-              <span className="absolute inset-y-0 left-0 hidden w-1/3 bg-accent/60 motion-reduce:block" />
+              <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-primary to-transparent motion-safe:animate-trace motion-reduce:hidden" />
+              <span className="absolute inset-y-0 left-0 hidden w-1/3 bg-primary/60 motion-reduce:block" />
             </>
           )}
           {view?.bar === "full" && (
@@ -274,7 +274,7 @@ function CategoryRow({
             <span className="absolute inset-0 bg-warning/60" />
           )}
         </span>
-        <span className="hidden text-sm text-muted lg:block">
+        <span className="hidden text-sm text-secondary-foreground lg:block">
           {view?.detail ?? "Lecture du statut Garmin…"}
         </span>
       </span>

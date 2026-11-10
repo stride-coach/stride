@@ -65,10 +65,10 @@ const priorities: {
 ];
 
 const fieldLabel =
-  "flex items-center justify-between gap-2 text-meta text-muted";
-const fieldInput = "h-10 bg-surface px-3 text-body md:text-body";
+  "flex items-center justify-between gap-2 text-meta text-secondary-foreground";
+const fieldInput = "h-10 bg-card px-3 text-body md:text-body";
 const segment =
-  "min-h-10 flex-1 rounded-control border border-border-strong bg-surface px-3 text-sm text-muted focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:font-semibold aria-pressed:text-background";
+  "min-h-10 flex-1 rounded-md border border-border-strong bg-card px-3 text-sm text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:font-semibold aria-pressed:text-background";
 
 function Field({
   label,
@@ -136,7 +136,9 @@ function Stepper({ step }: { step: number }) {
             <span
               className={cn(
                 "text-meta whitespace-nowrap",
-                current ? "font-semibold text-foreground" : "text-muted",
+                current
+                  ? "font-semibold text-foreground"
+                  : "text-secondary-foreground",
                 !current && "max-md:sr-only",
               )}
             >
@@ -312,7 +314,7 @@ export function RaceWizard({
     <Dialog open onOpenChange={(open) => !open && close()}>
       <DialogContent
         showCloseButton={false}
-        className="top-0 left-0 block h-svh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none border-0 bg-surface-inset p-0 ring-0 md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100svh-4rem)] md:w-215 md:max-w-215 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:border md:border-border-strong md:bg-popover md:shadow-2xl"
+        className="top-0 left-0 block h-svh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none border-0 bg-surface-inset p-0 ring-0 md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100svh-4rem)] md:w-215 md:max-w-215 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border-strong md:bg-popover md:shadow-2xl"
       >
         <form
           onSubmit={(event) => {
@@ -328,7 +330,7 @@ export function RaceWizard({
                 type="button"
                 variant="ghost"
                 onClick={close}
-                className="-ml-1.5 text-muted md:hidden"
+                className="-ml-1.5 text-secondary-foreground md:hidden"
               >
                 Annuler
               </Button>
@@ -366,7 +368,7 @@ export function RaceWizard({
             {step === 1 && (
               <section className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-baseline gap-2.5">
-                  <span className="font-mono text-micro tracking-wider text-muted uppercase">
+                  <span className="font-mono text-micro tracking-wider text-secondary-foreground uppercase">
                     Détails
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -503,7 +505,7 @@ export function RaceWizard({
                 <section className="flex flex-col gap-2.5">
                   <span
                     id="race-priority"
-                    className="font-mono text-micro tracking-wider text-muted uppercase"
+                    className="font-mono text-micro tracking-wider text-secondary-foreground uppercase"
                   >
                     Priorité
                   </span>
@@ -526,20 +528,20 @@ export function RaceWizard({
                           aria-checked={selected}
                           onClick={() => setPriority(option.value)}
                           className={cn(
-                            "flex w-full items-start gap-3 rounded-surface border border-border-strong bg-surface p-3.5 text-left focus-visible:outline-2 focus-visible:outline-ring",
+                            "flex w-full items-start gap-3 rounded-lg border border-border-strong bg-card p-3.5 text-left focus-visible:outline-2 focus-visible:outline-ring",
                             selected &&
                               "border-foreground shadow-[inset_0_0_0_1px_var(--foreground)]",
                           )}
                         >
                           <span
                             className={cn(
-                              "grid size-7.5 shrink-0 place-items-center rounded-control font-metric text-base font-bold",
+                              "grid size-7.5 shrink-0 place-items-center rounded-md font-metric text-base font-bold",
                               option.value === "A" &&
-                                "bg-accent text-background",
+                                "bg-primary text-background",
                               option.value === "B" &&
                                 "border-[1.5px] border-foreground text-foreground",
                               option.value === "C" &&
-                                "border-[1.5px] border-border-strong text-muted",
+                                "border-[1.5px] border-border-strong text-secondary-foreground",
                             )}
                           >
                             {option.value}
@@ -602,13 +604,13 @@ export function RaceWizard({
                     ? "Course mise à jour."
                     : "Course ajoutée à tes objectifs."}
                 </p>
-                <div className="flex items-start gap-2.5 rounded-surface border border-border bg-surface px-4 py-3.5">
+                <div className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-3.5">
                   <StrideMark className="mt-0.5 size-3.5 shrink-0" />
                   <div className="flex flex-col gap-1.5">
                     <p className="text-sm font-semibold">
                       Aucun plan n’est défini pour l’instant.
                     </p>
-                    <p className="text-sm leading-relaxed text-muted">
+                    <p className="text-sm leading-relaxed text-secondary-foreground">
                       Cette course est enregistrée sans modifier aucune semaine.
                       Quand tu auras un plan, Stride s’appuiera sur elle pour le
                       construire et te proposera les ajustements à relire avant
@@ -660,7 +662,7 @@ export function RaceWizard({
                 type="button"
                 variant="ghost"
                 onClick={close}
-                className="text-muted max-md:hidden"
+                className="text-secondary-foreground max-md:hidden"
               >
                 Annuler
               </Button>
@@ -671,7 +673,7 @@ export function RaceWizard({
                 variant="ghost"
                 disabled={saving}
                 onClick={() => setStep(1)}
-                className="text-muted"
+                className="text-secondary-foreground"
               >
                 Retour
               </Button>

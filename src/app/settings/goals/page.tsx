@@ -51,11 +51,11 @@ function PriorityBadge({
   return (
     <span
       className={cn(
-        "grid size-8 shrink-0 place-items-center rounded-control font-metric text-base font-bold",
-        priority === "A" && !dashed && "bg-accent text-background",
+        "grid size-8 shrink-0 place-items-center rounded-md font-metric text-base font-bold",
+        priority === "A" && !dashed && "bg-primary text-background",
         priority !== "A" &&
           !dashed &&
-          "border-[1.5px] border-border-strong text-muted",
+          "border-[1.5px] border-border-strong text-secondary-foreground",
         dashed &&
           "border-[1.5px] border-dashed border-border-strong text-muted-foreground",
       )}
@@ -67,7 +67,7 @@ function PriorityBadge({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="px-1.5 font-mono text-micro tracking-wider text-muted uppercase md:px-0 md:text-label">
+    <h2 className="px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:px-0 md:text-label">
       {children}
     </h2>
   );
@@ -129,7 +129,7 @@ export default async function GoalsSettingsPage({
         <h1 className="text-2xl font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
           Objectifs et courses
         </h1>
-        <p className="text-sm leading-normal text-muted md:text-body">
+        <p className="text-sm leading-normal text-secondary-foreground md:text-body">
           Ta course A structure tout le plan. La changer crée une proposition de
           plan que tu peux relire avant.
         </p>
@@ -160,7 +160,7 @@ export default async function GoalsSettingsPage({
       {primary && (
         <section className="flex flex-col gap-2 md:gap-3">
           <SectionTitle>Objectif principal</SectionTitle>
-          <div className="flex flex-col gap-3.5 rounded-card border border-accent bg-surface p-4 md:flex-row md:flex-wrap md:items-center md:gap-4 md:rounded-surface md:bg-transparent md:px-5 md:py-4.5">
+          <div className="flex flex-col gap-3.5 rounded-xl border border-primary bg-card p-4 md:flex-row md:flex-wrap md:items-center md:gap-4 md:rounded-lg md:bg-transparent md:px-5 md:py-4.5">
             <div className="flex min-w-0 items-start gap-3 md:min-w-55 md:flex-1 md:items-center md:gap-4">
               <PriorityBadge priority="A" />
               <div className="flex min-w-0 flex-col gap-0.75">
@@ -195,7 +195,7 @@ export default async function GoalsSettingsPage({
               </div>
               <Link
                 href={`/races/${primary.id}`}
-                className="inline-flex min-h-11 items-center text-sm font-medium text-accent hover:underline md:min-h-0"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline md:min-h-0"
               >
                 Plan de course →
               </Link>
@@ -206,7 +206,7 @@ export default async function GoalsSettingsPage({
       <section className="flex flex-col gap-2 md:gap-0">
         <div
           className={cn(
-            "hidden gap-4 border-b border-border-strong pb-2.5 font-mono text-micro tracking-wider text-muted uppercase md:grid",
+            "hidden gap-4 border-b border-border-strong pb-2.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:grid",
             columns,
           )}
         >
@@ -217,10 +217,10 @@ export default async function GoalsSettingsPage({
           <span>Cible</span>
           <span />
         </div>
-        <h2 className="px-1.5 font-mono text-micro tracking-wider text-muted uppercase md:hidden">
+        <h2 className="px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:hidden">
           À venir
         </h2>
-        <div className="flex flex-col overflow-hidden rounded-card border border-border bg-surface md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
+        <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
           {upcoming.map((race) => (
             <div
               key={race.id}
@@ -241,7 +241,7 @@ export default async function GoalsSettingsPage({
                     ` · cible ${formatTarget(race.values.target_duration_seconds)}`}
                 </span>
               </div>
-              <span className="hidden text-sm text-muted md:block">
+              <span className="hidden text-sm text-secondary-foreground md:block">
                 {formatRaceShortDate(race.values.race_date)}
               </span>
               <span className="hidden font-metric text-lg font-semibold tabular-nums md:block">
@@ -252,7 +252,7 @@ export default async function GoalsSettingsPage({
               </span>
               <Link
                 href={`/settings/goals?course=${race.id}`}
-                className="inline-flex min-h-11 items-center justify-end px-2.5 text-meta text-muted hover:text-foreground md:min-h-8 md:px-0 md:pr-3.5"
+                className="inline-flex min-h-11 items-center justify-end px-2.5 text-meta text-secondary-foreground hover:text-foreground md:min-h-8 md:px-0 md:pr-3.5"
               >
                 Modifier
               </Link>
@@ -272,7 +272,7 @@ export default async function GoalsSettingsPage({
               </span>
               <Link
                 href={`/settings/goals?course=nouvelle&priorite=${priority}`}
-                className="inline-flex min-h-11 items-center justify-end px-2.5 text-meta font-medium text-accent hover:underline md:min-h-8 md:px-0 md:pr-3.5"
+                className="inline-flex min-h-11 items-center justify-end px-2.5 text-meta font-medium text-primary hover:underline md:min-h-8 md:px-0 md:pr-3.5"
               >
                 Ajouter
               </Link>
@@ -282,10 +282,10 @@ export default async function GoalsSettingsPage({
       </section>
       {past.length > 0 && (
         <section className="flex flex-col gap-2 md:gap-0">
-          <h2 className="px-1.5 font-mono text-micro tracking-wider text-muted uppercase md:border-b md:border-border-strong md:px-0 md:pb-2.5 md:text-label">
+          <h2 className="px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:border-b md:border-border-strong md:px-0 md:pb-2.5 md:text-label">
             Courses passées
           </h2>
-          <div className="flex flex-col overflow-hidden rounded-card border border-border bg-surface md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
+          <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
             {past.map((race) => (
               <div
                 key={race.id}
@@ -302,7 +302,7 @@ export default async function GoalsSettingsPage({
                 <span className="text-meta text-muted-foreground md:order-2 md:text-sm">
                   {formatRaceShortDate(race.values.race_date)}
                 </span>
-                <span className="text-right font-metric text-base font-semibold text-muted md:order-3 md:text-left md:text-[1.0625rem] md:text-foreground">
+                <span className="text-right font-metric text-base font-semibold text-secondary-foreground md:order-3 md:text-left md:text-[1.0625rem] md:text-foreground">
                   {formatKm(race.values.distance_km)}
                 </span>
               </div>
@@ -328,7 +328,7 @@ export default async function GoalsSettingsPage({
             id="focus"
             name="focus"
             defaultValue={goals.goal.values.focus ?? ""}
-            className="h-10 w-full rounded-control border border-border-strong bg-surface px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+            className="h-10 w-full rounded-md border border-border-strong bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
           >
             {goalFocuses.map((focus) => (
               <option key={focus} value={focus}>

@@ -32,14 +32,14 @@ export default async function EmailConfirmedPage() {
         <h1 className="text-[32px] leading-tight font-semibold tracking-tight">
           C’est validé{name ? `, ${name}` : ""}.
         </h1>
-        <p className="text-muted">
+        <p className="text-secondary-foreground">
           Ton adresse est confirmée et tu es connecté. Prochaine étape :
           connecte Garmin pour que ton coach lise ton historique.
         </p>
         <Button asChild className="mt-auto w-full md:mt-0">
           <Link href="/">Continuer la configuration</Link>
         </Button>
-        <p className="text-center text-sm text-muted">
+        <p className="text-center text-sm text-secondary-foreground">
           Connecté en tant que {data.user.email}
         </p>
       </div>

@@ -41,20 +41,22 @@ export function SettingsShell({
       <aside className="hidden h-svh min-h-0 flex-col border-r border-border bg-background px-2 pt-4 pb-2 md:flex">
         <Link
           href="/activities"
-          className="mb-8 flex items-center gap-2 rounded-control px-2 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+          className="mb-8 flex items-center gap-2 rounded-md px-2 text-sm focus-visible:outline-2 focus-visible:outline-ring"
         >
-          <span className="grid size-9 place-items-center rounded-control border border-border-strong">
+          <span className="grid size-9 place-items-center rounded-md border border-border-strong">
             <ArrowLeftIcon className="size-4" />
           </span>
           <span>
             <strong className="block">Réglages</strong>
-            <span className="text-xs text-muted">Retour à Stride</span>
+            <span className="text-xs text-secondary-foreground">
+              Retour à Stride
+            </span>
           </span>
         </Link>
         <div className="min-h-0 overflow-y-auto">
           {(["You", "Data"] as const).map((group) => (
             <div key={group} className="mb-4">
-              <p className="mb-1 px-2 font-mono text-label tracking-wider text-muted uppercase">
+              <p className="mb-1 px-2 font-mono text-label tracking-wider text-secondary-foreground uppercase">
                 {group === "You" ? "Toi" : "Données"}
               </p>
               <nav
@@ -77,9 +79,9 @@ export function SettingsShell({
                           active?.slug === section.slug ? "page" : undefined
                         }
                         className={cn(
-                          "rounded-control px-2 py-2 text-sm text-muted hover:bg-surface-raised hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+                          "rounded-md px-2 py-2 text-sm text-secondary-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
                           active?.slug === section.slug &&
-                            "bg-surface-raised font-medium text-foreground",
+                            "bg-muted font-medium text-foreground",
                           section.slug === "connections" &&
                             "flex items-center gap-2",
                         )}
@@ -109,7 +111,7 @@ export function SettingsShell({
         >
           <DataActivityStatus className="px-2.5" />
           <div className="flex min-h-12 items-center gap-2.5 px-1.5 text-sm">
-            <span className="grid size-8 shrink-0 place-items-center rounded-control bg-border text-xs font-semibold">
+            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-xs font-semibold">
               {athlete.initials}
             </span>
             <span className="flex min-w-0 flex-col text-left">
@@ -124,7 +126,7 @@ export function SettingsShell({
         </div>
       </aside>
       <main className="min-w-0 p-0 md:h-svh md:min-h-0 md:overflow-hidden md:p-2">
-        <div className="border-subtle min-h-svh rounded-panel border-0 bg-surface-inset md:flex md:h-full md:min-h-0 md:flex-col md:border">
+        <div className="border-subtle min-h-svh rounded-2xl border-0 bg-surface-inset md:flex md:h-full md:min-h-0 md:flex-col md:border">
           <header className="flex min-h-14 items-center gap-3 border-b border-border px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:border-0 max-md:bg-surface-inset md:shrink-0 md:px-6">
             <Link
               href={
@@ -137,12 +139,12 @@ export function SettingsShell({
               aria-label={
                 active?.slug ? "Retour aux réglages" : "Retour à Stride"
               }
-              className="rounded-control p-1 text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:hidden"
+              className="rounded-md p-1 text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:hidden"
             >
               <ArrowLeftIcon className="size-4" />
             </Link>
             {active?.slug ? (
-              <span className="font-mono text-label tracking-wider text-muted uppercase md:font-sans md:text-sm md:tracking-normal md:normal-case">
+              <span className="font-mono text-label tracking-wider text-secondary-foreground uppercase md:font-sans md:text-sm md:tracking-normal md:normal-case">
                 Réglages
                 {profile ? <span className="md:hidden"> / Profil</span> : null}
                 {goals ? (
@@ -150,22 +152,26 @@ export function SettingsShell({
                 ) : null}
               </span>
             ) : (
-              <h1 className="text-2xl font-semibold tracking-tight md:text-sm md:font-normal md:tracking-normal md:text-muted">
+              <h1 className="text-2xl font-semibold tracking-tight md:text-sm md:font-normal md:tracking-normal md:text-secondary-foreground">
                 Réglages
               </h1>
             )}
             {active?.slug && (
               <>
-                <span className="hidden text-muted md:inline">/</span>
+                <span className="hidden text-secondary-foreground md:inline">
+                  /
+                </span>
                 {garmin ? (
                   <>
                     <Link
                       href="/settings/connections"
-                      className="hidden text-sm text-muted hover:text-foreground md:inline"
+                      className="hidden text-sm text-secondary-foreground hover:text-foreground md:inline"
                     >
                       {active.label}
                     </Link>
-                    <span className="hidden text-muted md:inline">/</span>
+                    <span className="hidden text-secondary-foreground md:inline">
+                      /
+                    </span>
                     <span className="hidden text-sm md:inline">Garmin</span>
                   </>
                 ) : (
@@ -179,7 +185,7 @@ export function SettingsShell({
               <Link
                 href="/settings/goals?course=nouvelle"
                 aria-label="Ajouter une course"
-                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-card bg-accent text-xl font-semibold text-background hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-control md:px-3.5 md:text-sm"
+                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-xl font-semibold text-background hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-md md:px-3.5 md:text-sm"
               >
                 <span className="md:hidden" aria-hidden="true">
                   +
@@ -236,7 +242,7 @@ export function SettingsHeading({
         {title}
       </h1>
       {description && (
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted md:text-base">
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-secondary-foreground md:text-base">
           {description}
         </p>
       )}
@@ -253,10 +259,10 @@ export function SettingsGroup({
 }) {
   return (
     <section className="mb-9">
-      <h2 className="mb-3 font-mono text-label tracking-wider text-muted uppercase">
+      <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
         {title}
       </h2>
-      <div className="overflow-hidden rounded-surface border border-border md:rounded-none md:border-x-0 md:border-b-0">
+      <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
         {children}
       </div>
     </section>
@@ -275,15 +281,15 @@ export function SettingsLinkRow({
   return (
     <Link
       href={href}
-      className="flex min-h-17 items-center gap-4 border-b border-border px-4 py-3 last:border-b-0 hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-ring md:grid md:grid-cols-[9.5rem_minmax(0,1fr)_1rem] md:gap-5 md:px-0 md:py-4.5"
+      className="flex min-h-17 items-center gap-4 border-b border-border px-4 py-3 last:border-b-0 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring md:grid md:grid-cols-[9.5rem_minmax(0,1fr)_1rem] md:gap-5 md:px-0 md:py-4.5"
     >
       <strong className="min-w-0 flex-1 text-sm md:flex-none md:text-base">
         {title}
       </strong>
-      <span className="max-w-[55%] text-right text-sm text-muted md:max-w-none md:text-left">
+      <span className="max-w-[55%] text-right text-sm text-secondary-foreground md:max-w-none md:text-left">
         {detail}
       </span>
-      <ChevronRightIcon className="size-4 shrink-0 text-muted" />
+      <ChevronRightIcon className="size-4 shrink-0 text-secondary-foreground" />
     </Link>
   );
 }
@@ -300,8 +306,8 @@ export function UnavailableSettingRow({
   return (
     <div className="grid gap-2 border-b border-border px-4 py-4 last:border-b-0 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-center md:px-0">
       <strong className="text-sm font-medium">{title}</strong>
-      <p className="text-sm text-muted">{detail}</p>
-      <span className="font-mono text-label text-muted uppercase">
+      <p className="text-sm text-secondary-foreground">{detail}</p>
+      <span className="font-mono text-label text-secondary-foreground uppercase">
         {value ?? "Indisponible"}
       </span>
     </div>

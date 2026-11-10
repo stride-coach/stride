@@ -4,28 +4,28 @@ Stride's approved visual direction is **Night Track**. The `Foundations` artboar
 
 ## Color
 
-| Token       | Utility root                        | Value     | Use                                                                                   |
-| ----------- | ----------------------------------- | --------- | ------------------------------------------------------------------------------------- |
-| Shell       | `background`                        | `#080907` | Global page background and sidebar                                                    |
-| Inset       | `surface-inset`                     | `#0C0D0B` | Content inset and deepest panel                                                       |
-| Surface     | `surface`                           | `#131411` | Cards, fields, menus and grouped content                                              |
-| Raised      | `surface-raised`                    | `#1A1B18` | Selected rows, hover and raised controls                                              |
-| Panel       | `surface-panel`                     | `#0F100E` | Chart panels and past day cards                                                       |
-| Current     | `surface-current`                   | `#161714` | Today's day card                                                                      |
-| Hairline    | `border`                            | `#262722` | Separators and restrained frames                                                      |
-| Strong line | `border-strong`, `input`            | `#34352F` | Field and outline-control borders, tags, chips                                        |
-| Subtle line | `border-subtle`                     | `#1F201C` | Inner dividers and progress tracks                                                    |
-| Chalk       | `foreground`                        | `#EDECE6` | Primary text and selected choice fill                                                 |
-| Secondary   | `muted`                             | `#B3B2AA` | Body support text                                                                     |
-| Muted       | `muted-foreground`                  | `#8A8981` | Metadata and quiet supporting text                                                    |
-| Dim         | `dim`                               | `#4A4B45` | Declined, removed and inactive marks                                                  |
-| Volt        | `accent`                            | `#D5FF3F` | Coach presence, primary action, selection, progress, and meaningful positive emphasis |
-| Success     | `success` (+ `-surface`, `-border`) | `#7FD4A0` | Done, accepted, improving, up to date                                                 |
-| Warning     | `warning` (+ `-border`)             | `#FFB547` | Needs you, watch, partial, retrying                                                   |
-| Investigate | `danger` (+ `-surface`, `-border`)  | `#FF6A3D` | Failed, expired or investigate state                                                  |
-| Garmin      | `provider` (+ `-muted`)             | `#5E8FB8` | Provider provenance and easy volume; `provider-muted` is past or light volume         |
-| Zones       | `zone-1` … `zone-5`                 | see CSS   | Training intensity; zone 2 is the provider blue and zone 5 the danger orange          |
-| Medical     | `staff-medical`                     | `#62D2C8` | Medical specialist identity on the staff team page and its role marks                 |
+| Token       | Utility root                                        | Value     | Use                                                                                   |
+| ----------- | --------------------------------------------------- | --------- | ------------------------------------------------------------------------------------- |
+| Shell       | `background`                                        | `#080907` | Global page background and sidebar                                                    |
+| Inset       | `surface-inset`                                     | `#0C0D0B` | Content inset and deepest panel                                                       |
+| Surface     | `card`                                              | `#131411` | Cards, fields, menus and grouped content                                              |
+| Raised      | `muted`                                             | `#1A1B18` | Selected rows, hover and raised controls                                              |
+| Panel       | `surface-panel`                                     | `#0F100E` | Chart panels and past day cards                                                       |
+| Current     | `surface-current`                                   | `#161714` | Today's day card                                                                      |
+| Hairline    | `border`                                            | `#262722` | Separators and restrained frames                                                      |
+| Strong line | `border-strong`, `input`                            | `#34352F` | Field and outline-control borders, tags, chips                                        |
+| Subtle line | `border-subtle`                                     | `#1F201C` | Inner dividers and progress tracks                                                    |
+| Chalk       | `foreground`                                        | `#EDECE6` | Primary text and selected choice fill                                                 |
+| Secondary   | `secondary-foreground`                              | `#B3B2AA` | Body support text                                                                     |
+| Muted       | `muted-foreground`                                  | `#8A8981` | Metadata and quiet supporting text                                                    |
+| Dim         | `dim`                                               | `#4A4B45` | Declined, removed and inactive marks                                                  |
+| Volt        | `primary`                                           | `#D5FF3F` | Coach presence, primary action, selection, progress, and meaningful positive emphasis |
+| Success     | `success` (+ `-surface`, `-border`)                 | `#7FD4A0` | Done, accepted, improving, up to date                                                 |
+| Warning     | `warning` (+ `-border`)                             | `#FFB547` | Needs you, watch, partial, retrying                                                   |
+| Investigate | `destructive` (+ `danger-surface`, `danger-border`) | `#FF6A3D` | Failed, expired or investigate state                                                  |
+| Garmin      | `provider` (+ `-muted`)                             | `#5E8FB8` | Provider provenance and easy volume; `provider-muted` is past or light volume         |
+| Zones       | `intensity-1` … `intensity-5`                       | see CSS   | Training intensity; zone 2 is the provider blue and zone 5 the danger orange          |
+| Medical     | `staff-medical`                                     | `#62D2C8` | Medical specialist identity on the staff team page and its role marks                 |
 
 Values live once in `src/app/globals.css` and are exposed through `@theme inline`. Use Volt sparingly. Success, warning, danger, provider, and training-zone states have distinct semantic tokens; do not conflate status meaning with the brand accent. Do not scatter raw color values through components. Add or adjust semantic tokens only when a reference or actual state requires them.
 
@@ -43,11 +43,11 @@ Load fonts with `next/font` from the root layout so they are self-hosted and avo
 
 The type scale is tokenized as Tailwind font-size utilities with their own line height and tracking: `text-display` (52px), `text-headline` (26px), `text-title` (22px), `text-lead` (17px), `text-body` (15px), `text-meta` (13px), and the mono label sizes `text-label` (11px), `text-micro` (10px), and `text-nano` (9px). Tailwind's `text-xs`, `text-sm`, and `text-xl` cover 12, 14, and 20px. Metrics use `text-metric-sm`, `text-metric`, `text-metric-lg`, and `text-metric-hero`, normally through the `Metric` component. Mono labels are always uppercase; use `MonoLabel` instead of repeating the font, size, case, and tone classes.
 
-`cn` in `src/lib/utils.ts` is configured with these size and radius scales so that class merging keeps a Stride size next to a text color and lets a later radius override an earlier one. Extend that configuration when adding a font-size or radius token.
+`cn` in `src/lib/utils.ts` is configured with these sizes and the `mark` radius so that class merging keeps a Stride size next to a text color and lets a later radius override an earlier one. Extend that configuration when adding a font-size or radius token.
 
 ## Surfaces and shape
 
-Establish hierarchy with graphite surfaces and insets first. Prefer a one-pixel hairline over a decorative shadow; overlays use a dimmed shell and a strong hairline, never blur or glass. Radii are semantic: `rounded-mark` (2px) for bars and segments, `rounded-tag` (5px) for tags and keys, `rounded-control` (6px) for compact buttons, chips and rows, `rounded-surface` (8px) for fields, full-size buttons, choices and menus, `rounded-card` (12px) for cards, banners and ledger entries, and `rounded-panel` (14px) for the inset work area. Reserve full rounding for status dots, steps, and day toggles. Avoid glass effects, glow outside the Halo Volt pattern, startup gradients, and default-dashboard styling.
+Establish hierarchy with graphite surfaces and insets first. Prefer a one-pixel hairline over a decorative shadow; overlays use a dimmed shell and a strong hairline, never blur or glass. Radii follow roles: `rounded-mark` (2px) for bars and segments, `rounded-sm` (5px) for tags and keys, `rounded-md` (6px) for compact buttons, chips and rows, `rounded-lg` (8px) for fields, full-size buttons, choices and menus, `rounded-xl` (12px) for cards, banners and ledger entries, and `rounded-2xl` (14px) for the inset work area. Reserve full rounding for status dots, steps, and day toggles. Avoid glass effects, glow outside the Halo Volt pattern, startup gradients, and default-dashboard styling.
 
 ## Spacing and density
 
@@ -89,7 +89,7 @@ Installed primitives: Alert, AlertDialog, Badge, Button, Checkbox, Collapsible, 
 
 Stride patterns: `MonoLabel`, `SectionHeader`, `Metric`, `StrideMark`, status marks (`TrendMark`, `TrendLabel`, `DirectionMark`, `SourceMark`, `DecisionMark`, `DoneMark`, `PulseDot`), `VerdictList`/`VerdictRow`, `ProvenanceLabel`, `SignalList`/`SignalRow`, `ProviderValueInput`, `SignalChip`, `ContextChip`/`ContextChipLink` (an item attached to a Coach message: icon, title and mono date; the removable chip sits in the composer with a remove button that is 44px below `md`, the link chip sits on the sent message and opens the record), `SuggestedReplies` (a group of short French replies above the Coach composer; outline pills of 44px that scroll horizontally below `md`, 32px buttons that wrap from `md`; a tap sends the reply), `ConfidenceMeter`, `Sparkline`, `Halo`, `Recommendation` and its parts, `LedgerEntry`/`DecisionLegend`, `CoachActivity`, `CoachNote`, `SyncStatus`, `Stepper`/`StepperItem`/`StepperSegments`, `SessionShape`, `SessionKindTile` (session family tile in four sizes, with rest and race states), the sidebar parts (`NavGoalSwitcher`, `NavItem`, `NavBadge`, `NavDayRow`, `NavUser`), and `MobileTabBar`/`MobileTab`/`MobileAskAction` (the central Coach action takes an active state and a count badge).
 
-Tailwind utilities inside React components own layout, responsive behavior, typography, and component appearance. Reserve `globals.css` for tokens, base styles, and global accessibility defaults. Standard shadcn color aliases map to Night Track roles: card → surface, popover → surface, secondary → raised surface, primary → accent, destructive → danger, input → strong line, and ring → focus. Adapt registry styles before use: Stride's `muted` means supporting text, so replace registry `bg-muted` surfaces with `bg-surface-raised`, and registry `bg-accent` hover states with `bg-surface-raised`, because Stride's accent is Volt.
+Tailwind utilities inside React components own layout, responsive behavior, typography, and component appearance. Reserve `globals.css` for tokens, base styles, and global accessibility defaults. Color tokens use the shadcn names: `card` is the surface, `popover` aliases it, `muted` and `secondary` are the raised surface, `primary` is Volt, `destructive` is the investigate state, `input` the strong line, and `ring` the focus. Supporting text is `text-secondary-foreground`; `muted` is a surface and never a text color. `secondary-foreground` is therefore not shadcn's "text on `bg-secondary`": on a registry component that pairs the two, use `text-foreground`. There is no `accent` token yet: replace registry `bg-accent` hover states with `bg-muted`.
 
 ### Reuse rule
 

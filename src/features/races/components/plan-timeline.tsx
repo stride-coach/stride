@@ -21,7 +21,7 @@ import { WeatherIcon } from "./weather-icon";
 const dotTone: Record<TimelineStation["kind"], string> = {
   start: "border-foreground",
   finish: "border-foreground",
-  aid: "border-accent",
+  aid: "border-primary",
   water: "border-provider",
   base: "border-warning",
   summit: "border-foreground",
@@ -52,7 +52,7 @@ function CutoffPill({
       className={cn(
         "inline-flex items-center rounded-full border px-2.25 py-0.5 text-xs whitespace-nowrap",
         late
-          ? "border-danger-border text-danger"
+          ? "border-danger-border text-destructive"
           : "border-success-border text-success",
         compact && "text-micro",
       )}
@@ -113,7 +113,9 @@ function Station({ station }: { station: TimelineStation }) {
             <CutoffPill station={station} />
           </div>
           {station.refill && (
-            <p className="text-meta text-muted">{station.refill}</p>
+            <p className="text-meta text-secondary-foreground">
+              {station.refill}
+            </p>
           )}
         </div>
         <div className="flex flex-col items-end gap-0.5">
@@ -141,7 +143,7 @@ function Station({ station }: { station: TimelineStation }) {
           <CutoffPill station={station} compact />
         </span>
         {station.refill && (
-          <p className="col-start-2 col-end-4 text-xs leading-normal text-muted">
+          <p className="col-start-2 col-end-4 text-xs leading-normal text-secondary-foreground">
             {station.refill}
           </p>
         )}
@@ -211,18 +213,18 @@ function Segment({
         data-segment-index={segment.index}
         aria-label={`Tronçon T${segment.index}, ${segment.fromName} → ${segment.toName}`}
         className={cn(
-          "my-0.5 flex min-w-0 flex-col gap-2 rounded-card border bg-surface p-3 md:gap-2.5 md:px-4 md:py-3.5",
+          "my-0.5 flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-3 md:gap-2.5 md:px-4 md:py-3.5",
           segment.night ? "border-night/35" : "border-border",
         )}
       >
         <div className="flex flex-wrap items-center gap-2 md:gap-2.5">
-          <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-control border border-border-strong bg-surface-raised font-metric text-xs font-semibold">
+          <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-border-strong bg-muted font-metric text-xs font-semibold">
             T{segment.index}
           </span>
           <span className="text-meta font-semibold md:text-sm">
             {formatKm(segment.toM - segment.fromM).replace(/,0$/, "")} km
           </span>
-          <span className="text-xs text-muted md:text-meta">
+          <span className="text-xs text-secondary-foreground md:text-meta">
             +{formatInteger(segment.gainM ?? 0)}
             <span className="max-md:hidden print:inline"> m</span> · −
             {formatInteger(segment.lossM ?? 0)}
@@ -263,7 +265,7 @@ function Segment({
           />
         </div>
         {segment.items && (
-          <div className="flex items-start gap-2 text-xs text-muted md:text-meta">
+          <div className="flex items-start gap-2 text-xs text-secondary-foreground md:text-meta">
             <MonoLabel
               size="nano"
               className="shrink-0 pt-0.5 max-md:hidden print:inline"
@@ -279,7 +281,7 @@ function Segment({
             <span className="flex-1">{segment.note}</span>
             <Link
               href={ask}
-              className="text-xs whitespace-nowrap text-accent underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
+              className="text-xs whitespace-nowrap text-primary underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
             >
               Demander au stratège
             </Link>
@@ -288,7 +290,7 @@ function Segment({
         <Link
           href={ask}
           className={cn(
-            "flex min-h-8 items-center self-start text-xs text-accent underline underline-offset-2 hover:text-foreground print:hidden",
+            "flex min-h-8 items-center self-start text-xs text-primary underline underline-offset-2 hover:text-foreground print:hidden",
             segment.note && "md:hidden",
           )}
         >

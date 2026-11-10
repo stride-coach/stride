@@ -14,7 +14,7 @@ export function AddTabs({
   return (
     <nav
       aria-label="Façon d’ajouter"
-      className="flex max-w-105 gap-1 rounded-card border border-border bg-surface p-1"
+      className="flex max-w-105 gap-1 rounded-xl border border-border bg-card p-1"
     >
       {tabs.map((tab) => (
         <Link
@@ -22,7 +22,7 @@ export function AddTabs({
           href={tab.href}
           aria-current={tab.key === current ? "page" : undefined}
           className={cn(
-            "flex min-h-10 flex-1 items-center justify-center rounded-control px-2 text-center text-sm",
+            "flex min-h-10 flex-1 items-center justify-center rounded-md px-2 text-center text-sm",
             tab.key === current
               ? "bg-border font-semibold text-foreground"
               : "text-muted-foreground hover:text-foreground",

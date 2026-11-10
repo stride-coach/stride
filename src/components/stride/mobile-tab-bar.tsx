@@ -36,7 +36,7 @@ export function MobileTab({
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "flex min-h-11 flex-col items-center justify-center gap-1 rounded-control transition-colors duration-150 ease-stride [&_svg]:size-5",
+        "flex min-h-11 flex-col items-center justify-center gap-1 rounded-md transition-colors duration-150 ease-stride [&_svg]:size-5",
         isActive
           ? "text-foreground"
           : "text-muted-foreground hover:text-foreground",
@@ -65,13 +65,13 @@ export function MobileAskAction({
       aria-label={label}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "relative -mt-4.5 grid size-13 place-items-center justify-self-center rounded-full bg-accent transition-colors duration-150 ease-stride hover:bg-accent/85",
+        "relative -mt-4.5 grid size-13 place-items-center justify-self-center rounded-full bg-primary transition-colors duration-150 ease-stride hover:bg-primary/85",
         isActive &&
-          "ring-[1.5px] ring-accent ring-offset-3 ring-offset-background",
+          "ring-[1.5px] ring-primary ring-offset-3 ring-offset-background",
       )}
     >
       <StrideMark
-        className="size-5.5 stroke-accent-foreground"
+        className="size-5.5 stroke-primary-foreground"
         strokeWidth="2.2"
       />
       {badge}

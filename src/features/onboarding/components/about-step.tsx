@@ -216,7 +216,7 @@ export function AboutStep({
               Quelques infos que Garmin ne me donne pas.
             </span>
           </h1>
-          <p className="hidden text-lead text-pretty text-muted lg:block">
+          <p className="hidden text-lead text-pretty text-secondary-foreground lg:block">
             Le reste, je le déduis de ton historique. Tu pourras tout modifier
             plus tard.
           </p>
@@ -224,7 +224,7 @@ export function AboutStep({
         {state.conflicts.length > 0 && (
           <div
             role="alert"
-            className="flex flex-col gap-3 rounded-surface border border-warning-border bg-surface p-4"
+            className="flex flex-col gap-3 rounded-lg border border-warning-border bg-card p-4"
           >
             <p className="text-sm font-semibold">
               Tes réponses ont changé sur un autre appareil.
