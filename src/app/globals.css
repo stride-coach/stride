@@ -29,6 +29,8 @@
   --data-3: #bfc2c9;
   --relief: #30364a;
   --relief-strong: #4a5573;
+  --overlay: rgb(0 0 0 / 0.45);
+  --stride-shadow-float: 0 24px 64px rgb(0 0 0 / 0.5);
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
@@ -56,6 +58,7 @@
   --stride-radius-xl: 12px;
   --stride-radius-2xl: 14px;
   --stride-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --stride-control-auto: 40px;
   --stride-duration-fast: 150ms;
   --stride-duration-base: 220ms;
   --stride-duration-slow: 320ms;
@@ -91,6 +94,8 @@
   --data-3: #3b3d42;
   --relief: #c9cedb;
   --relief-strong: #a9b2cc;
+  --overlay: rgb(0 0 0 / 0.28);
+  --stride-shadow-float: 0 24px 64px rgb(0 0 0 / 0.12);
 }
 
 @theme inline {
@@ -119,6 +124,8 @@
   --color-data-3: var(--data-3);
   --color-relief: var(--relief);
   --color-relief-strong: var(--relief-strong);
+  --color-overlay: var(--overlay);
+  --shadow-float: var(--stride-shadow-float);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -146,6 +153,7 @@
   --spacing-row-touch: 42px;
   --spacing-control: 28px;
   --spacing-control-touch: 40px;
+  --spacing-control-auto: var(--stride-control-auto);
   --spacing-topbar: 48px;
   --spacing-header: 44px;
   --spacing-sidebar: 212px;
@@ -238,6 +246,12 @@
     to {
       stroke-dashoffset: 0;
     }
+  }
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --stride-control-auto: 28px;
   }
 }
 
@@ -338,6 +352,8 @@
     --data-3: #3b3d42;
     --relief: #c9cedb;
     --relief-strong: #a9b2cc;
+    --overlay: rgb(0 0 0 / 0.28);
+    --stride-shadow-float: 0 24px 64px rgb(0 0 0 / 0.12);
   }
 }
 

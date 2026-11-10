@@ -25,7 +25,7 @@ function ToggleGroup({
       className={cn(
         "flex flex-wrap items-center gap-2",
         variant === "segment" &&
-          "w-fit flex-nowrap gap-0 overflow-hidden rounded-lg border border-border",
+          "w-fit flex-nowrap gap-0.5 rounded-lg border border-border p-0.5",
         className,
       )}
       {...props}
@@ -47,11 +47,7 @@ function ToggleGroupItem({
     <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
       data-variant={variant}
-      className={cn(
-        toggleVariants({ variant }),
-        variant === "segment" && "border-l border-border first:border-l-0",
-        className,
-      )}
+      className={cn(toggleVariants({ variant }), className)}
       {...props}
     />
   );

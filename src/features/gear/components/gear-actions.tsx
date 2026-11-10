@@ -53,7 +53,7 @@ export function RetireShoeButton({
     );
   return (
     <>
-      <Button variant="destructive" size="md" onClick={() => setOpen(true)}>
+      <Button variant="outline" size="md" onClick={() => setOpen(true)}>
         Retirer
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>

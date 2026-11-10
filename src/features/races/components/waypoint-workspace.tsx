@@ -485,11 +485,11 @@ function WaypointEditor({
         {point && (
           <Button
             type="button"
-            variant="destructive"
+            variant="outline"
             size="md"
             disabled={pending}
             onClick={remove}
-            className="min-h-11 flex-1 font-normal lg:min-h-9.5 lg:flex-none"
+            className="min-h-11 flex-1 text-destructive lg:min-h-9.5 lg:flex-none"
           >
             Supprimer
           </Button>

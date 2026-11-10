@@ -70,7 +70,7 @@ Each size carries its line height and tracking. `MonoLabel` and `Metric` keep th
 
 Radii: `rounded-mark` (2px) for intensity blocks and chart bars, `rounded-sm` (5px) for chips and keys, `rounded-md` (6px) for buttons, fields and navigation entries, `rounded-lg` (9px) for the inner card of a banded block, `rounded-xl` (12px) for banded blocks and the content panel, and `rounded-2xl` (14px) for the app frame and mobile sheets.
 
-Spacing follows Tailwind's 4px grid. Size tokens are spacing utilities: `row` (38px list row), `row-touch` (42px), `control` (28px desktop button or field), `control-touch` (40px mobile primary action), `topbar` (48px), `header` (44px panel header), `sidebar` (212px), `rail` (52px) and `panel` (308px context panel), for example `h-row` or `w-sidebar`.
+Spacing follows Tailwind's 4px grid. Size tokens are spacing utilities: `row` (38px list row), `row-touch` (42px), `control` (28px desktop button or field), `control-touch` (40px mobile primary action), `control-auto` (40px below `md`, 28px from `md`, for controls that must stay tappable on touch), `topbar` (48px), `header` (44px panel header), `sidebar` (212px), `rail` (52px) and `panel` (308px context panel), for example `h-row` or `w-sidebar`.
 
 Separate zones with a one-pixel `border` and a change of background, never a shadow; only a floating panel casts one. Avoid glass, gradients and glows.
 
@@ -86,11 +86,14 @@ Stride's UI has three layers:
 2. **Stride patterns** in `src/components/stride`: reusable product compositions from the system references, built on the primitives. They take content and state through props and contain no data fetching or domain decisions.
 3. **Screens and features** in `src/app` and `src/features`: compose patterns and primitives. They do not recreate low-level styles.
 
-Installed primitives: Alert, AlertDialog, Badge, Button, Checkbox, Collapsible, DropdownMenu, Field, Input, InputGroup, Kbd, Label, Popover (the desktop notification panel: 14px radius, strong hairline), Progress, Separator, Sheet, Sidebar, Skeleton, Sonner (`Toaster`), Tabs, Textarea, Toggle, ToggleGroup, and Tooltip. Current specifics, restyled in #390:
+Installed primitives: Alert, AlertDialog, Badge, Button, Checkbox, Collapsible, DropdownMenu, Field, Input, InputGroup, Kbd, Label, Popover, Progress, Separator, Sheet, Sidebar, Skeleton, Sonner (`Toaster`), Tabs, Textarea, Toggle, ToggleGroup, and Tooltip. Dense specifics:
 
-- `Button` variants are `default` (`primary`), `outline`, `secondary`, `neutral` (foreground fill for draft application), `ghost`, `destructive`, and `link`; size `default`/`lg` is the full-size form action, `md` the compact 38px action used in cards, and `sm`/`xs` the inline actions.
-- `Badge` is the status tag (`outline`, `accent`, `success`, `warning`, `danger`); its tinted variants predate Dense and follow the Chip and Status pages after #390. Counts and readiness values in navigation use `NavBadge`.
-- `ToggleGroup` variants are `choice` (foreground fill when selected), `day` (round, `primary` ring), and `segment` (connected range control). `Tabs` are underline tabs with a `primary` indicator.
+- `Button` variants are `default` (`primary` fill), `outline` (`card` with `control-border`, `muted-foreground` outline on hover), `secondary` (`muted`), `neutral` (foreground fill for draft application), `ghost` (`muted` on hover), `destructive` (`destructive` fill with `background` text, for actions that remove something and cannot be undone), and `link`. `default` and `md` are 40px on touch and 28px from `md` (`h-control-auto`), `sm` is 28px, `lg` is 40px, and `xs` 24px. Pressing never moves or scales a button.
+- `Badge` is the Chip: `outline` for an attribute, `accent` (`accent` fill, `primary` text) for a coach proposal, and `success`, `warning`, `danger` as a coloured word on the neutral outline. Use the Status pattern, not a badge, for a health state.
+- `ToggleGroup` variants are `choice` (`muted` fill and semibold when selected), `day` (round, `accent` fill and `primary` ring when selected), and `segment` (period selector: options inside a `border` outline, the active one on `muted`). `Tabs` are underline tabs: muted labels, the active one in `foreground` with a 2px `foreground` underline.
+- Fields (`Input`, `Textarea`, `Select`, `InputGroup`, `Checkbox`) sit on `card` with the 3:1 `input` outline, are as tall as a button, and show an error with a `destructive` outline. Focus is the global 2px `ring` outline offset by 2px; primitives never remove it.
+- Overlays (`Dialog`, `AlertDialog`, `Sheet`) sit on `background` with a `control-border` outline, a 14px radius and the `shadow-float` shadow over the `overlay` veil; both values change with the theme. The safe action is an outline button on the left, the destructive one filled on the right. Popovers, menus, select lists and tooltips use the same outline and shadow.
+- `Skeleton` blocks are static `muted` shapes with a 4px radius, without shimmer.
 - `Sidebar` is configured for 264px expanded, a 56px icon rail with tooltips, and an off-canvas sheet below 768px. Use `variant="inset"` and `collapsible="icon"`.
 - Primitives do not use `dark:` variants: the theme comes from `data-theme`, not directly from the operating system.
 
