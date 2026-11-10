@@ -3,7 +3,8 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Chip } from "@/components/stride/chip";
+import { Widget } from "@/components/stride/widget";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
 import { coachRequestHref } from "@/features/coach/request";
@@ -11,7 +12,7 @@ import { PlanProfile } from "@/features/races/components/plan-profile";
 import { PlanTimeline } from "@/features/races/components/plan-timeline";
 import { PrintSheetButton } from "@/features/races/components/print-sheet-button";
 import { RaceProposalSheet } from "@/features/races/components/race-proposal-sheet";
-import { EmptyState, RaceCard } from "@/features/races/components/race-ui";
+import { EmptyState } from "@/features/races/components/race-ui";
 import { StopsEditor } from "@/features/races/components/stops-editor";
 import { TargetMissing } from "@/features/races/components/target-missing";
 import {
@@ -77,10 +78,10 @@ function ScenarioChips({
   base: string;
 }) {
   return (
-    <div className="flex gap-1.5 overflow-x-auto max-md:-mx-5 max-md:px-5 md:flex-wrap md:items-center md:gap-2.5">
-      <MonoLabel size="micro" className="mr-1.5 max-md:hidden">
-        Scénario
-      </MonoLabel>
+    <nav
+      aria-label="Scénario"
+      className="flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-lg border border-border bg-card p-0.5 max-sm:w-full"
+    >
       {scenarios.map((scenario) => (
         <Link
           key={scenario.key}
@@ -92,9 +93,8 @@ function ScenarioChips({
           scroll={false}
           aria-current={scenario.key === current ? "true" : undefined}
           className={cn(
-            "inline-flex min-h-8.5 shrink-0 items-center rounded-full border border-control-border px-3 text-body whitespace-nowrap text-secondary-foreground transition-colors hover:text-foreground",
-            scenario.key === current &&
-              "border-foreground bg-foreground font-semibold text-background hover:text-background",
+            "flex min-h-control-touch shrink-0 items-center justify-center gap-1 rounded-md px-2.5 whitespace-nowrap text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground max-sm:flex-1 md:min-h-6",
+            scenario.key === current && "bg-muted font-medium text-foreground",
           )}
         >
           {scenarioNames[scenario.key]} ·{" "}
@@ -102,7 +102,7 @@ function ScenarioChips({
           <span className="md:hidden">{formatDuration(scenario.seconds)}</span>
         </Link>
       ))}
-    </div>
+    </nav>
   );
 }
 
@@ -142,23 +142,26 @@ function StrategistCard({
     : 0;
   const base = `/races/${data.race.id}/roadbook`;
   return (
-    <RaceCard
+    <section
       aria-labelledby="consignes-strategiste"
-      className="mb-3 gap-3.5 px-4 py-4 sm:px-6 sm:py-5.5 print:border-0 print:p-0"
+      className="flex flex-col gap-2.5"
     >
-      <div className="flex items-center gap-2 md:gap-2.5">
-        <StrideMark className="size-3.5" />
-        <MonoLabel asChild size="micro" tone="foreground">
-          <h2 id="consignes-strategiste">Consignes du stratège</h2>
-        </MonoLabel>
+      <div className="flex items-center gap-2">
+        <StrideMark className="size-3 shrink-0" />
+        <h2
+          id="consignes-strategiste"
+          className="text-label font-medium text-secondary-foreground"
+        >
+          Consignes du stratège
+        </h2>
         {proposal && (
-          <span className="ml-auto inline-flex items-center rounded-full border border-warning/30 px-2.25 py-0.5 text-label whitespace-nowrap text-warning max-md:hidden">
+          <Chip proposal className="ml-auto max-md:hidden">
             {changeCountLabel(changes)}
-          </span>
+          </Chip>
         )}
       </div>
       {consignes.length > 0 ? (
-        <ol className="flex list-decimal flex-col gap-1.5 pl-4.5 text-body leading-normal md:text-body">
+        <ol className="flex max-w-170 list-decimal flex-col gap-1.5 pl-4.5 text-body-lg text-pretty">
           {consignes.map((consigne, index) => (
             <li key={index}>{consigne}</li>
           ))}
@@ -168,13 +171,9 @@ function StrategistCard({
           Fixe ton objectif pour que le stratège prépare tes consignes.
         </p>
       )}
-      <div className="flex flex-col gap-2 md:flex-row md:flex-wrap print:hidden">
+      <div className="mt-1 flex flex-col gap-2 md:flex-row md:flex-wrap print:hidden">
         {proposal && (
-          <Button
-            asChild
-            size="md"
-            className="rounded-lg text-body max-md:min-h-11"
-          >
+          <Button asChild>
             <Link
               href={`${base}?proposal=${proposal.id}`}
               scroll={false}
@@ -187,12 +186,7 @@ function StrategistCard({
             </Link>
           </Button>
         )}
-        <Button
-          asChild
-          variant="outline"
-          size="md"
-          className="rounded-lg text-body max-md:min-h-11"
-        >
+        <Button asChild variant="outline">
           <Link
             href={coachRequestHref(
               "Construisons ma stratégie de course avec le stratège.",
@@ -204,9 +198,13 @@ function StrategistCard({
           </Link>
         </Button>
       </div>
-    </RaceCard>
+    </section>
   );
 }
+
+const panelHeading = "text-label font-medium text-muted-foreground";
+const panelSection =
+  "flex flex-col gap-2.5 border-b border-border py-4.5 first:pt-0 last:border-b-0";
 
 function Aside({
   data,
@@ -236,19 +234,22 @@ function Aside({
   return (
     <aside
       aria-label="Résumé du plan de course"
-      className="sticky top-5 flex flex-col gap-3.5 max-lg:hidden print:hidden"
+      className="flex flex-col max-xl:hidden xl:w-panel xl:shrink-0 print:hidden"
     >
-      <RaceCard className="gap-2.5 p-4 sm:p-4">
-        <MonoLabel asChild size="micro">
-          <h2>Où tu en es</h2>
-        </MonoLabel>
+      <section aria-labelledby="plan-where" className={panelSection}>
+        <h2 id="plan-where" className={panelHeading}>
+          Où tu en es
+        </h2>
         <PlanProfile data={profile} variant="card" />
-      </RaceCard>
-      <RaceCard className="gap-2 p-4 sm:p-4">
-        <MonoLabel asChild size="micro">
-          <h2>Arrivée prévue</h2>
-        </MonoLabel>
-        <span className="text-[2.25rem] leading-none font-semibold tabular-nums">
+      </section>
+      <section aria-labelledby="plan-arrival" className={panelSection}>
+        <h2 id="plan-arrival" className={panelHeading}>
+          Arrivée prévue
+        </h2>
+        <span
+          data-slot="metric"
+          className="text-metric font-semibold tabular-nums"
+        >
           {formatClock(totals.finishClockMinutes)}
         </span>
         {totals.finishCutoffMinutes !== null &&
@@ -263,11 +264,17 @@ function Aside({
               {marginText(totals.finishMarginSeconds)}
             </span>
           )}
-        <dl className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-2 text-label text-secondary-foreground">
+        <dl className="flex flex-col">
           {figures.map(([label, seconds]) => (
-            <div key={label} className="flex items-baseline gap-1">
-              <dt>{label}</dt>
-              <dd className="text-[0.9375rem] font-semibold text-foreground tabular-nums">
+            <div
+              key={label}
+              className="flex items-baseline justify-between gap-3 border-b border-border py-2 last:border-b-0"
+            >
+              <dt className="text-secondary-foreground">{label}</dt>
+              <dd
+                data-slot="metric"
+                className="font-semibold text-foreground tabular-nums"
+              >
                 {label === "Arrêts" ? (
                   <StopsEditor
                     raceId={data.race.id}
@@ -284,11 +291,11 @@ function Aside({
             </div>
           ))}
         </dl>
-      </RaceCard>
-      <RaceCard className="gap-1.5 p-4 sm:p-4">
-        <MonoLabel asChild size="micro">
-          <h2>Points de passage</h2>
-        </MonoLabel>
+      </section>
+      <section aria-labelledby="plan-points" className={panelSection}>
+        <h2 id="plan-points" className={panelHeading}>
+          Points de passage
+        </h2>
         <span className="text-body text-secondary-foreground">
           {data.waypoints.length} point{data.waypoints.length > 1 ? "s" : ""} ·{" "}
           {stations.length} ravito{stations.length > 1 ? "s" : ""} ·{" "}
@@ -296,11 +303,11 @@ function Aside({
         </span>
         <Link
           href={`/races/${data.race.id}/waypoints`}
-          className="text-body text-primary hover:text-foreground"
+          className="w-fit text-body text-primary hover:text-foreground"
         >
-          Modifier les points →
+          Modifier les points
         </Link>
-      </RaceCard>
+      </section>
     </aside>
   );
 }
@@ -364,12 +371,12 @@ function PlanBody({
     .join(" · ");
   return (
     <>
-      <div className="sticky top-0 z-10 flex flex-col gap-1 border-b border-border bg-background py-1.5 lg:hidden print:hidden">
+      <div className="sticky top-0 z-10 flex flex-col gap-1 border-b border-border bg-background py-1.5 xl:hidden print:hidden">
         <PlanProfile data={profile} variant="sticky" caption={caption} />
       </div>
       <section
         aria-label="Scénario et actions"
-        className="flex flex-wrap items-center gap-2.5 print:hidden"
+        className="flex flex-wrap items-center gap-2 print:hidden"
       >
         <ScenarioChips
           scenarios={views.scenarios}
@@ -381,22 +388,11 @@ function PlanBody({
             label="Imprimer le roadbook"
             icon={false}
             size="md"
-            className="rounded-lg text-body"
           />
-          <Button
-            asChild
-            variant="outline"
-            size="md"
-            className="rounded-lg text-body"
-          >
+          <Button asChild variant="outline">
             <Link href={`${base}/waypoints#montre`}>Envoyer à la montre</Link>
           </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="md"
-            className="rounded-lg text-body"
-          >
+          <Button asChild variant="outline">
             <Link href={`${base}/waypoints`}>Modifier les points</Link>
           </Button>
         </div>
@@ -405,8 +401,8 @@ function PlanBody({
         Scénario {scenarioNames[planned.scenario.key].toLowerCase()} ·{" "}
         {formatHours(planned.scenario.seconds)}
       </p>
-      <section className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_340px] print:block">
-        <div className="flex min-w-0 flex-col">
+      <section className="flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6 print:block">
+        <div className="flex min-w-0 flex-1 flex-col gap-4.5">
           <StrategistCard
             data={data}
             views={views}
@@ -414,18 +410,34 @@ function PlanBody({
             proposal={proposal}
           />
           {!planned.simulation.feasible && (
-            <p role="status" className="py-2 text-body text-warning">
+            <p role="status" className="text-body text-warning">
               Cet objectif est hors de portée avec la marche et les arrêts
               prévus : la simulation est à revoir.
             </p>
           )}
-          <PlanTimeline timeline={timeline} raceId={data.race.id} />
+          <Widget
+            headingLevel={2}
+            title={<span id="plan-de-course">Plan de course</span>}
+            verdict={
+              <span className="text-label font-normal text-muted-foreground">
+                {timeline.segments.length} tronçon
+                {timeline.segments.length > 1 ? "s" : ""} · {caption}
+              </span>
+            }
+            aria-labelledby="plan-de-course"
+            className="print:border-0 print:bg-transparent print:p-0 print:[&>div]:border-0 print:[&>div]:p-0 print:[&>header]:hidden"
+          >
+            <PlanTimeline timeline={timeline} raceId={data.race.id} />
+          </Widget>
         </div>
         <Aside data={data} totals={totals} profile={profile} />
       </section>
-      <p className="flex flex-wrap items-baseline gap-x-1.5 text-body text-secondary-foreground lg:hidden print:hidden">
+      <p className="flex flex-wrap items-baseline gap-x-1.5 text-body text-secondary-foreground xl:hidden print:hidden">
         Arrêts prévus ·
-        <span className="text-[0.9375rem] font-semibold text-foreground tabular-nums">
+        <span
+          data-slot="metric"
+          className="font-semibold text-foreground tabular-nums"
+        >
           <StopsEditor
             raceId={data.race.id}
             revision={data.plan.revision}
@@ -437,18 +449,8 @@ function PlanBody({
         </span>
       </p>
       <div className="flex flex-col gap-2 md:hidden print:hidden">
-        <PrintSheetButton
-          label="Imprimer le roadbook"
-          icon={false}
-          size="md"
-          className="min-h-11 rounded-lg text-body"
-        />
-        <Button
-          asChild
-          variant="outline"
-          size="md"
-          className="min-h-11 rounded-lg text-body"
-        >
+        <PrintSheetButton label="Imprimer le roadbook" icon={false} size="md" />
+        <Button asChild variant="outline">
           <Link href={`${base}/waypoints`}>Modifier les points</Link>
         </Button>
       </div>
@@ -489,7 +491,11 @@ export default async function RoadbookPage({
     return (
       <>
         {sheet}
-        <RaceCard>
+        <Widget
+          headingLevel={2}
+          title={<span id="plan-de-course">Plan de course</span>}
+          aria-labelledby="plan-de-course"
+        >
           <EmptyState title="Ajoute le parcours">
             <span>
               Importe un GPX pour préparer ton roadbook et placer les points de
@@ -499,7 +505,7 @@ export default async function RoadbookPage({
               <Link href={`${base}/course`}>Importer un GPX</Link>
             </Button>
           </EmptyState>
-        </RaceCard>
+        </Widget>
       </>
     );
 

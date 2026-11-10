@@ -11,7 +11,6 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { changeCountLabel } from "@/features/races/proposals";
@@ -47,11 +46,13 @@ function ChangeList({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <MonoLabel size="nano">{label}</MonoLabel>
+      <span className="text-label font-medium text-muted-foreground">
+        {label}
+      </span>
       {items.length ? (
         <ul
           className={cn(
-            "flex flex-col gap-1 text-body leading-normal",
+            "flex flex-col gap-1 text-body",
             tone === "before" ? "text-muted-foreground" : "text-foreground",
           )}
         >
@@ -110,12 +111,11 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         side={mobile ? "bottom" : "right"}
         showCloseButton={false}
         aria-describedby={undefined}
-        overlayClassName="bg-background/45"
         className={cn(
           "gap-0 overflow-hidden border-control-border bg-background text-foreground",
           mobile
-            ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
-            : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
+            ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-2xl"
+            : "rounded-2xl border shadow-float data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
         )}
       >
         {mobile && (
@@ -126,20 +126,21 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         )}
         <header className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
           <span className="flex min-w-0 flex-col gap-0.5">
-            <MonoLabel size="micro">{review.kicker}</MonoLabel>
+            <span className="text-label font-medium text-muted-foreground">
+              {review.kicker}
+            </span>
             <span className="truncate text-body text-secondary-foreground">
               {changeCountLabel(review.changes.length)}
             </span>
           </span>
-          <MonoLabel
-            size="micro"
+          <span
             className={cn(
-              "ml-auto text-right",
+              "ml-auto text-right text-label font-medium",
               decidable ? "text-warning" : "text-secondary-foreground",
             )}
           >
             {review.statusLabel}
-          </MonoLabel>
+          </span>
           <SheetClose asChild>
             <Button
               variant="outline"
@@ -157,7 +158,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
               {review.title}
             </SheetTitle>
             {review.summary && (
-              <p className="text-body leading-normal text-secondary-foreground">
+              <p className="text-body text-secondary-foreground">
                 {review.summary}
               </p>
             )}
