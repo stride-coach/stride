@@ -2,7 +2,11 @@ import { CheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
-import { SessionList, SessionRow } from "@/components/stride/session-row";
+import {
+  SessionList,
+  SessionRow,
+  type SessionRowState,
+} from "@/components/stride/session-row";
 import { SessionShape } from "@/components/stride/session-shape";
 import { Status, type StatusLevel } from "@/components/stride/status";
 import { Widget } from "@/components/stride/widget";
@@ -312,6 +316,7 @@ function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
               high: indicator.band.end,
               value: indicator.marker,
             }}
+            threshold={indicator.threshold}
           />
         )}
       </dd>
@@ -366,7 +371,7 @@ export function BodySection({
               )}
               {form.score !== null && (
                 <p className="text-muted-foreground tabular-nums">
-                  Forme {form.score}
+                  Forme {form.score} sur 100
                   {form.gap && ` · ${form.gap}`}
                 </p>
               )}
@@ -405,11 +410,25 @@ export function BodySection({
   );
 }
 
-function rowState(day: TodayWeekDay) {
-  if (day.isToday) return "today" as const;
-  if (day.family === "rest") return "rest" as const;
-  if (day.state === "done" || day.state === "partial") return "done" as const;
-  return "upcoming" as const;
+function rowState(day: TodayWeekDay): SessionRowState {
+  if (day.isToday) return "today";
+  if (day.family === "rest") return "rest";
+  if (day.state === "done" || day.state === "substituted") return "done";
+  if (day.state === "partial") return "partial";
+  if (day.state === "missed") return "missed";
+  if (day.state === "proposed") return "proposed";
+  return "upcoming";
+}
+
+function rowTitle(day: TodayWeekDay) {
+  const count = day.families.length;
+  return count > 1 ? `${day.title} + ${count - 1}` : day.title;
+}
+
+function rowCompliance(day: TodayWeekDay) {
+  const count = day.families.length;
+  if (count > 1) return `${day.doneCount}/${count}`;
+  return day.compliance !== null ? `${day.compliance} %` : undefined;
 }
 
 export function WeekSection({ week }: { week: TodayWeek }) {
@@ -454,14 +473,12 @@ export function WeekSection({ week }: { week: TodayWeek }) {
             past={day.isPast && !day.isToday}
             current={day.isToday ? "date" : undefined}
             day={day.dayLabel}
-            title={day.title}
+            title={rowTitle(day)}
             intensity={day.intensity}
             duration={day.family === "rest" ? undefined : day.duration}
             distance={day.family === "rest" ? undefined : day.distance}
             elevation={day.elevation}
-            compliance={
-              day.compliance !== null ? `${day.compliance} %` : undefined
-            }
+            compliance={rowCompliance(day)}
             href={day.href ?? undefined}
             label={day.label}
             className="sm:px-2"
@@ -512,7 +529,7 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
             )}
             {goal.light && (
               <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
-                <dt className="text-muted-foreground">Allégée</dt>
+                <dt className="text-muted-foreground">Semaine allégée</dt>
                 <dd>{goal.light}</dd>
               </div>
             )}

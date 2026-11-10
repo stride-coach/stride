@@ -18,6 +18,7 @@ export function TodayLoading() {
           label="Chargement de la journée"
           className="flex w-full flex-col pb-18 md:pb-6 xl:flex-row xl:items-start"
         >
+          <h1 className="sr-only">Aujourd’hui, {date}</h1>
           <div className="flex min-w-0 flex-1 flex-col">
             <section
               aria-hidden="true"

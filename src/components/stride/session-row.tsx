@@ -3,12 +3,16 @@ import { Chip } from "@/components/stride/chip";
 import type { Zone } from "@/components/stride/session-blocks";
 import { cn } from "@/lib/utils";
 
-export type SessionRowState = "done" | "today" | "upcoming" | "rest";
+export type SessionRowState =
+  "done" | "partial" | "today" | "upcoming" | "missed" | "proposed" | "rest";
 
 export const sessionStateLabels: Record<SessionRowState, string> = {
   done: "Faite",
+  partial: "Faite en partie",
   today: "Aujourd’hui",
   upcoming: "À venir",
+  missed: "Non faite",
+  proposed: "Changement proposé",
   rest: "Repos",
 };
 
@@ -26,6 +30,10 @@ export function SessionStateMark({
       className={cn(
         "size-3.5 shrink-0 rounded-full border-[1.5px]",
         state === "done" && "border-primary bg-primary",
+        state === "partial" &&
+          "border-primary bg-[linear-gradient(0deg,var(--primary)_50%,transparent_50%)]",
+        state === "missed" && "border-destructive",
+        state === "proposed" && "border-dashed border-warning",
         state === "today" &&
           "border-warning bg-[linear-gradient(90deg,transparent_50%,var(--warning)_50%)]",
         state === "upcoming" && "border-muted-foreground",
