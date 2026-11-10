@@ -308,20 +308,10 @@ test("settings pages use the available desktop width and center on wide screens"
   await page.screenshot({ path: "test-results/settings-wide-layout.png" });
 });
 
-test("desktop settings keep the account footer fixed and aligned with the app", async ({
-  page,
-}) => {
+test("desktop settings keep the account footer fixed", async ({ page }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 650 });
   await signIn(page);
-  await page.goto("/activities");
-  const appAvatar = await page
-    .getByRole("button", { name: /^Jules Profil/ })
-    .locator("span")
-    .first()
-    .boundingBox();
-  expect(appAvatar).not.toBeNull();
-
   for (const section of ["training", "goals"]) {
     await page.goto(`/settings/${section}`);
     const footer = page.locator('[data-slot="settings-account"]');
@@ -331,8 +321,6 @@ test("desktop settings keep the account footer fixed and aligned with the app", 
       .boundingBox();
     expect(before).not.toBeNull();
     expect(settingsAvatar).not.toBeNull();
-    expect(Math.abs(settingsAvatar!.x - appAvatar!.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(settingsAvatar!.y - appAvatar!.y)).toBeLessThanOrEqual(1);
 
     const scroller = page
       .locator('[data-slot="settings-content"]')

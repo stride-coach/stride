@@ -606,7 +606,7 @@ test("a blocked server navigation starts the header thread before its response",
   const before = await page.getByRole("article").boundingBox();
   const gate = await holdNavigation(page, "/progress");
   try {
-    await page.getByRole("link", { name: "Progression", exact: true }).click();
+    await page.getByRole("link", { name: "Santé", exact: true }).click();
     await gate.requested;
     await expectHeaderThread(page);
     expect(new URL(page.url()).pathname).toBe("/activities");
@@ -637,7 +637,7 @@ test("a superseding navigation cleans up its pending header thread", async ({
   await expect(page.getByRole("article")).toBeVisible();
   const gate = await holdNavigation(page, "/progress");
   try {
-    await page.getByRole("link", { name: "Progression", exact: true }).click();
+    await page.getByRole("link", { name: "Santé", exact: true }).click();
     await gate.requested;
     await expectHeaderThread(page);
     await page
@@ -664,7 +664,7 @@ test("opening a navigation link in another tab leaves the current thread idle", 
   const [popup] = await Promise.all([
     context.waitForEvent("page"),
     page
-      .getByRole("link", { name: "Progression", exact: true })
+      .getByRole("link", { name: "Santé", exact: true })
       .click({ modifiers: ["Control"] }),
   ]);
   await expect(page).toHaveURL("/activities");

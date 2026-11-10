@@ -7,7 +7,6 @@ import {
 import { MonoLabel } from "@/components/stride/mono-label";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ThemeSwitcher } from "@/features/theme/components/theme-switcher";
-import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +79,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "relative flex shrink-0 items-center gap-2.5 px-5 pt-3.5 pb-1 md:min-h-14 md:gap-3 md:border-b md:border-border md:py-0",
+        "relative flex shrink-0 items-center gap-2.5 px-5 pt-3.5 pb-1 md:h-header md:gap-3 md:border-b md:border-border md:py-0",
         className,
       )}
     >
@@ -107,19 +106,16 @@ export function AppHeader({
           </>
         )}
       </div>
-      <SidebarTrigger aria-label={sidebarLabel} className="max-md:hidden" />
-      <Separator
-        orientation="vertical"
-        className="max-md:hidden data-vertical:h-4 data-vertical:self-center"
-      />
       <div className="flex min-w-0 flex-1 max-md:hidden">
         {breadcrumb ?? (
           <Crumbs crumbs={crumbs ?? [{ label: title }]} detail={detail} />
         )}
       </div>
       {actions}
-      <ThemeSwitcher />
-      <NotificationBell />
+      <div className="flex items-center gap-2.5 md:hidden">
+        <ThemeSwitcher />
+        <NotificationBell />
+      </div>
       <DataActivityStatus short className="shrink-0 md:hidden" />
       <SidebarTrigger
         aria-label={sidebarLabel}

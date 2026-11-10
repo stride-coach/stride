@@ -36,11 +36,12 @@ test("activities are grouped by week, filtered by sport through the URL and open
   await expect(
     page.getByRole("heading", { level: 1, name: "Activités" }),
   ).toBeVisible();
-  const sidebar = page.locator('[data-sidebar="sidebar"]').first();
   await expect(
-    sidebar.getByRole("link", { name: /A EcoTrail Paris 120K/ }),
+    page.getByRole("link", {
+      name: /^Objectif : EcoTrail Paris 120K, Course A · J-\d+$/,
+    }),
   ).toBeVisible();
-  await expect(sidebar.getByText(/Course A · J-\d+/)).toBeVisible();
+  const sidebar = page.locator('[data-sidebar="sidebar"]').first();
   await expect(
     sidebar.getByRole("link", { name: "Activités" }),
   ).toHaveAttribute("aria-current", "page");

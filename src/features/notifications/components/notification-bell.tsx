@@ -29,6 +29,16 @@ import { useNotifications } from "./notifications-context";
 const bell =
   "relative grid shrink-0 place-items-center rounded-md border border-border text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:border-control-border aria-expanded:bg-muted aria-expanded:text-foreground";
 
+function Dot({ count }: { count: number }) {
+  if (count === 0) return null;
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute top-1 right-1.25 size-1.5 rounded-full bg-primary ring-2 ring-shell"
+    />
+  );
+}
+
 function Badge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
@@ -71,7 +81,11 @@ function PendingBell({ className }: { className?: string }) {
         href="/notifications"
         aria-label={bellLabel(0)}
         aria-current={current ? "page" : undefined}
-        className={cn(bell, "size-8.5 max-md:hidden", className)}
+        className={cn(
+          bell,
+          "size-control border-transparent max-md:hidden",
+          className,
+        )}
       >
         <BellIcon className="size-4" />
       </Link>
@@ -120,10 +134,14 @@ function LoadedBell({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           aria-label={bellLabel(unread)}
-          className={cn(bell, "size-8.5 max-md:hidden", className)}
+          className={cn(
+            bell,
+            "size-control border-transparent max-md:hidden",
+            className,
+          )}
         >
           <BellIcon className="size-4" />
-          <Badge count={unread} />
+          <Dot count={unread} />
         </PopoverTrigger>
         <PopoverContent
           align="end"
