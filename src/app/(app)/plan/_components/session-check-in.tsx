@@ -60,7 +60,7 @@ export function SessionCheckInButton({
         disabled={pending}
         aria-busy={pending}
         onClick={submit}
-        className={cn("rounded-control", className)}
+        className={cn("rounded-md", className)}
       >
         Annuler « C’est fait »
       </Button>
@@ -72,7 +72,7 @@ export function SessionCheckInButton({
       disabled={pending}
       aria-busy={pending}
       onClick={submit}
-      className={cn("rounded-control", className)}
+      className={cn("rounded-md", className)}
     >
       <CheckIcon aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
       C’est fait

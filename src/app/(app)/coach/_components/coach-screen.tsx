@@ -162,7 +162,7 @@ function Composer({
   if (closed)
     return (
       <div className="mx-auto flex w-full max-w-205 flex-col gap-2 border-t border-border-subtle px-4 py-4 sm:px-[clamp(20px,3vw,44px)]">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-secondary-foreground">
           Cette conversation est terminée. Démarre une nouvelle conversation
           pour continuer.
         </p>
@@ -185,7 +185,7 @@ function Composer({
         onSelect={(message) => void reply(message)}
         className="max-sm:-mx-4 max-sm:px-4"
       />
-      <InputGroup className="h-auto flex-wrap rounded-card border-border-strong bg-surface p-1.5 has-[>[data-align=block-start]]:flex-row md:h-auto">
+      <InputGroup className="h-auto flex-wrap rounded-xl border-border-strong bg-card p-1.5 has-[>[data-align=block-start]]:flex-row md:h-auto">
         {!answering && attachments.length > 0 && (
           <InputGroupAddon
             align="block-start"
@@ -224,7 +224,7 @@ function Composer({
               aria-expanded={pickerOpen}
               disabled={busy}
               onClick={() => setPickerOpen(true)}
-              className="size-11 rounded-surface p-0 text-muted md:h-9 md:w-auto md:border md:border-border md:px-2.5 md:text-meta md:font-normal"
+              className="size-11 rounded-lg p-0 text-secondary-foreground md:h-9 md:w-auto md:border md:border-border md:px-2.5 md:text-meta md:font-normal"
             >
               <PlusIcon aria-hidden="true" />
               <span aria-hidden="true" className="max-md:hidden">
@@ -262,7 +262,7 @@ function Composer({
               onPressedChange={setConsult}
               aria-label={`Mentionner ${staff.medical.name}`}
               disabled={busy}
-              className="min-h-9 gap-1.5 rounded-control border-border bg-transparent pr-2 pl-1.5 text-meta font-normal data-[state=on]:border-foreground data-[state=on]:bg-surface-raised data-[state=on]:font-semibold data-[state=on]:text-foreground"
+              className="min-h-9 gap-1.5 rounded-md border-border bg-transparent pr-2 pl-1.5 text-meta font-normal data-[state=on]:border-foreground data-[state=on]:bg-muted data-[state=on]:font-semibold data-[state=on]:text-foreground"
             >
               <StaffStack agents={["medical"]} size={18} />@{staff.medical.name}
             </Toggle>
@@ -272,7 +272,7 @@ function Composer({
             size="icon"
             aria-label="Envoyer"
             disabled={busy || !text.trim()}
-            className="size-9.5 rounded-surface"
+            className="size-9.5 rounded-lg"
           >
             <ArrowUpIcon aria-hidden="true" />
           </Button>
@@ -641,7 +641,7 @@ export function CoachScreen({
                     asChild
                     variant="outline"
                     size="icon"
-                    className="ml-auto size-11 rounded-surface"
+                    className="ml-auto size-11 rounded-lg"
                   >
                     <Link href="/coach/new" aria-label="Nouvelle conversation">
                       <PlusIcon aria-hidden="true" />
@@ -660,7 +660,7 @@ export function CoachScreen({
                     <MonoLabel size="nano">Ton staff</MonoLabel>
                     <Link
                       href="/coach/team"
-                      className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground"
+                      className="ml-auto inline-flex items-center gap-1.5 text-xs text-secondary-foreground hover:text-foreground"
                     >
                       Voir l’équipe
                       <ChevronRightIcon
@@ -675,7 +675,7 @@ export function CoachScreen({
                         key={agent}
                         href="/coach/team"
                         aria-label={`${staff[agent].alt}, voir l’équipe`}
-                        className="flex w-15.5 flex-col items-center gap-1.5 text-xs text-muted hover:text-foreground"
+                        className="flex w-15.5 flex-col items-center gap-1.5 text-xs text-secondary-foreground hover:text-foreground"
                       >
                         <StaffPortrait agent={agent} size={56} decorative />
                         <span aria-hidden="true">{staff[agent].name}</span>
@@ -699,7 +699,7 @@ export function CoachScreen({
               asChild
               variant="ghost"
               size="icon"
-              className="size-11 text-muted min-[980px]:hidden"
+              className="size-11 text-secondary-foreground min-[980px]:hidden"
             >
               <Link href="/coach" aria-label="Retour aux conversations">
                 <ChevronLeftIcon aria-hidden="true" />
@@ -723,7 +723,7 @@ export function CoachScreen({
                 size="icon"
                 aria-label="Suivi de la conversation"
                 onClick={() => setSuiviOpen(true)}
-                className="size-11 rounded-surface min-[980px]:size-8.5 min-[1180px]:hidden"
+                className="size-11 rounded-lg min-[980px]:size-8.5 min-[1180px]:hidden"
               >
                 <ListIcon aria-hidden="true" />
               </Button>
@@ -741,7 +741,7 @@ export function CoachScreen({
                     ? `Demande ton plan à ${staff.coach.name}`
                     : "Écris à ton staff"}
                 </h2>
-                <p className="max-w-140 text-body leading-normal text-muted">
+                <p className="max-w-140 text-body leading-normal text-secondary-foreground">
                   {mode === "plan"
                     ? `${staff.coach.name} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
                     : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.name} te répond ou passe la main à ${staff.medical.name}, qui te parle directement quand c’est utile.`}
@@ -799,7 +799,7 @@ export function CoachScreen({
           side="bottom"
           showCloseButton={false}
           aria-describedby={undefined}
-          className="max-h-[85svh] gap-0 overflow-hidden border-border-strong bg-surface-panel min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-panel min-[640px]:border"
+          className="max-h-[85svh] gap-0 overflow-hidden border-border-strong bg-surface-panel min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-2xl min-[640px]:border"
         >
           <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-3">
             <SheetTitle className="text-sm font-semibold">
@@ -809,7 +809,7 @@ export function CoachScreen({
               <Button
                 variant="ghost"
                 size="sm"
-                className="ml-auto min-h-11 text-muted"
+                className="ml-auto min-h-11 text-secondary-foreground"
               >
                 Fermer
               </Button>

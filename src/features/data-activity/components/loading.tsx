@@ -80,11 +80,11 @@ function ActivityContentLoading() {
         <div className="flex flex-col gap-3">
           <Skeleton className="h-3 w-48" />
           <Skeleton className="h-8 w-64 max-w-full sm:h-10" />
-          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border bg-border sm:grid-cols-6">
+          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-6">
             {Array.from({ length: 6 }, (_, item) => (
               <div
                 key={item}
-                className="flex flex-col gap-2 bg-surface px-3 py-2.5"
+                className="flex flex-col gap-2 bg-card px-3 py-2.5"
               >
                 <Skeleton className="h-6 w-14" />
                 <Skeleton className="h-2.5 w-12" />
@@ -92,17 +92,17 @@ function ActivityContentLoading() {
             ))}
           </div>
         </div>
-        <Skeleton className="h-36 w-full rounded-panel" />
+        <Skeleton className="h-36 w-full rounded-2xl" />
         <section className="flex flex-col gap-3">
           <MonoLabel>Parcours et données</MonoLabel>
-          <div className="overflow-hidden rounded-panel border border-border bg-surface-panel">
+          <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel">
             <Skeleton className="h-60 w-full rounded-none lg:h-85" />
             <div className="border-t border-border p-3">
               <Skeleton className="h-42.5 w-full lg:h-55" />
             </div>
           </div>
         </section>
-        <Skeleton className="h-64 w-full rounded-card" />
+        <Skeleton className="h-64 w-full rounded-xl" />
       </article>
     </div>
   );
@@ -172,16 +172,16 @@ export function HealthDayLoading() {
     >
       <div aria-hidden="true" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[0, 1, 2, 3].map((item) => (
-          <Skeleton key={item} className="h-24 rounded-panel" />
+          <Skeleton key={item} className="h-24 rounded-2xl" />
         ))}
       </div>
-      <Skeleton className="h-72 w-full rounded-panel" />
+      <Skeleton className="h-72 w-full rounded-2xl" />
       <div
         aria-hidden="true"
         className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-8"
       >
-        <Skeleton className="h-64 rounded-panel" />
-        <Skeleton className="h-64 rounded-panel" />
+        <Skeleton className="h-64 rounded-2xl" />
+        <Skeleton className="h-64 rounded-2xl" />
       </div>
     </LoadingScope>
   );
@@ -193,8 +193,8 @@ export function RaceLoading() {
       label="Chargement des courses"
       className="flex flex-col gap-5 sm:gap-9"
     >
-      <Skeleton className="h-56 w-full rounded-panel" />
-      <Skeleton className="h-56 w-full rounded-panel md:h-105" />
+      <Skeleton className="h-56 w-full rounded-2xl" />
+      <Skeleton className="h-56 w-full rounded-2xl md:h-105" />
     </LoadingScope>
   );
 }
@@ -213,11 +213,11 @@ export function RacesLoading() {
       <div aria-hidden="true" className="flex flex-col gap-5 sm:gap-9">
         {view !== "past" && (
           <>
-            <Skeleton className="h-36 w-full rounded-panel" />
-            <Skeleton className="h-105 w-full rounded-panel lg:h-100" />
+            <Skeleton className="h-36 w-full rounded-2xl" />
+            <Skeleton className="h-105 w-full rounded-2xl lg:h-100" />
             <div className="grid gap-5 md:grid-cols-2">
-              <Skeleton className="h-44 w-full rounded-panel" />
-              <Skeleton className="h-44 w-full rounded-panel max-md:hidden" />
+              <Skeleton className="h-44 w-full rounded-2xl" />
+              <Skeleton className="h-44 w-full rounded-2xl max-md:hidden" />
             </div>
           </>
         )}

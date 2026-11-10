@@ -8,9 +8,9 @@ export function PlanEmpty() {
       <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[clamp(32px,4vw,46px)] sm:leading-[1.05] sm:tracking-[-0.03em]">
         Pas encore de programme
       </h1>
-      <div className="flex items-start gap-3 rounded-card border border-border bg-surface px-4 py-3">
+      <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
-        <p className="text-sm leading-normal text-pretty text-muted sm:text-base sm:leading-[1.55]">
+        <p className="text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
           Demande au Coach de construire ton plan. Il part de tes objectifs, de
           tes disponibilités et de ton historique, puis te le propose avant de
           l’enregistrer.

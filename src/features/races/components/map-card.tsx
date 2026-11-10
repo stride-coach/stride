@@ -27,7 +27,7 @@ function LayerChip({
       pressed={pressed}
       onPressedChange={onPressedChange}
       className={cn(
-        "min-h-8.5 rounded-full border border-border-strong bg-surface-inset px-3 text-meta text-muted hover:bg-surface-raised data-[state=on]:border-dim data-[state=on]:bg-surface-inset data-[state=on]:font-semibold data-[state=on]:text-foreground",
+        "min-h-8.5 rounded-full border border-border-strong bg-surface-inset px-3 text-meta text-secondary-foreground hover:bg-muted data-[state=on]:border-dim data-[state=on]:bg-surface-inset data-[state=on]:font-semibold data-[state=on]:text-foreground",
         className,
       )}
     >
@@ -73,7 +73,7 @@ function subscribeNever() {
 
 function SegmentBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-control border border-border-strong bg-surface-raised px-1 font-metric text-xs font-semibold">
+    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-border-strong bg-muted px-1 font-metric text-xs font-semibold">
       {label}
     </span>
   );
@@ -136,7 +136,7 @@ function FullscreenMap({
       {rows.length > 0 && (
         <aside
           aria-label="Tronçons"
-          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-2xl border-t border-border bg-surface-inset/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-panel md:border md:bg-surface-inset md:p-4"
+          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-[1rem] border-t border-border bg-surface-inset/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-2xl md:border md:bg-surface-inset md:p-4"
         >
           <span
             aria-hidden="true"
@@ -240,7 +240,7 @@ export function MapCard({
   return (
     <section
       aria-label="Carte du parcours"
-      className="min-w-0 overflow-hidden rounded-panel border border-border bg-surface"
+      className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card"
     >
       <RaceMap
         data={data}

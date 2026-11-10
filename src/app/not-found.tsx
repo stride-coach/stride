@@ -28,7 +28,7 @@ export default async function NotFound() {
         <p className="pt-3 text-center text-sm text-muted-foreground">
           Pas connecté ?{" "}
           <Link
-            className="font-medium text-accent hover:underline"
+            className="font-medium text-primary hover:underline"
             href="/sign-in"
           >
             Se connecter

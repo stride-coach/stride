@@ -26,9 +26,9 @@ export default async function ConnexionsSettingsPage() {
         title="Connexions"
         description="Garmin fournit les activités et les données de santé de ton historique."
       />
-      <div className="mb-9 overflow-hidden rounded-surface border border-border bg-surface">
+      <div className="mb-9 overflow-hidden rounded-lg border border-border bg-card">
         <div className="flex flex-wrap items-center gap-4 p-5">
-          <span className="grid size-12 place-items-center rounded-control border border-border-strong font-semibold">
+          <span className="grid size-12 place-items-center rounded-md border border-border-strong font-semibold">
             G
           </span>
           <div className="flex-1">
@@ -44,7 +44,7 @@ export default async function ConnexionsSettingsPage() {
             <strong className="block font-metric text-2xl">
               {counts.activities ?? "—"}
             </strong>
-            <span className="font-mono text-label text-muted uppercase">
+            <span className="font-mono text-label text-secondary-foreground uppercase">
               Activités enregistrées
             </span>
           </div>
@@ -52,7 +52,7 @@ export default async function ConnexionsSettingsPage() {
             <strong className="block font-metric text-2xl">
               {counts.observations ?? "—"}
             </strong>
-            <span className="font-mono text-label text-muted uppercase">
+            <span className="font-mono text-label text-secondary-foreground uppercase">
               Mesures de santé
             </span>
           </div>
@@ -65,7 +65,7 @@ export default async function ConnexionsSettingsPage() {
                   )
                 : "Aucune synchro enregistrée"}
             </strong>
-            <span className="font-mono text-label text-muted uppercase">
+            <span className="font-mono text-label text-secondary-foreground uppercase">
               Dernière synchro
             </span>
           </div>
@@ -74,13 +74,13 @@ export default async function ConnexionsSettingsPage() {
       <SettingsGroup title="Autres sources">
         <div className="border-b border-border p-4 md:px-0">
           <strong className="text-sm">Autres montres et applications</strong>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-secondary-foreground">
             Les autres fournisseurs ne sont pas encore pris en charge.
           </p>
         </div>
         <div className="p-4 md:px-0">
           <strong className="text-sm">Saisie manuelle</strong>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-secondary-foreground">
             L’ajout de séances sans montre n’est pas encore disponible.
           </p>
         </div>

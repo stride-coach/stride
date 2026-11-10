@@ -32,9 +32,9 @@ const portraits = {
 function radius(size: number) {
   if (size <= 22) return "rounded-mark";
   if (size <= 30) return "rounded-[4px]";
-  if (size <= 40) return "rounded-control";
+  if (size <= 40) return "rounded-md";
   if (size <= 48) return "rounded-[10px]";
-  if (size <= 64) return "rounded-panel";
+  if (size <= 64) return "rounded-2xl";
   if (size <= 80) return "rounded-[20px]";
   if (size <= 100) return "rounded-[28px]";
   return "rounded-[56px]";
@@ -63,7 +63,7 @@ export function StaffPortrait({
     <span
       aria-hidden={decorative || undefined}
       className={cn(
-        "relative block shrink-0 overflow-hidden bg-surface",
+        "relative block shrink-0 overflow-hidden bg-card",
         fill ? "size-full" : radius(size),
         className,
       )}

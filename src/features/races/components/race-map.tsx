@@ -77,7 +77,7 @@ function markerElement(marker: MapMarker, active: boolean) {
       base,
       "rounded-full",
       mark.tone === "finish" || active
-        ? "bg-accent text-accent-foreground"
+        ? "bg-primary text-primary-foreground"
         : mark.tone === "start"
           ? "bg-foreground text-background"
           : "border-[1.6px] border-foreground bg-background text-foreground",
@@ -85,12 +85,12 @@ function markerElement(marker: MapMarker, active: boolean) {
     );
     visual.textContent = mark.label;
   } else if (mark.shape === "square") {
-    element.className = cn(root, "size-5.5 rounded-tag");
+    element.className = cn(root, "size-5.5 rounded-sm");
     visual.className = cn(
       base,
-      "rounded-tag",
+      "rounded-sm",
       active
-        ? "bg-accent text-accent-foreground"
+        ? "bg-primary text-primary-foreground"
         : "border-[1.6px] border-provider bg-background text-foreground",
     );
     visual.textContent = mark.label;
@@ -100,7 +100,7 @@ function markerElement(marker: MapMarker, active: boolean) {
       base,
       "rotate-45 border-[1.6px] bg-background",
       mark.shape === "triangle"
-        ? "border-muted"
+        ? "border-secondary-foreground"
         : mark.tone === "caution"
           ? "border-warning"
           : "border-night",
@@ -235,7 +235,7 @@ function RaceMapView({
             source: "route",
             layout: { "line-cap": "round", "line-join": "round" },
             paint: {
-              "line-color": token(container, "--muted"),
+              "line-color": token(container, "--secondary-foreground"),
               "line-width": 2.6,
             },
           });
@@ -247,7 +247,7 @@ function RaceMapView({
           ][] = [
             ["rain", initial.rain, token(container, "--provider"), 6],
             ["night", initial.night, token(container, "--night"), 2.8],
-            ["walk", initial.walk, token(container, "--accent"), 5],
+            ["walk", initial.walk, token(container, "--primary"), 5],
           ];
           for (const [id, ranges, color, width] of overlays) {
             current.addSource(id, {
@@ -421,14 +421,14 @@ function RaceMapView({
               })
               .join("")}
             fill="none"
-            className="stroke-muted"
+            className="stroke-secondary-foreground"
             strokeWidth={2.6}
             strokeLinejoin="round"
           />
         </svg>
       )}
       {ready && !framed && (
-        <div className="absolute top-3 right-3 flex flex-col overflow-hidden rounded-surface border border-border bg-surface/90">
+        <div className="absolute top-3 right-3 flex flex-col overflow-hidden rounded-lg border border-border bg-card/90">
           <Button
             variant="ghost"
             size="icon-sm"
@@ -523,7 +523,7 @@ function RaceMapView({
       )}
       {tooltip && tooltipPoint && (
         <div
-          className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-surface border border-border-strong bg-surface/95 px-3 py-2"
+          className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-lg border border-border-strong bg-card/95 px-3 py-2"
           style={{
             left: Math.min(tooltipPoint.x + 14, tooltipPoint.width - 190),
             top: Math.max(8, tooltipPoint.y - 64),
@@ -538,7 +538,9 @@ function RaceMapView({
                 Passage {tooltip.clock}
               </span>
             ) : (
-              <span className="text-sm text-muted">Pas de simulation</span>
+              <span className="text-sm text-secondary-foreground">
+                Pas de simulation
+              </span>
             )}
             {tooltip.cutoff && (
               <MonoLabel size="micro" tone="warning">
@@ -552,7 +554,7 @@ function RaceMapView({
         <span
           role="status"
           className={cn(
-            "absolute left-3 rounded-control bg-surface px-2 py-1 text-xs text-muted",
+            "absolute left-3 rounded-md bg-card px-2 py-1 text-xs text-secondary-foreground",
             framed ? "bottom-7" : "top-3",
           )}
         >

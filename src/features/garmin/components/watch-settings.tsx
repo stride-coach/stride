@@ -76,7 +76,7 @@ export function WatchRowAction({
       size="sm"
       disabled={pending}
       onClick={() => send(action)}
-      className="rounded-control text-[13px] max-sm:h-11"
+      className="rounded-md text-[13px] max-sm:h-11"
     >
       {pending ? "Envoi…" : label}
     </Button>

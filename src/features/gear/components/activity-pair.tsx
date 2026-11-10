@@ -15,7 +15,7 @@ import { PairSheet } from "./session-shoes";
 const stateDots: Record<PairCheckState, string> = {
   same: "bg-success",
   different: "bg-warning",
-  missing: "bg-accent",
+  missing: "bg-primary",
   corrected: "bg-foreground",
   unplanned: "bg-provider",
 };
@@ -41,7 +41,7 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
     <div
       role="group"
       aria-labelledby={id}
-      className="flex flex-col gap-2.5 rounded-card border border-warning-border bg-warning/4 px-3.5 py-3"
+      className="flex flex-col gap-2.5 rounded-xl border border-warning-border bg-warning/4 px-3.5 py-3"
     >
       <span
         id={id}
@@ -120,14 +120,14 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
 
 export function PairAlert({ question }: { question: PairQuestion }) {
   return (
-    <div className="flex items-start gap-3 rounded-card border border-warning-border bg-warning/4 px-4 py-3.5">
+    <div className="flex items-start gap-3 rounded-xl border border-warning-border bg-warning/4 px-4 py-3.5">
       <span
         aria-hidden="true"
         className="mt-1.75 size-1.5 shrink-0 rounded-full bg-warning"
       />
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-sm font-medium">{question.title}</span>
-        <span className="text-[13px] leading-[1.45] text-muted">
+        <span className="text-[13px] leading-[1.45] text-secondary-foreground">
           Garmin indique les {question.garmin.name}, la séance prévoyait les{" "}
           {question.planned.name}.
         </span>
@@ -169,7 +169,7 @@ export function ActivityPairBlock({
     return (
       <section
         aria-label="Chaussures"
-        className="flex min-w-0 items-center gap-2 text-meta text-muted"
+        className="flex min-w-0 items-center gap-2 text-meta text-secondary-foreground"
       >
         <NavGearIcon className="size-4.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 truncate text-foreground">{view.name}</span>
@@ -194,9 +194,9 @@ export function ActivityPairBlock({
   return (
     <section
       aria-label="Chaussures"
-      className="flex flex-wrap items-center gap-3 rounded-panel border border-border bg-surface px-4 py-3.5"
+      className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5"
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-border-strong bg-surface-raised">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-border-strong bg-muted">
         <NavGearIcon className="size-4.5" />
       </span>
       <span className="flex min-w-40 flex-1 flex-col gap-0.5">

@@ -106,9 +106,9 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
 
   if (gear.length === 0)
     return (
-      <section className="flex flex-col items-start gap-3 rounded-panel border border-border bg-surface p-6">
+      <section className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6">
         <h2 className="text-lead font-semibold">Aucune paire à importer</h2>
-        <p className="max-w-150 text-sm leading-normal text-muted">
+        <p className="max-w-150 text-sm leading-normal text-secondary-foreground">
           Ton compte Garmin n’a pas de chaussures qui ne soient pas déjà dans
           Stride. Ajoute tes paires dans Stride : elles seront créées dans
           Garmin.
@@ -121,7 +121,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
 
   return (
     <>
-      <section className="flex flex-col rounded-panel border border-border bg-surface p-5 sm:p-6">
+      <section className="flex flex-col rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="hidden grid-cols-[28px_minmax(0,1fr)_120px_170px] gap-3.5 pb-2.5 sm:grid">
           <span />
           <MonoLabel size="nano">Paire</MonoLabel>
@@ -173,7 +173,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                         category: event.target.value as ShoeCategory,
                       })
                     }
-                    className="h-9 w-fit rounded-control border border-border-strong bg-surface-panel px-2.5 text-meta text-foreground"
+                    className="h-9 w-fit rounded-md border border-border-strong bg-surface-panel px-2.5 text-meta text-foreground"
                   >
                     {shoeCategories.map((category) => (
                       <option key={category} value={category}>
@@ -189,7 +189,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                         terrain: event.target.value as ShoeTerrain,
                       })
                     }
-                    className="h-9 w-fit rounded-control border border-border-strong bg-surface-panel px-2.5 text-meta text-foreground"
+                    className="h-9 w-fit rounded-md border border-border-strong bg-surface-panel px-2.5 text-meta text-foreground"
                   >
                     {shoeTerrains.map((terrain) => (
                       <option key={terrain} value={terrain}>
@@ -244,13 +244,13 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
           );
         })}
       </section>
-      <p className="text-meta leading-normal text-muted">
+      <p className="text-meta leading-normal text-secondary-foreground">
         Les anciennes activités restent sans paire : leurs kilomètres sont déjà
         dans le total que tu saisis. Tu pourras compléter la fiche de chaque
         paire ensuite.
       </p>
       {message && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-destructive">
           {message}
         </p>
       )}

@@ -80,7 +80,7 @@ export function ProfileCard({
         <div className="flex flex-wrap gap-x-5.5 gap-y-2">
           {!road && (
             <LegendItem
-              mark={<span className="h-0.75 w-4.5 rounded-mark bg-accent" />}
+              mark={<span className="h-0.75 w-4.5 rounded-mark bg-primary" />}
             >
               <span className="max-sm:hidden">
                 Marche rapide ≥ {walkThreshold} % · {walkCount} portions ·{" "}
@@ -110,7 +110,7 @@ export function ProfileCard({
             <span className="max-sm:hidden">
               <LegendItem
                 mark={
-                  <span className="font-metric text-sm font-semibold text-accent">
+                  <span className="font-metric text-sm font-semibold text-primary">
                     {formatClock(planned.simulation.passages[0].clockMinutes)}
                   </span>
                 }
@@ -151,7 +151,7 @@ export function ProfileCard({
                     · {formatKm(marker.distanceM)}
                   </span>
                 </span>
-                <span className="font-metric text-lg font-semibold text-accent">
+                <span className="font-metric text-lg font-semibold text-primary">
                   {marker.clock}
                 </span>
                 <MonoLabel
@@ -187,7 +187,7 @@ export function MarkBadge({
           className={cn(
             "size-3.5 rotate-45 border-[1.6px]",
             mark.shape === "triangle"
-              ? "border-muted"
+              ? "border-secondary-foreground"
               : mark.tone === "caution"
                 ? "border-warning"
                 : "border-night",
@@ -201,9 +201,9 @@ export function MarkBadge({
       aria-hidden="true"
       className={cn(
         "grid size-5.5 shrink-0 place-items-center font-metric text-xs leading-none font-bold",
-        mark.shape === "square" ? "rounded-tag" : "rounded-full",
+        mark.shape === "square" ? "rounded-sm" : "rounded-full",
         active || (mark.shape === "circle" && mark.tone === "finish")
-          ? "bg-accent text-accent-foreground"
+          ? "bg-primary text-primary-foreground"
           : mark.shape === "circle" && mark.tone === "start"
             ? "bg-foreground text-background"
             : mark.shape === "square"

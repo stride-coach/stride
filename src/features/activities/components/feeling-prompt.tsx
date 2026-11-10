@@ -100,7 +100,7 @@ export function FeelingPrompt({
               <ToggleGroupItem
                 key={value}
                 value={String(value)}
-                className="min-h-10 rounded-control px-0 font-metric text-base tabular-nums sm:min-h-8"
+                className="min-h-10 rounded-md px-0 font-metric text-base tabular-nums sm:min-h-8"
               >
                 {value}
               </ToggleGroupItem>
@@ -109,7 +109,10 @@ export function FeelingPrompt({
         </div>
         {effort !== null && (
           <div className="flex flex-col gap-1.5">
-            <span id={`${id}-feel`} className="text-meta text-muted">
+            <span
+              id={`${id}-feel`}
+              className="text-meta text-secondary-foreground"
+            >
               Sensations
             </span>
             <ToggleGroup
@@ -128,7 +131,7 @@ export function FeelingPrompt({
                 <ToggleGroupItem
                   key={value}
                   value={String(value)}
-                  className="min-h-10 rounded-control px-1 text-xs whitespace-normal sm:min-h-8"
+                  className="min-h-10 rounded-md px-1 text-xs whitespace-normal sm:min-h-8"
                 >
                   {feelLabels[value]}
                 </ToggleGroupItem>
@@ -156,7 +159,10 @@ export function FeelingPrompt({
       </div>
       <div className="flex flex-col gap-1.5">
         {!compact && (
-          <span id={`${id}-effort`} className="text-meta text-muted">
+          <span
+            id={`${id}-effort`}
+            className="text-meta text-secondary-foreground"
+          >
             Effort perçu, de 1 à 10
           </span>
         )}
@@ -191,7 +197,10 @@ export function FeelingPrompt({
       </div>
       {showFeel && (
         <div className="flex flex-col gap-1.5">
-          <span id={`${id}-feel`} className="text-meta text-muted">
+          <span
+            id={`${id}-feel`}
+            className="text-meta text-secondary-foreground"
+          >
             Sensations
           </span>
           <ToggleGroup
@@ -234,7 +243,7 @@ export function DebriefFeeling({
     return (
       <section
         aria-label="Ton ressenti"
-        className="rounded-card border border-border-strong bg-surface p-3.5"
+        className="rounded-xl border border-border-strong bg-card p-3.5"
       >
         <FeelingPrompt
           activityId={activityId}
@@ -263,7 +272,7 @@ export function DebriefFeeling({
       {garmin ? (
         <dl className="grid grid-cols-2 gap-2.5">
           {feeling.effort && (
-            <div className="flex flex-col gap-0.5 rounded-surface border border-border bg-surface px-3.5 py-3">
+            <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-card px-3.5 py-3">
               <dt className="order-2 text-xs text-muted-foreground">
                 {feeling.effortLabel}
               </dt>
@@ -273,7 +282,7 @@ export function DebriefFeeling({
             </div>
           )}
           {feeling.feel && (
-            <div className="flex flex-col gap-0.5 rounded-surface border border-border bg-surface px-3.5 py-3">
+            <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-card px-3.5 py-3">
               <dt className="order-2 text-xs text-muted-foreground">
                 Sensations
               </dt>
@@ -284,7 +293,7 @@ export function DebriefFeeling({
           )}
         </dl>
       ) : (
-        <div className="flex items-center gap-3 rounded-surface border border-border bg-surface px-3.5 py-3">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-3">
           <span className="flex flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2.5">
               {feeling.effort && (
@@ -340,7 +349,7 @@ export function CardFeeling({
       />
     );
   return (
-    <span className="inline-flex flex-wrap items-center gap-2 text-meta text-muted">
+    <span className="inline-flex flex-wrap items-center gap-2 text-meta text-secondary-foreground">
       Ressenti
       {feeling.effort !== null && (
         <span className="font-metric text-[17px] font-semibold text-foreground tabular-nums">

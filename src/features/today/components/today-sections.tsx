@@ -30,7 +30,7 @@ import {
 } from "../verdict";
 
 export const todayCard =
-  "flex min-w-0 flex-col gap-3.5 rounded-card border border-border bg-surface px-5 py-5 sm:px-5.5";
+  "flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-5 py-5 sm:px-5.5";
 
 export function Eyebrow({
   id,
@@ -61,7 +61,7 @@ function MoreLink({
     <Link
       href={href}
       className={cn(
-        "ml-auto inline-flex min-h-8 items-center gap-1.5 rounded-control text-[13px] text-muted hover:text-foreground",
+        "ml-auto inline-flex min-h-8 items-center gap-1.5 rounded-md text-[13px] text-secondary-foreground hover:text-foreground",
         className,
       )}
     >
@@ -74,8 +74,8 @@ function MoreLink({
 const toneText: Record<VerdictTone, string> = {
   success: "text-success",
   warning: "text-warning",
-  danger: "text-danger",
-  muted: "text-muted",
+  danger: "text-destructive",
+  muted: "text-secondary-foreground",
 };
 
 const toneDot: Record<
@@ -92,7 +92,7 @@ const verdictFrames: Record<VerdictTone, string> = {
   success: "border-success-border bg-success-surface",
   warning: "border-warning-border bg-warning/4",
   danger: "border-danger-border bg-danger-surface",
-  muted: "border-border bg-surface-raised",
+  muted: "border-border bg-muted",
 };
 
 function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
@@ -101,7 +101,7 @@ function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
       role="group"
       aria-label="Verdict du jour"
       className={cn(
-        "flex flex-col gap-2.5 rounded-card border px-3.5 py-3",
+        "flex flex-col gap-2.5 rounded-xl border px-3.5 py-3",
         verdictFrames[verdict.tone],
       )}
     >
@@ -120,10 +120,10 @@ function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
         </span>
       </p>
       {verdict.motif && (
-        <p className="flex items-center gap-2 text-[13px] text-muted">
+        <p className="flex items-center gap-2 text-[13px] text-secondary-foreground">
           <span
             aria-hidden="true"
-            className="size-1.5 shrink-0 rounded-full bg-danger"
+            className="size-1.5 shrink-0 rounded-full bg-destructive"
           />
           {verdict.motif}
         </p>
@@ -216,17 +216,17 @@ export function SessionSection({
                 Jour de repos
               </h2>
               {session.next ? (
-                <p className="text-[15px] leading-normal text-muted">
+                <p className="text-[15px] leading-normal text-secondary-foreground">
                   Prochaine séance :{" "}
                   <Link
                     href={session.next.href}
-                    className="rounded-control text-foreground underline-offset-4 hover:underline"
+                    className="rounded-md text-foreground underline-offset-4 hover:underline"
                   >
                     {session.next.when} · {session.next.title}
                   </Link>
                 </p>
               ) : (
-                <p className="text-[15px] leading-normal text-muted">
+                <p className="text-[15px] leading-normal text-secondary-foreground">
                   Pas de séance prévue aujourd’hui.
                 </p>
               )}
@@ -240,7 +240,7 @@ export function SessionSection({
             <h2 className="text-[28px] leading-[1.05] font-semibold tracking-[-0.025em]">
               Pas encore de plan
             </h2>
-            <p className="text-[15px] leading-normal text-muted">
+            <p className="text-[15px] leading-normal text-secondary-foreground">
               Ajoute une course objectif : Stride construit ton plan et te dit
               chaque matin quoi faire.
             </p>
@@ -275,7 +275,7 @@ function DaySessionRow({ session }: { session: TodayDaySession }) {
     <Link
       href={session.href}
       aria-label={session.label}
-      className="grid min-h-11 grid-cols-[32px_minmax(0,1fr)_12px] items-center gap-3 rounded-card border border-border px-3 py-2.5 hover:border-border-strong sm:grid-cols-[32px_minmax(0,1fr)_auto_12px] sm:gap-3.5 sm:px-3.5"
+      className="grid min-h-11 grid-cols-[32px_minmax(0,1fr)_12px] items-center gap-3 rounded-xl border border-border px-3 py-2.5 hover:border-border-strong sm:grid-cols-[32px_minmax(0,1fr)_auto_12px] sm:gap-3.5 sm:px-3.5"
     >
       <SessionKindTile kind={session.family} size="lg" />
       <span className="flex min-w-0 flex-col gap-0.75 sm:gap-0.5">
@@ -344,7 +344,7 @@ function PlannedSession({
           <h2 className="text-[28px] leading-[1.05] font-semibold tracking-[-0.025em] sm:text-[34px]">
             {panel.title}
           </h2>
-          <p className="text-[15px] leading-normal text-muted">
+          <p className="text-[15px] leading-normal text-secondary-foreground">
             {panel.purpose}
           </p>
         </div>
@@ -423,7 +423,7 @@ const statusTones: Record<FormStatus, VerdictTone> = {
 const markerFills: Record<FormStatus, string> = {
   normal: "bg-success",
   watch: "bg-warning",
-  crossed: "bg-danger",
+  crossed: "bg-destructive",
 };
 
 function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
@@ -431,7 +431,7 @@ function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 border-t border-border-subtle py-2.75">
       <dt className="flex min-w-0 items-baseline gap-2.5">
-        <span className="w-18 shrink-0 text-[13px] text-muted">
+        <span className="w-18 shrink-0 text-[13px] text-secondary-foreground">
           {indicator.label}
         </span>
         <span className="font-metric text-[19px] font-semibold tabular-nums">
@@ -460,13 +460,13 @@ function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
               />
               {indicator.threshold !== null && (
                 <span
-                  className="absolute -top-0.75 h-3 w-0.5 rounded-mark bg-danger"
+                  className="absolute -top-0.75 h-3 w-0.5 rounded-mark bg-destructive"
                   style={{ left: `${indicator.threshold}%` }}
                 />
               )}
               <span
                 className={cn(
-                  "absolute -top-0.5 size-2.5 -translate-x-1/2 rounded-full ring-2 ring-surface",
+                  "absolute -top-0.5 size-2.5 -translate-x-1/2 rounded-full ring-2 ring-card",
                   markerFills[indicator.status],
                 )}
                 style={{ left: `${indicator.marker}%` }}
@@ -537,8 +537,8 @@ export function FormSection({
         </dl>
       )}
       {verdict?.compat && (
-        <div className="flex flex-col gap-1 rounded-card bg-surface-raised px-3.5 py-3">
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted">
+        <div className="flex flex-col gap-1 rounded-xl bg-muted px-3.5 py-3">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-secondary-foreground">
             <span>{verdict.compat.question}</span>
             <b
               className={cn(
@@ -599,8 +599,8 @@ export function WeekSection({ week }: { week: TodayWeek }) {
             key={day.date}
             aria-current={day.isToday ? "date" : undefined}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1.5 rounded-surface border border-transparent py-2",
-              day.isToday && "border-foreground bg-surface-raised",
+              "flex flex-1 flex-col items-center gap-1.5 rounded-lg border border-transparent py-2",
+              day.isToday && "border-foreground bg-muted",
               day.isPast && "opacity-55",
             )}
           >
@@ -624,7 +624,7 @@ export function WeekSection({ week }: { week: TodayWeek }) {
             </span>
             <span aria-hidden="true" className="flex h-3 items-center">
               {day.families.length > 1 ? (
-                <span className="font-metric text-[11px] leading-none text-muted tabular-nums">
+                <span className="font-metric text-[11px] leading-none text-secondary-foreground tabular-nums">
                   {day.doneCount}/{day.families.length}
                 </span>
               ) : (
@@ -635,7 +635,7 @@ export function WeekSection({ week }: { week: TodayWeek }) {
         ))}
       </ol>
       <div className="flex items-center gap-3">
-        <span className="text-[13px] text-muted">
+        <span className="text-[13px] text-secondary-foreground">
           <b className="font-metric text-[17px] font-semibold text-foreground">
             {week.done.duration}
           </b>{" "}
@@ -681,11 +681,11 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
         <>
           <Link
             href={goal.href}
-            className="flex items-center gap-3 rounded-control hover:text-accent"
+            className="flex items-center gap-3 rounded-md hover:text-primary"
           >
             <span
               aria-hidden="true"
-              className="inline-grid size-8 shrink-0 place-items-center rounded-surface bg-accent font-metric text-[17px] font-bold text-accent-foreground"
+              className="inline-grid size-8 shrink-0 place-items-center rounded-lg bg-primary font-metric text-[17px] font-bold text-primary-foreground"
             >
               {goal.letter}
             </span>
@@ -705,7 +705,9 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
             <dl className="flex flex-col border-t border-border">
               {goal.block && (
                 <div className="flex items-center gap-2.5 border-b border-border-subtle py-2.5 text-[13px] last:border-b-0">
-                  <dt className="flex-1 text-muted">Bloc {goal.block.name}</dt>
+                  <dt className="flex-1 text-secondary-foreground">
+                    Bloc {goal.block.name}
+                  </dt>
                   <dd className="font-metric text-base font-semibold tabular-nums">
                     {goal.block.week}
                   </dd>
@@ -713,7 +715,9 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
               )}
               {goal.light && (
                 <div className="flex items-center gap-2.5 py-2.5 text-[13px]">
-                  <dt className="flex-1 text-muted">Semaine allégée</dt>
+                  <dt className="flex-1 text-secondary-foreground">
+                    Semaine allégée
+                  </dt>
                   <dd>{goal.light}</dd>
                 </div>
               )}

@@ -25,7 +25,7 @@ import { SessionCheckInButton } from "./session-check-in";
 import { SessionPanelBody } from "./session-panel";
 
 const iconButton =
-  "size-8.5 rounded-control border-border text-muted hover:text-foreground";
+  "size-8.5 rounded-md border-border text-secondary-foreground hover:text-foreground";
 
 let openedFromPlan = false;
 let overlayTrigger: HTMLElement | null = null;
@@ -197,7 +197,7 @@ export function SessionSheet({
           "gap-0 overflow-hidden border-border-strong bg-surface-panel text-foreground",
           mobile
             ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
-            : "rounded-panel border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-125 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-125",
+            : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-125 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-125",
         )}
       >
         {mobile && (
@@ -227,7 +227,9 @@ export function SessionSheet({
             <>
               {next}
               <span className="ml-1.5 flex min-w-0 flex-col">
-                <span className="text-[13px] text-muted">{panel.heading}</span>
+                <span className="text-[13px] text-secondary-foreground">
+                  {panel.heading}
+                </span>
                 <MonoLabel size="nano" className="text-[9px]">
                   {position} de la semaine · ← → · Échap
                 </MonoLabel>

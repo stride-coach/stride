@@ -60,7 +60,7 @@ export function ConfirmationResend({
         {pending ? "Envoi…" : "Renvoyer l’e-mail"}
       </Button>
       {seconds > 0 && (
-        <p className="text-center text-sm text-muted">
+        <p className="text-center text-sm text-secondary-foreground">
           Renvoi possible dans 0:{String(seconds).padStart(2, "0")}
         </p>
       )}

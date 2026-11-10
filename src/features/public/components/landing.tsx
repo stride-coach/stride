@@ -143,7 +143,7 @@ function Lead({
   return (
     <p
       className={cn(
-        "text-base leading-relaxed text-muted md:text-lead md:leading-relaxed",
+        "text-base leading-relaxed text-secondary-foreground md:text-lead md:leading-relaxed",
         className,
       )}
     >
@@ -154,7 +154,7 @@ function Lead({
 
 function Dash() {
   return (
-    <span aria-hidden="true" className="text-accent">
+    <span aria-hidden="true" className="text-primary">
       —
     </span>
   );
@@ -178,7 +178,7 @@ function Terrain() {
       </g>
       <path
         d="M-20 720C140 680 260 640 380 630S560 580 640 520 780 450 900 430 1080 400 1180 330 1340 260 1460 240"
-        className="hidden stroke-accent md:block"
+        className="hidden stroke-primary md:block"
         strokeWidth="2"
       />
     </svg>
@@ -251,19 +251,19 @@ export function Landing() {
             tu peux encaisser aujourd’hui.
           </Lead>
         </div>
-        <ol className="grid gap-px overflow-hidden rounded-card border border-border bg-border md:grid-cols-3 md:rounded-panel">
+        <ol className="grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3 md:rounded-2xl">
           {pillars.map((pillar, index) => (
             <li
               key={pillar.title}
               className="flex flex-col gap-2 bg-surface-inset p-5 md:gap-3.5 md:p-7.5"
             >
-              <span className="font-metric text-[30px] leading-none font-semibold text-accent md:text-[44px]">
+              <span className="font-metric text-[30px] leading-none font-semibold text-primary md:text-[44px]">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <h3 className="text-lg font-semibold md:text-[21px] md:tracking-[-0.015em]">
                 {pillar.title}
               </h3>
-              <p className="text-body leading-normal text-muted md:leading-relaxed">
+              <p className="text-body leading-normal text-secondary-foreground md:leading-relaxed">
                 {pillar.text}
               </p>
             </li>
@@ -287,7 +287,7 @@ export function Landing() {
             chiffre affiche sa source, sa tendance et ce qu’il change pour ta
             prochaine séance.
           </Lead>
-          <ul className="hidden flex-col gap-2.5 text-body text-muted md:flex">
+          <ul className="hidden flex-col gap-2.5 text-body text-secondary-foreground md:flex">
             {[
               "Forme, fatigue et charge sur 6 semaines",
               "Récupération nuit après nuit",
@@ -316,10 +316,10 @@ export function Landing() {
           {staff.map(([role, text]) => (
             <li
               key={role}
-              className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2.5 md:rounded-card md:border md:bg-surface-inset md:p-5.5"
+              className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2.5 md:rounded-xl md:border md:bg-surface-inset md:p-5.5"
             >
               <MonoLabel tone="accent">{role}</MonoLabel>
-              <p className="text-body text-muted md:text-sm md:leading-normal">
+              <p className="text-body text-secondary-foreground md:text-sm md:leading-normal">
                 {text}
               </p>
             </li>
@@ -340,7 +340,9 @@ export function Landing() {
               <h3 className="text-base font-semibold md:text-[17px]">
                 {title}
               </h3>
-              <p className="text-body leading-normal text-muted">{text}</p>
+              <p className="text-body leading-normal text-secondary-foreground">
+                {text}
+              </p>
             </li>
           ))}
         </ul>
@@ -357,14 +359,14 @@ export function Landing() {
               key={title}
               className="grid grid-cols-[36px_1fr] gap-2 border-t border-border py-3.5 md:grid-cols-[56px_1fr] md:gap-3 md:py-5"
             >
-              <span className="font-metric text-2xl leading-none font-semibold text-accent md:text-[30px]">
+              <span className="font-metric text-2xl leading-none font-semibold text-primary md:text-[30px]">
                 {index + 1}
               </span>
               <div className="flex flex-col md:gap-1.5">
                 <h3 className="text-base font-semibold md:text-[17px]">
                   {title}
                 </h3>
-                <p className="text-body text-muted">{text}</p>
+                <p className="text-body text-secondary-foreground">{text}</p>
               </div>
             </li>
           ))}
@@ -377,7 +379,7 @@ export function Landing() {
           <Heading>Tes données santé restent les tiennes.</Heading>
         </div>
         <div className="flex flex-col gap-2 md:gap-5.5">
-          <ul className="flex flex-col gap-2.5 text-body leading-normal text-muted md:gap-3.5">
+          <ul className="flex flex-col gap-2.5 text-body leading-normal text-secondary-foreground md:gap-3.5">
             {privacy.map((item) => (
               <li key={item} className="flex gap-2.5 md:gap-3">
                 <Dash />
@@ -387,7 +389,7 @@ export function Landing() {
           </ul>
           <Link
             href="/privacy"
-            className="w-fit rounded-control py-2.5 text-body text-accent hover:text-foreground"
+            className="w-fit rounded-md py-2.5 text-body text-primary hover:text-foreground"
           >
             Lire la politique de confidentialité
           </Link>

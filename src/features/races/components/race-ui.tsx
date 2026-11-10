@@ -9,7 +9,7 @@ export function RaceCard({
   return (
     <section
       className={cn(
-        "flex min-w-0 flex-col gap-4 rounded-panel border border-border bg-surface px-5 py-5 sm:px-6 sm:py-5.5",
+        "flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card px-5 py-5 sm:px-6 sm:py-5.5",
         className,
       )}
       {...props}
@@ -50,7 +50,7 @@ export function Figure({
         className={cn(
           "font-metric text-[1.625rem] leading-none font-semibold tracking-[-0.01em] tabular-nums",
           tone === "night" && "text-night",
-          tone === "accent" && "text-accent",
+          tone === "accent" && "text-primary",
         )}
       >
         {value}
@@ -83,12 +83,12 @@ export function StatusPill({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.25 py-0.75 text-xs whitespace-nowrap",
         {
-          neutral: "bg-surface-raised text-foreground",
-          outline: "border border-border-strong text-muted",
-          accent: "bg-accent text-accent-foreground",
+          neutral: "bg-muted text-foreground",
+          outline: "border border-border-strong text-secondary-foreground",
+          accent: "bg-primary text-primary-foreground",
           success: "bg-success-surface text-success",
           warning: "bg-warning/10 text-warning",
-          danger: "bg-danger/10 text-danger",
+          danger: "bg-destructive/10 text-destructive",
           provider: "bg-provider/10 text-provider",
         }[tone],
         className,
@@ -110,7 +110,7 @@ export function LegendItem({
   children: React.ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-2 text-xs text-muted">
+    <span className="inline-flex items-center gap-2 text-xs text-secondary-foreground">
       {mark}
       {children}
     </span>
@@ -131,7 +131,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-start gap-2 rounded-card border border-dashed border-border-strong bg-surface-inset px-4 py-4",
+        "flex flex-col items-start gap-2 rounded-xl border border-dashed border-border-strong bg-surface-inset px-4 py-4",
         className,
       )}
     >

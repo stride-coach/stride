@@ -66,7 +66,7 @@ function WatchTag({ tag }: { tag: WatchDayTag | undefined }) {
     <span
       className={cn(
         "flex items-center gap-1.25 text-xs",
-        tag === "on" ? "text-muted-foreground" : "text-danger",
+        tag === "on" ? "text-muted-foreground" : "text-destructive",
       )}
     >
       <WatchIcon aria-hidden="true" className="size-3 shrink-0" />
@@ -155,10 +155,10 @@ function DayCard({
 }) {
   const rest = day.sessionKey === null;
   const className = cn(
-    "flex min-w-0 flex-col rounded-card border p-3",
+    "flex min-w-0 flex-col rounded-xl border p-3",
     rest
       ? "border-dashed border-border"
-      : "border-border bg-surface hover:border-border-strong",
+      : "border-border bg-card hover:border-border-strong",
     day.isPast && !rest && "bg-surface-panel",
     day.isPast && "opacity-70",
     day.isToday && "border-foreground bg-surface-current opacity-100",
@@ -188,7 +188,7 @@ function DayCard({
               session={session}
               sessionHref={sessionHref}
               className={cn(
-                "-mx-2 flex flex-col gap-2 rounded-surface p-2 hover:bg-surface-raised",
+                "-mx-2 flex flex-col gap-2 rounded-lg p-2 hover:bg-muted",
                 index === day.sessions.length - 1 && "flex-1",
               )}
             >
@@ -329,7 +329,7 @@ function DayRow({
     "border-t border-border",
     day.isPast && "opacity-65",
     day.isToday &&
-      "my-0.5 rounded-card border border-border-strong bg-surface-current px-3",
+      "my-0.5 rounded-xl border border-border-strong bg-surface-current px-3",
   );
   if (day.sessions.length > 1)
     return (
@@ -389,7 +389,9 @@ function WeekNote({ note }: { note: string }) {
   return (
     <div className="flex items-start gap-2.5">
       <StrideMark className="mt-0.75 size-3.5 shrink-0" />
-      <p className="text-[13px] leading-normal text-muted">{note}</p>
+      <p className="text-[13px] leading-normal text-secondary-foreground">
+        {note}
+      </p>
     </div>
   );
 }
@@ -404,7 +406,7 @@ function WeekProposals({
   return (
     <section
       aria-label="Changements proposés cette semaine"
-      className="flex flex-col divide-y divide-warning-border rounded-card border border-warning-border bg-warning/4"
+      className="flex flex-col divide-y divide-warning-border rounded-xl border border-warning-border bg-warning/4"
     >
       {proposals.map((proposal) => (
         <div
@@ -418,7 +420,7 @@ function WeekProposals({
             </span>
             <span className="text-sm font-semibold">{proposal.title}</span>
             {proposal.summary && (
-              <span className="text-[13px] leading-normal text-muted">
+              <span className="text-[13px] leading-normal text-secondary-foreground">
                 {proposal.summary}
               </span>
             )}
@@ -480,7 +482,7 @@ function SplitBar({ split }: { split: Split }) {
         style={{ width: `${split.easyPct}%` }}
       />
       {split.qualitySeconds > 0 && (
-        <span className="flex-1 rounded-r-mark bg-accent/70" />
+        <span className="flex-1 rounded-r-mark bg-primary/70" />
       )}
       <span
         aria-hidden="true"
@@ -519,7 +521,9 @@ function WeekSplitCell({ split }: { split: Split }) {
       title={splitTitle}
       className="grid w-37.5 grid-cols-[auto_auto_1fr] items-baseline gap-x-1.5 gap-y-1.5 border-l border-border pl-4.5 max-sm:hidden"
     >
-      <dt className="col-start-2 row-start-1 text-xs text-muted">facile</dt>
+      <dt className="col-start-2 row-start-1 text-xs text-secondary-foreground">
+        facile
+      </dt>
       <dd className="col-start-1 row-start-1 font-metric text-[26px] leading-none font-semibold whitespace-nowrap tabular-nums">
         {split.easyPct} %
       </dd>
@@ -541,13 +545,13 @@ function WeekSplitCard({ split }: { split: Split }) {
   return (
     <div
       title={splitTitle}
-      className="flex flex-col gap-2 rounded-card border border-border bg-surface-panel px-3.5 py-3 sm:hidden"
+      className="flex flex-col gap-2 rounded-xl border border-border bg-surface-panel px-3.5 py-3 sm:hidden"
     >
       <div className="flex items-baseline gap-2">
         <span className="font-metric text-[22px] leading-none font-semibold tabular-nums">
           {split.easyPct} %
         </span>
-        <span className="text-[13px] text-muted">en facile</span>
+        <span className="text-[13px] text-secondary-foreground">en facile</span>
         <span className="ml-auto text-xs">
           <SplitState split={split} long />
         </span>
@@ -564,7 +568,7 @@ function WeekSplitCard({ split }: { split: Split }) {
         <span className="inline-flex items-center gap-1.25">
           <span
             aria-hidden="true"
-            className="size-1.5 rounded-full bg-accent/70"
+            className="size-1.5 rounded-full bg-primary/70"
           />
           Qualité {formatDuration(split.qualitySeconds)}
         </span>
@@ -643,7 +647,7 @@ export function ProgramWeekPanel({
   return (
     <section
       aria-labelledby="program-week-title"
-      className="flex flex-col gap-3.5 rounded-panel border border-border bg-surface p-4 sm:gap-4 sm:px-5.5 sm:py-5"
+      className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-4 sm:gap-4 sm:px-5.5 sm:py-5"
     >
       <div className="flex flex-wrap items-start gap-3 sm:items-center">
         <div className="flex flex-col gap-0.75">

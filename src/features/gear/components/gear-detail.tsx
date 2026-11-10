@@ -31,7 +31,7 @@ function Tile({
   detail: string;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-card border border-border bg-surface-panel px-4 py-3.5">
+    <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-panel px-4 py-3.5">
       <MonoLabel size="nano" className="inline-flex items-center gap-1.5">
         <SourceMark source={source} />
         {label}
@@ -71,7 +71,7 @@ export function GearDetail({
                 key={tag}
                 size="nano"
                 tone="secondary"
-                className="rounded-tag border border-border-strong px-1.5 py-0.5"
+                className="rounded-sm border border-border-strong px-1.5 py-0.5"
               >
                 {tag}
               </MonoLabel>
@@ -103,7 +103,7 @@ export function GearDetail({
         </div>
       </section>
 
-      <section className="flex flex-col gap-5 rounded-panel border border-border bg-surface p-5 sm:p-7">
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:p-7">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="flex items-end gap-3.5">
             <span className="font-metric text-[72px] leading-[0.78] font-semibold tabular-nums sm:text-[88px]">
@@ -127,7 +127,7 @@ export function GearDetail({
                 ? "Durée de vie atteinte"
                 : `${formatKm(wear.remainingKm)} km restants`}
             </span>
-            <span className="text-meta text-muted">
+            <span className="text-meta text-secondary-foreground">
               {replacement && !wear.worn
                 ? `à remplacer vers le ${formatFrenchDate(replacement)} au rythme actuel`
                 : "pas assez de sorties récentes pour estimer une date"}
@@ -177,10 +177,10 @@ export function GearDetail({
       </section>
 
       <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-2">
-        <section className="flex flex-col gap-3 rounded-panel border border-border bg-surface p-5">
+        <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
           <h2 className="text-lead font-semibold">La paire</h2>
           {shoe.spec.description && (
-            <div className="flex flex-col gap-1.5 rounded-card border border-border bg-surface-panel px-4 py-3.5">
+            <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-surface-panel px-4 py-3.5">
               <MonoLabel
                 size="nano"
                 className="inline-flex items-center gap-1.5"
@@ -220,7 +220,7 @@ export function GearDetail({
             ))}
           </dl>
         </section>
-        <section className="flex flex-col gap-3 rounded-panel border border-border bg-surface p-5">
+        <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
           <div className="flex flex-wrap items-baseline gap-2.5">
             <h2 className="text-lead font-semibold">Dernières activités</h2>
             <span className="text-xs text-muted-foreground">

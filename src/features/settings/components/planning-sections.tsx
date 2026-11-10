@@ -91,7 +91,7 @@ export function UnavailabilitySection({
     <div className="flex flex-col gap-6">
       <PreferenceSection title="Indisponibilités">
         {periods.length === 0 ? (
-          <p className="px-4 py-3 text-sm text-muted md:px-0 md:py-4">
+          <p className="px-4 py-3 text-sm text-secondary-foreground md:px-0 md:py-4">
             Aucune période à venir. Ajoute tes voyages ou tes pauses pour que
             ton plan les évite.
           </p>

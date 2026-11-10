@@ -200,7 +200,7 @@ export default async function ShellPage() {
           <h1 className="text-headline font-semibold text-balance sm:text-display">
             A sidebar that carries context, not just links.
           </h1>
-          <p className="text-body text-pretty text-muted">
+          <p className="text-body text-pretty text-secondary-foreground">
             Expanded at 264 px with an inset work area. Press{" "}
             <kbd className="font-mono text-xs">⌘B</kbd> or use the trigger to
             collapse to the 56 px icon rail, where badges become dots and labels

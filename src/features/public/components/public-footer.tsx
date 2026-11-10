@@ -12,14 +12,14 @@ function LegalLinks() {
         <Link
           key={page.href}
           href={page.href}
-          className="rounded-control py-2.75 text-muted hover:text-foreground md:py-1.5"
+          className="rounded-md py-2.75 text-secondary-foreground hover:text-foreground md:py-1.5"
         >
           {page.label}
         </Link>
       ))}
       <a
         href={`mailto:${publisher.email}`}
-        className="rounded-control py-2.75 text-muted hover:text-foreground md:py-1.5"
+        className="rounded-md py-2.75 text-secondary-foreground hover:text-foreground md:py-1.5"
       >
         Contact
       </a>

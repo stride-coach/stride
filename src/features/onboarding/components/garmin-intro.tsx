@@ -50,13 +50,13 @@ export function GarminIntro({
         <>
           <section
             aria-label="Comment tout s’articule"
-            className="flex flex-col gap-6 rounded-card border border-border p-7"
+            className="flex flex-col gap-6 rounded-xl border border-border p-7"
           >
             <h2 className="font-mono text-label text-muted-foreground uppercase">
               Comment tout s’articule
             </h2>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <div className="flex flex-col gap-1.5 rounded-surface border border-border-strong p-4">
+              <div className="flex flex-col gap-1.5 rounded-lg border border-border-strong p-4">
                 <span className="text-sm font-semibold">Garmin</span>
                 <span className="text-xs text-muted-foreground">
                   Envoie les signaux : sorties, sommeil, VFC, FC
@@ -64,9 +64,9 @@ export function GarminIntro({
               </div>
               <ArrowRightIcon
                 aria-hidden="true"
-                className="size-5 text-accent"
+                className="size-5 text-primary"
               />
-              <div className="flex flex-col gap-1.5 rounded-surface border border-accent p-4">
+              <div className="flex flex-col gap-1.5 rounded-lg border border-primary p-4">
                 <span className="text-sm font-semibold">
                   Ton modèle d’athlète
                 </span>
@@ -76,7 +76,7 @@ export function GarminIntro({
                 </span>
               </div>
             </div>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-secondary-foreground">
               Garmin fournit les signaux. Stride construit le modèle d’athlète —
               et l’affine chaque jour.
             </p>

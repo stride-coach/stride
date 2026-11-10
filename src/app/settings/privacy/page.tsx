@@ -32,7 +32,7 @@ export default async function PrivacySettingsPage() {
       <SettingsGroup title="Enregistré dans Stride">
         <div className="border-b border-border p-4 md:px-0">
           <strong className="text-sm">Activités et mesures Garmin</strong>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-secondary-foreground">
             {counts.activities ?? "—"} activités et {counts.observations ?? "—"}{" "}
             mesures de santé sont enregistrées dans ton compte.
           </p>
@@ -41,7 +41,7 @@ export default async function PrivacySettingsPage() {
           <strong className="text-sm">
             Profil, entraînement, objectifs et courses
           </strong>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-secondary-foreground">
             Tes réponses restent disponibles dans ton compte après connexion.
           </p>
         </div>
@@ -64,7 +64,7 @@ export default async function PrivacySettingsPage() {
                   ? `Retiré le ${formatConsentDate(consent.withdrawnAt)}`
                   : "Pas encore accordé"}
             </strong>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-secondary-foreground">
               Sommeil, VFC, fréquence cardiaque et douleurs signalées servent
               uniquement à adapter ton entraînement.{" "}
               {consent.kind === "active"
@@ -85,7 +85,7 @@ export default async function PrivacySettingsPage() {
         <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
           <div className="flex-1">
             <strong className="text-sm">Télécharger les réglages</strong>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-secondary-foreground">
               Profil, objectifs et courses au format JSON. Les activités Garmin
               ne sont pas incluses.
             </p>
@@ -120,7 +120,7 @@ export default async function PrivacySettingsPage() {
             <strong className="text-sm">
               Supprimer ton compte ou tes données Garmin
             </strong>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-secondary-foreground">
               Pas encore possible depuis les réglages. Écris-nous à{" "}
               {publisher.email} : on supprime ce que tu demandes sous 30 jours
               et on te confirme par e-mail. Tes données sur Garmin ne sont pas

@@ -15,10 +15,10 @@ import { StaffPortrait } from "@/features/coach/components/staff-portrait";
 import { useStaff } from "@/features/coach/components/staff-context";
 
 const cardTone = {
-  accent: "border-border bg-surface",
-  warning: "border-warning-border bg-surface",
+  accent: "border-border bg-card",
+  warning: "border-warning-border bg-card",
   success: "border-success-border bg-success-surface",
-  muted: "border-border bg-surface",
+  muted: "border-border bg-card",
 } as const;
 
 const dotTone = {
@@ -58,7 +58,7 @@ export function SuiviPanel({
         <MonoLabel size="micro">Suivi</MonoLabel>
         <div
           className={cn(
-            "flex items-center gap-2.5 rounded-card border px-3.5 py-3",
+            "flex items-center gap-2.5 rounded-xl border px-3.5 py-3",
             cardTone[card.tone],
           )}
         >
@@ -117,10 +117,10 @@ export function SuiviPanel({
                     className={cn(
                       "relative z-1 mt-0.5 size-3.25 rounded-full ring-3",
                       step.tone === "accent"
-                        ? "bg-accent ring-accent/15 motion-safe:animate-breathe"
+                        ? "bg-primary ring-primary/15 motion-safe:animate-breathe"
                         : step.tone === "warning"
                           ? "bg-warning ring-warning/15"
-                          : "bg-muted ring-border",
+                          : "bg-secondary-foreground ring-border",
                     )}
                   />
                 ) : step.state === "upcoming" ? (
@@ -131,9 +131,12 @@ export function SuiviPanel({
                 ) : (
                   <span
                     aria-hidden="true"
-                    className="relative z-1 mt-0.5 grid size-3.25 place-items-center rounded-full border border-dim bg-surface-raised"
+                    className="relative z-1 mt-0.5 grid size-3.25 place-items-center rounded-full border border-dim bg-muted"
                   >
-                    <CheckIcon className="size-2 text-muted" strokeWidth={3} />
+                    <CheckIcon
+                      className="size-2 text-secondary-foreground"
+                      strokeWidth={3}
+                    />
                   </span>
                 )}
                 <span className="flex min-w-0 flex-col gap-px">
@@ -144,7 +147,7 @@ export function SuiviPanel({
                         ? "font-semibold text-foreground"
                         : step.state === "upcoming"
                           ? "text-muted-foreground"
-                          : "text-muted",
+                          : "text-secondary-foreground",
                     )}
                   >
                     {step.label}
@@ -179,7 +182,7 @@ export function SuiviPanel({
             {reads.map((read) => (
               <span
                 key={read}
-                className="inline-flex items-center rounded-control border border-border-strong px-2 py-0.75 text-xs text-muted"
+                className="inline-flex items-center rounded-md border border-border-strong px-2 py-0.75 text-xs text-secondary-foreground"
               >
                 {read}
               </span>

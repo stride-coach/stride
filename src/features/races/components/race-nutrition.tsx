@@ -59,7 +59,7 @@ export type NutritionBodyProps = {
 
 function SegmentBadge({ index }: { index: number }) {
   return (
-    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-control border border-border-strong bg-surface-raised font-metric text-xs font-semibold">
+    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-border-strong bg-muted font-metric text-xs font-semibold">
       T{index}
     </span>
   );
@@ -139,7 +139,7 @@ export function ProductsCard({
         <AddProductButton added={added} className="ml-auto max-sm:min-h-9" />
       </div>
       {rows.length === 0 ? (
-        <p className="border-t border-border py-3 text-meta text-muted">
+        <p className="border-t border-border py-3 text-meta text-secondary-foreground">
           Ajoute tes gels, boissons et barres : Stride calcule alors les
           quantités exactes de chaque tronçon.
         </p>
@@ -169,7 +169,9 @@ export function ProductsCard({
                   <th scope="row" className="px-2 py-3 align-top">
                     <EditProductButton product={row.product} />
                   </th>
-                  <td className="px-2 py-3 align-top text-muted">{row.kind}</td>
+                  <td className="px-2 py-3 align-top text-secondary-foreground">
+                    {row.kind}
+                  </td>
                   {[row.carbs, row.sodium, row.caffeine].map((value, index) => (
                     <td
                       key={index}
@@ -178,7 +180,7 @@ export function ProductsCard({
                       {value}
                     </td>
                   ))}
-                  <td className="px-2 py-3 align-top text-muted">
+                  <td className="px-2 py-3 align-top text-secondary-foreground">
                     {row.serving}
                   </td>
                   <td
@@ -423,7 +425,7 @@ export function NutritionBody({
       </section>
       <section
         aria-label="Base commune"
-        className="flex flex-col gap-2 rounded-panel border border-border p-3.5 text-meta text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:px-4.5"
+        className="flex flex-col gap-2 rounded-2xl border border-border p-3.5 text-meta text-secondary-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:px-4.5"
       >
         <MonoLabel size="nano" tone="accent" className="sm:text-micro">
           Base commune
@@ -436,7 +438,7 @@ export function NutritionBody({
         </p>
         <Link
           href="/nutrition"
-          className="inline-flex min-h-11 items-center text-accent hover:text-foreground sm:min-h-0"
+          className="inline-flex min-h-11 items-center text-primary hover:text-foreground sm:min-h-0"
         >
           Nutrition du jour →
         </Link>
@@ -460,7 +462,7 @@ export function NutritionBody({
               {boxes.map((box) => (
                 <div
                   key={box.label}
-                  className="flex min-w-0 flex-col gap-1.5 rounded-card border border-border p-3.5"
+                  className="flex min-w-0 flex-col gap-1.5 rounded-xl border border-border p-3.5"
                 >
                   <MonoLabel size="micro">{box.label}</MonoLabel>
                   <span className="text-body font-semibold">{box.value}</span>
@@ -511,7 +513,7 @@ export function NutritionBody({
                     <span className="flex flex-1 flex-col gap-0.5">
                       <Link
                         href={sessionPanelHref(session.sessionKey)}
-                        className="hover:text-accent"
+                        className="hover:text-primary"
                       >
                         {formatShortDate(session.date)} · {session.title} ·{" "}
                         {formatDuration(session.durationSeconds)}
@@ -525,7 +527,7 @@ export function NutritionBody({
                 ))}
               </ul>
             ) : (
-              <p className="border-t border-border pt-2 text-meta text-muted">
+              <p className="border-t border-border pt-2 text-meta text-secondary-foreground">
                 Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
               </p>
             )}
@@ -567,7 +569,7 @@ export function NutritionBody({
             {sessions.length > 0 && (
               <Link
                 href="/plan"
-                className="inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:min-h-0"
+                className="inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:min-h-0"
               >
                 Voir ces séances dans le plan →
               </Link>
@@ -583,7 +585,7 @@ export function NutritionBody({
       </div>
       <section
         aria-labelledby="plan-par-troncon"
-        className="flex min-w-0 flex-col gap-2 md:gap-1.5 md:rounded-panel md:border md:border-border md:bg-surface md:px-6 md:py-5.5"
+        className="flex min-w-0 flex-col gap-2 md:gap-1.5 md:rounded-2xl md:border md:border-border md:bg-card md:px-6 md:py-5.5"
       >
         <h2
           id="plan-par-troncon"
@@ -643,7 +645,9 @@ export function NutritionBody({
                   </span>
                 </td>
                 <td className="px-2 py-3">{row.eat}</td>
-                <td className="px-2 py-3 text-muted">{row.arrival}</td>
+                <td className="px-2 py-3 text-secondary-foreground">
+                  {row.arrival}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -652,7 +656,7 @@ export function NutritionBody({
           {rows.map((row) => (
             <li
               key={row.id}
-              className="flex flex-col gap-1.5 rounded-panel border border-border bg-surface p-3"
+              className="flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-3"
             >
               <div className="flex items-center gap-2">
                 <SegmentBadge index={row.index} />
@@ -661,7 +665,7 @@ export function NutritionBody({
                   {row.carbs}
                 </span>
               </div>
-              <span className="flex gap-3 text-xs text-muted">
+              <span className="flex gap-3 text-xs text-secondary-foreground">
                 <span>Eau {row.water}</span>
                 <span>Sodium {row.sodium}</span>
               </span>

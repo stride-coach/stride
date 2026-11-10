@@ -58,7 +58,7 @@ export function ThreadMenu({
             variant="outline"
             size="icon"
             aria-label="Plus d’options"
-            className="size-11 rounded-surface min-[980px]:size-8.5"
+            className="size-11 rounded-lg min-[980px]:size-8.5"
           >
             <EllipsisIcon aria-hidden="true" />
           </Button>
@@ -67,9 +67,9 @@ export function ThreadMenu({
           <DropdownMenuItem
             disabled={busy}
             onSelect={() => setConfirming(true)}
-            className="min-h-10 gap-2.5 text-danger focus:text-danger"
+            className="min-h-10 gap-2.5 text-destructive focus:text-destructive"
           >
-            <Trash2Icon aria-hidden="true" className="text-danger" />
+            <Trash2Icon aria-hidden="true" className="text-destructive" />
             Supprimer la conversation
           </DropdownMenuItem>
         </DropdownMenuContent>

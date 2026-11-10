@@ -123,18 +123,18 @@ const sessionTileKinds: SessionTileKind[] = [
 const surfaces = [
   ["Shell", "bg-background", "background"],
   ["Inset", "bg-surface-inset", "surface-inset"],
-  ["Surface", "bg-surface", "surface"],
-  ["Raised", "bg-surface-raised", "surface-raised"],
+  ["Surface", "bg-card", "card"],
+  ["Raised", "bg-muted", "muted"],
   ["Panel", "bg-surface-panel", "surface-panel"],
   ["Current", "bg-surface-current", "surface-current"],
   ["Chalk", "bg-foreground", "foreground"],
-  ["Volt", "bg-accent", "accent"],
+  ["Volt", "bg-primary", "primary"],
 ] as const;
 
 const states = [
   ["Success", "bg-success", "success"],
   ["Warning", "bg-warning", "warning"],
-  ["Danger", "bg-danger", "danger"],
+  ["Danger", "bg-destructive", "destructive"],
   ["Provider", "bg-provider", "provider"],
   ["Provider past", "bg-provider-muted", "provider-muted"],
   ["Dim", "bg-dim", "dim"],
@@ -147,11 +147,11 @@ const lines = [
 ] as const;
 
 const zones = [
-  ["Z1", "bg-zone-1"],
-  ["Z2 · Garmin", "bg-zone-2"],
-  ["Z3", "bg-zone-3"],
-  ["Z4", "bg-zone-4"],
-  ["Z5 · Error", "bg-zone-5"],
+  ["Z1", "bg-intensity-1"],
+  ["Z2 · Garmin", "bg-intensity-2"],
+  ["Z3", "bg-intensity-3"],
+  ["Z4", "bg-intensity-4"],
+  ["Z5 · Error", "bg-intensity-5"],
 ] as const;
 
 const typeScale = [
@@ -173,7 +173,7 @@ const typeScale = [
   ],
   [
     "lead",
-    "text-lead text-muted",
+    "text-lead text-secondary-foreground",
     "Garmin provides the signals. Stride builds the athlete model.",
   ],
   [
@@ -184,7 +184,7 @@ const typeScale = [
   ["ui", "text-sm", "Readiness, session, proposals, last run"],
   [
     "meta",
-    "text-meta text-muted",
+    "text-meta text-secondary-foreground",
     "Proposed by Training · accepted by you · Mon 5",
   ],
   [
@@ -196,11 +196,11 @@ const typeScale = [
 
 const radii = [
   ["mark", "rounded-mark", "2px"],
-  ["tag", "rounded-tag", "5px"],
-  ["control", "rounded-control", "6px"],
-  ["surface", "rounded-surface", "8px"],
-  ["card", "rounded-card", "12px"],
-  ["panel", "rounded-panel", "14px"],
+  ["sm", "rounded-sm", "5px"],
+  ["md", "rounded-md", "6px"],
+  ["lg", "rounded-lg", "8px"],
+  ["xl", "rounded-xl", "12px"],
+  ["2xl", "rounded-2xl", "14px"],
 ] as const;
 
 const motion = [
@@ -236,7 +236,7 @@ export default function DesignSystemPage() {
         <h1 className="max-w-4xl text-display font-semibold text-balance">
           Radix bones, Stride skin.
         </h1>
-        <p className="max-w-3xl text-lead text-pretty text-muted">
+        <p className="max-w-3xl text-lead text-pretty text-secondary-foreground">
           Night Track tokens, shadcn primitives restyled for Stride, and the
           reusable product patterns from the approved system references. This
           surface exists for validation only and is not available in production.
@@ -256,14 +256,14 @@ export default function DesignSystemPage() {
             <a
               key={href}
               href={href}
-              className="text-muted hover:text-foreground"
+              className="text-secondary-foreground hover:text-foreground"
             >
               {label}
             </a>
           ))}
           <Link
             href="/design-system/shell"
-            className="text-accent hover:text-foreground"
+            className="text-primary hover:text-foreground"
           >
             App shell →
           </Link>
@@ -282,7 +282,7 @@ export default function DesignSystemPage() {
               {surfaces.map(([name, fill, token]) => (
                 <li key={token} className="flex flex-col gap-1.5">
                   <span
-                    className={`h-11 rounded-control border border-border ${fill}`}
+                    className={`h-11 rounded-md border border-border ${fill}`}
                   />
                   <span className="text-xs">{name}</span>
                   <MonoLabel size="nano">{token}</MonoLabel>
@@ -294,18 +294,18 @@ export default function DesignSystemPage() {
             <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {states.map(([name, fill, token]) => (
                 <li key={token} className="flex flex-col gap-1.5">
-                  <span className={`h-11 rounded-control ${fill}`} />
+                  <span className={`h-11 rounded-md ${fill}`} />
                   <span className="text-xs">{name}</span>
                   <MonoLabel size="nano">{token}</MonoLabel>
                 </li>
               ))}
             </ul>
           </Specimen>
-          <Specimen title="Training zones" meta="bg-zone-1…5">
+          <Specimen title="Training zones" meta="bg-intensity-1…5">
             <ul className="grid grid-cols-5 gap-2">
               {zones.map(([name, fill]) => (
                 <li key={name} className="flex flex-col gap-1.25">
-                  <span className={`h-5 rounded-tag ${fill}`} />
+                  <span className={`h-5 rounded-sm ${fill}`} />
                   <MonoLabel size="nano">{name}</MonoLabel>
                 </li>
               ))}
@@ -322,7 +322,7 @@ export default function DesignSystemPage() {
               {lines.map(([name, line, token]) => (
                 <span
                   key={token}
-                  className={`flex h-11 flex-1 items-center justify-center rounded-control border ${line} text-xs text-muted`}
+                  className={`flex h-11 flex-1 items-center justify-center rounded-md border ${line} text-xs text-secondary-foreground`}
                 >
                   {name}
                 </span>
@@ -332,7 +332,7 @@ export default function DesignSystemPage() {
               {radii.map(([name, radius, size]) => (
                 <span
                   key={name}
-                  className={`flex h-14 flex-col items-center justify-center border border-border-strong bg-surface ${radius}`}
+                  className={`flex h-14 flex-col items-center justify-center border border-border-strong bg-card ${radius}`}
                 >
                   <span className="text-xs">{name}</span>
                   <MonoLabel size="nano">{size}</MonoLabel>
@@ -467,7 +467,7 @@ export default function DesignSystemPage() {
               <Badge variant="success">Accepted</Badge>
               <Badge variant="danger">Sign-in expired</Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-meta text-muted">
+            <div className="flex flex-wrap items-center gap-3 text-meta text-secondary-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <Kbd>⌘B</Kbd> collapse sidebar
               </span>
@@ -613,13 +613,22 @@ export default function DesignSystemPage() {
                 <TabsTrigger value="recovery">Recovery</TabsTrigger>
                 <TabsTrigger value="records">Records</TabsTrigger>
               </TabsList>
-              <TabsContent value="fitness" className="text-muted">
+              <TabsContent
+                value="fitness"
+                className="text-secondary-foreground"
+              >
                 Your engine is growing faster than your top end.
               </TabsContent>
-              <TabsContent value="recovery" className="text-muted">
+              <TabsContent
+                value="recovery"
+                className="text-secondary-foreground"
+              >
                 Sleep has been short three nights running.
               </TabsContent>
-              <TabsContent value="records" className="text-muted">
+              <TabsContent
+                value="records"
+                className="text-secondary-foreground"
+              >
                 Half marathon 1:39:58 · Mar 2025.
               </TabsContent>
             </Tabs>
@@ -634,7 +643,7 @@ export default function DesignSystemPage() {
               <Progress value={71} aria-labelledby="ds-import-label" />
             </div>
             <div
-              className="flex flex-col gap-2 rounded-card border border-border p-4"
+              className="flex flex-col gap-2 rounded-xl border border-border p-4"
               aria-busy="true"
               aria-label="Loading session"
             >
@@ -839,7 +848,7 @@ export default function DesignSystemPage() {
                 <Button
                   variant="link"
                   size="xs"
-                  className="h-auto px-0 text-muted"
+                  className="h-auto px-0 text-secondary-foreground"
                 >
                   Revert
                 </Button>
@@ -857,7 +866,7 @@ export default function DesignSystemPage() {
             <DecisionLegend />
           </Specimen>
           <Specimen title="Halo Volt" meta="Halo · entry and highlight only">
-            <div className="relative isolate flex h-64 flex-col justify-end overflow-hidden rounded-panel border border-border-subtle bg-background p-6">
+            <div className="relative isolate flex h-64 flex-col justify-end overflow-hidden rounded-2xl border border-border-subtle bg-background p-6">
               <Halo
                 viewBox="0 0 600 300"
                 path="M-20,290 C140,270 230,170 330,140 S500,80 620,30"
@@ -951,7 +960,7 @@ export default function DesignSystemPage() {
                 <TrendLabel trend="watch" className="text-lead">
                   Moderate readiness
                 </TrendLabel>
-                <span className="text-meta text-muted">
+                <span className="text-meta text-secondary-foreground">
                   14-day avg 69 · mostly sleep
                 </span>
               </div>
@@ -1041,9 +1050,9 @@ export default function DesignSystemPage() {
             <ProvenanceLabel source="provider">
               Garmin synced 06:12
             </ProvenanceLabel>
-            <div className="flex flex-col items-start gap-3 rounded-card border border-dashed border-border-strong p-5">
+            <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border-strong p-5">
               <MonoLabel>Empty · races</MonoLabel>
-              <p className="text-sm text-muted">
+              <p className="text-sm text-secondary-foreground">
                 No goal race yet. Stride plans around your availability until
                 you add one.
               </p>

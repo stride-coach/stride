@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const segment =
-  "inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface-raised px-3 text-sm text-muted md:min-h-9.5 md:bg-surface";
+  "inline-flex min-h-11 items-center rounded-md border border-border-strong bg-muted px-3 text-sm text-secondary-foreground md:min-h-9.5 md:bg-card";
 
 export function PreferenceGroup({
   className,
@@ -13,7 +13,7 @@ export function PreferenceGroup({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-surface border border-border bg-surface md:overflow-visible md:rounded-none md:border-0 md:bg-transparent",
+        "flex flex-col overflow-hidden rounded-lg border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent",
         className,
       )}
     >
@@ -36,7 +36,7 @@ export function PreferenceSection({
   return (
     <section id={id} className="flex flex-col gap-2 md:gap-0">
       <div className="px-1.5 md:border-b md:border-border-strong md:px-0 md:pb-2.5">
-        <h2 className="font-mono text-micro tracking-wider text-muted uppercase md:text-label">
+        <h2 className="font-mono text-micro tracking-wider text-secondary-foreground uppercase md:text-label">
           {title}
         </h2>
       </div>
@@ -150,7 +150,7 @@ export function WeekdayField({
           />
           <span
             aria-hidden="true"
-            className="grid size-11 place-items-center rounded-full border border-border-strong bg-surface-raised text-xs font-semibold text-muted-foreground peer-checked:border-accent peer-checked:text-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-ring md:size-10 md:bg-surface"
+            className="grid size-11 place-items-center rounded-full border border-border-strong bg-muted text-xs font-semibold text-muted-foreground peer-checked:border-primary peer-checked:text-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-ring md:size-10 md:bg-card"
           >
             {day.short}
           </span>

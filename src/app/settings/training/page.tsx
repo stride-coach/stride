@@ -63,7 +63,7 @@ export default async function TrainingSettingsPage({
         <h1 className="text-2xl font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
           Entraînement et coach
         </h1>
-        <p className="text-sm leading-normal text-muted md:text-body">
+        <p className="text-sm leading-normal text-secondary-foreground md:text-body">
           Ça guide mes plans. Changer tes disponibilités déclenchera une
           proposition de mise à jour, sans réécrire ta semaine en douce.
         </p>

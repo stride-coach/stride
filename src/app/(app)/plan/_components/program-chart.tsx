@@ -14,9 +14,9 @@ import { formatInteger } from "@/features/progress/format";
 const bandTones: Record<BandTone, string> = {
   dim: "bg-dim",
   provider: "bg-provider",
-  terrain: "bg-zone-3",
+  terrain: "bg-intensity-3",
   success: "bg-success",
-  accent: "bg-accent",
+  accent: "bg-primary",
 };
 
 function column(start: number, span: number) {
@@ -37,8 +37,8 @@ function RaceMark({
       className={cn(
         "grid size-4 place-items-center rounded-[4px] font-metric text-[10px] leading-none font-bold",
         primary
-          ? "bg-accent text-accent-foreground"
-          : "border border-dim text-muted",
+          ? "bg-primary text-primary-foreground"
+          : "border border-dim text-secondary-foreground",
         className,
       )}
     >
@@ -77,16 +77,15 @@ function Bar({
         .join(", ")}
       onClick={onSelect}
       className={cn(
-        "flex min-w-0 flex-col items-center gap-1.5 rounded-[9px] border border-transparent py-2 hover:bg-surface",
-        selected &&
-          "border-foreground bg-surface-raised hover:bg-surface-raised",
+        "flex min-w-0 flex-col items-center gap-1.5 rounded-[9px] border border-transparent py-2 hover:bg-card",
+        selected && "border-foreground bg-muted hover:bg-muted",
         week.status === "past" && !selected && "opacity-55",
       )}
     >
       <span
         className={cn(
           "font-metric text-[11px] leading-none font-semibold tabular-nums",
-          selected ? "text-foreground" : "text-muted",
+          selected ? "text-foreground" : "text-secondary-foreground",
         )}
       >
         {formatDuration(week.totals.durationSeconds)}
@@ -108,7 +107,7 @@ function Bar({
         />
         <span
           className={cn(
-            "w-[62%] bg-zone-4",
+            "w-[62%] bg-intensity-4",
             muted ? "opacity-45" : "opacity-90",
           )}
           style={{ height: `${week.qualitySeconds * scale}px` }}
@@ -151,7 +150,7 @@ export function ProgramChart({
   return (
     <section
       aria-labelledby="program-volume"
-      className="flex flex-col gap-1.5 rounded-card border border-border bg-surface-panel px-2.5 pt-2.5 pb-3 sm:rounded-panel sm:px-4 sm:py-3.5"
+      className="flex flex-col gap-1.5 rounded-xl border border-border bg-surface-panel px-2.5 pt-2.5 pb-3 sm:rounded-2xl sm:px-4 sm:py-3.5"
     >
       <div className="flex flex-wrap items-center gap-3.5 px-1 max-sm:sr-only">
         <MonoLabel id="program-volume">
@@ -170,7 +169,7 @@ export function ProgramChart({
           <span className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-mark bg-zone-4"
+              className="size-2.5 rounded-mark bg-intensity-4"
             />
             Qualité
           </span>
@@ -188,7 +187,7 @@ export function ProgramChart({
                   key={item.raceId}
                   href={`/plan?race=${item.raceId}`}
                   style={column(item.start, item.span)}
-                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-control border border-b-0 border-dashed border-dim px-2 text-[11px] whitespace-nowrap text-muted hover:text-foreground"
+                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-md border border-b-0 border-dashed border-dim px-2 text-[11px] whitespace-nowrap text-secondary-foreground hover:text-foreground"
                 >
                   <RaceMark letter={item.letter} primary={false} />
                   <span className="truncate">

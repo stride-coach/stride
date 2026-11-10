@@ -305,21 +305,21 @@ export function DaysField({
               key={day.value}
               value={String(day.value)}
               aria-label={day.long}
-              className="group/day max-lg:h-13 max-lg:w-full max-lg:justify-between max-lg:rounded-surface max-lg:px-4 max-lg:text-body max-lg:font-normal max-lg:data-[state=on]:font-semibold"
+              className="group/day max-lg:h-13 max-lg:w-full max-lg:justify-between max-lg:rounded-lg max-lg:px-4 max-lg:text-body max-lg:font-normal max-lg:data-[state=on]:font-semibold"
             >
               <span className="lg:hidden">{day.long}</span>
               <span className="hidden lg:inline">{day.short}</span>
               <span
                 aria-hidden="true"
-                className="grid size-5.5 place-items-center rounded-full border border-border-strong group-data-[state=on]/day:border-accent group-data-[state=on]/day:bg-accent lg:hidden"
+                className="grid size-5.5 place-items-center rounded-full border border-border-strong group-data-[state=on]/day:border-primary group-data-[state=on]/day:bg-primary lg:hidden"
               >
-                <CheckIcon className="hidden size-3.5 text-accent-foreground group-data-[state=on]/day:block" />
+                <CheckIcon className="hidden size-3.5 text-primary-foreground group-data-[state=on]/day:block" />
               </span>
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
         {selected.length > 0 && (
-          <p className="hidden text-sm text-muted lg:block">
+          <p className="hidden text-sm text-secondary-foreground lg:block">
             <span className="font-metric text-metric-sm font-semibold text-foreground">
               {selected.length}
             </span>{" "}

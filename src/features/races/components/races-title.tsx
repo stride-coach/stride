@@ -30,7 +30,7 @@ export function RacesTitle({
       </div>
       <nav
         aria-label="Filtre des courses"
-        className="flex gap-0.5 rounded-surface border border-border bg-surface p-0.75 md:hidden"
+        className="flex gap-0.5 rounded-lg border border-border bg-card p-0.75 md:hidden"
       >
         {racesViews.map((item) => (
           <Link
@@ -39,7 +39,7 @@ export function RacesTitle({
             aria-current={item === view ? "page" : undefined}
             scroll={false}
             className={cn(
-              "flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-control px-3 text-meta text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+              "flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-meta text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
               item === view && "bg-border font-semibold text-foreground",
             )}
           >

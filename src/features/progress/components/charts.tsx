@@ -85,7 +85,7 @@ export function RangeChart({
           width={width}
           y={y(card.range.high)}
           height={Math.max(2, y(card.range.low) - y(card.range.high))}
-          className="fill-surface-raised"
+          className="fill-muted"
         />
       )}
       {segments.map((segment, index) =>

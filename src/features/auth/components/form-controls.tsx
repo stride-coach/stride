@@ -150,7 +150,9 @@ export function PasswordGuidance({
             />
           ))}
         </div>
-        <span className="text-xs text-muted">{policy.strength}</span>
+        <span className="text-xs text-secondary-foreground">
+          {policy.strength}
+        </span>
       </div>
       <ul className="flex flex-col gap-1.5">
         {rules.map((rule) => (
@@ -204,7 +206,7 @@ export function FormHeading({
       <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.025em] md:text-[32px]">
         {title}
       </h1>
-      <p className="text-[15px] text-muted">{description}</p>
+      <p className="text-[15px] text-secondary-foreground">{description}</p>
     </div>
   );
 }

@@ -45,19 +45,19 @@ test("Night Track utilities and global accessibility defaults resolve in the bro
     const surface = document.createElement("div");
     surface.id = "theme-probe";
     surface.className =
-      "bg-surface text-muted font-metric rounded-surface border border-border";
+      "bg-card text-secondary-foreground font-metric rounded-lg border border-border";
     document.body.append(surface);
     const input = document.createElement("input");
     input.id = "state-probe";
     input.className =
-      "bg-surface-inset text-foreground font-mono rounded-control border border-border";
+      "bg-surface-inset text-foreground font-mono rounded-md border border-border";
     input.setAttribute("aria-invalid", "true");
     input.disabled = true;
     document.body.append(input);
     const raised = document.createElement("div");
     raised.id = "raised-probe";
     raised.className =
-      "bg-surface-raised text-muted-foreground outline-focus motion-safe:animate-pulse";
+      "bg-muted text-muted-foreground outline-focus motion-safe:animate-pulse";
     document.body.append(raised);
   });
   const surface = page.locator("#theme-probe");

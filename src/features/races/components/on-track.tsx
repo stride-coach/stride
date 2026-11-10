@@ -21,7 +21,7 @@ function Cell({
   detailTone?: "muted" | "success";
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 bg-surface px-4 py-3.5">
+    <div className="flex min-w-0 flex-col gap-1 bg-card px-4 py-3.5">
       <MonoLabel size="nano">{label}</MonoLabel>
       {children}
       {detail && (
@@ -60,7 +60,7 @@ function PhaseBar({ phase }: { phase: GoalPhase }) {
           <span
             className={cn(
               "block h-full",
-              segment.state === "past" ? "bg-provider" : "bg-accent",
+              segment.state === "past" ? "bg-provider" : "bg-primary",
             )}
             style={{ width: `${segment.progress * 100}%` }}
           />
@@ -110,7 +110,7 @@ export function OnTrack({
       )}
       <div
         className={cn(
-          "grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border",
+          "grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border",
           (goal.road || prep) && "lg:grid-cols-4",
         )}
       >
@@ -124,7 +124,7 @@ export function OnTrack({
                 <SourceMark source="provider" />
                 <Metric
                   value={goal.road.prediction ?? "—"}
-                  className={cn(metricClass, "text-muted")}
+                  className={cn(metricClass, "text-secondary-foreground")}
                 />
               </span>
             </Cell>
@@ -175,7 +175,7 @@ export function OnTrack({
         <div className="grid items-center gap-3 lg:grid-cols-2 lg:gap-6">
           {preparation && (
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-baseline justify-between gap-3 text-meta text-muted">
+              <div className="flex items-baseline justify-between gap-3 text-meta text-secondary-foreground">
                 <span>
                   Préparation de la course · {preparation.done} sur{" "}
                   {preparation.total}
@@ -196,7 +196,7 @@ export function OnTrack({
                 className="h-1.5 overflow-hidden rounded-full bg-border"
               >
                 <div
-                  className="h-full rounded-full bg-accent"
+                  className="h-full rounded-full bg-primary"
                   style={{ width: `${percent ?? 0}%` }}
                 />
               </div>
@@ -205,7 +205,7 @@ export function OnTrack({
           {nextKey ? (
             <Link
               href={sessionPanelHref(nextKey.sessionKey)}
-              className="flex min-w-0 flex-col gap-0.5 rounded-control hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:border-l lg:border-border lg:pl-6"
+              className="flex min-w-0 flex-col gap-0.5 rounded-md hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:border-l lg:border-border lg:pl-6"
             >
               <MonoLabel size="nano">Prochaine séance clé</MonoLabel>
               <span className="flex items-center gap-1 text-sm">

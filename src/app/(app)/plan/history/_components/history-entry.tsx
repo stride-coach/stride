@@ -38,11 +38,11 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
     <article
       aria-labelledby={`history-${entry.id}`}
       className={cn(
-        "grid gap-x-4.5 gap-y-2 rounded-card border px-3.5 py-3.5 sm:grid-cols-[132px_minmax(0,1fr)_auto] sm:px-4.5 sm:py-4",
+        "grid gap-x-4.5 gap-y-2 rounded-xl border px-3.5 py-3.5 sm:grid-cols-[132px_minmax(0,1fr)_auto] sm:px-4.5 sm:py-4",
         entry.highlighted
-          ? "border-warning-border bg-surface"
+          ? "border-warning-border bg-card"
           : entry.status.tone === "success"
-            ? "border-border bg-surface"
+            ? "border-border bg-card"
             : "border-border",
       )}
     >
@@ -70,7 +70,7 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
         >
           {entry.title}
         </h3>
-        <span className="inline-flex items-center gap-2 text-meta text-muted">
+        <span className="inline-flex items-center gap-2 text-meta text-secondary-foreground">
           <StaffStack staff={entry.origin.staff} />
           {entry.origin.line}
         </span>

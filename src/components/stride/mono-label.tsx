@@ -11,9 +11,9 @@ const monoLabelVariants = cva("font-mono uppercase", {
     },
     tone: {
       muted: "text-muted-foreground",
-      secondary: "text-muted",
+      secondary: "text-secondary-foreground",
       foreground: "text-foreground",
-      accent: "text-accent",
+      accent: "text-primary",
       warning: "text-warning",
     },
   },

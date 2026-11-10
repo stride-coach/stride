@@ -50,7 +50,7 @@ const errors = {
 const chipTones: Record<ChipStatus, string> = {
   ready: "text-success border-success/35",
   check: "text-warning border-warning/35",
-  buy: "text-danger border-danger/35",
+  buy: "text-destructive border-destructive/35",
   test: "text-provider border-provider/35",
   todo: "text-muted-foreground border-muted-foreground/35",
   weather: "text-provider border-provider/35",
@@ -69,7 +69,7 @@ export function GroupCard({
   return (
     <section
       className={cn(
-        "flex min-w-0 flex-col gap-0.5 rounded-panel border border-border bg-surface p-4 md:gap-1 md:px-6 md:py-5.5 print:break-inside-avoid print:border-0 print:p-0",
+        "flex min-w-0 flex-col gap-0.5 rounded-2xl border border-border bg-card p-4 md:gap-1 md:px-6 md:py-5.5 print:break-inside-avoid print:border-0 print:p-0",
         className,
       )}
       {...props}
@@ -108,7 +108,7 @@ function StatusChip({
         disabled={disabled}
         aria-label={`Statut de ${name} : ${chipLabels[chip]}`}
         className={cn(
-          "inline-flex min-h-6 items-center rounded-full border px-2.25 py-0.5 text-[11px] whitespace-nowrap hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-70 md:text-xs",
+          "inline-flex min-h-6 items-center rounded-full border px-2.25 py-0.5 text-[11px] whitespace-nowrap hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-70 md:text-xs",
           chipTones[chip],
         )}
       >
@@ -160,7 +160,7 @@ function AddForm({
         type="button"
         aria-label={`Ajouter un élément à ${label}`}
         onClick={() => setOpen(true)}
-        className="mt-1 flex min-h-8 items-center gap-1.5 self-start rounded-control text-meta text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+        className="mt-1 flex min-h-8 items-center gap-1.5 self-start rounded-md text-meta text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
       >
         <PlusIcon aria-hidden="true" className="size-3.5" />
         Ajouter
@@ -355,7 +355,7 @@ export function ChecklistGroup({
               key={item.id}
               className="flex items-center gap-2.5 border-t border-border py-1.5 text-sm"
             >
-              <span aria-hidden="true" className="text-danger">
+              <span aria-hidden="true" className="text-destructive">
                 ✕
               </span>
               <span className="min-w-0 flex-1">
@@ -371,7 +371,7 @@ export function ChecklistGroup({
                 aria-label={`Supprimer ${item.label}`}
                 disabled={pending}
                 onClick={() => remove(item)}
-                className="grid size-8 place-items-center rounded-control text-muted-foreground hover:text-danger focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+                className="grid size-8 place-items-center rounded-md text-muted-foreground hover:text-destructive focus-visible:outline-2 focus-visible:outline-ring print:hidden"
               >
                 <Trash2Icon aria-hidden="true" className="size-3.5" />
               </button>
@@ -411,7 +411,7 @@ export function ChecklistGroup({
                         : "Paire retirée de la ligne.",
                     )
                   }
-                  className="mt-1 max-w-full self-start rounded-control border border-border bg-surface-raised px-1.5 py-1 text-xs text-muted focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+                  className="mt-1 max-w-full self-start rounded-md border border-border bg-muted px-1.5 py-1 text-xs text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
                 >
                   <option value="">Aucune paire liée</option>
                   {pairs.map((option) => (
@@ -504,7 +504,7 @@ export function DropBagCard({
                 "Retiré du sac d’allègement.",
               )
             }
-            className="grid size-8 shrink-0 place-items-center rounded-control text-muted-foreground hover:text-danger focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+            className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-destructive focus-visible:outline-2 focus-visible:outline-ring print:hidden"
           >
             <XIcon aria-hidden="true" className="size-3.5" />
           </button>

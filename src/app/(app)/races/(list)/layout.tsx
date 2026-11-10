@@ -12,11 +12,7 @@ export default function RacesListLayout({
       <AppHeader
         title="Courses"
         actions={
-          <Button
-            asChild
-            size="md"
-            className="shrink-0 rounded-surface text-meta"
-          >
+          <Button asChild size="md" className="shrink-0 rounded-lg text-meta">
             <Link href="/settings/goals">
               <span aria-hidden="true">+</span>
               <span className="max-sm:sr-only">Ajouter une course</span>

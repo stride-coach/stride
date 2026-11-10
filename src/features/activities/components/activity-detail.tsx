@@ -77,14 +77,14 @@ function HeaderMetrics({ panel }: { panel: ActivityPanelView }) {
   const columns = metrics.length <= 4 ? 2 : 3;
   if (metrics.length === 0)
     return (
-      <p className="text-body text-muted">
+      <p className="text-body text-secondary-foreground">
         Garmin n’a transmis aucune mesure pour cette activité.
       </p>
     );
   return (
     <dl
       className={cn(
-        "grid gap-px overflow-hidden rounded-card border border-border bg-border sm:grid-cols-[repeat(var(--metric-count),minmax(0,1fr))]",
+        "grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-[repeat(var(--metric-count),minmax(0,1fr))]",
         columns === 2 ? "grid-cols-2" : "grid-cols-3",
       )}
       style={{ "--metric-count": metrics.length } as React.CSSProperties}
@@ -93,7 +93,7 @@ function HeaderMetrics({ panel }: { panel: ActivityPanelView }) {
         <div
           key={metric.key}
           className={cn(
-            "flex min-w-0 flex-col-reverse gap-0.75 bg-surface px-3 py-2.5 sm:col-span-1",
+            "flex min-w-0 flex-col-reverse gap-0.75 bg-card px-3 py-2.5 sm:col-span-1",
             index === metrics.length - 1 &&
               metrics.length % columns !== 0 &&
               "col-span-2",
@@ -136,12 +136,12 @@ function ZoneTime({ panel }: { panel: ActivityPanelView }) {
           className="grid grid-cols-[1.75rem_minmax(0,1fr)_3rem] items-center gap-2.5"
         >
           <MonoLabel>Z{zone}</MonoLabel>
-          <span className="h-2 overflow-hidden rounded-mark bg-surface-raised">
+          <span className="h-2 overflow-hidden rounded-mark bg-muted">
             <span
               className="block h-full rounded-mark"
               style={{
                 width: `${total > 0 ? (seconds / total) * 100 : 0}%`,
-                background: `var(--zone-${zone})`,
+                background: `var(--intensity-${zone})`,
               }}
             />
           </span>
@@ -199,7 +199,7 @@ function StrengthHeartRate({ curve }: { curve: HeartRateCurve }) {
         </MonoLabel>
         <MonoLabel>bpm · Garmin</MonoLabel>
       </div>
-      <div className="rounded-card border border-border bg-surface-panel p-3">
+      <div className="rounded-xl border border-border bg-surface-panel p-3">
         <svg
           role="img"
           aria-label={`Fréquence cardiaque au fil de la séance, moyenne ${curve.average}, pic à ${curve.peak}`}
@@ -219,7 +219,7 @@ function StrengthHeartRate({ curve }: { curve: HeartRateCurve }) {
           <path
             d={curve.path}
             fill="none"
-            className="stroke-danger"
+            className="stroke-destructive"
             strokeWidth={1.8}
             vectorEffect="non-scaling-stroke"
           />
@@ -322,10 +322,10 @@ export function ActivityDetail({
       ) : (
         <section
           aria-label="Parcours"
-          className="rounded-card border border-border bg-surface px-4 py-5"
+          className="rounded-xl border border-border bg-card px-4 py-5"
         >
           <MonoLabel>Parcours</MonoLabel>
-          <p className="mt-2 text-body text-muted">
+          <p className="mt-2 text-body text-secondary-foreground">
             Aucun tracé GPS n’est disponible pour cette activité.
           </p>
         </section>

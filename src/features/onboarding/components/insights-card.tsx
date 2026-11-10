@@ -69,7 +69,7 @@ export function InsightsCard({
       className={cn(
         "flex flex-col",
         variant === "card"
-          ? "gap-5 rounded-card border border-border bg-surface p-5 lg:p-6"
+          ? "gap-5 rounded-xl border border-border bg-card p-5 lg:p-6"
           : "gap-4 border-t border-border pt-5",
         className,
       )}
@@ -85,7 +85,7 @@ export function InsightsCard({
         {title}
       </h2>
       {!pending && items.length === 0 && (
-        <p className="text-body text-muted">{unavailable}</p>
+        <p className="text-body text-secondary-foreground">{unavailable}</p>
       )}
       <ul className="flex flex-col">
         {items.map((item, index) => (
@@ -102,7 +102,7 @@ export function InsightsCard({
               aria-hidden="true"
               className={cn(
                 "mt-2 size-1.5 rounded-full",
-                index === 0 ? "bg-accent" : "bg-foreground",
+                index === 0 ? "bg-primary" : "bg-foreground",
               )}
             />
             <span className="flex flex-col gap-1.5">

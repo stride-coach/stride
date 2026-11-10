@@ -32,9 +32,7 @@ export function ProgramTabs({
             aria-current={current ? "page" : undefined}
             className={cn(
               "flex min-h-12 shrink-0 items-center gap-2.5 rounded-[10px] border px-3 sm:min-h-13 sm:px-3.5",
-              current
-                ? "border-dim bg-surface-raised"
-                : "border-border hover:bg-surface",
+              current ? "border-dim bg-muted" : "border-border hover:bg-card",
             )}
           >
             <span
@@ -42,8 +40,8 @@ export function ProgramTabs({
               className={cn(
                 "grid size-6 shrink-0 place-items-center rounded-[6px] font-metric text-[13px] font-bold",
                 tab.primary
-                  ? "bg-accent text-accent-foreground"
-                  : "border-[1.5px] border-dim text-muted",
+                  ? "bg-primary text-primary-foreground"
+                  : "border-[1.5px] border-dim text-secondary-foreground",
               )}
             >
               {tab.letter}
@@ -52,7 +50,7 @@ export function ProgramTabs({
               <span
                 className={cn(
                   "text-sm font-semibold whitespace-nowrap",
-                  current ? "text-foreground" : "text-muted",
+                  current ? "text-foreground" : "text-secondary-foreground",
                 )}
               >
                 <span className="sr-only">Course {tab.letter} · </span>
@@ -68,7 +66,9 @@ export function ProgramTabs({
               <span
                 className={cn(
                   "ml-1.5 text-[11px] whitespace-nowrap max-sm:hidden",
-                  current ? "text-muted" : "text-muted-foreground",
+                  current
+                    ? "text-secondary-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 {tab.detail}

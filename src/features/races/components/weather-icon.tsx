@@ -15,7 +15,7 @@ function Cloud({ d = cloud }: { d?: string }) {
   return (
     <path
       d={d}
-      className="text-muted"
+      className="text-secondary-foreground"
       fill="currentColor"
       fillOpacity={0.18}
       {...outline}

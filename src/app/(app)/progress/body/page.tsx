@@ -128,7 +128,7 @@ export default async function ProgressBodyPage({
           <div className="flex flex-col gap-2.5 sm:gap-3.5">
             <h1 className={titleClass}>{reading.headline}</h1>
             {reading.summary && (
-              <p className="max-w-150 text-sm leading-normal text-pretty text-muted sm:text-base sm:leading-[1.55]">
+              <p className="max-w-150 text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
                 {reading.summary}
               </p>
             )}

@@ -39,7 +39,9 @@ export function ConfidenceMeter({
           />
         ))}
       </span>
-      <span className={hideLabel ? "sr-only" : "text-xs text-muted"}>
+      <span
+        className={hideLabel ? "sr-only" : "text-xs text-secondary-foreground"}
+      >
         {label ?? (
           <>
             <span className="sr-only">Confiance : </span>

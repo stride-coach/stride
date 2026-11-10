@@ -110,7 +110,7 @@ export function NutritionTargetTile({
         <button
           type="button"
           className={cn(
-            "flex min-w-0 flex-col gap-0.5 rounded-panel border border-border bg-surface p-3 text-left transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:gap-1 sm:p-4",
+            "flex min-w-0 flex-col gap-0.5 rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:gap-1 sm:p-4",
             className,
           )}
         >
@@ -164,7 +164,7 @@ export function NutritionTargetTile({
             </Label>
           )}
           {!valid && (
-            <p className="text-xs text-danger">
+            <p className="text-xs text-destructive">
               {fields
                 .map(
                   (field) =>
@@ -176,7 +176,7 @@ export function NutritionTargetTile({
           <Button
             type="submit"
             size="md"
-            className="self-start rounded-surface text-meta"
+            className="self-start rounded-lg text-meta"
             disabled={!valid || pending}
             aria-busy={pending}
           >

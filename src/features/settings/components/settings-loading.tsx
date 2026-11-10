@@ -5,7 +5,7 @@ import { LoadingScope } from "@/features/data-activity/components/loading";
 import { cn } from "@/lib/utils";
 
 const sectionTitle =
-  "px-1.5 font-mono text-micro tracking-wider text-muted uppercase md:px-0 md:text-label";
+  "px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:px-0 md:text-label";
 
 const columnTitle =
   "font-mono text-micro tracking-wider text-muted-foreground uppercase";
@@ -22,7 +22,7 @@ function PageTitle({
       <h1 className="text-2xl font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
         {title}
       </h1>
-      <p className="text-sm leading-normal text-muted md:text-body">
+      <p className="text-sm leading-normal text-secondary-foreground md:text-body">
         {description}
       </p>
     </div>
@@ -41,7 +41,7 @@ function Heading({
       <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
         {title}
       </h1>
-      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted md:text-base">
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-secondary-foreground md:text-base">
         {description}
       </p>
     </div>
@@ -59,12 +59,12 @@ function Group({
 }) {
   return (
     <section className={cn("mb-9", className)}>
-      <h2 className="mb-3 font-mono text-label tracking-wider text-muted uppercase">
+      <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
         {title}
       </h2>
       <div
         aria-hidden="true"
-        className="overflow-hidden rounded-surface border border-border md:rounded-none md:border-x-0 md:border-b-0"
+        className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0"
       >
         {Array.from({ length: rows }, (_, row) => (
           <div
@@ -85,13 +85,13 @@ function PreferenceRows({ title, rows }: { title: string; rows: number }) {
   return (
     <section className="flex flex-col gap-2 md:gap-0">
       <div className="flex items-center justify-between gap-2.5 px-1.5 md:border-b md:border-border-strong md:px-0 md:pb-2.5">
-        <h2 className="font-mono text-micro tracking-wider text-muted uppercase md:text-label">
+        <h2 className="font-mono text-micro tracking-wider text-secondary-foreground uppercase md:text-label">
           {title}
         </h2>
       </div>
       <div
         aria-hidden="true"
-        className="flex flex-col overflow-hidden rounded-surface border border-border bg-surface md:overflow-visible md:rounded-none md:border-0 md:bg-transparent"
+        className="flex flex-col overflow-hidden rounded-lg border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent"
       >
         {Array.from({ length: rows }, (_, row) => (
           <div
@@ -99,7 +99,7 @@ function PreferenceRows({ title, rows }: { title: string; rows: number }) {
             className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0 md:grid md:grid-cols-[13.75rem_minmax(0,1fr)] md:items-center md:gap-x-6 md:gap-y-2.5 md:px-0 md:py-4"
           >
             <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-10 w-full max-w-md rounded-surface" />
+            <Skeleton className="h-10 w-full max-w-md rounded-lg" />
           </div>
         ))}
       </div>
@@ -111,14 +111,14 @@ export function SettingsOverviewLoading() {
   return (
     <LoadingScope label="Chargement des réglages">
       <div aria-hidden="true" className="mb-5 flex items-center gap-4 md:mb-8">
-        <Skeleton className="size-14 rounded-surface" />
+        <Skeleton className="size-14 rounded-lg" />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <Skeleton className="h-6 w-44" />
           <Skeleton className="h-4 w-56 max-w-full" />
         </div>
-        <Skeleton className="hidden h-11 w-36 rounded-surface md:block" />
+        <Skeleton className="hidden h-11 w-36 rounded-lg md:block" />
       </div>
-      <div className="mb-6 flex flex-col gap-2 rounded-surface border border-border bg-surface p-4 md:mb-10 md:gap-4 md:px-6 md:py-5.5">
+      <div className="mb-6 flex flex-col gap-2 rounded-lg border border-border bg-card p-4 md:mb-10 md:gap-4 md:px-6 md:py-5.5">
         <div className="flex items-center gap-2.5">
           <StrideMark className="hidden md:block" />
           <h2 className="text-sm font-semibold md:text-lg">
@@ -126,7 +126,7 @@ export function SettingsOverviewLoading() {
             <span className="hidden md:inline">Ton modèle d’athlète</span>
           </h2>
         </div>
-        <p className="hidden max-w-160 text-sm leading-normal text-muted md:block">
+        <p className="hidden max-w-160 text-sm leading-normal text-secondary-foreground md:block">
           Garmin fournit les signaux. Stride en tire ton modèle, avec tes
           réponses, tes objectifs et ta façon de réagir à l’entraînement.
         </p>
@@ -149,7 +149,7 @@ export function SettingsProfileLoading() {
         <h1 className="text-2xl font-semibold tracking-tight min-[1100px]:text-[32px]">
           Profil
         </h1>
-        <p className="text-sm leading-relaxed text-muted min-[1100px]:text-body">
+        <p className="text-sm leading-relaxed text-secondary-foreground min-[1100px]:text-body">
           Corrige ce que Garmin a mal relevé. Une valeur modifiée devient la
           tienne et n’est plus écrasée.
         </p>
@@ -169,7 +169,7 @@ export function SettingsProfileLoading() {
           </h2>
           <div
             aria-hidden="true"
-            className="overflow-hidden rounded-panel border border-border bg-surface min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent"
+            className="overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent"
           >
             {Array.from({ length: section.rows }, (_, row) => (
               <div
@@ -177,7 +177,7 @@ export function SettingsProfileLoading() {
                 className="flex min-h-11 items-center justify-between gap-3 border-b border-border px-4 py-3 last:border-b-0 min-[1100px]:grid min-[1100px]:grid-cols-[180px_320px_minmax(0,1fr)] min-[1100px]:gap-5 min-[1100px]:px-0 min-[1100px]:py-3.5 min-[1100px]:last:border-b"
               >
                 <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-9 w-28 rounded-surface min-[1100px]:w-full" />
+                <Skeleton className="h-9 w-28 rounded-lg min-[1100px]:w-full" />
                 <Skeleton className="hidden h-3 w-24 min-[1100px]:block" />
               </div>
             ))}
@@ -219,11 +219,11 @@ export function SettingsGoalsLoading() {
         <h2 className={sectionTitle}>Objectif principal</h2>
         <Skeleton
           aria-hidden="true"
-          className="h-36 w-full rounded-card md:h-20 md:rounded-surface"
+          className="h-36 w-full rounded-xl md:h-20 md:rounded-lg"
         />
       </section>
       <section className="flex flex-col gap-2 md:gap-0">
-        <div className="hidden gap-4 border-b border-border-strong pb-2.5 font-mono text-micro tracking-wider text-muted uppercase md:grid md:grid-cols-[2.75rem_minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem_4.375rem]">
+        <div className="hidden gap-4 border-b border-border-strong pb-2.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:grid md:grid-cols-[2.75rem_minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem_4.375rem]">
           <span>Prio</span>
           <span>À venir</span>
           <span>Date</span>
@@ -231,19 +231,19 @@ export function SettingsGoalsLoading() {
           <span>Cible</span>
           <span />
         </div>
-        <h2 className="px-1.5 font-mono text-micro tracking-wider text-muted uppercase md:hidden">
+        <h2 className="px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:hidden">
           À venir
         </h2>
         <div
           aria-hidden="true"
-          className="flex flex-col overflow-hidden rounded-card border border-border bg-surface md:overflow-visible md:rounded-none md:border-0 md:bg-transparent"
+          className="flex flex-col overflow-hidden rounded-xl border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent"
         >
           {[0, 1, 2].map((row) => (
             <div
               key={row}
               className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-3 pr-2 pl-4 last:border-b-0 md:grid-cols-[2.75rem_minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem_4.375rem] md:gap-4 md:py-4 md:pr-0 md:pl-0"
             >
-              <Skeleton className="size-8 rounded-control" />
+              <Skeleton className="size-8 rounded-md" />
               <Skeleton className="h-5 w-40 max-w-full" />
               <Skeleton className="hidden h-4 w-20 md:block" />
               <Skeleton className="hidden h-5 w-16 md:block" />
@@ -264,16 +264,16 @@ export function SettingsConnectionsLoading() {
         title="Connexions"
         description="Garmin fournit les activités et les données de santé de ton historique."
       />
-      <div className="mb-9 overflow-hidden rounded-surface border border-border bg-surface">
+      <div className="mb-9 overflow-hidden rounded-lg border border-border bg-card">
         <div className="flex flex-wrap items-center gap-4 p-5">
-          <span className="grid size-12 place-items-center rounded-control border border-border-strong font-semibold">
+          <span className="grid size-12 place-items-center rounded-md border border-border-strong font-semibold">
             G
           </span>
           <div className="flex flex-1 flex-col gap-1.5">
             <h2 className="text-lg font-semibold">Garmin</h2>
             <Skeleton aria-hidden="true" className="h-4 w-32" />
           </div>
-          <Skeleton aria-hidden="true" className="h-11 w-20 rounded-surface" />
+          <Skeleton aria-hidden="true" className="h-11 w-20 rounded-lg" />
         </div>
         <div className="grid grid-cols-2 border-t border-border md:grid-cols-3">
           {[
@@ -287,7 +287,7 @@ export function SettingsConnectionsLoading() {
           ].map((item) => (
             <div key={item.label} className={cn("p-5", item.className)}>
               <Skeleton aria-hidden="true" className="mb-1 h-7 w-16" />
-              <span className="font-mono text-label text-muted uppercase">
+              <span className="font-mono text-label text-secondary-foreground uppercase">
                 {item.label}
               </span>
             </div>
@@ -295,19 +295,19 @@ export function SettingsConnectionsLoading() {
         </div>
       </div>
       <section className="mb-9">
-        <h2 className="mb-3 font-mono text-label tracking-wider text-muted uppercase">
+        <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
           Autres sources
         </h2>
-        <div className="overflow-hidden rounded-surface border border-border md:rounded-none md:border-x-0 md:border-b-0">
+        <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
           <div className="border-b border-border p-4 md:px-0">
             <strong className="text-sm">Autres montres et applications</strong>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-secondary-foreground">
               Les autres fournisseurs ne sont pas encore pris en charge.
             </p>
           </div>
           <div className="p-4 md:px-0">
             <strong className="text-sm">Saisie manuelle</strong>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-secondary-foreground">
               L’ajout de séances sans montre n’est pas encore disponible.
             </p>
           </div>
@@ -325,7 +325,7 @@ export function SettingsGarminLoading() {
     >
       <section className="flex flex-wrap items-center justify-between gap-5">
         <div className="flex items-center gap-4">
-          <Skeleton aria-hidden="true" className="size-13 rounded-surface" />
+          <Skeleton aria-hidden="true" className="size-13 rounded-lg" />
           <div className="flex flex-col gap-1">
             <h1 className="text-3xl leading-tight font-semibold tracking-tight">
               Garmin
@@ -334,9 +334,9 @@ export function SettingsGarminLoading() {
           </div>
         </div>
         <div aria-hidden="true" className="flex flex-wrap gap-2">
-          <Skeleton className="h-11 w-48 rounded-surface" />
-          <Skeleton className="h-11 w-32 rounded-surface" />
-          <Skeleton className="h-11 w-32 rounded-surface" />
+          <Skeleton className="h-11 w-48 rounded-lg" />
+          <Skeleton className="h-11 w-32 rounded-lg" />
+          <Skeleton className="h-11 w-32 rounded-lg" />
         </div>
       </section>
       <section
@@ -391,10 +391,10 @@ export function SettingsPrivacyLoading() {
         description="Consulte les données enregistrées dans ton compte et télécharge une copie de tes réglages."
       />
       <section className="mb-9">
-        <h2 className="mb-3 font-mono text-label tracking-wider text-muted uppercase">
+        <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
           Enregistré dans Stride
         </h2>
-        <div className="overflow-hidden rounded-surface border border-border md:rounded-none md:border-x-0 md:border-b-0">
+        <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
           <div className="border-b border-border p-4 md:px-0">
             <strong className="text-sm">Activités et mesures Garmin</strong>
             <Skeleton
@@ -406,14 +406,14 @@ export function SettingsPrivacyLoading() {
             <strong className="text-sm">
               Profil, entraînement, objectifs et courses
             </strong>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-secondary-foreground">
               Tes réponses restent disponibles dans ton compte après connexion.
             </p>
           </div>
         </div>
       </section>
       <Group title="Ta copie" rows={1} />
-      <Skeleton aria-hidden="true" className="h-64 w-full rounded-surface" />
+      <Skeleton aria-hidden="true" className="h-64 w-full rounded-lg" />
     </LoadingScope>
   );
 }

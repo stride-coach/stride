@@ -22,7 +22,7 @@ export function ChoiceRow({
               value={option.value}
               defaultChecked={value === option.value}
             />
-            <span className="inline-flex min-h-10 items-center rounded-control border border-border-strong px-3 text-sm text-muted peer-checked:border-foreground peer-checked:bg-foreground peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+            <span className="inline-flex min-h-10 items-center rounded-md border border-border-strong px-3 text-sm text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
               {option.label}
             </span>
           </label>

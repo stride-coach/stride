@@ -36,7 +36,7 @@ export function NotificationsLoading() {
             />
             <div
               aria-hidden="true"
-              className="overflow-hidden border-border md:rounded-card md:border md:bg-surface-panel"
+              className="overflow-hidden border-border md:rounded-xl md:border md:bg-surface-panel"
             >
               {Array.from({ length: 6 }, (_, item) => (
                 <div

@@ -88,7 +88,7 @@ export function AppHeader({
         <Link
           href={back.href}
           aria-label={back.label}
-          className="-my-1.5 -ml-3 grid size-11 shrink-0 place-items-center rounded-control text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:hidden"
+          className="-my-1.5 -ml-3 grid size-11 shrink-0 place-items-center rounded-md text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:hidden"
         >
           <ChevronLeftIcon aria-hidden="true" className="size-5" />
         </Link>

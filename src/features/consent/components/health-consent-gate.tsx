@@ -83,7 +83,7 @@ export function HealthConsentGate({
               >
                 Ton accord pour continuer
               </h1>
-              <p className="text-body text-muted md:text-lead">
+              <p className="text-body text-secondary-foreground md:text-lead">
                 Pour te coacher, je lis ton sommeil, ta VFC, ta fréquence
                 cardiaque et les douleurs que tu signales.{" "}
                 <span className="hidden md:inline">
@@ -136,13 +136,13 @@ export function HealthConsentGate({
             >
               <Link
                 href="/settings/privacy"
-                className="flex min-h-11 items-center text-muted hover:text-foreground"
+                className="flex min-h-11 items-center text-secondary-foreground hover:text-foreground"
               >
                 Réglages
               </Link>
               <Link
                 href="/privacy"
-                className="hidden min-h-11 items-center text-muted hover:text-foreground md:flex"
+                className="hidden min-h-11 items-center text-secondary-foreground hover:text-foreground md:flex"
               >
                 Politique de confidentialité
               </Link>
@@ -153,7 +153,7 @@ export function HealthConsentGate({
               >
                 <button
                   type="submit"
-                  className="flex min-h-11 items-center text-muted hover:text-foreground"
+                  className="flex min-h-11 items-center text-secondary-foreground hover:text-foreground"
                 >
                   Se déconnecter
                 </button>

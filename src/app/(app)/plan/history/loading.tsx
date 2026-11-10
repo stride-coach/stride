@@ -35,7 +35,7 @@ export default function Loading() {
         <div aria-hidden="true" className="flex flex-col gap-2.5 sm:gap-1.5">
           <Skeleton className="mt-2.5 mb-0.5 h-3 w-24 sm:mt-3.5 sm:mb-1" />
           {Array.from({ length: 5 }, (_, item) => (
-            <Skeleton key={item} className="h-20 w-full rounded-card" />
+            <Skeleton key={item} className="h-20 w-full rounded-xl" />
           ))}
         </div>
       </LoadingScope>

@@ -9,7 +9,7 @@ import { formatTodayDate } from "@/features/today/today";
 import { cn } from "@/lib/utils";
 
 const card =
-  "flex min-w-0 flex-col gap-3.5 rounded-card border border-border bg-surface px-5 py-5 sm:px-5.5";
+  "flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-5 py-5 sm:px-5.5";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -38,12 +38,12 @@ export function TodayLoading() {
                   </MonoLabel>
                   <div aria-hidden="true" className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
-                      <Skeleton className="size-11 rounded-card" />
+                      <Skeleton className="size-11 rounded-xl" />
                       <Skeleton className="h-6 w-1/2" />
                     </div>
                     <Skeleton className="h-12 w-full" />
                     <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-24 w-full rounded-card" />
+                    <Skeleton className="h-24 w-full rounded-xl" />
                   </div>
                 </section>
                 <section className={cn(card, "gap-3 max-xl:order-3")}>
@@ -64,7 +64,7 @@ export function TodayLoading() {
                         </div>
                       ))}
                     </div>
-                    <Skeleton className="h-14 w-full rounded-card" />
+                    <Skeleton className="h-14 w-full rounded-xl" />
                   </div>
                 </section>
               </div>
@@ -72,9 +72,9 @@ export function TodayLoading() {
                 <section className={cn(card, "max-xl:order-2")}>
                   <Eyebrow>À faire</Eyebrow>
                   <div aria-hidden="true" className="flex flex-col gap-3">
-                    <Skeleton className="h-14 w-full rounded-surface" />
+                    <Skeleton className="h-14 w-full rounded-lg" />
                     <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-24 w-full rounded-surface" />
+                    <Skeleton className="h-24 w-full rounded-lg" />
                   </div>
                 </section>
                 <section className={cn(card, "max-xl:order-4")}>
@@ -90,7 +90,7 @@ export function TodayLoading() {
                   <Eyebrow>Objectif</Eyebrow>
                   <div aria-hidden="true" className="flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      <Skeleton className="size-8 rounded-surface" />
+                      <Skeleton className="size-8 rounded-lg" />
                       <div className="flex flex-1 flex-col gap-1.5">
                         <Skeleton className="h-4 w-1/2" />
                         <Skeleton className="h-3 w-2/3" />

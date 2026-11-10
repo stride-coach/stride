@@ -33,7 +33,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
       <DropdownMenuTrigger
         aria-label={themeButtonLabel(preference)}
         className={cn(
-          "grid size-11 shrink-0 place-items-center rounded-control border border-transparent text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:bg-surface-raised aria-expanded:text-foreground md:size-8.5 md:border-border md:aria-expanded:border-border-strong",
+          "grid size-11 shrink-0 place-items-center rounded-md border border-transparent text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:bg-muted aria-expanded:text-foreground md:size-8.5 md:border-border md:aria-expanded:border-border-strong",
           className,
         )}
       >
@@ -51,7 +51,10 @@ export function ThemeSwitcher({ className }: { className?: string }) {
             const OptionIcon = icons[option];
             return (
               <DropdownMenuRadioItem key={option} value={option}>
-                <OptionIcon aria-hidden="true" className="text-muted" />
+                <OptionIcon
+                  aria-hidden="true"
+                  className="text-secondary-foreground"
+                />
                 {themeLabels[option]}
               </DropdownMenuRadioItem>
             );

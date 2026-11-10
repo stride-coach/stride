@@ -177,7 +177,7 @@ export function GoalsStep({
         <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
           Pour quoi t’entraînes-tu ?
         </h1>
-        <p className="text-body text-pretty text-muted lg:text-lead">
+        <p className="text-body text-pretty text-secondary-foreground lg:text-lead">
           Choisis ce qui compte le plus en ce moment. La course est facultative
           — ne pas avoir de course est un très bon objectif.
         </p>
@@ -200,8 +200,8 @@ export function GoalsStep({
                 goal.change("focus", focus.value, "now");
               }}
               className={cn(
-                "flex min-h-19 flex-col items-start gap-1 rounded-surface border border-border bg-surface p-3.5 text-left transition-colors duration-150 ease-stride hover:border-border-strong",
-                checked && "border-accent hover:border-accent",
+                "flex min-h-19 flex-col items-start gap-1 rounded-lg border border-border bg-card p-3.5 text-left transition-colors duration-150 ease-stride hover:border-border-strong",
+                checked && "border-primary hover:border-primary",
               )}
             >
               <span className="flex items-center gap-1.5 text-body font-semibold">
@@ -209,7 +209,7 @@ export function GoalsStep({
                 {checked && (
                   <CheckIcon
                     aria-hidden="true"
-                    className="size-3.5 text-accent"
+                    className="size-3.5 text-primary"
                   />
                 )}
               </span>
@@ -264,7 +264,7 @@ export function GoalsStep({
           )}
         </div>
         {races.length === 0 && (
-          <p className="text-sm text-muted">
+          <p className="text-sm text-secondary-foreground">
             Pas de course pour l’instant. Ajoute-en une si tu prépares un
             objectif précis.
           </p>

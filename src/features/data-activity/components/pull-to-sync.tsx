@@ -91,7 +91,7 @@ export function PullToSync({ children }: { children: React.ReactNode }) {
           className="pointer-events-none absolute inset-x-0 top-16 z-20 flex justify-center md:hidden"
           style={{ transform: `translateY(${Math.round(share * 12)}px)` }}
         >
-          <span className="flex items-center gap-2.5 rounded-full border border-border-strong bg-surface-raised py-1.5 pr-3.5 pl-2 text-xs text-muted-foreground">
+          <span className="flex items-center gap-2.5 rounded-full border border-border-strong bg-muted py-1.5 pr-3.5 pl-2 text-xs text-muted-foreground">
             <svg
               viewBox="0 0 22 22"
               aria-hidden="true"

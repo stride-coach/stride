@@ -72,7 +72,9 @@ export function GarminConnected({
             <Icon aria-hidden="true" className="mt-1 size-4 text-success" />
             <span className="flex flex-col gap-1">
               <span className="text-body font-semibold">{title}</span>
-              <span className="text-meta text-muted">{body}</span>
+              <span className="text-meta text-secondary-foreground">
+                {body}
+              </span>
             </span>
           </li>
         ))}
@@ -84,7 +86,7 @@ export function GarminConnected({
             <span className="text-body font-semibold">
               Préparation de ton historique…
             </span>
-            <span className="text-meta text-muted">
+            <span className="text-meta text-secondary-foreground">
               Je commence par tes dernières semaines, puis je remonte les
               années.
             </span>

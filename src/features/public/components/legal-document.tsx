@@ -23,7 +23,7 @@ function Contents({ sections }: { sections: readonly LegalSection[] }) {
     <li key={section.id}>
       <a
         href={`#${section.id}`}
-        className="block border-l border-border py-1.75 pl-3 text-sm text-muted-foreground hover:border-accent hover:text-foreground"
+        className="block border-l border-border py-1.75 pl-3 text-sm text-muted-foreground hover:border-primary hover:text-foreground"
       >
         {section.toc ?? section.title}
       </a>
@@ -57,8 +57,8 @@ export function LegalDocument({
                 href={page.href}
                 aria-current={page.href === current ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-10 items-center rounded-surface px-3 text-sm whitespace-nowrap text-muted hover:text-foreground md:px-3.5",
-                  page.href === current && "bg-surface-raised text-foreground",
+                  "inline-flex min-h-10 items-center rounded-lg px-3 text-sm whitespace-nowrap text-secondary-foreground hover:text-foreground md:px-3.5",
+                  page.href === current && "bg-muted text-foreground",
                 )}
               >
                 <span className="md:hidden">{page.short}</span>
@@ -70,17 +70,17 @@ export function LegalDocument({
             {title}
           </h1>
           {intro && (
-            <p className="hidden max-w-180 text-lead leading-relaxed text-muted md:block">
+            <p className="hidden max-w-180 text-lead leading-relaxed text-secondary-foreground md:block">
               {intro}
             </p>
           )}
           <MonoLabel>Dernière mise à jour · {legalUpdatedOn}</MonoLabel>
-          <details className="group rounded-surface border border-border-strong bg-surface md:hidden">
-            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-surface px-3.5 text-[15px] [&::-webkit-details-marker]:hidden">
+          <details className="group rounded-lg border border-border-strong bg-card md:hidden">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-lg px-3.5 text-[15px] [&::-webkit-details-marker]:hidden">
               Sommaire
               <ChevronDownIcon
                 aria-hidden="true"
-                className="size-3.5 text-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                className="size-3.5 text-secondary-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
               />
             </summary>
             <ol className="px-3.5 pb-3">
@@ -116,7 +116,7 @@ export function LegalDocument({
                   </span>
                   {section.title}
                 </h2>
-                <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-muted md:text-base md:leading-[1.65] [&_a]:text-accent [&_a]:hover:text-foreground [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5">
+                <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-secondary-foreground md:text-base md:leading-[1.65] [&_a]:text-primary [&_a]:hover:text-foreground [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5">
                   {section.content}
                 </div>
               </section>

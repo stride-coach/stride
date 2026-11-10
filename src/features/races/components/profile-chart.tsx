@@ -82,7 +82,7 @@ function MarkerShape({
           r={r}
           className={cn(
             mark.tone === "finish" || active
-              ? "fill-accent"
+              ? "fill-primary"
               : mark.tone === "start"
                 ? "fill-foreground"
                 : "fill-background",
@@ -114,7 +114,9 @@ function MarkerShape({
           width={size}
           height={size}
           rx={size / 4}
-          className={active ? "fill-accent" : "fill-background stroke-provider"}
+          className={
+            active ? "fill-primary" : "fill-background stroke-provider"
+          }
           strokeWidth={active ? 0 : 1.4}
         />
         <text
@@ -135,7 +137,7 @@ function MarkerShape({
     return (
       <path
         d={`M${x},${y - r} L${x + r},${y + r * 0.8} L${x - r},${y + r * 0.8}Z`}
-        className="fill-background stroke-muted"
+        className="fill-background stroke-secondary-foreground"
         strokeWidth={1.4}
       />
     );
@@ -476,7 +478,7 @@ export function ProfileChart({
             key={index}
             d={path}
             fill="none"
-            className="stroke-accent"
+            className="stroke-primary"
             strokeWidth={variant === "compact" ? 2.6 : 3.2}
             strokeLinecap="round"
           />
@@ -578,9 +580,7 @@ export function ProfileChart({
                   width={width}
                   height={height}
                   rx={4}
-                  className={
-                    index % 2 ? "fill-surface-inset" : "fill-surface-raised"
-                  }
+                  className={index % 2 ? "fill-surface-inset" : "fill-muted"}
                 />
                 {width > (variant === "mobile" ? 16 : 42) && (
                   <text
@@ -648,7 +648,7 @@ export function ProfileChart({
                   x={tx}
                   y={top + 14}
                   textAnchor={anchor}
-                  className="fill-accent font-metric font-semibold"
+                  className="fill-primary font-metric font-semibold"
                   fontSize={14}
                 >
                   {marker.clock}
@@ -674,7 +674,7 @@ export function ProfileChart({
               x2={x(hover)}
               y1={box.plotTop}
               y2={box.plotBottom}
-              className="stroke-accent"
+              className="stroke-primary"
               strokeDasharray="2 3"
             />
             <circle
@@ -683,7 +683,7 @@ export function ProfileChart({
                 hoveredElevation === null ? box.plotBottom : y(hoveredElevation)
               }
               r={4}
-              className="fill-accent stroke-background"
+              className="fill-primary stroke-background"
               strokeWidth={2}
             />
             {interactive && (
@@ -693,7 +693,7 @@ export function ProfileChart({
                 width={132}
                 height={22}
                 rx={5}
-                className="fill-accent"
+                className="fill-primary"
               />
             )}
             {interactive && (
@@ -701,7 +701,7 @@ export function ProfileChart({
                 x={Math.min(box.x1 - 66, Math.max(box.x0 + 66, x(hover)))}
                 y={box.markerY + 4}
                 textAnchor="middle"
-                className="fill-accent-foreground font-semibold"
+                className="fill-primary-foreground font-semibold"
                 fontSize={11}
               >
                 {`+ Ajouter ici · km ${formatKm(hover)}`}
@@ -711,7 +711,7 @@ export function ProfileChart({
         )}
       </svg>
       {(variant === "full" || variant === "mobile") && (
-        <div className="mt-2 flex min-h-9 flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-border-subtle pt-2 text-xs text-muted">
+        <div className="mt-2 flex min-h-9 flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-border-subtle pt-2 text-xs text-secondary-foreground">
           {inspectedMarker ? (
             <>
               <span className="font-semibold text-foreground">
@@ -719,7 +719,7 @@ export function ProfileChart({
               </span>
               <span>km {formatKm(inspectedMarker.distanceM)}</span>
               {inspectedMarker.clock && (
-                <span className="font-mono text-accent">
+                <span className="font-mono text-primary">
                   {inspectedMarker.clock}
                 </span>
               )}
@@ -738,7 +738,7 @@ export function ProfileChart({
                 <span>{formatMeters(hoveredElevation)}</span>
               )}
               {hoveredPassage && (
-                <span className="font-mono text-accent">{hoveredPassage}</span>
+                <span className="font-mono text-primary">{hoveredPassage}</span>
               )}
             </>
           ) : (

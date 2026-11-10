@@ -52,7 +52,7 @@ export function DayNavigator({
 }) {
   const next = addDays(day, 1);
   const arrow =
-    "grid size-9 shrink-0 place-items-center rounded-surface border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring";
+    "grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring";
   return (
     <section
       aria-label="Choisir une journée"
@@ -90,7 +90,7 @@ export function DayNavigator({
       </div>
       <nav
         aria-label="Jours de la semaine"
-        className="grid grid-cols-7 gap-1 rounded-panel border border-border bg-surface p-1"
+        className="grid grid-cols-7 gap-1 rounded-2xl border border-border bg-card p-1"
       >
         {strip.map((item) => (
           <Link
@@ -99,8 +99,8 @@ export function DayNavigator({
             aria-current={item.date === day ? "page" : undefined}
             scroll={false}
             className={cn(
-              "flex min-w-11 flex-col items-center gap-0.5 rounded-surface px-2 py-1.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              item.date === day && "bg-surface-raised text-foreground",
+              "flex min-w-11 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+              item.date === day && "bg-muted text-foreground",
             )}
           >
             <span className="text-xs">{weekday.format(date(item.date))}</span>
@@ -133,7 +133,7 @@ export function DayReading({
   return (
     <section
       aria-labelledby="health-day-reading"
-      className="flex flex-col gap-3 rounded-panel border border-border bg-surface p-5 sm:p-7"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 sm:p-7"
     >
       <MonoLabel size="micro" className="flex items-center gap-2">
         <StrideMark className="size-3" />
@@ -146,7 +146,7 @@ export function DayReading({
         {view.headline}
       </h2>
       {view.paragraph && (
-        <p className="text-sm leading-[1.6] text-pretty text-muted sm:text-[15px]">
+        <p className="text-sm leading-[1.6] text-pretty text-secondary-foreground sm:text-[15px]">
           {view.paragraph}
         </p>
       )}
@@ -163,7 +163,7 @@ export function NightCard({
   return (
     <section
       aria-labelledby="health-day-night"
-      className="flex flex-col gap-4 rounded-panel border border-border bg-surface p-5 sm:p-6"
+      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6"
     >
       <div className="flex items-baseline justify-between gap-3">
         <h2 id="health-day-night" className="text-lg font-semibold">
@@ -185,7 +185,7 @@ export function NightCard({
               />
             ))}
           </div>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-secondary-foreground">
             {night.stages.map((stage) => (
               <li key={stage.key} className="flex items-center gap-1.5">
                 <span
@@ -215,7 +215,7 @@ export function NightCard({
         ))}
       </dl>
       {night.note && (
-        <p className="flex items-start gap-2.5 rounded-surface border border-border bg-surface-inset px-4 py-3 text-meta leading-normal text-pretty">
+        <p className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-inset px-4 py-3 text-meta leading-normal text-pretty">
           <StrideMark className="mt-0.5 size-3.5 shrink-0" />
           <span>{night.note}</span>
         </p>
@@ -228,7 +228,7 @@ const momentDot = {
   warning: "bg-warning",
   success: "bg-success",
   muted: "bg-muted-foreground",
-  accent: "bg-accent",
+  accent: "bg-primary",
 } as const;
 
 export function DayMoments({ model }: { model: HealthDayModel }) {
@@ -265,7 +265,9 @@ export function DayMoments({ model }: { model: HealthDayModel }) {
               />
               <span className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold">{moment.title}</span>
-                <span className="text-meta text-muted">{moment.detail}</span>
+                <span className="text-meta text-secondary-foreground">
+                  {moment.detail}
+                </span>
               </span>
             </li>
           ))}
@@ -285,11 +287,11 @@ export function DayUnavailable({
   failure: "unavailable" | "reconnect" | "rate-limited" | null;
 }) {
   return (
-    <section className="flex flex-col gap-2 rounded-panel border border-border bg-surface p-5 sm:p-6">
+    <section className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-5 sm:p-6">
       <h2 className="text-lg font-semibold">
         Courbes de la journée indisponibles
       </h2>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-secondary-foreground">
         {failure === "reconnect"
           ? "Ta connexion Garmin doit être renouvelée pour charger le détail de la journée."
           : failure === "rate-limited"
@@ -299,7 +301,7 @@ export function DayUnavailable({
       {failure === "reconnect" && (
         <Link
           href="/settings/connections"
-          className="text-sm text-accent hover:underline"
+          className="text-sm text-primary hover:underline"
         >
           Ouvrir les connexions
         </Link>

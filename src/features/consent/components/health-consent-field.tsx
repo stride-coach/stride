@@ -19,8 +19,8 @@ export function HealthConsentField({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-surface border bg-surface-panel p-3.5 lg:gap-2.5 lg:px-4.5 lg:py-4",
-        checked ? "border-accent" : "border-border-strong",
+        "flex flex-col gap-2 rounded-lg border bg-surface-panel p-3.5 lg:gap-2.5 lg:px-4.5 lg:py-4",
+        checked ? "border-primary" : "border-border-strong",
         className,
       )}
     >
@@ -43,7 +43,7 @@ export function HealthConsentField({
         className="ml-8 text-xs text-muted-foreground lg:text-meta"
       >
         {children}{" "}
-        <Link href="/privacy" className="text-accent hover:text-foreground">
+        <Link href="/privacy" className="text-primary hover:text-foreground">
           Lire la politique de confidentialité
         </Link>
       </p>

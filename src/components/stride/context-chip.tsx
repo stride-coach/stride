@@ -46,7 +46,7 @@ export function ContextChip({
     <span
       data-slot="context-chip"
       className={cn(
-        "inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-control border border-border-strong bg-surface-raised pl-2.5 text-meta text-foreground md:min-h-8 md:pr-0.5",
+        "inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-md border border-border-strong bg-muted pl-2.5 text-meta text-foreground md:min-h-8 md:pr-0.5",
         className,
       )}
     >
@@ -56,7 +56,7 @@ export function ContextChip({
         aria-label={removeLabel}
         onClick={onRemove}
         disabled={disabled}
-        className="flex size-11 shrink-0 items-center justify-center rounded-control text-muted-foreground transition-colors duration-150 ease-stride outline-none hover:bg-border hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 md:size-7"
+        className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 ease-stride outline-none hover:bg-border hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 md:size-7"
       >
         <XIcon aria-hidden="true" className="size-3" />
       </button>
@@ -76,7 +76,7 @@ export function ContextChipLink({
       href={href}
       data-slot="context-chip-link"
       className={cn(
-        "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-control border border-border-strong px-2.5 text-xs text-muted transition-colors duration-150 ease-stride outline-none hover:border-dim hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-7",
+        "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-md border border-border-strong px-2.5 text-xs text-secondary-foreground transition-colors duration-150 ease-stride outline-none hover:border-dim hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-7",
         className,
       )}
     >

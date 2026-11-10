@@ -126,7 +126,7 @@ export default async function ProgressFitnessPage({
           <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[1.08] sm:tracking-[-0.03em]">
             {view.headline}
           </h1>
-          <p className="max-w-155 text-sm leading-normal text-pretty text-muted sm:text-base sm:leading-[1.55]">
+          <p className="max-w-155 text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
             {view.summary}
           </p>
           <div className="mt-1.5">
@@ -150,7 +150,7 @@ export default async function ProgressFitnessPage({
               Condition et fatigue
             </h2>
             {view.load && (
-              <LoadLegend className="flex flex-wrap gap-3.5 text-[11px] text-muted sm:gap-4 sm:text-xs" />
+              <LoadLegend className="flex flex-wrap gap-3.5 text-[11px] text-secondary-foreground sm:gap-4 sm:text-xs" />
             )}
           </div>
           {view.load ? (

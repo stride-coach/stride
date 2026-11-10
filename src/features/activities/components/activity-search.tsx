@@ -73,7 +73,7 @@ export function ActivitySearch({
           {search && (
             <Link
               href={`/activities${activitiesQuery(filter, activityPageSize)}`}
-              className="text-xs text-muted hover:text-foreground"
+              className="text-xs text-secondary-foreground hover:text-foreground"
             >
               Effacer la recherche
             </Link>

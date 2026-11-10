@@ -65,7 +65,7 @@ export default async function NotificationsPage({
             className="px-4 md:px-0"
           />
           {notifications.length ? (
-            <div className="overflow-hidden border-border md:rounded-card md:border md:bg-surface-panel">
+            <div className="overflow-hidden border-border md:rounded-xl md:border md:bg-surface-panel">
               <NotificationList
                 notifications={notifications}
                 now={now.toISOString()}

@@ -25,7 +25,7 @@ function ToggleGroup({
       className={cn(
         "flex flex-wrap items-center gap-2",
         variant === "segment" &&
-          "w-fit flex-nowrap gap-0 overflow-hidden rounded-surface border border-border",
+          "w-fit flex-nowrap gap-0 overflow-hidden rounded-lg border border-border",
         className,
       )}
       {...props}

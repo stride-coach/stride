@@ -7,11 +7,11 @@ import {
 } from "@/components/stride/session-blocks";
 
 export const zoneFills: Record<Zone, string> = {
-  1: "bg-zone-1",
-  2: "bg-zone-2",
-  3: "bg-zone-3",
-  4: "bg-zone-4",
-  5: "bg-zone-5",
+  1: "bg-intensity-1",
+  2: "bg-intensity-2",
+  3: "bg-intensity-3",
+  4: "bg-intensity-4",
+  5: "bg-intensity-5",
 };
 
 const surges = [
@@ -41,7 +41,7 @@ export function FreeBlock({
     <span
       data-free=""
       className={cn(
-        "flex h-full min-w-0.5 items-end gap-px rounded-mark border border-dashed border-zone-4/45 bg-zone-4/8 px-px",
+        "flex h-full min-w-0.5 items-end gap-px rounded-mark border border-dashed border-intensity-4/45 bg-intensity-4/8 px-px",
         className,
       )}
       style={style}
@@ -51,7 +51,7 @@ export function FreeBlock({
           key={index}
           className={cn(
             "min-w-px rounded-[1.5px]",
-            height > 20 ? "bg-zone-4" : "bg-zone-1",
+            height > 20 ? "bg-intensity-4" : "bg-intensity-1",
           )}
           style={{ flexGrow: grow, flexBasis: 0, height: `${height}%` }}
         />

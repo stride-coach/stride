@@ -49,7 +49,7 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
       href={`/coach/${row.id}`}
       aria-current={current ? "page" : undefined}
       className={cn(
-        "grid min-h-11 grid-cols-[40px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[10px] px-3.5 py-3 text-foreground hover:bg-surface-raised/60 focus-visible:outline-2 focus-visible:outline-ring",
+        "grid min-h-11 grid-cols-[40px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[10px] px-3.5 py-3 text-foreground hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring",
         current && "bg-surface-current ring-1 ring-border ring-inset",
       )}
     >
@@ -68,7 +68,7 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
             {row.date}
           </MonoLabel>
           {row.unread && (
-            <span className="size-2 shrink-0 self-center rounded-full bg-accent">
+            <span className="size-2 shrink-0 self-center rounded-full bg-primary">
               <span className="sr-only">Non lu</span>
             </span>
           )}
@@ -134,7 +134,7 @@ export function ConversationList({
             asChild
             variant="outline"
             size="sm"
-            className="ml-auto h-8 rounded-surface px-2.5"
+            className="ml-auto h-8 rounded-lg px-2.5"
           >
             <Link href="/coach/new">
               <PlusIcon aria-hidden="true" />
@@ -144,7 +144,7 @@ export function ConversationList({
         </div>
         {!empty && (
           <>
-            <InputGroup className="h-9 rounded-surface border-border md:h-9">
+            <InputGroup className="h-9 rounded-lg border-border md:h-9">
               <InputGroupAddon>
                 <SearchIcon aria-hidden="true" className="size-3.5" />
               </InputGroupAddon>
@@ -167,7 +167,7 @@ export function ConversationList({
                   key={item.value}
                   pressed={filter === item.value}
                   onPressedChange={() => setFilter(item.value)}
-                  className="min-h-7.5 rounded-control border-border bg-transparent px-2.5 text-xs font-normal text-muted-foreground hover:border-border-strong data-[state=on]:border-border-strong data-[state=on]:bg-surface-raised data-[state=on]:font-normal data-[state=on]:text-foreground"
+                  className="min-h-7.5 rounded-md border-border bg-transparent px-2.5 text-xs font-normal text-muted-foreground hover:border-border-strong data-[state=on]:border-border-strong data-[state=on]:bg-muted data-[state=on]:font-normal data-[state=on]:text-foreground"
                 >
                   {item.value === "mine"
                     ? `${item.label} · ${waiting}`

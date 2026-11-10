@@ -10,7 +10,7 @@ export function ImportCard({ summary }: { summary: ImportSummary }) {
   return (
     <section
       aria-label="Import depuis Garmin"
-      className="mt-auto flex flex-col gap-2.5 rounded-card border border-border p-3.5"
+      className="mt-auto flex flex-col gap-2.5 rounded-xl border border-border p-3.5"
     >
       <p className="flex items-center gap-2 text-xs font-semibold">
         {active && <PulseDot tone="provider" />}
@@ -25,8 +25,8 @@ export function ImportCard({ summary }: { summary: ImportSummary }) {
       >
         {active ? (
           <>
-            <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-accent to-transparent motion-safe:animate-trace motion-reduce:hidden" />
-            <span className="absolute inset-y-0 left-0 hidden w-1/3 bg-accent/60 motion-reduce:block" />
+            <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-primary to-transparent motion-safe:animate-trace motion-reduce:hidden" />
+            <span className="absolute inset-y-0 left-0 hidden w-1/3 bg-primary/60 motion-reduce:block" />
           </>
         ) : (
           <span

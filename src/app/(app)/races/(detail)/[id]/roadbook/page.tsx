@@ -92,7 +92,7 @@ function ScenarioChips({
           scroll={false}
           aria-current={scenario.key === current ? "true" : undefined}
           className={cn(
-            "inline-flex min-h-8.5 shrink-0 items-center rounded-full border border-border-strong px-3 text-meta whitespace-nowrap text-muted transition-colors hover:text-foreground",
+            "inline-flex min-h-8.5 shrink-0 items-center rounded-full border border-border-strong px-3 text-meta whitespace-nowrap text-secondary-foreground transition-colors hover:text-foreground",
             scenario.key === current &&
               "border-foreground bg-foreground font-semibold text-background hover:text-background",
           )}
@@ -164,7 +164,7 @@ function StrategistCard({
           ))}
         </ol>
       ) : (
-        <p className="text-meta text-muted">
+        <p className="text-meta text-secondary-foreground">
           Fixe ton objectif pour que le stratège prépare tes consignes.
         </p>
       )}
@@ -173,7 +173,7 @@ function StrategistCard({
           <Button
             asChild
             size="md"
-            className="rounded-surface text-meta max-md:min-h-11"
+            className="rounded-lg text-meta max-md:min-h-11"
           >
             <Link
               href={`${base}?proposal=${proposal.id}`}
@@ -191,7 +191,7 @@ function StrategistCard({
           asChild
           variant="outline"
           size="md"
-          className="rounded-surface text-meta max-md:min-h-11"
+          className="rounded-lg text-meta max-md:min-h-11"
         >
           <Link
             href={coachRequestHref(
@@ -254,13 +254,16 @@ function Aside({
         {totals.finishCutoffMinutes !== null &&
           totals.finishMarginSeconds !== null && (
             <span
-              className={cn("text-meta", late ? "text-danger" : "text-success")}
+              className={cn(
+                "text-meta",
+                late ? "text-destructive" : "text-success",
+              )}
             >
               barrière {formatClock(totals.finishCutoffMinutes)} · marge{" "}
               {marginText(totals.finishMarginSeconds)}
             </span>
           )}
-        <dl className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-2 text-xs text-muted">
+        <dl className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-2 text-xs text-secondary-foreground">
           {figures.map(([label, seconds]) => (
             <div key={label} className="flex items-baseline gap-1">
               <dt>{label}</dt>
@@ -286,14 +289,14 @@ function Aside({
         <MonoLabel asChild size="micro">
           <h2>Points de passage</h2>
         </MonoLabel>
-        <span className="text-meta text-muted">
+        <span className="text-meta text-secondary-foreground">
           {data.waypoints.length} point{data.waypoints.length > 1 ? "s" : ""} ·{" "}
           {stations.length} ravito{stations.length > 1 ? "s" : ""} ·{" "}
           {alert > 0 ? `alertes à ${alert} m` : "sans alerte"}
         </span>
         <Link
           href={`/races/${data.race.id}/waypoints`}
-          className="text-meta text-accent hover:text-foreground"
+          className="text-meta text-primary hover:text-foreground"
         >
           Modifier les points →
         </Link>
@@ -378,13 +381,13 @@ function PlanBody({
             label="Imprimer le roadbook"
             icon={false}
             size="md"
-            className="rounded-surface text-meta"
+            className="rounded-lg text-meta"
           />
           <Button
             asChild
             variant="outline"
             size="md"
-            className="rounded-surface text-meta"
+            className="rounded-lg text-meta"
           >
             <Link href={`${base}/waypoints#montre`}>Envoyer à la montre</Link>
           </Button>
@@ -392,7 +395,7 @@ function PlanBody({
             asChild
             variant="outline"
             size="md"
-            className="rounded-surface text-meta"
+            className="rounded-lg text-meta"
           >
             <Link href={`${base}/waypoints`}>Modifier les points</Link>
           </Button>
@@ -420,7 +423,7 @@ function PlanBody({
         </div>
         <Aside data={data} totals={totals} profile={profile} />
       </section>
-      <p className="flex flex-wrap items-baseline gap-x-1.5 text-meta text-muted lg:hidden print:hidden">
+      <p className="flex flex-wrap items-baseline gap-x-1.5 text-meta text-secondary-foreground lg:hidden print:hidden">
         Arrêts prévus ·
         <span className="font-metric text-[0.9375rem] font-semibold text-foreground tabular-nums">
           <StopsEditor
@@ -438,13 +441,13 @@ function PlanBody({
           label="Imprimer le roadbook"
           icon={false}
           size="md"
-          className="min-h-11 rounded-surface text-meta"
+          className="min-h-11 rounded-lg text-meta"
         />
         <Button
           asChild
           variant="outline"
           size="md"
-          className="min-h-11 rounded-surface text-meta"
+          className="min-h-11 rounded-lg text-meta"
         >
           <Link href={`${base}/waypoints`}>Modifier les points</Link>
         </Button>

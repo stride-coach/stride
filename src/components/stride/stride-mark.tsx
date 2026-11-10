@@ -8,7 +8,7 @@ export function StrideMark({
     <svg
       viewBox="0 0 16 16"
       aria-hidden="true"
-      className={cn("size-4 fill-none stroke-accent", className)}
+      className={cn("size-4 fill-none stroke-primary", className)}
       strokeWidth="2"
       strokeLinecap="round"
       {...props}

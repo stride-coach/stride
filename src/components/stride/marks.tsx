@@ -28,7 +28,13 @@ export function TrendMark({
         <path d="M6 2 10 8H2Z" className="fill-success" />
       )}
       {trend === "stable" && (
-        <rect x="2" y="5" width="8" height="2" className="fill-muted" />
+        <rect
+          x="2"
+          y="5"
+          width="8"
+          height="2"
+          className="fill-secondary-foreground"
+        />
       )}
       {trend === "watch" && <path d="M6 10 10 4H2Z" className="fill-warning" />}
       {trend === "investigate" && (
@@ -36,7 +42,7 @@ export function TrendMark({
           cx="6"
           cy="6"
           r="4"
-          className="fill-none stroke-danger"
+          className="fill-none stroke-destructive"
           strokeWidth="2"
         />
       )}
@@ -78,7 +84,7 @@ export function DirectionMark({
   const fill = {
     warning: "fill-warning",
     success: "fill-success",
-    muted: "fill-muted",
+    muted: "fill-secondary-foreground",
   }[tone];
   return (
     <svg
@@ -111,7 +117,7 @@ export function SourceMark({
         source === "manual" && "size-1.5 rounded-full bg-foreground",
         source === "provider" && "size-1.5 rounded-full bg-provider",
         source === "estimate" &&
-          "size-1.5 rotate-45 border-[1.5px] border-accent",
+          "size-1.5 rotate-45 border-[1.5px] border-primary",
         className,
       )}
     />
@@ -186,11 +192,11 @@ export function PulseDot({
       className={cn(
         "inline-block size-1.5 shrink-0 rounded-full",
         {
-          accent: "bg-accent",
+          accent: "bg-primary",
           warning: "bg-warning",
           success: "bg-success",
           provider: "bg-provider",
-          danger: "bg-danger",
+          danger: "bg-destructive",
           night: "bg-night",
           foreground: "bg-foreground",
         }[tone],

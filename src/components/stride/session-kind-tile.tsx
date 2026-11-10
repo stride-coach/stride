@@ -114,19 +114,20 @@ const tones: Record<SessionTileKind, Tone> = {
 
 const toneClasses: Record<Tone, string> = {
   provider: "border border-provider/30 bg-provider/14 text-provider",
-  quality: "border border-zone-4/30 bg-zone-4/14 text-zone-4",
-  terrain: "border border-zone-3/30 bg-zone-3/14 text-zone-3",
-  support: "border border-muted/30 bg-muted/14 text-muted",
+  quality: "border border-intensity-4/30 bg-intensity-4/14 text-intensity-4",
+  terrain: "border border-intensity-3/30 bg-intensity-3/14 text-intensity-3",
+  support:
+    "border border-secondary-foreground/30 bg-secondary-foreground/14 text-secondary-foreground",
   cross: "border border-night/30 bg-night/14 text-night",
-  race: "bg-accent text-accent-foreground",
+  race: "bg-primary text-primary-foreground",
   rest: "border border-dashed border-border-strong text-dim",
 };
 
 const sizes = {
   xs: "size-4.5 rounded-[4px] [&_svg]:size-2.5",
-  sm: "size-5 rounded-tag [&_svg]:size-2.75",
-  md: "size-6.5 rounded-control [&_svg]:size-3.5",
-  lg: "size-8 rounded-surface [&_svg]:size-4",
+  sm: "size-5 rounded-sm [&_svg]:size-2.75",
+  md: "size-6.5 rounded-md [&_svg]:size-3.5",
+  lg: "size-8 rounded-lg [&_svg]:size-4",
   xl: "size-11 rounded-[11px] [&_svg]:size-6",
 } as const;
 

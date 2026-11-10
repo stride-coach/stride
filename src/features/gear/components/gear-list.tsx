@@ -11,13 +11,13 @@ function PairCard({ pair }: { pair: PairCardView }) {
   return (
     <Link
       href={`/gear/${pair.id}`}
-      className="flex min-w-0 flex-col gap-4 rounded-panel border border-border bg-surface p-5 text-foreground transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring"
+      className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-foreground transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring"
     >
       <div className="flex flex-wrap items-center gap-2">
         <MonoLabel
           size="nano"
           tone="secondary"
-          className="rounded-tag border border-border-strong px-1.5 py-0.5"
+          className="rounded-sm border border-border-strong px-1.5 py-0.5"
         >
           {pair.category}
         </MonoLabel>
@@ -102,7 +102,7 @@ export function GearList({
           <h1 className="text-[clamp(32px,3.5vw,44px)] leading-none font-semibold tracking-[-0.03em]">
             Matériel
           </h1>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-secondary-foreground">
             {empty
               ? "Ajoute tes chaussures : Garmin comptera leurs kilomètres."
               : `${view.active.length > 1 ? `${view.active.length} paires actives` : `${view.active.length} paire active`} · ${view.totalKm} km cumulés · les kilomètres viennent de Garmin`}
@@ -126,11 +126,11 @@ export function GearList({
       {alerts}
 
       {empty ? (
-        <section className="flex flex-col items-start gap-3 rounded-panel border border-border bg-surface p-6">
+        <section className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lead font-semibold">
             Aucune paire pour l’instant
           </h2>
-          <p className="max-w-150 text-sm leading-normal text-muted">
+          <p className="max-w-150 text-sm leading-normal text-secondary-foreground">
             Stride crée chaque paire dans Garmin Connect. Garmin compte ensuite
             chaque sortie et te prévient quand la paire est usée.
           </p>
@@ -150,7 +150,7 @@ export function GearList({
 
       {view.retired.length > 0 && (
         <details className="group border-t border-border pt-3.5">
-          <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm text-muted [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm text-secondary-foreground [&::-webkit-details-marker]:hidden">
             Paires retirées · {view.retired.length}
           </summary>
           <ul className="mt-2">
@@ -158,7 +158,7 @@ export function GearList({
               <li key={pair.id} className="border-t border-border">
                 <Link
                   href={`/gear/${pair.id}`}
-                  className="grid grid-cols-[minmax(0,1fr)_90px_120px] gap-3 py-2.5 text-meta text-muted hover:text-foreground"
+                  className="grid grid-cols-[minmax(0,1fr)_90px_120px] gap-3 py-2.5 text-meta text-secondary-foreground hover:text-foreground"
                 >
                   <span className="truncate">{pair.name}</span>
                   <span className="text-right font-metric text-base text-foreground tabular-nums">

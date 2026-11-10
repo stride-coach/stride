@@ -59,7 +59,7 @@ function Countdown({
       <span
         className={cn(
           "font-metric text-[52px] leading-[0.8] font-semibold tabular-nums md:text-[56px]",
-          days <= 7 && "text-accent",
+          days <= 7 && "text-primary",
         )}
       >
         {days === 0 ? "Jour J" : days}
@@ -196,7 +196,7 @@ export function RaceHeader({
   );
   const items = stats(race, plan, course, waypoints);
   const mobileCount = items.length;
-  const actionClass = "rounded-surface text-meta max-md:min-h-11 max-md:flex-1";
+  const actionClass = "rounded-lg text-meta max-md:min-h-11 max-md:flex-1";
   return (
     <section className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-6">
       <div className="flex min-w-0 flex-col gap-3 md:gap-2.5">
@@ -213,12 +213,12 @@ export function RaceHeader({
         <Countdown race={race} plan={plan} today={today} phase={phase} />
       </div>
       <div className="flex flex-col gap-5 md:items-end md:gap-3.5">
-        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-card border border-border bg-border md:flex md:gap-7 md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
+        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-border bg-border md:flex md:gap-7 md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
           {items.map((stat) => (
             <div
               key={stat.key}
               className={cn(
-                "flex min-w-0 flex-col gap-1 bg-surface px-3 py-2.5 md:gap-0.75 md:bg-transparent md:p-0",
+                "flex min-w-0 flex-col gap-1 bg-card px-3 py-2.5 md:gap-0.75 md:bg-transparent md:p-0",
                 stat.mobileOnly && "md:hidden",
               )}
             >
@@ -227,7 +227,7 @@ export function RaceHeader({
                   ? editTrigger(
                       <button
                         type="button"
-                        className="rounded-tag text-left decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                        className="rounded-sm text-left decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
                       >
                         {stat.value}
                         <span className="sr-only">
@@ -247,7 +247,7 @@ export function RaceHeader({
               <span
                 key={index}
                 aria-hidden="true"
-                className="bg-surface md:hidden"
+                className="bg-card md:hidden"
               />
             ))}
         </dl>
@@ -285,7 +285,7 @@ export function RaceHeader({
               asChild
               variant="outline"
               size="md"
-              className="rounded-surface text-meta max-md:hidden"
+              className="rounded-lg text-meta max-md:hidden"
             >
               <Link href={coachRequestHref(null, null, race.id)}>
                 <StrideMark className="size-3.5" />
@@ -304,7 +304,7 @@ export function RaceHeader({
                 asChild
                 variant="outline"
                 size="md"
-                className="rounded-surface text-meta max-md:hidden"
+                className="rounded-lg text-meta max-md:hidden"
               >
                 <Link href={coachRequestHref(null, null, race.id)}>
                   <StrideMark className="size-3.5" />

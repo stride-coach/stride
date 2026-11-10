@@ -22,7 +22,7 @@ export function CopyProgramButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={copy}
-      className="flex min-h-9 shrink-0 items-center gap-2 rounded-surface border border-border px-3 text-[13px] text-muted hover:text-foreground max-sm:min-h-11"
+      className="flex min-h-9 shrink-0 items-center gap-2 rounded-lg border border-border px-3 text-[13px] text-secondary-foreground hover:text-foreground max-sm:min-h-11"
     >
       <CopyIcon aria-hidden="true" className="size-3.5" />
       <span>

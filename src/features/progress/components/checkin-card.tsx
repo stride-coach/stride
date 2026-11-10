@@ -32,7 +32,7 @@ const legsOrder: readonly Legs[] = ["fresh", "normal", "heavy"];
 
 const legsDots: Record<Legs, string> = {
   fresh: "bg-success",
-  normal: "bg-muted",
+  normal: "bg-secondary-foreground",
   heavy: "bg-warning",
 };
 
@@ -103,7 +103,10 @@ export function CheckinCard({
           key={question.field}
           className="grid gap-2 sm:grid-cols-[150px_minmax(0,1fr)] sm:items-center sm:gap-3"
         >
-          <span id={`checkin-${question.field}`} className="text-sm text-muted">
+          <span
+            id={`checkin-${question.field}`}
+            className="text-sm text-secondary-foreground"
+          >
             {question.label}
           </span>
           <ToggleGroup

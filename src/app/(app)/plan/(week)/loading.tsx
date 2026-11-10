@@ -16,11 +16,11 @@ export default function Loading() {
         </div>
         <Skeleton
           aria-hidden="true"
-          className="h-31 w-full rounded-card sm:h-17 sm:rounded-panel"
+          className="h-31 w-full rounded-xl sm:h-17 sm:rounded-2xl"
         />
         <Skeleton
           aria-hidden="true"
-          className="h-36 w-full rounded-card sm:h-56 sm:rounded-panel"
+          className="h-36 w-full rounded-xl sm:h-56 sm:rounded-2xl"
         />
         <div aria-hidden="true" className="flex flex-col gap-2">
           {Array.from({ length: 6 }, (_, index) => (

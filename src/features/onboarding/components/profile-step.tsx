@@ -79,7 +79,7 @@ export function ProfileStep({
             Voici ce que je sais de toi
             {profile.firstName ? `, ${profile.firstName}` : ""}.
           </h1>
-          <p className="max-w-176 text-body text-pretty text-muted lg:text-lead">
+          <p className="max-w-176 text-body text-pretty text-secondary-foreground lg:text-lead">
             Construit à partir de {integer.format(profile.activityCount)}{" "}
             activités
             {profile.history ? ` sur ${profile.history}` : ""}
@@ -134,7 +134,7 @@ export function ProfileStep({
                   </div>
                 ))}
               </dl>
-              <p className="text-sm text-muted">
+              <p className="text-sm text-secondary-foreground">
                 {profile.heartRateZones.method === "karvonen"
                   ? `Estimation Stride · Karvonen (réserve cardiaque). FC max observée : ${profile.heartRateZones.maximum} bpm. FC au repos : ${profile.heartRateZones.resting} bpm, médiane de ${profile.heartRateZones.restingSamples} observations Garmin du ${formatFrenchDate(profile.heartRateZones.windowStart)} au ${formatFrenchDate(profile.heartRateZones.windowEnd)}.`
                   : `Estimation Stride · Pourcentage de la FC max observée (${profile.heartRateZones.maximum} bpm). Karvonen nécessite au moins sept observations récentes de FC au repos ; cette base n’est pas encore disponible.`}
@@ -146,7 +146,7 @@ export function ProfileStep({
               </p>
             </>
           ) : (
-            <p className="text-sm text-muted">
+            <p className="text-sm text-secondary-foreground">
               Les zones ne sont pas disponibles sans FC max observée valide.
             </p>
           )}
@@ -166,7 +166,7 @@ export function ProfileStep({
       </div>
       <section
         aria-labelledby="next-title"
-        className="flex flex-col gap-5 rounded-card border border-border bg-surface p-5 lg:p-7"
+        className="flex flex-col gap-5 rounded-xl border border-border bg-card p-5 lg:p-7"
       >
         <div className="flex gap-3">
           <StrideMark className="mt-1 size-4" />
@@ -174,7 +174,7 @@ export function ProfileStep({
             <h2 id="next-title" className="text-body font-semibold">
               Ensuite : ton premier plan
             </h2>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-secondary-foreground">
               Je préparerai tes premières semaines à partir de ce profil. Tu
               valides avant que quoi que ce soit soit planifié.
             </p>
@@ -353,7 +353,7 @@ function WeeklyBars({ weeks }: { weeks: WeekBar[] }) {
               />
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded-control border border-border bg-surface-raised px-2 py-1 text-xs whitespace-nowrap group-hover/bar:block group-focus-visible/bar:block"
+                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded-md border border-border bg-muted px-2 py-1 text-xs whitespace-nowrap group-hover/bar:block group-focus-visible/bar:block"
               >
                 {label}
               </span>

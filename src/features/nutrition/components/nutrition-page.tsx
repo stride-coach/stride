@@ -19,7 +19,7 @@ const dayTone: Record<NutritionDayType, string> = {
   moderate: "bg-warning",
   long_or_hard: "bg-staff-nutritionist",
   pre_race: "bg-staff-nutritionist",
-  race: "bg-accent",
+  race: "bg-primary",
 };
 
 function Dot({ type }: { type: NutritionDayType }) {
@@ -36,7 +36,7 @@ function SourceTag({ tag }: { tag: NutritionSourceTag }) {
     <MonoLabel
       size="nano"
       className={cn(
-        "rounded-tag border px-1.5 py-px sm:text-micro",
+        "rounded-sm border px-1.5 py-px sm:text-micro",
         tag === "garmin"
           ? "border-success-border text-success"
           : "border-border-strong text-warning",
@@ -59,7 +59,7 @@ function Stat({
   detail: string;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-panel border border-border bg-surface-raised p-3.5 sm:gap-1.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+    <div className="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-muted p-3.5 sm:gap-1.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
       <MonoLabel size="nano" className="sm:text-label">
         {label}
       </MonoLabel>
@@ -69,7 +69,7 @@ function Stat({
         </span>
         <span className="text-xs text-muted-foreground sm:text-sm">{unit}</span>
       </span>
-      <span className="text-xs leading-[1.4] text-muted sm:text-meta">
+      <span className="text-xs leading-[1.4] text-secondary-foreground sm:text-meta">
         {detail}
       </span>
     </div>
@@ -102,7 +102,7 @@ function ContextLinks({ today }: { today: NutritionTodayView }) {
         <li key={link.href}>
           <Link
             href={link.href}
-            className="flex min-h-11 items-center gap-2 rounded-card border border-border-strong px-3.5 text-sm transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-focus sm:min-h-8.5 sm:rounded-full sm:px-3 sm:text-meta"
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-border-strong px-3.5 text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-focus sm:min-h-8.5 sm:rounded-full sm:px-3 sm:text-meta"
           >
             {link.dot ? (
               <span
@@ -139,10 +139,10 @@ function TimelineStep({ step }: { step: NutritionTimelineStepView }) {
   return (
     <li
       className={cn(
-        "grid grid-cols-[14px_minmax(0,1fr)] gap-x-3 gap-y-1 border-t border-border py-3 sm:flex sm:flex-col sm:gap-2.5 sm:rounded-card sm:border sm:p-4.5",
+        "grid grid-cols-[14px_minmax(0,1fr)] gap-x-3 gap-y-1 border-t border-border py-3 sm:flex sm:flex-col sm:gap-2.5 sm:rounded-xl sm:border sm:p-4.5",
         step.highlighted
-          ? "-mx-3 rounded-card border-accent/30 bg-accent/5 px-3 sm:mx-0"
-          : "sm:bg-surface",
+          ? "-mx-3 rounded-xl border-primary/30 bg-primary/5 px-3 sm:mx-0"
+          : "sm:bg-card",
       )}
     >
       <span
@@ -150,7 +150,7 @@ function TimelineStep({ step }: { step: NutritionTimelineStepView }) {
         className={cn(
           "mt-1.25 size-2 rounded-full sm:hidden",
           step.highlighted
-            ? "bg-accent"
+            ? "bg-primary"
             : "border-[1.5px] border-muted-foreground",
         )}
       />
@@ -174,13 +174,13 @@ function TimelineStep({ step }: { step: NutritionTimelineStepView }) {
       <h3 className="col-start-2 text-sm font-semibold sm:order-2 sm:text-base">
         {step.title}
       </h3>
-      <p className="col-start-2 text-meta leading-normal text-muted sm:order-4">
+      <p className="col-start-2 text-meta leading-normal text-secondary-foreground sm:order-4">
         {step.detail}
       </p>
       {step.link ? (
         <Link
           href={step.link.href}
-          className="col-start-2 inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:order-5 sm:mt-auto sm:min-h-0"
+          className="col-start-2 inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:order-5 sm:mt-auto sm:min-h-0"
         >
           {step.link.label} →
         </Link>
@@ -201,7 +201,7 @@ function FuelingBase({
       aria-labelledby="nutrition-base"
       className="grid gap-6 sm:grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))]"
     >
-      <div className="flex flex-col gap-3.5 rounded-panel border border-border bg-surface-raised p-4 sm:p-5.5">
+      <div className="flex flex-col gap-3.5 rounded-2xl border border-border bg-muted p-4 sm:p-5.5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2
             id="nutrition-base"
@@ -231,17 +231,19 @@ function FuelingBase({
             </div>
           ))}
         </dl>
-        <p className="text-meta leading-[1.55] text-muted">{base.note}</p>
+        <p className="text-meta leading-[1.55] text-secondary-foreground">
+          {base.note}
+        </p>
         {base.race ? (
           <Link
             href={base.race.href}
-            className="inline-flex min-h-11 items-center text-meta text-accent hover:text-foreground sm:min-h-0"
+            className="inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:min-h-0"
           >
             {base.race.label} →
           </Link>
         ) : null}
       </div>
-      <div className="flex flex-col gap-2 rounded-panel border border-border bg-surface-raised p-4 sm:p-5.5">
+      <div className="flex flex-col gap-2 rounded-2xl border border-border bg-muted p-4 sm:p-5.5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-[17px] font-semibold sm:text-lg">
             Teste ton ravito
@@ -259,7 +261,7 @@ function FuelingBase({
               >
                 <Link
                   href={rehearsal.href}
-                  className="text-meta hover:text-accent sm:text-sm"
+                  className="text-meta hover:text-primary sm:text-sm"
                 >
                   {rehearsal.label}
                 </Link>
@@ -276,7 +278,7 @@ function FuelingBase({
             ))}
           </ul>
         ) : (
-          <p className="border-t border-border pt-2.5 text-meta text-muted">
+          <p className="border-t border-border pt-2.5 text-meta text-secondary-foreground">
             Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
           </p>
         )}
@@ -301,7 +303,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
             <span className="text-right font-metric text-lg font-semibold tabular-nums">
               {day.energy} kcal
             </span>
-            <span className="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-xs text-secondary-foreground">
               <Dot type={day.dayType} />
               {day.sessionHref ? (
                 <Link href={day.sessionHref} className="truncate">
@@ -356,7 +358,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                 aria-current={day.today ? "date" : undefined}
                 className={cn(
                   "border-t border-border",
-                  day.today && "bg-surface-raised",
+                  day.today && "bg-muted",
                 )}
               >
                 <td className="py-3 pr-3 whitespace-nowrap">
@@ -367,7 +369,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                     </MonoLabel>
                   ) : null}
                 </td>
-                <td className="p-3 text-muted">
+                <td className="p-3 text-secondary-foreground">
                   {day.sessionHref ? (
                     <Link
                       href={day.sessionHref}
@@ -426,7 +428,7 @@ export function NutritionPage({
         <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[clamp(32px,4vw,46px)] sm:leading-[1.05] sm:tracking-[-0.03em]">
           {today.headline}
         </h1>
-        <p className="text-sm leading-normal text-pretty text-muted sm:text-base sm:leading-[1.55]">
+        <p className="text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
           {today.summary}
         </p>
         <ContextLinks today={today} />
@@ -540,7 +542,7 @@ export function NutritionPage({
         <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-2.5 text-sm">
           {today.method.map((row) => (
             <div key={row.label} className="contents">
-              <dt className="flex flex-wrap items-center gap-2 text-muted">
+              <dt className="flex flex-wrap items-center gap-2 text-secondary-foreground">
                 {row.label}
                 {row.tag ? <SourceTag tag={row.tag} /> : null}
               </dt>
@@ -567,12 +569,12 @@ export function NutritionPage({
 export function NutritionMissing({ missing }: { missing: string[] }) {
   return (
     <div className="flex flex-col gap-6.5">
-      <section className="flex max-w-140 flex-col gap-3 rounded-panel border border-border bg-surface-raised p-4.5">
+      <section className="flex max-w-140 flex-col gap-3 rounded-2xl border border-border bg-muted p-4.5">
         <MonoLabel tone="warning">Données manquantes</MonoLabel>
         <h1 className="text-[22px] leading-[1.15] font-semibold tracking-[-0.02em]">
           Complète ton profil pour voir tes objectifs.
         </h1>
-        <p className="text-sm leading-normal text-muted">
+        <p className="text-sm leading-normal text-secondary-foreground">
           Sans ces informations, Stride ne calcule aucun chiffre plutôt que de
           deviner.
         </p>

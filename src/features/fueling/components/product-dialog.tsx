@@ -246,7 +246,7 @@ function ProductForm({
         </Field>
       )}
       {message && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-destructive">
           {message}
         </p>
       )}
@@ -256,7 +256,7 @@ function ProductForm({
             type="button"
             variant="ghost"
             size="md"
-            className="mr-auto text-danger"
+            className="mr-auto text-destructive"
             disabled={pending}
             onClick={remove}
           >
@@ -344,7 +344,7 @@ export function AddProductButton({
         type="button"
         variant="outline"
         size="md"
-        className={cn("rounded-surface text-meta", className)}
+        className={cn("rounded-lg text-meta", className)}
         onClick={() => setOpen(true)}
       >
         <span aria-hidden="true">+</span>
@@ -389,7 +389,7 @@ export function EditProductButton({
       <button
         type="button"
         className={cn(
-          "rounded-tag text-left font-medium decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring",
+          "rounded-sm text-left font-medium decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring",
           className,
         )}
         onClick={() => setOpen(true)}

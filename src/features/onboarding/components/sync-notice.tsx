@@ -29,7 +29,7 @@ export function SyncNotice({
       <SyncStatus
         state="expired"
         action={
-          <Link href="/onboarding/garmin" className="text-accent underline">
+          <Link href="/onboarding/garmin" className="text-primary underline">
             {firstConnection
               ? "Connecter"
               : verification

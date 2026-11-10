@@ -27,14 +27,14 @@ import { NotificationList } from "./notification-list";
 import { useNotifications } from "./notifications-context";
 
 const bell =
-  "relative grid shrink-0 place-items-center rounded-control border border-border text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:border-border-strong aria-expanded:bg-surface-raised aria-expanded:text-foreground";
+  "relative grid shrink-0 place-items-center rounded-md border border-border text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:border-border-strong aria-expanded:bg-muted aria-expanded:text-foreground";
 
 function Badge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
     <span
       aria-hidden="true"
-      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-accent px-1.25 text-[11px] font-semibold text-background ring-2 ring-surface-inset"
+      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-background ring-2 ring-surface-inset"
     >
       {badgeValue(count)}
     </span>
@@ -154,7 +154,7 @@ function LoadedBell({
           <Link
             href="/notifications"
             onClick={() => setOpen(false)}
-            className="flex min-h-11 items-center justify-center gap-1.5 text-[13px] text-muted hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+            className="flex min-h-11 items-center justify-center gap-1.5 text-[13px] text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
           >
             Voir tout l’historique
             <ChevronRightIcon aria-hidden="true" className="size-3" />

@@ -55,7 +55,7 @@ export function FitnessLoading() {
         </div>
         <Skeleton
           aria-hidden="true"
-          className="h-64 w-full rounded-card max-lg:order-1"
+          className="h-64 w-full rounded-xl max-lg:order-1"
         />
       </section>
       <div className={twoColumns}>
@@ -63,9 +63,9 @@ export function FitnessLoading() {
           <SectionTitle>Condition et fatigue</SectionTitle>
           <Skeleton
             aria-hidden="true"
-            className="aspect-[350/168] w-full rounded-card sm:aspect-[1200/244]"
+            className="aspect-[350/168] w-full rounded-xl sm:aspect-[1200/244]"
           />
-          <Skeleton aria-hidden="true" className="h-16 w-full rounded-card" />
+          <Skeleton aria-hidden="true" className="h-16 w-full rounded-xl" />
         </section>
         <div className="flex flex-col gap-8">
           <section className="flex flex-col gap-2.5">
@@ -74,7 +74,7 @@ export function FitnessLoading() {
           </section>
           <section className="flex flex-col gap-2.5">
             <SectionTitle>Répartition de l’intensité</SectionTitle>
-            <Skeleton aria-hidden="true" className="h-24 w-full rounded-card" />
+            <Skeleton aria-hidden="true" className="h-24 w-full rounded-xl" />
           </section>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function FitnessLoading() {
           <SectionTitle>Course à pied · km par semaine</SectionTitle>
           <Skeleton
             aria-hidden="true"
-            className="h-36 w-full rounded-card sm:h-45"
+            className="h-36 w-full rounded-xl sm:h-45"
           />
         </section>
         <section className="flex flex-col gap-2">
@@ -108,13 +108,13 @@ export function BodyLoading() {
           <ScaleSwitch current={view} />
         </div>
         {view !== "day" && (
-          <Skeleton aria-hidden="true" className="h-56 w-full rounded-card" />
+          <Skeleton aria-hidden="true" className="h-56 w-full rounded-xl" />
         )}
       </section>
       {view === "day" ? (
         <div aria-hidden="true" className="flex flex-col gap-6">
-          <Skeleton className="h-16 w-full rounded-panel" />
-          <Skeleton className="h-72 w-full rounded-panel" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-72 w-full rounded-2xl" />
         </div>
       ) : (
         <div className={twoColumns}>
@@ -123,12 +123,12 @@ export function BodyLoading() {
               <SectionTitle>Nuits</SectionTitle>
               <Skeleton
                 aria-hidden="true"
-                className="h-30 w-full rounded-card sm:h-37.5"
+                className="h-30 w-full rounded-xl sm:h-37.5"
               />
             </section>
             <div aria-hidden="true" className="grid gap-3.5 sm:grid-cols-2">
-              <Skeleton className="h-40 rounded-card" />
-              <Skeleton className="h-40 rounded-card" />
+              <Skeleton className="h-40 rounded-xl" />
+              <Skeleton className="h-40 rounded-xl" />
             </div>
           </div>
           <section className="flex flex-col gap-1.5 max-lg:order-1">
@@ -151,7 +151,7 @@ export function RecordsLoading() {
         <Lede />
         <div className="flex flex-col gap-3">
           <SectionTitle>À portée</SectionTitle>
-          <Skeleton aria-hidden="true" className="h-56 w-full rounded-card" />
+          <Skeleton aria-hidden="true" className="h-56 w-full rounded-xl" />
         </div>
       </section>
       <section className="flex flex-col gap-3">
@@ -163,7 +163,7 @@ export function RecordsLoading() {
           {[0, 1, 2, 3].map((item) => (
             <Skeleton
               key={item}
-              className="h-24 rounded-card max-sm:last:hidden"
+              className="h-24 rounded-xl max-sm:last:hidden"
             />
           ))}
         </div>

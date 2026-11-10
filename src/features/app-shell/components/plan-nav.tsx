@@ -66,7 +66,7 @@ function BlockItem({
           className={cn(
             "size-2 shrink-0 rounded-mark",
             block.status === "current"
-              ? "bg-accent"
+              ? "bg-primary"
               : block.status === "past"
                 ? "bg-success"
                 : "bg-border-strong",

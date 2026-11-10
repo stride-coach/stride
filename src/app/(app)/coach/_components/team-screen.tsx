@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { FacePicker } from "./face-picker";
 
 const roleTone: Record<StaffAgent, { dot: string; text: string }> = {
-  coach: { dot: "bg-accent", text: "text-accent" },
+  coach: { dot: "bg-primary", text: "text-primary" },
   medical: { dot: "bg-staff-medical", text: "text-staff-medical" },
   director: { dot: "bg-staff-director", text: "text-staff-director" },
   strategist: { dot: "bg-staff-strategist", text: "text-staff-strategist" },
@@ -79,11 +79,11 @@ function Checklist({
         {items.map((item) => (
           <li
             key={item}
-            className="grid grid-cols-[14px_minmax(0,1fr)] gap-2 text-meta leading-[1.45] text-muted"
+            className="grid grid-cols-[14px_minmax(0,1fr)] gap-2 text-meta leading-[1.45] text-secondary-foreground"
           >
             <CheckIcon
               aria-hidden="true"
-              className="mt-0.75 size-3 text-accent"
+              className="mt-0.75 size-3 text-primary"
               strokeWidth={2.4}
             />
             <span>{item}</span>
@@ -104,7 +104,7 @@ function Reads({ items }: { items: readonly string[] }) {
         {items.map((item) => (
           <li
             key={item}
-            className="rounded-control border border-border-strong px-1.75 py-0.5 text-[11px] text-muted"
+            className="rounded-md border border-border-strong px-1.75 py-0.5 text-[11px] text-secondary-foreground"
           >
             {item}
           </li>
@@ -159,7 +159,7 @@ function CoachCard({ usage }: { usage: StaffUsage }) {
   return (
     <section
       aria-labelledby="team-coach"
-      className="flex min-w-0 flex-col overflow-hidden rounded-[16px] border border-accent/20 bg-surface min-[1100px]:flex-row md:border-border"
+      className="flex min-w-0 flex-col overflow-hidden rounded-[16px] border border-primary/20 bg-card min-[1100px]:flex-row md:border-border"
     >
       <div className="relative h-75 w-75 max-w-full shrink-0 max-md:hidden min-[1100px]:h-auto min-[1100px]:min-h-75">
         <StaffPortrait agent="coach" size={300} fill decorative />
@@ -179,7 +179,7 @@ function CoachCard({ usage }: { usage: StaffUsage }) {
           >
             {coach.name}
           </h2>
-          <p className="max-w-140 text-sm leading-normal text-muted md:text-base">
+          <p className="max-w-140 text-sm leading-normal text-secondary-foreground md:text-base">
             {profile.summary(coach)}
           </p>
         </div>
@@ -195,7 +195,7 @@ function CoachCard({ usage }: { usage: StaffUsage }) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 max-md:border-t max-md:border-border max-md:pt-3 md:mt-auto">
-          <Button asChild size="md" className="rounded-surface max-md:hidden">
+          <Button asChild size="md" className="rounded-lg max-md:hidden">
             <Link href="/coach/new">Écrire à {coach.name}</Link>
           </Button>
           <FaceRow agent="coach" className="max-md:w-full md:ml-auto" />
@@ -218,7 +218,7 @@ function SpecialistCard({
   return (
     <article
       aria-labelledby={id}
-      className="flex min-w-0 flex-col gap-3.5 rounded-[16px] border border-border bg-surface px-4 py-4.5 md:gap-4 md:p-5.5"
+      className="flex min-w-0 flex-col gap-3.5 rounded-[16px] border border-border bg-card px-4 py-4.5 md:gap-4 md:p-5.5"
     >
       <div className="flex items-start gap-3.5 md:gap-4">
         <StaffPortrait
@@ -241,7 +241,7 @@ function SpecialistCard({
           >
             {member.name}
           </h3>
-          <p className="text-sm leading-normal text-muted">
+          <p className="text-sm leading-normal text-secondary-foreground">
             {profile.summary(member)}
           </p>
         </div>
@@ -289,11 +289,11 @@ function Step({
   text: string;
 }) {
   return (
-    <li className="flex min-w-0 flex-col gap-3 rounded-panel border border-border p-5">
+    <li className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border p-5">
       <span className="flex items-center gap-2.5">
         <span
           aria-hidden="true"
-          className="grid size-6 place-items-center rounded-[7px] bg-surface-raised font-metric text-body font-semibold"
+          className="grid size-6 place-items-center rounded-[7px] bg-muted font-metric text-body font-semibold"
         >
           {index}
         </span>
@@ -302,7 +302,9 @@ function Step({
       <span aria-hidden="true" className="flex min-h-10 items-center gap-1.5">
         {children}
       </span>
-      <p className="text-meta leading-normal text-muted">{text}</p>
+      <p className="text-meta leading-normal text-secondary-foreground">
+        {text}
+      </p>
     </li>
   );
 }
@@ -344,7 +346,7 @@ function HowItWorks({ initials }: { initials: string }) {
           <StaffPortrait agent="coach" size={36} decorative />
           <Arrow />
           <Initials initials={initials} />
-          <span className="rounded-control border border-accent bg-accent px-2 py-0.75 text-xs font-semibold text-accent-foreground">
+          <span className="rounded-md border border-primary bg-primary px-2 py-0.75 text-xs font-semibold text-primary-foreground">
             Valider
           </span>
         </Step>
@@ -355,11 +357,11 @@ function HowItWorks({ initials }: { initials: string }) {
           Ta santé passe avant la performance
         </li>
         <li className="inline-flex items-center gap-2">
-          <Dot className="bg-accent" />
+          <Dot className="bg-primary" />
           {coach.name} mène la conversation
         </li>
         <li className="inline-flex items-center gap-2">
-          <Dot className="bg-muted" />
+          <Dot className="bg-secondary-foreground" />
           Lecture seule de tes données
         </li>
       </ul>
@@ -369,17 +371,17 @@ function HowItWorks({ initials }: { initials: string }) {
 
 function Principles() {
   return (
-    <ul className="flex flex-col gap-2 rounded-panel border border-border px-4 py-3.5 text-meta text-muted md:hidden">
+    <ul className="flex flex-col gap-2 rounded-2xl border border-border px-4 py-3.5 text-meta text-secondary-foreground md:hidden">
       <li className="inline-flex items-center gap-2">
         <Dot className="bg-staff-medical" />
         Ta santé passe avant la performance
       </li>
       <li className="inline-flex items-center gap-2">
-        <Dot className="bg-accent" />
+        <Dot className="bg-primary" />
         Deux spécialistes au plus par demande
       </li>
       <li className="inline-flex items-center gap-2">
-        <Dot className="bg-muted" />
+        <Dot className="bg-secondary-foreground" />
         Rien ne change sans ton accord
       </li>
     </ul>
@@ -415,11 +417,11 @@ export function TeamScreen({
                 Une équipe autour de toi, dans une seule conversation.
               </span>
             </h1>
-            <p className="text-sm leading-normal text-muted md:hidden">
+            <p className="text-sm leading-normal text-secondary-foreground md:hidden">
               {coach.name} mène. Les spécialistes te parlent directement quand
               ta demande touche leur domaine, et tu valides chaque changement.
             </p>
-            <p className="max-w-170 text-base leading-[1.55] text-muted max-md:hidden">
+            <p className="max-w-170 text-base leading-[1.55] text-secondary-foreground max-md:hidden">
               Comme le staff d’un athlète pro : {coach.name} mène, et chaque
               spécialiste apporte son regard quand ta demande touche son
               domaine. Choisis le visage de chacun, leur expertise reste la

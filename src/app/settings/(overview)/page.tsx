@@ -72,20 +72,20 @@ export default async function SettingsOverviewPage() {
       key: "estimate",
       count: counts.estimate,
       label: `${counts.estimate} ${counts.estimate > 1 ? "estimés" : "estimé"} par Stride`,
-      className: "bg-accent",
+      className: "bg-primary",
     },
   ];
   return (
     <>
       <div className="mb-5 flex items-center gap-4 md:mb-8">
-        <span className="grid size-14 place-items-center rounded-surface bg-surface-raised font-semibold">
+        <span className="grid size-14 place-items-center rounded-lg bg-muted font-semibold">
           {shell.athlete.initials}
         </span>
         <div className="min-w-0 flex-1">
           <strong className="block truncate text-xl">
             {shell.athlete.name}
           </strong>
-          <span className="block truncate text-sm text-muted">
+          <span className="block truncate text-sm text-secondary-foreground">
             {context.email}
             {memberSince && (
               <span className="hidden md:inline">
@@ -107,7 +107,7 @@ export default async function SettingsOverviewPage() {
           </Button>
         </form>
       </div>
-      <div className="mb-6 flex flex-col gap-2 rounded-surface border border-border bg-surface p-4 md:mb-10 md:gap-4 md:px-6 md:py-5.5">
+      <div className="mb-6 flex flex-col gap-2 rounded-lg border border-border bg-card p-4 md:mb-10 md:gap-4 md:px-6 md:py-5.5">
         <div className="flex flex-wrap items-baseline justify-between gap-2.5">
           <div className="flex items-center gap-2.5">
             <StrideMark className="hidden md:block" />
@@ -117,12 +117,12 @@ export default async function SettingsOverviewPage() {
             </h2>
           </div>
           {updated && (
-            <span className="hidden text-sm text-muted md:block">
+            <span className="hidden text-sm text-secondary-foreground md:block">
               Mis à jour le {updated}
             </span>
           )}
         </div>
-        <p className="hidden max-w-160 text-sm leading-normal text-muted md:block">
+        <p className="hidden max-w-160 text-sm leading-normal text-secondary-foreground md:block">
           Garmin fournit les signaux. Stride en tire ton modèle, avec tes
           réponses, tes objectifs et ta façon de réagir à l’entraînement.
         </p>

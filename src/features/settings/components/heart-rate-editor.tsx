@@ -113,7 +113,10 @@ export function HeartRateEditor({
           </span>
         </Field>
         {!parsed.success && (
-          <p role="status" className="text-xs text-danger min-[1100px]:pl-50">
+          <p
+            role="status"
+            className="text-xs text-destructive min-[1100px]:pl-50"
+          >
             Saisis un nombre entier de 100 à 230 bpm.
           </p>
         )}

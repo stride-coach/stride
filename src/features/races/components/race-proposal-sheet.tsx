@@ -115,7 +115,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
           "gap-0 overflow-hidden border-border-strong bg-surface-panel text-foreground",
           mobile
             ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
-            : "rounded-panel border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
+            : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
         )}
       >
         {mobile && (
@@ -127,7 +127,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         <header className="flex items-center gap-2.5 border-b border-border-subtle px-4 py-3.5">
           <span className="flex min-w-0 flex-col gap-0.5">
             <MonoLabel size="micro">{review.kicker}</MonoLabel>
-            <span className="truncate text-meta text-muted">
+            <span className="truncate text-meta text-secondary-foreground">
               {changeCountLabel(review.changes.length)}
             </span>
           </span>
@@ -135,7 +135,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
             size="micro"
             className={cn(
               "ml-auto text-right",
-              decidable ? "text-warning" : "text-muted",
+              decidable ? "text-warning" : "text-secondary-foreground",
             )}
           >
             {review.statusLabel}
@@ -145,7 +145,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
               variant="outline"
               size="icon"
               aria-label="Fermer"
-              className="size-8.5 rounded-control border-border text-muted hover:text-foreground max-sm:size-11"
+              className="size-8.5 rounded-md border-border text-secondary-foreground hover:text-foreground max-sm:size-11"
             >
               <XIcon aria-hidden="true" />
             </Button>
@@ -157,7 +157,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
               {review.title}
             </SheetTitle>
             {review.summary && (
-              <p className="text-sm leading-normal text-muted">
+              <p className="text-sm leading-normal text-secondary-foreground">
                 {review.summary}
               </p>
             )}

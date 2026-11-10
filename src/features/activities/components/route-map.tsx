@@ -163,11 +163,11 @@ function RouteMapView({
         return reference ? styles.getPropertyValue(reference[1]).trim() : value;
       };
       setPalette({
-        1: resolve("--zone-1"),
-        2: resolve("--zone-2"),
-        3: resolve("--zone-3"),
-        4: resolve("--zone-4"),
-        5: resolve("--zone-5"),
+        1: resolve("--intensity-1"),
+        2: resolve("--intensity-2"),
+        3: resolve("--intensity-3"),
+        4: resolve("--intensity-4"),
+        5: resolve("--intensity-5"),
       });
     });
     observer.observe(element);
@@ -299,7 +299,7 @@ function RouteMapView({
             );
             const text = document.createElement("span");
             text.className =
-              "absolute top-1.5 left-2.5 font-mono text-nano whitespace-nowrap text-muted uppercase";
+              "absolute top-1.5 left-2.5 font-mono text-nano whitespace-nowrap text-secondary-foreground uppercase";
             text.textContent = label;
             element.append(dot, text);
             markers.push(
@@ -508,7 +508,7 @@ function RouteMapView({
               if (modes.includes(value as ColorMode))
                 onModeChange(value as ColorMode);
             }}
-            className="flex-wrap gap-0.5 rounded-surface border border-border bg-surface/90 p-0.5"
+            className="flex-wrap gap-0.5 rounded-lg border border-border bg-card/90 p-0.5"
           >
             {colorModes
               .filter((item) => modes.includes(item.mode))
@@ -516,7 +516,7 @@ function RouteMapView({
                 <ToggleGroupItem
                   key={item.mode}
                   value={item.mode}
-                  className="min-h-6.5 rounded-control border-0 px-2.5 py-0 text-xs data-[state=on]:bg-surface-raised"
+                  className="min-h-6.5 rounded-md border-0 px-2.5 py-0 text-xs data-[state=on]:bg-muted"
                 >
                   {item.label}
                 </ToggleGroupItem>
@@ -526,7 +526,7 @@ function RouteMapView({
         {engine === "fallback" && (
           <span
             role="status"
-            className="rounded-control bg-surface px-2 py-1 text-xs text-muted"
+            className="rounded-md bg-card px-2 py-1 text-xs text-secondary-foreground"
           >
             Carte indisponible · tracé GPS affiché
           </span>
@@ -544,7 +544,7 @@ function RouteMapView({
                 : "Carte en plein écran"
             }
             onClick={fullscreen.onToggle}
-            className="size-9 bg-surface max-md:size-11"
+            className="size-9 bg-card max-md:size-11"
           >
             {fullscreen.open ? (
               <XIcon className="size-4" />
@@ -554,14 +554,14 @@ function RouteMapView({
           </Button>
         )}
         {engine === "map" && (
-          <div className="flex flex-col overflow-hidden rounded-surface border border-border bg-surface/90">
+          <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card/90">
             <Button
               variant="ghost"
               size="icon"
               type="button"
               aria-label="Zoom avant"
               onClick={() => map?.zoomIn()}
-              className="grid size-8 place-items-center border-b border-border text-muted hover:text-foreground"
+              className="grid size-8 place-items-center border-b border-border text-secondary-foreground hover:text-foreground"
             >
               <PlusIcon className="size-4" />
             </Button>
@@ -571,7 +571,7 @@ function RouteMapView({
               type="button"
               aria-label="Zoom arrière"
               onClick={() => map?.zoomOut()}
-              className="grid size-8 place-items-center border-border text-muted hover:text-foreground lg:border-b"
+              className="grid size-8 place-items-center border-border text-secondary-foreground hover:text-foreground lg:border-b"
             >
               <MinusIcon className="size-4" />
             </Button>
@@ -589,7 +589,7 @@ function RouteMapView({
                 viewBox="0 0 14 14"
                 aria-hidden="true"
               >
-                <path d="M7 1.5 L9.6 7 H4.4Z" className="fill-danger" />
+                <path d="M7 1.5 L9.6 7 H4.4Z" className="fill-destructive" />
                 <path
                   d="M7 12.5 L4.4 7 H9.6Z"
                   className="fill-muted-foreground"
@@ -612,7 +612,7 @@ function RouteMapView({
                   { padding, duration: 400 },
                 );
               }}
-              className="grid size-8 place-items-center text-muted hover:text-foreground max-lg:hidden"
+              className="grid size-8 place-items-center text-secondary-foreground hover:text-foreground max-lg:hidden"
             >
               <CrosshairIcon className="size-3.5" />
             </Button>
@@ -621,7 +621,7 @@ function RouteMapView({
       </div>
       {tooltipPoint && hover !== null && (
         <div
-          className="pointer-events-none absolute z-10 flex flex-col gap-0.5 rounded-surface border border-border-strong bg-surface/95 px-2.5 py-2"
+          className="pointer-events-none absolute z-10 flex flex-col gap-0.5 rounded-lg border border-border-strong bg-card/95 px-2.5 py-2"
           style={{
             left: showFlipped ? undefined : tooltipPoint.x + 14,
             right: showFlipped ? size.width - tooltipPoint.x + 14 : undefined,
@@ -639,7 +639,7 @@ function RouteMapView({
               </span>
             )}
             {view.heartRate[hover] !== null && (
-              <span className="text-lead text-danger">
+              <span className="text-lead text-destructive">
                 {view.heartRate[hover]} bpm
               </span>
             )}
@@ -653,7 +653,7 @@ function RouteMapView({
       )}
       <div className="pointer-events-none absolute bottom-8 left-3 flex flex-col gap-1.5 sm:bottom-3">
         {modes.length > 0 && (
-          <div className="flex w-fit items-center gap-0.5 rounded-control border border-border bg-surface/90 px-1.5 py-1">
+          <div className="flex w-fit items-center gap-0.5 rounded-md border border-border bg-card/90 px-1.5 py-1">
             <MonoLabel size="nano" className="mr-1">
               {colorModes.find((item) => item.mode === mode)?.label}
             </MonoLabel>
@@ -662,7 +662,7 @@ function RouteMapView({
                   <span
                     key={zone}
                     className="h-1.25 w-4 rounded-mark"
-                    style={{ background: `var(--zone-${zone})` }}
+                    style={{ background: `var(--intensity-${zone})` }}
                   />
                 ))
               : [0, 0.25, 0.5, 0.75, 1].map((value) => (
