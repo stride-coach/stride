@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { StrideMark } from "@/components/stride/stride-mark";
 
 export function RaceCard({
@@ -9,7 +8,7 @@ export function RaceCard({
   return (
     <section
       className={cn(
-        "flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card px-5 py-5 sm:px-6 sm:py-5.5",
+        "flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5",
         className,
       )}
       {...props}
@@ -24,12 +23,16 @@ export function CardLabel({
   ...props
 }: React.ComponentProps<"h2"> & { coach?: boolean }) {
   return (
-    <MonoLabel asChild>
-      <h2 className={cn("flex items-center gap-2", className)} {...props}>
-        {coach && <StrideMark className="size-3.5" />}
-        <span>{children}</span>
-      </h2>
-    </MonoLabel>
+    <h2
+      className={cn(
+        "flex items-center gap-2 text-body font-medium text-secondary-foreground",
+        className,
+      )}
+      {...props}
+    >
+      {coach && <StrideMark className="size-3" />}
+      <span>{children}</span>
+    </h2>
   );
 }
 
@@ -45,17 +48,18 @@ export function Figure({
   className?: string;
 }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-0.5", className)}>
       <span
+        data-slot="metric"
         className={cn(
-          "text-[1.625rem] leading-none font-semibold tracking-[-0.01em] tabular-nums",
+          "text-title font-semibold tabular-nums",
           tone === "night" && "text-muted-foreground",
           tone === "accent" && "text-primary",
         )}
       >
         {value}
       </span>
-      <span className="text-label text-muted-foreground">{label}</span>
+      <span className="text-label text-secondary-foreground">{label}</span>
     </div>
   );
 }
@@ -81,15 +85,15 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.25 py-0.75 text-label whitespace-nowrap",
+        "inline-flex items-center gap-1.5 text-label font-medium whitespace-nowrap",
         {
-          neutral: "bg-muted text-foreground",
-          outline: "border border-control-border text-secondary-foreground",
-          accent: "bg-primary text-primary-foreground",
-          success: "bg-card text-primary",
-          warning: "bg-warning/10 text-warning",
-          danger: "bg-destructive/10 text-destructive",
-          provider: "bg-data-2/10 text-data-2",
+          neutral: "text-foreground",
+          outline: "text-secondary-foreground",
+          accent: "text-primary",
+          success: "text-primary",
+          warning: "text-warning",
+          danger: "text-destructive",
+          provider: "text-muted-foreground",
         }[tone],
         className,
       )}
@@ -131,7 +135,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-start gap-2 rounded-xl border border-dashed border-control-border bg-background px-4 py-4",
+        "flex flex-col items-start gap-2 rounded-xl border border-border bg-card px-4 py-3.5",
         className,
       )}
     >
