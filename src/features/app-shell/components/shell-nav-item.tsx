@@ -9,8 +9,10 @@ export function ShellNavItem({
   icon,
   label,
   badge = null,
+  match = [],
 }: {
   href: string;
+  match?: string[];
   icon: React.ReactNode;
   label: string;
   badge?: ShellBadge | null;
@@ -21,7 +23,9 @@ export function ShellNavItem({
       href={href}
       icon={icon}
       label={label}
-      isActive={pathname === href || pathname.startsWith(`${href}/`)}
+      isActive={[href, ...match].some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+      )}
       attention={badge?.attention}
       badge={
         badge ? (

@@ -57,13 +57,11 @@ export function calculateHeartRateZones({
   const boundaries = [0.5, 0.6, 0.7, 0.8, 0.9, 1].map((intensity) =>
     Math.round(baseline + intensity * (maximum - baseline)),
   );
-  const zones = boundaries
-    .slice(0, 5)
-    .map((lower, index) => ({
-      zone: index + 1,
-      lower,
-      upper: boundaries[index + 1] - (index < 4 ? 1 : 0),
-    }));
+  const zones = boundaries.slice(0, 5).map((lower, index) => ({
+    zone: index + 1,
+    lower,
+    upper: boundaries[index + 1] - (index < 4 ? 1 : 0),
+  }));
   if (zones.some((zone) => zone.lower <= 0 || zone.upper < zone.lower))
     return null;
   return {

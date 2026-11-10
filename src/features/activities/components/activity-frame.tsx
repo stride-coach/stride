@@ -64,10 +64,6 @@ export function ActivityListHeader({
   return (
     <div className="relative flex shrink-0 flex-col gap-3 border-b border-border px-5 pt-5 pb-3 lg:px-3.5 lg:pt-3.5 lg:pb-2.5">
       <div className="flex items-center gap-2">
-        <SidebarTrigger
-          aria-label="Afficher ou masquer la barre latérale"
-          className="-ml-2 max-md:hidden lg:hidden"
-        />
         <Heading className="flex-1 text-verdict font-semibold lg:text-body-lg">
           Activités
         </Heading>

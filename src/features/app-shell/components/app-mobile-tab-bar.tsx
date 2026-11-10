@@ -56,7 +56,7 @@ export function AppMobileTabBar({
         }
       />
       {tab("/activities", <TabActivitiesIcon />, "Activités")}
-      {tab("/progress", <TabProgressIcon />, "Progression")}
+      {tab("/progress", <TabProgressIcon />, "Santé")}
     </MobileTabBar>
   );
 }

@@ -3,7 +3,7 @@ const sectionLabels: Record<string, string> = {
   coach: "Coach",
   plan: "Plan",
   activities: "Activités",
-  progress: "Progression",
+  progress: "Santé",
   races: "Courses",
   gear: "Matériel",
   nutrition: "Nutrition",

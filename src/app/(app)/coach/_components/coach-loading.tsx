@@ -43,7 +43,7 @@ function ConversationListLoading() {
             </Button>
             <SidebarTrigger
               aria-label="Afficher ou masquer la barre latérale"
-              className="-mr-2 size-11"
+              className="-mr-2 size-11 md:hidden"
             />
           </div>
           <section aria-label="Ton staff" className="flex flex-col gap-2.5">

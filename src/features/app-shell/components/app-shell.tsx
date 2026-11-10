@@ -60,6 +60,8 @@ import { ProgressSidebarGroup } from "@/features/progress/components/progress-na
 import { ShellNavItem } from "./shell-nav-item";
 import { ShellRaceItem } from "./shell-race-item";
 import { SignOutMenuItem } from "./sign-out-menu-item";
+import { TopBar } from "./top-bar";
+import { Relief } from "@/components/stride/relief";
 import { ShortcutHelp, ShortcutHelpMenuItem } from "./shortcut-help";
 import {
   AccountMenuConnectionsIcon,
@@ -146,196 +148,215 @@ export function AppShell({
         <DataActivityProvider>
           <SidebarProvider
             defaultOpen={defaultOpen}
-            className="h-svh overflow-hidden print:h-auto print:overflow-visible"
+            className="relative h-svh flex-col overflow-hidden md:bg-shell print:h-auto print:overflow-visible"
           >
             <ShortcutHelp />
-            <Sidebar
-              variant="inset"
-              collapsible="icon"
-              className="print:hidden"
-            >
-              <SidebarHeader>
-                <NavGoalSwitcher
-                  name={goal?.name ?? "Stride"}
-                  detail={goal?.detail ?? "Aucun objectif"}
-                >
-                  <DropdownMenuContent className="w-60" align="start">
-                    <DropdownMenuLabel>Objectif</DropdownMenuLabel>
-                    <p className="px-2 pb-2 text-body text-foreground">
-                      {goal
-                        ? `${goal.name} · ${goal.detail}`
-                        : "Aucun objectif"}
-                    </p>
-                  </DropdownMenuContent>
-                </NavGoalSwitcher>
-              </SidebarHeader>
-              <SidebarContent>
-                <SidebarGroup>
-                  <SidebarGroupLabel>Entraînement</SidebarGroupLabel>
-                  <SidebarMenu>
-                    <Suspense fallback={<TodayNavLink />}>
-                      <TodayNavItem navigation={navigation} />
-                    </Suspense>
-                    <Suspense fallback={<CoachNavItem attention={null} />}>
-                      <CoachNav navigation={navigation} />
-                    </Suspense>
-                    <ShellNavItem
-                      href="/plan"
-                      icon={<NavPlanIcon />}
-                      label="Plan"
-                    />
-                    <ShellNavItem
-                      href="/activities"
-                      icon={<NavActivitiesIcon />}
-                      label="Activités"
-                    />
-                    <ShellNavItem
-                      href="/progress"
-                      icon={<NavProgressIcon />}
-                      label="Progression"
-                    />
-                    <ShellNavItem
-                      href="/races"
-                      icon={<NavRacesIcon />}
-                      label="Courses"
-                    />
-                  </SidebarMenu>
-                </SidebarGroup>
-                <Suspense fallback={<PlanSidebarGroupLoading />}>
-                  <PlanNav navigation={navigation} />
-                </Suspense>
-                <ProgressSidebarGroup />
-                <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                  <SidebarGroupLabel>Objectifs</SidebarGroupLabel>
-                  <SidebarMenu>
-                    {races.map((race) => (
-                      <ShellRaceItem
-                        key={race.id}
-                        id={race.id}
-                        name={race.name}
-                        priority={race.priority}
-                        date={shellRaceDate(race.date)}
-                      />
-                    ))}
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        asChild
-                        size="sm"
-                        className="min-h-7.5 gap-2 text-body text-muted-foreground"
-                      >
-                        <Link href="/settings/goals">
-                          <PlusIcon className="size-3.5" />
-                          Ajouter une course
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroup>
-                <SidebarGroup>
-                  <SidebarGroupLabel>Athlète</SidebarGroupLabel>
-                  <SidebarMenu>
-                    <Suspense fallback={<GearNavLink />}>
-                      <GearNavItem navigation={navigation} />
-                    </Suspense>
-                    <ShellNavItem
-                      href="/nutrition"
-                      icon={<NavNutritionIcon />}
-                      label="Nutrition"
-                    />
-                  </SidebarMenu>
-                </SidebarGroup>
-              </SidebarContent>
-              <SidebarFooter>
-                <DataActivityStatus
-                  compact
-                  className="hidden justify-center group-data-[collapsible=icon]:flex"
-                />
-                <NavUser
-                  name={athlete.name}
-                  detail={shellProfileDetail(account)}
-                  initials={athlete.initials}
-                  sync={<DataActivityStatus />}
-                  syncDot={false}
-                >
-                  <DropdownMenuContent
-                    className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-lg border border-control-border bg-popover p-1.5"
-                    side="top"
-                    align="start"
+            <Relief corner="top-right" className="max-md:hidden print:hidden" />
+            <Relief
+              corner="bottom-left"
+              className="max-md:hidden print:hidden"
+            />
+            <TopBar
+              athlete={athlete}
+              goal={goal}
+              modelDetail={shellProfileDetail(account)}
+            />
+            <div className="relative flex min-h-0 flex-1">
+              <Sidebar
+                variant="inset"
+                collapsible="icon"
+                className="md:top-topbar md:h-[calc(100svh-var(--spacing-topbar))] print:hidden"
+              >
+                <SidebarHeader className="md:hidden">
+                  <NavGoalSwitcher
+                    name={goal?.name ?? "Stride"}
+                    detail={goal?.detail ?? "Aucun objectif"}
                   >
-                    <div className="mb-1 flex items-center gap-2.5 border-b border-control-border px-2.5 pt-2 pb-2.5">
-                      <span
-                        aria-hidden="true"
-                        className="grid size-8 shrink-0 place-items-center rounded-md bg-control-border text-label font-semibold"
+                    <DropdownMenuContent className="w-60" align="start">
+                      <DropdownMenuLabel>Objectif</DropdownMenuLabel>
+                      <p className="px-2 pb-2 text-body text-foreground">
+                        {goal
+                          ? `${goal.name} · ${goal.detail}`
+                          : "Aucun objectif"}
+                      </p>
+                    </DropdownMenuContent>
+                  </NavGoalSwitcher>
+                </SidebarHeader>
+                <SidebarContent>
+                  <SidebarGroup>
+                    <SidebarGroupLabel className="md:hidden">
+                      Entraînement
+                    </SidebarGroupLabel>
+                    <SidebarMenu>
+                      <Suspense fallback={<TodayNavLink />}>
+                        <TodayNavItem navigation={navigation} />
+                      </Suspense>
+                      <ShellNavItem
+                        href="/plan"
+                        icon={<NavPlanIcon />}
+                        label="Plan"
+                      />
+                      <ShellNavItem
+                        href="/activities"
+                        match={["/gear"]}
+                        icon={<NavActivitiesIcon />}
+                        label="Activités"
+                      />
+                      <ShellNavItem
+                        href="/progress"
+                        match={["/nutrition"]}
+                        icon={<NavProgressIcon />}
+                        label="Santé"
+                      />
+                      <ShellNavItem
+                        href="/races"
+                        icon={<NavRacesIcon />}
+                        label="Courses"
+                      />
+                      <Suspense fallback={<CoachNavItem attention={null} />}>
+                        <CoachNav navigation={navigation} />
+                      </Suspense>
+                    </SidebarMenu>
+                  </SidebarGroup>
+                  <Suspense fallback={<PlanSidebarGroupLoading />}>
+                    <PlanNav navigation={navigation} />
+                  </Suspense>
+                  <ProgressSidebarGroup />
+                  <SidebarGroup className="group-data-[collapsible=icon]:hidden md:hidden">
+                    <SidebarGroupLabel>Objectifs</SidebarGroupLabel>
+                    <SidebarMenu>
+                      {races.map((race) => (
+                        <ShellRaceItem
+                          key={race.id}
+                          id={race.id}
+                          name={race.name}
+                          priority={race.priority}
+                          date={shellRaceDate(race.date)}
+                        />
+                      ))}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          size="sm"
+                          className="min-h-7.5 gap-2 text-body text-muted-foreground"
+                        >
+                          <Link href="/settings/goals">
+                            <PlusIcon className="size-3.5" />
+                            Ajouter une course
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroup>
+                  <SidebarGroup className="md:hidden">
+                    <SidebarGroupLabel>Athlète</SidebarGroupLabel>
+                    <SidebarMenu>
+                      <Suspense fallback={<GearNavLink />}>
+                        <GearNavItem navigation={navigation} />
+                      </Suspense>
+                      <ShellNavItem
+                        href="/nutrition"
+                        icon={<NavNutritionIcon />}
+                        label="Nutrition"
+                      />
+                    </SidebarMenu>
+                  </SidebarGroup>
+                </SidebarContent>
+                <SidebarFooter>
+                  <DataActivityStatus
+                    compact
+                    className="hidden justify-center group-data-[collapsible=icon]:flex"
+                  />
+                  <DataActivityStatus className="px-2 text-label group-data-[collapsible=icon]:hidden max-md:hidden" />
+                  <div className="md:hidden">
+                    <NavUser
+                      name={athlete.name}
+                      detail={shellProfileDetail(account)}
+                      initials={athlete.initials}
+                      sync={<DataActivityStatus />}
+                      syncDot={false}
+                    >
+                      <DropdownMenuContent
+                        className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-lg border border-control-border bg-popover p-1.5"
+                        side="top"
+                        align="start"
                       >
-                        {athlete.initials}
-                      </span>
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate text-body font-semibold">
-                          {athlete.name}
-                        </span>
-                        <span className="truncate text-label text-muted-foreground">
-                          {athlete.detail}
-                        </span>
-                      </span>
-                    </div>
-                    <DropdownMenuItem
-                      asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                    >
-                      <Link href="/settings/profile">
-                        <AccountMenuProfileIcon />
-                        Profil
-                        <span className="ml-auto text-label text-muted-foreground">
-                          {account.profilePercent}%
-                        </span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                    >
-                      <Link href="/settings">
-                        <AccountMenuSettingsIcon />
-                        Réglages
-                        <DropdownMenuShortcut className="max-md:hidden">
-                          ⌘,
-                        </DropdownMenuShortcut>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                    >
-                      <Link href="/settings/connections">
-                        <AccountMenuConnectionsIcon />
-                        Connexions
-                        <GarminSince />
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                    >
-                      <Link href="/settings/privacy">
-                        <AccountMenuPrivacyIcon />
-                        Données et confidentialité
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="my-1 bg-control-border" />
-                    <ShortcutHelpMenuItem />
-                    <SignOutMenuItem />
-                  </DropdownMenuContent>
-                </NavUser>
-              </SidebarFooter>
-              <SidebarRail />
-            </Sidebar>
-            <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-1rem)] print:h-auto print:overflow-visible md:print:h-auto">
-              <DataActivityFeedback />
-              <PullToSync>{children}</PullToSync>
-              <Suspense fallback={<AppMobileTabBar attention={null} />}>
-                <MobileTabBar navigation={navigation} />
-              </Suspense>
-            </SidebarInset>
+                        <div className="mb-1 flex items-center gap-2.5 border-b border-control-border px-2.5 pt-2 pb-2.5">
+                          <span
+                            aria-hidden="true"
+                            className="grid size-8 shrink-0 place-items-center rounded-md bg-control-border text-label font-semibold"
+                          >
+                            {athlete.initials}
+                          </span>
+                          <span className="flex min-w-0 flex-col">
+                            <span className="truncate text-body font-semibold">
+                              {athlete.name}
+                            </span>
+                            <span className="truncate text-label text-muted-foreground">
+                              {athlete.detail}
+                            </span>
+                          </span>
+                        </div>
+                        <DropdownMenuItem
+                          asChild
+                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
+                        >
+                          <Link href="/settings/profile">
+                            <AccountMenuProfileIcon />
+                            Profil
+                            <span className="ml-auto text-label text-muted-foreground">
+                              {account.profilePercent}%
+                            </span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
+                        >
+                          <Link href="/settings">
+                            <AccountMenuSettingsIcon />
+                            Réglages
+                            <DropdownMenuShortcut className="max-md:hidden">
+                              ⌘,
+                            </DropdownMenuShortcut>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
+                        >
+                          <Link href="/settings/connections">
+                            <AccountMenuConnectionsIcon />
+                            Connexions
+                            <GarminSince />
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
+                        >
+                          <Link href="/settings/privacy">
+                            <AccountMenuPrivacyIcon />
+                            Données et confidentialité
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="my-1 bg-control-border" />
+                        <ShortcutHelpMenuItem />
+                        <SignOutMenuItem />
+                      </DropdownMenuContent>
+                    </NavUser>
+                  </div>
+                </SidebarFooter>
+                <SidebarRail />
+              </Sidebar>
+              <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
+                <DataActivityFeedback />
+                <PullToSync>{children}</PullToSync>
+                <Suspense fallback={<AppMobileTabBar attention={null} />}>
+                  <MobileTabBar navigation={navigation} />
+                </Suspense>
+              </SidebarInset>
+            </div>
           </SidebarProvider>
         </DataActivityProvider>
       </NotificationsProvider>

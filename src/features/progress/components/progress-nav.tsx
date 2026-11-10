@@ -38,14 +38,17 @@ function useHref(href: string) {
 function SectionLink({
   href,
   current,
+  keepPeriod = true,
   ...props
 }: Omit<React.ComponentProps<typeof Link>, "href"> & {
   href: string;
   current: boolean;
+  keepPeriod?: boolean;
 }) {
+  const withPeriod = useHref(href);
   return (
     <Link
-      href={useHref(href)}
+      href={keepPeriod ? withPeriod : href}
       aria-current={current ? "page" : undefined}
       {...props}
     />
@@ -74,7 +77,7 @@ export function ProgressBreadcrumb() {
       aria-label="Fil d’Ariane"
       className="flex min-w-0 flex-1 items-center gap-2 text-body"
     >
-      <span className="text-muted-foreground">Progression</span>
+      <span className="text-muted-foreground">Santé</span>
       <span aria-hidden="true" className="text-muted-foreground">
         /
       </span>
@@ -146,36 +149,53 @@ export function ProgressTabs() {
 export function ProgressSidebarGroup() {
   const pathname = usePathname();
   const section = useSection();
-  if (pathname !== "/progress" && !pathname.startsWith("/progress/"))
+  const onNutrition =
+    pathname === "/nutrition" || pathname.startsWith("/nutrition/");
+  if (
+    !onNutrition &&
+    pathname !== "/progress" &&
+    !pathname.startsWith("/progress/")
+  )
     return null;
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Progression</SidebarGroupLabel>
+      <SidebarGroupLabel>Santé</SidebarGroupLabel>
       <SidebarMenu>
-        {progressSections.map((item) => {
-          const current = item.href === section.href;
-          return (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                size="sm"
-                isActive={current}
-                className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
+        {[...progressSections, { href: "/nutrition", label: "Nutrition" }].map(
+          (item) => {
+            const current = onNutrition
+              ? item.href === "/nutrition"
+              : item.href === section.href;
+            return (
+              <SidebarMenuItem
+                key={item.href}
+                className={cn(item.href === "/nutrition" && "max-md:hidden")}
               >
-                <SectionLink href={item.href} current={current}>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "size-1 shrink-0 rounded-full",
-                      current ? "bg-primary" : "bg-control-border",
-                    )}
-                  />
-                  {item.label}
-                </SectionLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+                <SidebarMenuButton
+                  asChild
+                  size="sm"
+                  isActive={current}
+                  className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
+                >
+                  <SectionLink
+                    href={item.href}
+                    current={current}
+                    keepPeriod={item.href !== "/nutrition"}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "size-1 shrink-0 rounded-full",
+                        current ? "bg-primary" : "bg-control-border",
+                      )}
+                    />
+                    {item.label}
+                  </SectionLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          },
+        )}
       </SidebarMenu>
     </SidebarGroup>
   );

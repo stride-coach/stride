@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   ...(process.env.PLAYWRIGHT_TEST
-    ? { distDir: ".next-e2e" }
+    ? { distDir: ".next-e2e", devIndicators: false }
     : { output: "standalone" }),
   allowedDevOrigins: [
     "127.0.0.1",

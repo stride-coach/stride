@@ -82,13 +82,13 @@ test("period choice is kept in the URL", async ({ page }) => {
   ).toBeAttached();
 });
 
-test("sidebar links to progress", async ({ page }) => {
+test("sidebar links to Santé", async ({ page }) => {
   await signIn(page);
   await page.goto("/activities");
-  await page.getByRole("link", { name: "Progression", exact: true }).click();
+  await page.getByRole("link", { name: "Santé", exact: true }).click();
   await expect(page).toHaveURL("/progress");
   await expect(
-    page.getByRole("link", { name: "Progression", exact: true }),
+    page.getByRole("link", { name: "Santé", exact: true }),
   ).toHaveAttribute("aria-current", "page");
 });
 

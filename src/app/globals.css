@@ -188,6 +188,7 @@
   --animate-data-sheen: data-sheen 1.6s linear infinite;
   --animate-halo-breathe: halo-breathe 8s ease-in-out infinite;
   --animate-halo-draw: halo-draw 2s var(--stride-ease) 300ms both;
+  --animate-relief-drift: relief-drift 60s ease-in-out infinite alternate;
 
   @keyframes rise {
     from {
@@ -236,6 +237,15 @@
     }
     50% {
       opacity: 1;
+    }
+  }
+
+  @keyframes relief-drift {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-18px, 12px, 0);
     }
   }
 
