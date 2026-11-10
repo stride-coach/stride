@@ -120,7 +120,7 @@ for (const viewport of [
         .getByRole("region", { name: "VFC nocturne" })
         .getByText("Sous ta plage"),
     ).toBeVisible();
-    await expect(page.getByRole("region", { name: "Nuits" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Sommeil" })).toBeVisible();
     await expect(
       page
         .getByText("Aucune course passée avec des mesures de VFC.")
@@ -204,7 +204,7 @@ test("Récupération switches to 30 days and explains nights on hover", async ({
     .click();
   await expect(page).toHaveURL("/health/recovery?view=month");
   const chart = page
-    .getByRole("region", { name: "Nuits" })
+    .getByRole("region", { name: "Sommeil" })
     .getByRole("group", { name: /Durée et phases de sommeil des 30/ });
   await chart.scrollIntoViewIfNeeded();
   const box = (await chart.boundingBox())!;

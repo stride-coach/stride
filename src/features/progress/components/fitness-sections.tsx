@@ -50,7 +50,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
           </p>
           <Link
             href="/races"
-            className="w-fit text-body text-primary hover:text-foreground"
+            className="inline-flex min-h-control-touch w-fit items-center text-body text-primary hover:text-foreground md:min-h-0"
           >
             Ouvrir tes courses
           </Link>
@@ -190,7 +190,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
         )}
         <Link
           href={`/races/${goal.id}`}
-          className="inline-flex w-fit items-center gap-1 text-body text-secondary-foreground hover:text-foreground"
+          className="inline-flex min-h-control-touch w-fit items-center gap-1 text-body text-secondary-foreground hover:text-foreground md:min-h-0"
         >
           Ouvrir la course
           <ChevronRightIcon aria-hidden="true" className="size-3.5" />

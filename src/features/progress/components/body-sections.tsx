@@ -156,8 +156,8 @@ export function NightsSection({
   return (
     <Widget
       headingLevel={2}
-      title="Sommeil"
-      aria-label="Nuits"
+      title={<span id="body-nights">Sommeil</span>}
+      aria-labelledby="body-nights"
       className={className}
     >
       {hasNight ? (
