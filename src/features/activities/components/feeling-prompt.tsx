@@ -4,7 +4,6 @@ import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { SourceMark } from "@/components/stride/marks";
 import {
   feelLabels,
@@ -259,9 +258,12 @@ export function DebriefFeeling({
       className="flex flex-col gap-2.5"
     >
       <div className="flex items-center gap-2.5">
-        <MonoLabel size="nano" asChild>
-          <h3 id={`feeling-${activityId}`}>Ton ressenti</h3>
-        </MonoLabel>
+        <h3
+          id={`feeling-${activityId}`}
+          className="text-label font-medium text-muted-foreground"
+        >
+          Ton ressenti
+        </h3>
         <span className="ml-auto inline-flex items-center gap-1.5 text-label text-muted-foreground">
           {garmin && !feeling.sessionWide && <SourceMark source="provider" />}
           {feeling.sourceLabel}

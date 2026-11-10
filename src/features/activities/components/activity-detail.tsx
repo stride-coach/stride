@@ -1,5 +1,4 @@
 import { Chip } from "@/components/stride/chip";
-import { Metric } from "@/components/stride/metric";
 import { Widget } from "@/components/stride/widget";
 import { cn } from "@/lib/utils";
 import { ProvenanceLabel } from "@/components/stride/provenance";
@@ -92,17 +91,17 @@ function HeaderMetrics({ panel }: { panel: ActivityPanelView }) {
             {metric.label}
           </dt>
           <dd>
-            <Metric
-              className="text-title"
-              value={metric.value}
-              unit={
-                metric.unit && (
-                  <span className="text-body font-normal text-secondary-foreground">
-                    {metric.unit}
-                  </span>
-                )
-              }
-            />
+            <span
+              data-slot="metric"
+              className="text-title font-semibold whitespace-nowrap tabular-nums"
+            >
+              {metric.value}
+              {metric.unit && (
+                <span className="ml-1 text-body font-normal text-secondary-foreground">
+                  {metric.unit}
+                </span>
+              )}
+            </span>
           </dd>
         </div>
       ))}

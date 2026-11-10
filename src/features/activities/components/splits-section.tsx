@@ -176,17 +176,14 @@ export function SplitsSection({
             onValueChange={(value) => {
               if (value === "km" || value === "laps") setView(value);
             }}
-            className="ml-auto gap-0.5 rounded-md border border-border bg-card p-0.75"
+            className="ml-auto bg-card"
           >
-            <ToggleGroupItem
-              value="km"
-              className="min-h-6 rounded-sm border-l-0 px-2.5 text-label data-[state=on]:bg-muted data-[state=on]:font-medium"
-            >
+            <ToggleGroupItem value="km" className="max-md:min-h-control-touch">
               Par km
             </ToggleGroupItem>
             <ToggleGroupItem
               value="laps"
-              className="min-h-6 gap-1 rounded-sm border-l-0 px-2.5 text-label data-[state=on]:bg-muted data-[state=on]:font-medium"
+              className="gap-1 max-md:min-h-control-touch"
             >
               {laps.title}
               <span className="font-normal text-muted-foreground">

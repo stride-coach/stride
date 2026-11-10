@@ -20,7 +20,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/features/theme/components/theme-store";
 import type { ResolvedTheme } from "@/features/theme/model";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { formatClock } from "@/features/activities/charts";
@@ -628,10 +627,10 @@ function RouteMapView({
             top: Math.max(8, Math.min(size.height - 70, tooltipPoint.y - 22)),
           }}
         >
-          <MonoLabel size="nano">
+          <span className="text-label font-medium text-muted-foreground">
             km {kilometers.format(view.km[hover])}
             {band ? ` · ${band.label}` : ""}
-          </MonoLabel>
+          </span>
           <span className="flex items-baseline gap-2.5 font-semibold tabular-nums">
             {view.pace[hover] !== null && (
               <span className="text-body-lg">
@@ -654,9 +653,9 @@ function RouteMapView({
       <div className="pointer-events-none absolute bottom-8 left-3 flex flex-col gap-1.5 sm:bottom-3">
         {modes.length > 0 && (
           <div className="flex w-fit items-center gap-0.5 rounded-md border border-border bg-card/90 px-1.5 py-1">
-            <MonoLabel size="nano" className="mr-1">
+            <span className="mr-1 text-label font-medium text-muted-foreground">
               {colorModes.find((item) => item.mode === mode)?.label}
-            </MonoLabel>
+            </span>
             {mode === "zones"
               ? ([1, 2, 3, 4, 5] as const).map((zone) => (
                   <span
@@ -679,7 +678,9 @@ function RouteMapView({
             className="h-1.25 border border-t-0 border-muted-foreground"
             style={{ width: bar.pixels }}
           />
-          <MonoLabel size="nano">{bar.label}</MonoLabel>
+          <span className="text-label font-medium text-muted-foreground">
+            {bar.label}
+          </span>
         </div>
       </div>
       <span className="absolute right-2.5 bottom-2 text-label text-muted-foreground tabular-nums">

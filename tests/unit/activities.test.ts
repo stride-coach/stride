@@ -20,7 +20,6 @@ import {
   formatDuration,
   formatPace,
   groupActivities,
-  listMetrics,
   parseActivityFilter,
   parseActivityLimit,
 } from "../../src/features/activities/activities";
@@ -141,38 +140,12 @@ describe("activity metrics", () => {
     expect(formatPace(8320, 3014)).toBe("6:02");
   });
 
-  it("adapts the list metrics to road, trail and non-distance sessions", () => {
-    expect(listMetrics(activity()).map((metric) => metric.key)).toEqual([
-      "distance",
-      "pace",
-    ]);
-    expect(
-      listMetrics(
-        activity({
-          activity_type: "trail_running",
-          distance_meters: 21_400,
-          elevation_gain_meters: 540,
-          duration_seconds: 7500,
-        }),
-      ).map((metric) => `${metric.value}${metric.unit ?? ""}`),
-    ).toEqual(["21,4km", "540m", "2:05:00"]);
-    expect(
-      listMetrics(
-        activity({
-          activity_type: "strength_training",
-          distance_meters: null,
-          elevation_gain_meters: null,
-        }),
-      ).map((metric) => metric.key),
-    ).toEqual(["duration"]);
-  });
-
   it("never shows a pace without distance or for non-running sessions", () => {
     expect(
-      listMetrics(activity({ distance_meters: null })).map(
+      detailMetrics(activity({ distance_meters: null })).map(
         (metric) => metric.key,
       ),
-    ).toEqual(["duration"]);
+    ).not.toContain("pace");
     expect(
       detailMetrics(activity({ activity_type: "cycling" })).map(
         (metric) => metric.key,

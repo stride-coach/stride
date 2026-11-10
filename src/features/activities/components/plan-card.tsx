@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import type { Comparison } from "../compare";
 import type { PlanCardView } from "../panel";
 import type { ProgrammeItem } from "../plan-status";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { CardFeeling } from "./feeling-prompt";
 import { Status } from "@/components/stride/status";
 
@@ -113,9 +112,9 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
 function Programme({ items }: { items: ProgrammeItem[] }) {
   return (
     <div className="flex flex-col">
-      <MonoLabel size="nano" className="pb-1">
+      <span className="pb-1 text-label font-medium text-muted-foreground">
         Programme prévu
-      </MonoLabel>
+      </span>
       <ul>
         {items.map((item, index) => (
           <li

@@ -1,7 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { zoneFills } from "@/components/stride/session-shape";
 import { cn } from "@/lib/utils";
@@ -40,12 +39,14 @@ export function DebriefVerdict({
     >
       <div className="flex items-start gap-3">
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <MonoLabel
-            size="nano"
-            className={warning ? "text-warning" : "text-primary"}
+          <span
+            className={cn(
+              "text-label font-medium",
+              warning ? "text-warning" : "text-primary",
+            )}
           >
             Débrief
-          </MonoLabel>
+          </span>
           <span id="debrief-verdict" className="text-title font-semibold">
             {debrief.verdict.title}
           </span>
@@ -63,7 +64,9 @@ export function DebriefVerdict({
             >
               {pct} %
             </span>
-            <MonoLabel size="nano">conforme</MonoLabel>
+            <span className="text-label font-medium text-muted-foreground">
+              conforme
+            </span>
           </span>
         )}
       </div>
@@ -121,19 +124,23 @@ export function DebriefSteps({
     "grid grid-cols-[4px_minmax(0,1fr)_auto_5.375rem] items-center gap-2.5 sm:grid-cols-[4px_minmax(0,1fr)_5.125rem_3.625rem_5.75rem]";
   return (
     <section aria-labelledby="debrief-steps" className="flex flex-col">
-      <MonoLabel
-        size="nano"
+      <h3
         id="debrief-steps"
-        className="pb-1.5 sm:pb-2"
-        asChild
+        className="pb-1.5 text-label font-medium text-muted-foreground sm:pb-2"
       >
-        <h3>{title}</h3>
-      </MonoLabel>
+        {title}
+      </h3>
       <div aria-hidden="true" className={cn(grid, "pb-1.5 max-sm:hidden")}>
         <span />
-        <MonoLabel size="nano">Étape</MonoLabel>
-        <MonoLabel size="nano">Cible</MonoLabel>
-        <MonoLabel size="nano">Réalisé</MonoLabel>
+        <span className="text-label font-medium text-muted-foreground">
+          Étape
+        </span>
+        <span className="text-label font-medium text-muted-foreground">
+          Cible
+        </span>
+        <span className="text-label font-medium text-muted-foreground">
+          Réalisé
+        </span>
         <span />
       </div>
       <ol>

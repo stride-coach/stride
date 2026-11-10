@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { MonoLabel } from "@/components/stride/mono-label";
 import type { LapColumnDisplay, LapTable } from "@/features/activities/detail";
 
 const displays: Record<LapColumnDisplay, string> = {
@@ -37,9 +36,9 @@ export function LapTableView({ table }: { table: LapTable }) {
       <thead>
         <tr className="border-b border-control-border">
           <th scope="col" className="pb-2 font-normal">
-            <MonoLabel size="nano">
+            <span className="text-label font-medium text-muted-foreground">
               {table.title === "Tours" ? "Tour" : "Segment"}
-            </MonoLabel>
+            </span>
           </th>
           {table.columns.map((column) => (
             <th
@@ -50,7 +49,7 @@ export function LapTableView({ table }: { table: LapTable }) {
                 displays[column.display],
               )}
             >
-              <MonoLabel size="nano" className="whitespace-nowrap">
+              <span className="text-label font-medium whitespace-nowrap text-muted-foreground">
                 {column.shortLabel === column.label ? (
                   column.label
                 ) : (
@@ -59,7 +58,7 @@ export function LapTableView({ table }: { table: LapTable }) {
                     <span className="max-sm:hidden">{column.label}</span>
                   </>
                 )}
-              </MonoLabel>
+              </span>
             </th>
           ))}
         </tr>

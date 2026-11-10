@@ -1,7 +1,6 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/stride/chip";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { MissingValue } from "@/components/stride/session-row";
 import {
   activitiesQuery,
@@ -36,10 +35,10 @@ const emptyFilterMessages: Record<ActivityFilter, string> = {
 const integer = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 export const filterItemClass =
-  "inline-flex min-h-control-touch shrink-0 items-center rounded-sm px-2.5 whitespace-nowrap transition-colors duration-150 ease-stride md:min-h-6";
+  "inline-flex min-h-control-touch shrink-0 items-center rounded-md px-2.5 whitespace-nowrap transition-colors duration-150 ease-stride md:min-h-6";
 
 const rowColumns =
-  "md:grid-cols-[14px_52px_minmax(0,1fr)_104px_56px_64px_64px_44px_36px_72px]";
+  "lg:grid-cols-[14px_52px_minmax(0,1fr)_104px_56px_64px_64px_44px_36px_72px]";
 
 export function ActivityFilters({
   filter,
@@ -55,7 +54,7 @@ export function ActivityFilters({
       aria-label="Filtrer par sport"
       className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0"
     >
-      <div className="inline-flex gap-0.5 rounded-md border border-border bg-card p-0.5">
+      <div className="inline-flex gap-0.5 rounded-lg border border-border bg-card p-0.5">
         {activityFilters
           .filter(
             (item) =>
@@ -101,7 +100,10 @@ function WeekHeader({
         <span className="text-secondary-foreground">{summary.subline}</span>
       )}
       {totals && (
-        <span className="ml-auto text-secondary-foreground tabular-nums">
+        <span
+          data-slot="metric"
+          className="ml-auto text-secondary-foreground tabular-nums"
+        >
           {totals}
         </span>
       )}
@@ -114,7 +116,7 @@ function ListHead() {
     <div
       aria-hidden="true"
       className={cn(
-        "grid items-center gap-3 border-b border-border px-4 py-2 text-label text-muted-foreground max-md:hidden md:px-5",
+        "grid items-center gap-3 border-b border-border px-4 py-2 text-label text-muted-foreground max-lg:hidden md:px-5",
         rowColumns,
       )}
     >
@@ -156,7 +158,7 @@ function PlanStatus({
   return (
     <span
       className={cn(
-        "truncate",
+        "block truncate",
         pill.tone === "warning" ? "text-warning" : "text-primary",
       )}
     >
@@ -214,7 +216,7 @@ function ActivityRow({
         href={href}
         prefetch={false}
         className={cn(
-          "grid min-h-row-touch grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 transition-colors duration-150 ease-stride hover:bg-muted focus-visible:outline-offset-[-2px] md:min-h-row md:px-5 md:py-0",
+          "grid min-h-row-touch grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 transition-colors duration-150 ease-stride hover:bg-muted focus-visible:outline-offset-[-2px] md:px-5 lg:min-h-row lg:py-0",
           rowColumns,
         )}
       >
@@ -225,10 +227,10 @@ function ActivityRow({
             planned ? "border-primary bg-primary" : "border-muted-foreground",
           )}
         />
-        <span className="flex min-w-0 flex-col gap-0.5 md:contents">
+        <span className="flex min-w-0 flex-col gap-0.5 lg:contents">
           <time
             dateTime={activity.date}
-            className="text-muted-foreground tabular-nums max-md:hidden"
+            className="text-muted-foreground tabular-nums max-lg:hidden"
           >
             {day}
           </time>
@@ -242,10 +244,13 @@ function ActivityRow({
               </span>
             )}
           </span>
-          <span className="truncate text-label text-muted-foreground tabular-nums md:hidden">
+          <span
+            data-slot="metric"
+            className="truncate text-label text-muted-foreground tabular-nums lg:hidden"
+          >
             {summary.join(" · ")}
           </span>
-          <span className="max-md:hidden">
+          <span className="max-lg:hidden">
             {intensity && (
               <Chip intensity={intensity.level ?? undefined}>
                 {intensity.label}
@@ -253,22 +258,25 @@ function ActivityRow({
             )}
           </span>
         </span>
-        <span className="flex flex-col items-end gap-0.5 md:contents">
+        <span className="flex flex-col items-end gap-0.5 lg:contents">
           <span
             data-slot="metric"
-            className="text-right font-medium tabular-nums max-md:text-body-lg"
+            className="text-right font-medium tabular-nums max-lg:text-body-lg"
           >
             <span className="sr-only">Durée </span>
             <MissingValue value={duration} />
           </span>
           <span
             data-slot="metric"
-            className="text-right tabular-nums max-md:hidden"
+            className="text-right tabular-nums max-lg:hidden"
           >
             <span className="sr-only">Distance </span>
             <MissingValue value={distance} />
           </span>
-          <span className="text-right text-secondary-foreground tabular-nums max-md:hidden">
+          <span
+            data-slot="metric"
+            className="text-right text-secondary-foreground tabular-nums max-lg:hidden"
+          >
             {elevation && (
               <>
                 <span className="sr-only">Dénivelé </span>
@@ -278,16 +286,19 @@ function ActivityRow({
           </span>
           <span
             data-slot="metric"
-            className="text-right tabular-nums max-md:hidden"
+            className="text-right tabular-nums max-lg:hidden"
           >
             <span className="sr-only">Allure </span>
             <MissingValue value={pace} />
           </span>
-          <span className="text-right text-secondary-foreground tabular-nums max-md:hidden">
+          <span
+            data-slot="metric"
+            className="text-right text-secondary-foreground tabular-nums max-lg:hidden"
+          >
             <span className="sr-only">FC moyenne </span>
             <MissingValue value={heartRate} />
           </span>
-          <span className="text-right text-label md:text-body">
+          <span className="text-right text-label max-lg:max-w-28 lg:text-body">
             <PlanStatus pill={status} plan={plan} />
           </span>
         </span>
@@ -372,9 +383,9 @@ export function ActivityListFooter({
           Charger les suivantes
         </Link>
       )}
-      <MonoLabel size="nano">
+      <span className="text-label font-medium text-muted-foreground">
         {shown} sur {total} activités
-      </MonoLabel>
+      </span>
     </div>
   );
 }

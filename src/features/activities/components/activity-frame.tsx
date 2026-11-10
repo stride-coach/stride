@@ -72,7 +72,7 @@ export function ActivityListHeader({
           <>
             <Skeleton className="h-control-auto w-full rounded-lg md:w-56" />
             <div aria-hidden="true" className="flex">
-              <div className="inline-flex gap-0.5 rounded-md border border-border bg-card p-0.5">
+              <div className="inline-flex gap-0.5 rounded-lg border border-border bg-card p-0.5">
                 {activityFilters.slice(0, 4).map((item) => (
                   <span
                     key={item}
