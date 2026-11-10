@@ -768,7 +768,7 @@ test("progress tabs show the destination skeleton under the real tabs", async ({
   await page.goto("/progress");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const tabs = page
-    .getByRole("navigation", { name: "Sections de la progression" })
+    .getByRole("navigation", { name: "Sections de Santé" })
     .filter({ visible: true });
   await withSlowReads("/rest/v1/provider_activity_tracks?", async () => {
     await tabs.getByRole("link", { name: "Records", exact: true }).click();

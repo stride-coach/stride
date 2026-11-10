@@ -323,7 +323,11 @@ describe("application shell", () => {
         "trail",
         today,
       ),
-    ).toEqual({ name: "EcoTrail Paris 120K", detail: "Course A · J-164" });
+    ).toEqual({
+      name: "EcoTrail Paris 120K",
+      detail: "Course A · J-164",
+      countdown: "J-164",
+    });
   });
 
   it("falls back to the goal focus, then to nothing", () => {

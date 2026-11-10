@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
-  badgeValue,
   bellLabel,
   isTodo,
   matchesFilter,
@@ -39,18 +38,6 @@ function Dot({ count }: { count: number }) {
   );
 }
 
-function Badge({ count }: { count: number }) {
-  if (count === 0) return null;
-  return (
-    <span
-      aria-hidden="true"
-      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-primary-foreground ring-2 ring-background"
-    >
-      {badgeValue(count)}
-    </span>
-  );
-}
-
 export function NotificationBell({ className }: { className?: string }) {
   const { feed, now } = useNotifications();
   return (
@@ -70,7 +57,7 @@ function PendingBell({ className }: { className?: string }) {
         aria-current={current ? "page" : undefined}
         className={cn(
           bell,
-          "size-11 border-transparent md:hidden",
+          "size-control border-transparent md:hidden",
           current && "hidden",
           className,
         )}
@@ -123,13 +110,13 @@ function LoadedBell({
         aria-current={current ? "page" : undefined}
         className={cn(
           bell,
-          "size-11 border-transparent md:hidden",
+          "size-control border-transparent md:hidden",
           current && "hidden",
           className,
         )}
       >
         <BellIcon className="size-4.5" />
-        <Badge count={unread} />
+        <Dot count={unread} />
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger

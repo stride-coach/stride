@@ -4,15 +4,10 @@ import {
   DataActivityStatus,
   DataActivityThread,
 } from "@/features/data-activity/components/status";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { NotificationBell } from "@/features/notifications/components/notification-bell";
-import { ThemeSwitcher } from "@/features/theme/components/theme-switcher";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { MobileHeaderActions } from "./mobile-header-actions";
 
 export type AppCrumb = { label: string; href?: string };
-
-const sidebarLabel = "Afficher ou masquer la barre latérale";
 
 function Crumbs({ crumbs, detail }: { crumbs: AppCrumb[]; detail?: string }) {
   return (
@@ -79,7 +74,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "relative flex shrink-0 items-center gap-2.5 px-5 pt-3.5 pb-1 md:h-header md:gap-3 md:border-b md:border-border md:py-0",
+        "relative flex h-13 shrink-0 items-center gap-2 border-b border-border px-4 md:h-header md:gap-3 md:px-5",
         className,
       )}
     >
@@ -92,18 +87,10 @@ export function AppHeader({
           <ChevronLeftIcon aria-hidden="true" className="size-5" />
         </Link>
       )}
-      <div className="flex min-h-11 min-w-0 flex-1 flex-col justify-center md:hidden">
-        {back ? (
-          <MonoLabel className="truncate">{title}</MonoLabel>
-        ) : (
-          <>
-            <p className="truncate text-title font-semibold tracking-[-0.02em]">
-              {title}
-            </p>
-            {detail && (
-              <span className="text-label text-muted-foreground">{detail}</span>
-            )}
-          </>
+      <div className="flex min-w-0 flex-1 items-baseline gap-2 md:hidden">
+        <p className="truncate text-body-lg font-semibold">{title}</p>
+        {detail && !back && (
+          <span className="truncate text-muted-foreground">{detail}</span>
         )}
       </div>
       <div className="flex min-w-0 flex-1 max-md:hidden">
@@ -112,15 +99,8 @@ export function AppHeader({
         )}
       </div>
       {actions}
-      <div className="flex items-center gap-2.5 md:hidden">
-        <ThemeSwitcher />
-        <NotificationBell />
-      </div>
       <DataActivityStatus short className="shrink-0 md:hidden" />
-      <SidebarTrigger
-        aria-label={sidebarLabel}
-        className="-mr-2 size-11 shrink-0 md:hidden"
-      />
+      <MobileHeaderActions />
       <DataActivityThread />
     </header>
   );

@@ -106,26 +106,29 @@ export function ProgressTabs() {
   return (
     <>
       <nav
-        aria-label="Sections de la progression"
+        aria-label="Sections de Santé"
         className="flex gap-0.5 rounded-[11px] border border-border bg-card p-0.75 sm:hidden"
       >
-        {progressSections.map((item) => (
-          <SectionLink
-            key={item.href}
-            href={item.href}
-            current={item.href === section.href}
-            className={cn(
-              "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              item.href === section.href &&
-                "bg-border font-semibold text-foreground",
-            )}
-          >
-            {item.label}
-          </SectionLink>
-        ))}
+        {[...progressSections, { href: "/nutrition", label: "Nutrition" }].map(
+          (item) => (
+            <SectionLink
+              key={item.href}
+              href={item.href}
+              current={item.href === section.href}
+              keepPeriod={item.href !== "/nutrition"}
+              className={cn(
+                "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+                item.href === section.href &&
+                  "bg-border font-semibold text-foreground",
+              )}
+            >
+              {item.label}
+            </SectionLink>
+          ),
+        )}
       </nav>
       <nav
-        aria-label="Sections de la progression"
+        aria-label="Sections de Santé"
         className="flex gap-5 text-body max-sm:hidden"
       >
         {progressSections.map((item) => (

@@ -14,7 +14,7 @@ export type ShellRace = {
   priority: string;
   raceDate: string | null;
 };
-export type ShellGoal = { name: string; detail: string };
+export type ShellGoal = { name: string; detail: string; countdown?: string };
 export type ShellRaceLink = {
   id: string;
   name: string;
@@ -98,6 +98,7 @@ export function shellGoal(
     return {
       name: next.name ?? "Course objectif",
       detail: `Course ${next.priority} · J-${days}`,
+      countdown: `J-${days}`,
     };
   }
   return focus ? { name: focusLabels[focus], detail: "Objectif" } : null;

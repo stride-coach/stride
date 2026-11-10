@@ -142,3 +142,11 @@ export function TabProgressIcon(props: NavIconProps) {
     </NavSvg>
   );
 }
+
+export function TabCoachIcon(props: NavIconProps) {
+  return (
+    <NavSvg size={20} {...props}>
+      <path d="M8 4L4 16 M15 4L11 16" strokeWidth="1.8" strokeLinecap="round" />
+    </NavSvg>
+  );
+}
