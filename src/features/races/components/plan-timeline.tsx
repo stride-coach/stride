@@ -1,5 +1,6 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Chip } from "@/components/stride/chip";
+import { Status } from "@/components/stride/status";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
 import { coachRequestHref } from "@/features/coach/request";
@@ -48,12 +49,9 @@ function CutoffPill({
   if (station.cutoffMinutes === null) return null;
   const late = (station.marginSeconds ?? 0) < 0;
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2.25 py-0.5 text-label whitespace-nowrap",
-        late ? "border-border text-destructive" : "border-border text-primary",
-        compact && "text-micro",
-      )}
+    <Status
+      level={late ? "alert" : "ok"}
+      className={cn(compact && "text-micro")}
     >
       {compact && station.marginSeconds !== null
         ? marginText(station.marginSeconds)
@@ -62,7 +60,7 @@ function CutoffPill({
               ? ` · marge ${late ? "−" : ""}${formatHours(Math.abs(station.marginSeconds))}`
               : ""
           }`}
-    </span>
+    </Status>
   );
 }
 
@@ -91,21 +89,21 @@ function Station({ station }: { station: TimelineStation }) {
     <span
       aria-hidden="true"
       className={cn(
-        "block shrink-0 rounded-full border-2 bg-background",
+        "block shrink-0 rounded-full border-2 bg-card",
         dotTone[station.kind],
       )}
     />
   );
   return (
     <li className="break-inside-avoid">
-      <div className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 py-3.5 max-md:hidden print:grid">
-        <span className="flex justify-center pt-0.75 [&>span]:size-4">
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 py-3 max-md:hidden print:grid">
+        <span className="flex justify-center pt-0.75 [&>span]:size-3.5">
           {dot}
         </span>
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-baseline gap-2.5">
-            <h3 className="text-body-lg font-semibold">{station.name}</h3>
-            <span className="text-body-lg font-semibold text-muted-foreground tabular-nums">
+            <h3 className="font-semibold">{station.name}</h3>
+            <span className="text-secondary-foreground tabular-nums">
               km {kmText(station.distanceM)}
             </span>
             <CutoffPill station={station} />
@@ -117,7 +115,10 @@ function Station({ station }: { station: TimelineStation }) {
           )}
         </div>
         <div className="flex flex-col items-end gap-0.5">
-          <span className="text-metric font-semibold tabular-nums">
+          <span
+            data-slot="metric"
+            className="text-title font-semibold tabular-nums"
+          >
             {formatClock(station.clockMinutes)}
           </span>
           <span className="text-label text-muted-foreground">
@@ -127,8 +128,11 @@ function Station({ station }: { station: TimelineStation }) {
       </div>
       <div className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-0.75 py-3 md:hidden print:hidden">
         <span className="pt-0.75 [&>span]:size-3.5">{dot}</span>
-        <h3 className="text-[0.9375rem] font-semibold">{station.name}</h3>
-        <span className="text-verdict font-semibold tabular-nums">
+        <h3 className="font-semibold">{station.name}</h3>
+        <span
+          data-slot="metric"
+          className="text-title font-semibold tabular-nums"
+        >
           {formatClock(station.clockMinutes)}
         </span>
         <span />
@@ -141,7 +145,7 @@ function Station({ station }: { station: TimelineStation }) {
           <CutoffPill station={station} compact />
         </span>
         {station.refill && (
-          <p className="col-start-2 col-end-4 text-label leading-normal text-secondary-foreground">
+          <p className="col-start-2 col-end-4 text-label text-secondary-foreground">
             {station.refill}
           </p>
         )}
@@ -163,16 +167,19 @@ function Value({
 }) {
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
-      <MonoLabel size="nano" className="max-md:text-[8px]">
+      <span className="text-label text-secondary-foreground">
         <span className="max-md:hidden print:inline">{label}</span>
         <span className="md:hidden print:hidden">{short}</span>
-      </MonoLabel>
-      <span className="text-[1.0625rem] font-semibold tabular-nums md:text-verdict">
+      </span>
+      <span
+        data-slot="metric"
+        className="font-semibold whitespace-nowrap tabular-nums md:text-title"
+      >
         {value}
         {unit && (
           <span
             className={cn(
-              "text-label text-muted-foreground max-md:text-[1.0625rem] max-md:text-foreground",
+              "text-label font-normal text-secondary-foreground",
               unit === "/km" && "max-md:hidden print:inline",
             )}
           >
@@ -211,15 +218,14 @@ function Segment({
         data-segment-index={segment.index}
         aria-label={`Tronçon T${segment.index}, ${segment.fromName} → ${segment.toName}`}
         className={cn(
-          "my-0.5 flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-3 md:gap-2.5 md:px-4 md:py-3.5",
-          segment.night ? "border-data-2/35" : "border-border",
+          "my-0.5 flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-muted p-3 md:gap-2.5 md:px-3.5 md:py-3",
         )}
       >
         <div className="flex flex-wrap items-center gap-2 md:gap-2.5">
-          <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-control-border bg-muted text-label font-semibold tabular-nums">
+          <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-sm border border-control-border bg-card text-label font-semibold tabular-nums">
             T{segment.index}
           </span>
-          <span className="text-body font-semibold md:text-body">
+          <span className="font-semibold">
             {formatKm(segment.toM - segment.fromM).replace(/,0$/, "")} km
           </span>
           <span className="text-label text-secondary-foreground md:text-body">
@@ -229,12 +235,15 @@ function Segment({
             <span className="max-md:hidden print:inline"> m</span>
           </span>
           {segment.night && (
-            <span className="inline-flex items-center gap-1.25 rounded-full border border-data-2/35 px-2.25 py-0.5 text-label text-muted-foreground max-md:hidden print:inline-flex">
+            <Chip className="max-md:hidden print:inline-flex">
               <WeatherIcon glyph="moon" className="size-3" />
               de nuit
-            </span>
+            </Chip>
           )}
-          <span className="ml-auto text-[0.9375rem] font-semibold tabular-nums md:text-body-lg">
+          <span
+            data-slot="metric"
+            className="ml-auto font-semibold tabular-nums md:text-body-lg"
+          >
             {formatHours(segment.movingSeconds)}
           </span>
         </div>
@@ -264,22 +273,19 @@ function Segment({
         </div>
         {segment.items && (
           <div className="flex items-start gap-2 text-label text-secondary-foreground md:text-body">
-            <MonoLabel
-              size="nano"
-              className="shrink-0 pt-0.5 max-md:hidden print:inline"
-            >
+            <span className="shrink-0 font-medium text-muted-foreground max-md:hidden print:inline">
               À manger
-            </MonoLabel>
+            </span>
             <span>{segment.items}</span>
           </div>
         )}
         {segment.note && (
-          <div className="flex items-start gap-2 text-label leading-normal md:text-body">
-            <StrideMark className="size-3.5 shrink-0" />
+          <div className="flex items-start gap-2 text-label md:text-body">
+            <StrideMark className="mt-0.5 size-3 shrink-0" />
             <span className="flex-1">{segment.note}</span>
             <Link
               href={ask}
-              className="text-label whitespace-nowrap text-primary underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
+              className="text-label whitespace-nowrap text-primary hover:text-foreground max-md:hidden print:hidden"
             >
               Demander au stratège
             </Link>
@@ -288,7 +294,7 @@ function Segment({
         <Link
           href={ask}
           className={cn(
-            "flex min-h-8 items-center self-start text-label text-primary underline underline-offset-2 hover:text-foreground print:hidden",
+            "flex min-h-control-touch items-center self-start text-label text-primary hover:text-foreground md:min-h-6 print:hidden",
             segment.note && "md:hidden",
           )}
         >

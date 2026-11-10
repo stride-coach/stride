@@ -17,20 +17,12 @@ export function RacesTitle({
   subtitle?: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col">
-      <div className="flex items-end gap-4">
-        <h1 className="text-[34px] leading-[1.05] font-semibold tracking-[-0.025em] max-md:sr-only">
-          Courses
-        </h1>
-        {subtitle && (
-          <div className="pb-1.5 text-body text-muted-foreground max-md:hidden">
-            {subtitle}
-          </div>
-        )}
-      </div>
+    <section className="flex flex-col gap-2 px-4 pt-3 md:contents">
+      <h1 className="sr-only">Courses</h1>
+      {subtitle && <div className="sr-only">{subtitle}</div>}
       <nav
         aria-label="Filtre des courses"
-        className="flex gap-0.5 rounded-lg border border-border bg-card p-0.75 md:hidden"
+        className="flex gap-0.5 rounded-lg border border-border bg-card p-0.5 md:hidden"
       >
         {racesViews.map((item) => (
           <Link
@@ -39,13 +31,13 @@ export function RacesTitle({
             aria-current={item === view ? "page" : undefined}
             scroll={false}
             className={cn(
-              "flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-body text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              item === view && "bg-border font-semibold text-foreground",
+              "flex min-h-control-touch flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground",
+              item === view && "bg-muted font-medium text-foreground",
             )}
           >
             {racesViewLabels[item]}
             {item !== "all" && (
-              <span className="min-w-[2ch] font-normal text-muted-foreground tabular-nums">
+              <span className="font-normal text-muted-foreground tabular-nums">
                 {counts?.[item]}
               </span>
             )}

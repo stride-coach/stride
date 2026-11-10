@@ -10,7 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { actionMessage } from "../messages";
 import { saveRacePlan } from "@/server/races/actions";
 
@@ -73,7 +72,9 @@ export function StopsEditor({
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={8} className="w-72 p-4">
         <form onSubmit={save} className="flex flex-col gap-3.5">
-          <MonoLabel size="micro">Durées d’arrêt</MonoLabel>
+          <p className="text-label font-medium text-muted-foreground">
+            Durées d’arrêt
+          </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-aid`}>Ravito (min)</Label>
@@ -104,7 +105,7 @@ export function StopsEditor({
           <Button
             type="submit"
             size="md"
-            className="self-start rounded-lg text-body"
+            className="self-start"
             disabled={!valid || pending}
             aria-busy={pending}
           >

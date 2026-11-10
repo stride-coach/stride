@@ -1,8 +1,6 @@
 import { ChevronRightIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SourceMark } from "@/components/stride/marks";
-import { Metric } from "@/components/stride/metric";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { sessionPanelHref } from "@/features/plans/view/session-href";
 import type { GoalCard, GoalPhase } from "@/features/progress/goal";
@@ -21,25 +19,49 @@ function Cell({
   detailTone?: "muted" | "success";
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 bg-card px-4 py-3.5">
-      <MonoLabel size="nano">{label}</MonoLabel>
-      {children}
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="text-label text-secondary-foreground">{label}</dt>
+      <dd>{children}</dd>
       {detail && (
-        <span
+        <dd
           className={cn(
-            "text-[11px] text-muted-foreground",
+            "text-label text-muted-foreground",
             detailTone === "success" && "text-primary",
           )}
         >
           {detail}
-        </span>
+        </dd>
       )}
     </div>
   );
 }
 
-const metricClass =
-  "text-[24px] leading-none sm:text-[30px] [&>span]:text-body [&>span]:font-normal [&>span]:text-muted-foreground";
+function Value({
+  value,
+  unit,
+  className,
+}: {
+  value: React.ReactNode;
+  unit?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      data-slot="metric"
+      className={cn(
+        "text-title font-semibold whitespace-nowrap tabular-nums",
+        className,
+      )}
+    >
+      {value}
+      {unit && (
+        <span className="ml-1 text-body font-normal text-secondary-foreground">
+          {unit}
+        </span>
+      )}
+    </span>
+  );
+}
 
 function PhaseBar({ phase }: { phase: GoalPhase }) {
   return (
@@ -55,12 +77,14 @@ function PhaseBar({ phase }: { phase: GoalPhase }) {
       {phase.segments.map((segment) => (
         <span
           key={segment.key}
-          className="overflow-hidden rounded-mark bg-control-border"
+          className="overflow-hidden rounded-mark bg-muted"
         >
           <span
             className={cn(
               "block h-full",
-              segment.state === "past" ? "bg-foreground" : "bg-primary",
+              segment.state === "past"
+                ? "bg-secondary-foreground"
+                : "bg-primary",
             )}
             style={{ width: `${segment.progress * 100}%` }}
           />
@@ -73,9 +97,7 @@ function PhaseBar({ phase }: { phase: GoalPhase }) {
 function PlanCell({ goal }: { goal: GoalCard }) {
   return (
     <Cell label="Plan" detail={goal.phase ? null : goal.planNote}>
-      <span className="text-body-lg font-semibold">
-        {goal.phaseShort ?? "—"}
-      </span>
+      <span className="font-semibold">{goal.phaseShort ?? "—"}</span>
       {goal.phase && <PhaseBar phase={goal.phase} />}
     </Cell>
   );
@@ -99,42 +121,40 @@ export function OnTrack({
       aria-labelledby={titleId}
       className={cn("flex flex-col gap-3.5", className)}
     >
-      <h2 id={titleId} className="flex items-center gap-2">
-        <StrideMark className="size-3.5 shrink-0" />
-        <MonoLabel size="micro" tone="foreground">
-          Suis-je dans les temps ?
-        </MonoLabel>
+      <h2
+        id={titleId}
+        className="flex items-center gap-2 text-label font-medium text-secondary-foreground"
+      >
+        <StrideMark className="size-3 shrink-0" />
+        Suis-je dans les temps ?
       </h2>
       {goal.verdict && (
-        <p className="max-w-180 text-body leading-normal text-pretty">
-          {goal.verdict}
-        </p>
+        <p className="max-w-170 text-body-lg text-pretty">{goal.verdict}</p>
       )}
-      <div
+      <dl
         className={cn(
-          "grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border",
+          "grid grid-cols-2 gap-x-4 gap-y-3",
           (goal.road || prep) && "lg:grid-cols-4",
         )}
       >
         <Cell label="Ton objectif" detail={goal.targetNote}>
-          <Metric value={goal.target ?? "—"} className={metricClass} />
+          <Value value={goal.target ?? "—"} />
         </Cell>
         {goal.road ? (
           <>
             <Cell label="Prévision Garmin">
               <span className="flex items-baseline gap-1.5">
                 <SourceMark source="provider" />
-                <Metric
+                <Value
                   value={goal.road.prediction ?? "—"}
-                  className={cn(metricClass, "text-secondary-foreground")}
+                  className="text-secondary-foreground"
                 />
               </span>
             </Cell>
             <Cell label="Écart">
-              <Metric
+              <Value
                 value={goal.gap?.label ?? "—"}
                 className={cn(
-                  metricClass,
                   goal.gap?.tone === "success" && "text-primary",
                   goal.gap?.tone === "warning" && "text-warning",
                 )}
@@ -153,10 +173,9 @@ export function OnTrack({
                 goal.longestDay ? `le ${goal.longestDay}` : "sur six mois"
               }
             >
-              <Metric
+              <Value
                 value={prep.longest ?? "—"}
                 unit={prep.distance ? `/ ${prep.distance} km` : "km"}
-                className={metricClass}
               />
             </Cell>
             <Cell
@@ -164,15 +183,11 @@ export function OnTrack({
               detail={goal.raceGain ? `course : ${goal.raceGain} m` : null}
               detailTone={goal.gainCovered ? "success" : "muted"}
             >
-              <Metric
-                value={prep.weeklyGain ?? "—"}
-                unit="m"
-                className={metricClass}
-              />
+              <Value value={prep.weeklyGain ?? "—"} unit="m" />
             </Cell>
           </>
         )}
-      </div>
+      </dl>
       {(preparation || nextKey) && (
         <div className="grid items-center gap-3 lg:grid-cols-2 lg:gap-6">
           {preparation && (
@@ -183,10 +198,12 @@ export function OnTrack({
                   {preparation.total}
                 </span>
                 {percent !== null && (
-                  <Metric
-                    value={`${percent} %`}
-                    className="text-body-lg text-foreground"
-                  />
+                  <span
+                    data-slot="metric"
+                    className="font-semibold text-foreground tabular-nums"
+                  >
+                    {percent} %
+                  </span>
                 )}
               </div>
               <div
@@ -195,7 +212,7 @@ export function OnTrack({
                 aria-valuemin={0}
                 aria-valuemax={preparation.total}
                 aria-valuenow={preparation.done}
-                className="h-1.5 overflow-hidden rounded-full bg-border"
+                className="h-1.5 overflow-hidden rounded-full bg-muted"
               >
                 <div
                   className="h-full rounded-full bg-primary"
@@ -209,7 +226,9 @@ export function OnTrack({
               href={sessionPanelHref(nextKey.sessionKey)}
               className="flex min-w-0 flex-col gap-0.5 rounded-md hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:border-l lg:border-border lg:pl-6"
             >
-              <MonoLabel size="nano">Prochaine séance clé</MonoLabel>
+              <span className="text-label text-secondary-foreground">
+                Prochaine séance clé
+              </span>
               <span className="flex items-center gap-1 text-body">
                 <span className="truncate">{nextKey.title}</span>
                 <span className="shrink-0 text-muted-foreground">

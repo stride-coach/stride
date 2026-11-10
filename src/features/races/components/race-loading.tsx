@@ -13,7 +13,7 @@ export function RaceEntryLoading() {
         breadcrumb={
           <nav
             aria-label="Fil d’Ariane"
-            className="flex min-w-0 flex-1 items-center gap-2 text-body"
+            className="flex min-w-0 items-center gap-2 text-body"
           >
             <Link
               href="/races"
@@ -22,37 +22,44 @@ export function RaceEntryLoading() {
               Courses
             </Link>
             <span aria-hidden="true" className="text-muted-foreground">
-              /
+              ›
             </span>
             <Skeleton aria-hidden="true" className="h-4 w-40" />
           </nav>
         }
       />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="mx-auto flex w-full max-w-360 flex-col px-5 pt-3 pb-18 sm:px-[clamp(20px,4vw,56px)] md:pt-9">
+        <main className="flex w-full flex-col pb-18 md:pb-6">
           <LoadingScope
             label="Chargement de la course"
-            className="flex flex-col gap-5 sm:gap-9"
+            className="flex flex-col"
           >
             <div
               aria-hidden="true"
-              className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-6"
+              className="flex flex-col gap-3.5 border-b border-border px-4 py-4.5 md:px-5"
             >
-              <div className="flex flex-col gap-3 md:gap-2.5">
-                <Skeleton className="h-3 w-48" />
-                <Skeleton className="h-7.5 w-72 max-w-full md:h-10" />
-                <Skeleton className="h-11 w-48" />
+              <div className="flex items-center gap-2.5">
+                <Skeleton className="size-5.5 rounded-sm" />
+                <Skeleton className="h-6 w-64 max-w-full" />
+                <Skeleton className="ml-auto h-5 w-32 max-sm:hidden" />
               </div>
-              <div className="flex flex-col gap-5 md:items-end md:gap-3.5">
-                <Skeleton className="h-30 w-full rounded-xl md:h-11 md:w-110" />
-                <Skeleton className="h-11 w-full md:h-9.5 md:w-120" />
+              <div className="grid grid-cols-3 gap-4 border-y border-border py-3.5 sm:grid-cols-5">
+                {Array.from({ length: 5 }, (_, index) => (
+                  <div key={index} className="flex flex-col gap-1.5">
+                    <Skeleton className="h-5 w-14" />
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                ))}
               </div>
+              <Skeleton className="h-control-auto w-48" />
             </div>
-            <Skeleton aria-hidden="true" className="h-56 w-full rounded-2xl" />
-            <Skeleton
+            <div
               aria-hidden="true"
-              className="h-56 w-full rounded-2xl md:h-105"
-            />
+              className="flex flex-col gap-5 px-4 py-4.5 md:gap-6 md:px-5"
+            >
+              <Skeleton className="h-56 w-full rounded-xl" />
+              <Skeleton className="h-56 w-full rounded-xl md:h-105" />
+            </div>
           </LoadingScope>
         </main>
       </div>

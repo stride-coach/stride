@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MonoLabel } from "@/components/stride/mono-label";
 import type { PlanProfileData, PlanProfileStation } from "../timeline";
 
 const stationStroke: Record<PlanProfileStation["tone"], string> = {
@@ -148,9 +147,9 @@ export function PlanProfile({
       {variant === "card" ? (
         <span className="text-body">{route}</span>
       ) : (
-        <MonoLabel size="nano" className="truncate">
+        <span className="truncate text-label font-medium text-muted-foreground">
           {[route, caption].filter(Boolean).join(" · ")}
-        </MonoLabel>
+        </span>
       )}
     </>
   );
