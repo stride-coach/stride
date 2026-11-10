@@ -210,7 +210,6 @@ export function ProposalSheet({ review }: { review: ProposalReview }) {
         side={mobile ? "bottom" : "right"}
         showCloseButton={false}
         aria-describedby={undefined}
-        overlayClassName="bg-background/45"
         onCloseAutoFocus={(event) => {
           event.preventDefault();
           const links = document.querySelectorAll<HTMLElement>(
@@ -221,8 +220,8 @@ export function ProposalSheet({ review }: { review: ProposalReview }) {
         className={cn(
           "gap-0 overflow-hidden border-control-border bg-background text-foreground",
           mobile
-            ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
-            : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
+            ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-2xl"
+            : "rounded-2xl border shadow-float data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
         )}
       >
         {mobile && (

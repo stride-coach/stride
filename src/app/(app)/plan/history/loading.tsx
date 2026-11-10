@@ -15,9 +15,7 @@ export default function Loading() {
       >
         <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-[26px] leading-[1.1] font-semibold tracking-[-0.02em] sm:text-[30px]">
-              Historique du plan
-            </h1>
+            <h1 className="text-verdict font-semibold">Historique du plan</h1>
             <Skeleton aria-hidden="true" className="h-4 w-56" />
           </div>
           <div

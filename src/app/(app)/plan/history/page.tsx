@@ -32,9 +32,7 @@ export default async function PlanHistoryPage({
     >
       <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-[26px] leading-[1.1] font-semibold tracking-[-0.02em] sm:text-[30px]">
-            Historique du plan
-          </h1>
+          <h1 className="text-verdict font-semibold">Historique du plan</h1>
           {history.subtitle && (
             <p className="text-body text-secondary-foreground">
               {history.subtitle}
@@ -58,7 +56,7 @@ export default async function PlanHistoryPage({
                   }
                   aria-current={current ? "page" : undefined}
                   className={cn(
-                    "flex min-h-9 shrink-0 items-center rounded-full border px-3 text-[13px] whitespace-nowrap",
+                    "flex min-h-9 shrink-0 items-center rounded-full border px-3 text-body whitespace-nowrap",
                     current
                       ? "border-foreground bg-foreground font-semibold text-background"
                       : "border-border text-muted-foreground hover:text-foreground",
@@ -72,7 +70,7 @@ export default async function PlanHistoryPage({
         )}
       </div>
       {history.empty ? (
-        <p className="rounded-xl border border-border bg-card px-4 py-3.5 text-body leading-normal text-secondary-foreground">
+        <p className="rounded-xl border border-border bg-card px-4 py-3.5 text-body text-secondary-foreground">
           Aucune proposition pour l’instant. Les changements proposés par Claire
           apparaîtront ici, avec ta décision.
         </p>
