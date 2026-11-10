@@ -64,10 +64,7 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
         )}
       </div>
       <div className="flex min-w-0 flex-col gap-2">
-        <h3
-          id={`history-${entry.id}`}
-          className="text-body-lg leading-[1.3] font-semibold"
-        >
+        <h3 id={`history-${entry.id}`} className="text-body-lg font-semibold">
           {entry.title}
         </h3>
         <span className="inline-flex items-center gap-2 text-body text-secondary-foreground">

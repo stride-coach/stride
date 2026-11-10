@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MonoLabel } from "@/components/stride/mono-label";
-import { PulseDot } from "@/components/stride/marks";
+import { SourceMark } from "@/components/stride/marks";
 import {
   feelLabels,
   feelValues,
@@ -144,12 +144,12 @@ export function FeelingPrompt({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.75">
-        <span id={`${id}-title`} className="text-[15px] font-semibold">
+        <span id={`${id}-title`} className="text-body-lg font-semibold">
           {compact
             ? "Comment c’était ? Effort perçu, de 1 à 10"
             : "Comment c’était ?"}
         </span>
-        <p className="text-[12.5px] leading-[1.45] text-muted-foreground">
+        <p className="text-label text-muted-foreground">
           {initial
             ? "Change ton effort ou tes sensations, c’est enregistré aussitôt."
             : compact
@@ -190,7 +190,7 @@ export function FeelingPrompt({
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <span className="flex justify-between text-[11px] text-muted-foreground">
+        <span className="flex justify-between text-label text-muted-foreground">
           <span>Très facile</span>
           <span>Maximal</span>
         </span>
@@ -219,7 +219,7 @@ export function FeelingPrompt({
               <ToggleGroupItem
                 key={value}
                 value={String(value)}
-                className="min-h-11 px-1 text-[12.5px] whitespace-normal"
+                className="min-h-11 px-1 text-label whitespace-normal"
               >
                 {feelLabels[value]}
               </ToggleGroupItem>
@@ -259,13 +259,11 @@ export function DebriefFeeling({
       className="flex flex-col gap-2.5"
     >
       <div className="flex items-center gap-2.5">
-        <MonoLabel size="nano" className="text-[9.5px]" asChild>
+        <MonoLabel size="nano" className="text-label" asChild>
           <h3 id={`feeling-${activityId}`}>Ton ressenti</h3>
         </MonoLabel>
         <span className="ml-auto inline-flex items-center gap-1.5 text-label text-muted-foreground">
-          {garmin && !feeling.sessionWide && (
-            <PulseDot tone="provider" breathing={false} />
-          )}
+          {garmin && !feeling.sessionWide && <SourceMark source="provider" />}
           {feeling.sourceLabel}
         </span>
       </div>
@@ -276,7 +274,7 @@ export function DebriefFeeling({
               <dt className="order-2 text-label text-muted-foreground">
                 {feeling.effortLabel}
               </dt>
-              <dd className="order-1 text-metric leading-[1.1] font-semibold tabular-nums">
+              <dd className="order-1 text-metric font-semibold tabular-nums">
                 {feeling.effort}
               </dd>
             </div>
@@ -286,7 +284,7 @@ export function DebriefFeeling({
               <dt className="order-2 text-label text-muted-foreground">
                 Sensations
               </dt>
-              <dd className="order-1 text-title leading-[1.35] font-semibold">
+              <dd className="order-1 text-title font-semibold">
                 {feeling.feel}
               </dd>
             </div>
@@ -297,12 +295,12 @@ export function DebriefFeeling({
           <span className="flex flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2.5">
               {feeling.effort && (
-                <span className="text-metric leading-[1.1] font-semibold tabular-nums">
+                <span className="text-metric font-semibold tabular-nums">
                   {feeling.effort}
                 </span>
               )}
               {feeling.feel && (
-                <span className="text-[15px] font-semibold">
+                <span className="text-body-lg font-semibold">
                   {feeling.feel}
                 </span>
               )}
@@ -352,7 +350,7 @@ export function CardFeeling({
     <span className="inline-flex flex-wrap items-center gap-2 text-body text-secondary-foreground">
       Ressenti
       {feeling.effort !== null && (
-        <span className="text-[17px] font-semibold text-foreground tabular-nums">
+        <span className="text-body-lg font-semibold text-foreground tabular-nums">
           {feeling.effort}/10
         </span>
       )}
@@ -369,7 +367,7 @@ export function CardFeeling({
       ) : (
         <button
           type="button"
-          className="min-h-8 text-[12.5px] text-muted-foreground underline underline-offset-3 hover:text-foreground"
+          className="min-h-8 text-label text-muted-foreground underline underline-offset-3 hover:text-foreground"
           onClick={() => setEditing(true)}
         >
           Modifier

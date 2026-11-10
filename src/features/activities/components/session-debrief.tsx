@@ -13,7 +13,7 @@ import type {
 
 const chipTones: Record<DebriefStatusTone, string> = {
   success: "border-border bg-card text-primary",
-  warning: "border-border bg-warning/4 text-warning",
+  warning: "border-border bg-card text-warning",
   danger: "border-border bg-card text-destructive",
 };
 
@@ -38,7 +38,7 @@ export function DebriefVerdict({
       aria-labelledby="debrief-verdict"
       className={cn(
         "flex flex-col gap-2 rounded-xl border p-3.5 sm:gap-2.5 sm:px-4",
-        warning ? "border-border bg-warning/4" : "border-border bg-card",
+        warning ? "border-border bg-card" : "border-border bg-card",
       )}
     >
       <div className="flex items-start gap-3">
@@ -46,19 +46,16 @@ export function DebriefVerdict({
           <MonoLabel
             size="nano"
             className={cn(
-              "text-[9.5px]",
+              "text-label",
               warning ? "text-warning" : "text-primary",
             )}
           >
             Débrief
           </MonoLabel>
-          <span
-            id="debrief-verdict"
-            className="text-[17px] leading-[1.25] font-semibold"
-          >
+          <span id="debrief-verdict" className="text-body-lg font-semibold">
             {debrief.verdict.title}
           </span>
-          <span className="text-[13px] leading-normal text-secondary-foreground">
+          <span className="text-body leading-normal text-secondary-foreground">
             {debrief.verdict.body}
           </span>
         </span>
@@ -66,7 +63,7 @@ export function DebriefVerdict({
           <span className="flex shrink-0 flex-col items-end">
             <span
               className={cn(
-                "text-[28px] leading-none font-semibold tabular-nums sm:text-[30px]",
+                "text-metric leading-none font-semibold tabular-nums sm:text-metric",
                 warning ? "text-warning" : "text-primary",
               )}
             >
@@ -87,7 +84,7 @@ export function DebriefNote({ children }: { children: React.ReactNode }) {
   return (
     <p
       role="note"
-      className="flex items-start gap-2.5 rounded-lg border border-border bg-muted px-3.5 py-3 text-[13px] leading-normal text-secondary-foreground"
+      className="flex items-start gap-2.5 rounded-lg border border-border bg-muted px-3.5 py-3 text-body leading-normal text-secondary-foreground"
     >
       <InfoIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
       {children}
@@ -110,7 +107,7 @@ function StepStatus({ step }: { step: DebriefStepView }) {
   return (
     <span
       className={cn(
-        "inline-flex min-h-6 items-center justify-self-end rounded-full border px-2 text-[11.5px] whitespace-nowrap sm:px-2.25 sm:text-label",
+        "inline-flex min-h-6 items-center justify-self-end rounded-full border px-2 text-label whitespace-nowrap sm:px-2.25 sm:text-label",
         chipTones[step.status.tone],
       )}
     >
@@ -133,7 +130,7 @@ export function DebriefSteps({
       <MonoLabel
         size="nano"
         id="debrief-steps"
-        className="pb-1.5 text-[9.5px] sm:pb-2"
+        className="pb-1.5 text-label sm:pb-2"
         asChild
       >
         <h3>{title}</h3>
@@ -154,7 +151,7 @@ export function DebriefSteps({
               "border-t border-border",
               step.compact
                 ? "py-1.5 text-label text-muted-foreground"
-                : "py-2.25 text-[13px]",
+                : "py-2.25 text-body",
             )}
           >
             <span
@@ -171,12 +168,12 @@ export function DebriefSteps({
                 {step.name}
               </span>
               {step.detail && (
-                <span className="text-[11.5px] text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {step.detail}
                 </span>
               )}
             </span>
-            <span className="text-[15px] font-semibold text-muted-foreground tabular-nums max-sm:hidden">
+            <span className="text-body-lg font-semibold text-muted-foreground tabular-nums max-sm:hidden">
               <span className="sr-only">Cible : </span>
               {step.target}
             </span>
@@ -186,7 +183,7 @@ export function DebriefSteps({
                   "font-semibold tabular-nums",
                   step.compact
                     ? "text-body text-secondary-foreground"
-                    : "text-body-lg leading-[1.1] sm:text-[15px]",
+                    : "text-body-lg sm:text-body-lg",
                   actualTones[step.actualTone],
                 )}
               >
@@ -224,7 +221,7 @@ export function DebriefCoach({
         stacked ? "flex-col" : "flex-col sm:flex-row sm:items-center",
       )}
     >
-      <p className="flex flex-1 items-start gap-2 text-[13px] leading-[1.45] text-secondary-foreground">
+      <p className="flex flex-1 items-start gap-2 text-body text-secondary-foreground">
         <StrideMark aria-hidden="true" className="mt-0.75 size-3.25 shrink-0" />
         Le coach reçoit la séance, ce débrief et ton ressenti.
       </p>

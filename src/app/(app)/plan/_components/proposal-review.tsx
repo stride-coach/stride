@@ -68,7 +68,7 @@ export function StaffStack({ staff }: { staff: StaffMember[] }) {
 const bannerStyles: Record<ReviewTone, string> = {
   success: "border-border bg-card",
   danger: "border-border bg-card",
-  warning: "border-border bg-warning/4",
+  warning: "border-border bg-card",
   muted: "border-control-border bg-card",
 };
 
@@ -427,7 +427,7 @@ function Opinions({ review }: { review: ProposalReview }) {
             </span>
             <p
               className={cn(
-                "text-body leading-[1.55]",
+                "text-body",
                 opinion.lead ? "text-foreground" : "text-secondary-foreground",
               )}
             >
@@ -472,7 +472,7 @@ function Checks({ checks }: { checks: ReviewCheck[] }) {
       <MonoLabel asChild size="micro">
         <h3 id="review-checks">Contrôles de Stride</h3>
       </MonoLabel>
-      <ul className="flex flex-col gap-2 text-body leading-[1.45] text-secondary-foreground">
+      <ul className="flex flex-col gap-2 text-body text-secondary-foreground">
         {checks.map((check) => (
           <li
             key={check.text}
