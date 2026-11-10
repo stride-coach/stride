@@ -4,33 +4,35 @@ import { cn } from "@/lib/utils";
 import { Slot } from "radix-ui";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-body font-semibold whitespace-nowrap transition-[background-color,border-color,color,opacity] duration-150 ease-stride select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:cursor-progress aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-body font-medium whitespace-nowrap transition-[background-color,border-color,color,opacity] duration-150 ease-stride select-none disabled:pointer-events-none disabled:opacity-50 aria-busy:cursor-progress aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/85",
+        default:
+          "border-primary bg-primary font-semibold text-primary-foreground hover:bg-primary/90",
         outline:
-          "border-control-border bg-transparent font-normal text-foreground hover:bg-muted aria-expanded:bg-muted",
-        neutral: "bg-foreground text-background hover:bg-foreground/90",
+          "border-control-border bg-card text-foreground hover:border-muted-foreground active:bg-muted aria-expanded:bg-muted",
+        neutral:
+          "border-foreground bg-foreground font-semibold text-background hover:bg-foreground/90",
         secondary:
-          "bg-secondary font-normal text-foreground hover:bg-secondary/80 aria-expanded:bg-secondary",
+          "bg-muted text-foreground hover:bg-muted/70 aria-expanded:bg-muted",
         ghost:
-          "font-normal text-secondary-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+          "text-secondary-foreground hover:bg-muted hover:text-foreground active:bg-muted aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive:
-          "border-border bg-card text-destructive hover:border-destructive/60",
-        link: "font-normal text-primary underline-offset-4 hover:text-foreground hover:underline",
+          "border-destructive bg-destructive font-semibold text-background hover:bg-destructive/90",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default:
-          "h-13 gap-1.5 rounded-lg px-4 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 md:h-11.5",
-        md: "min-h-9.5 gap-1.5 px-3.5 text-body has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5",
+          "h-control-auto gap-1.5 px-3 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        md: "h-control-auto gap-1.5 px-3 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         xs: "h-6 gap-1 rounded-sm px-2 text-label has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 px-2.5 text-label has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-13 gap-1.5 rounded-lg px-5.5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        icon: "size-9",
+        sm: "h-control gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-control-touch gap-1.5 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        icon: "size-control-auto",
         "icon-xs": "size-6 rounded-sm [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8",
-        "icon-lg": "size-11",
+        "icon-sm": "size-control",
+        "icon-lg": "size-control-touch",
       },
     },
     defaultVariants: {

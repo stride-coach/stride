@@ -211,9 +211,9 @@ export default function DesignSystemPage() {
           Radix bones, Stride skin.
         </h1>
         <p className="max-w-3xl text-body-lg text-pretty text-secondary-foreground">
-          Night Track tokens, shadcn primitives restyled for Stride, and the
-          reusable product patterns from the approved system references. This
-          surface exists for validation only and is not available in production.
+          Dense tokens, shadcn primitives restyled for Stride, and the reusable
+          product patterns from the approved system references. This surface
+          exists for validation only and is not available in production.
         </p>
         <nav
           aria-label="Gallery sections"
@@ -385,8 +385,8 @@ export default function DesignSystemPage() {
       <GallerySection
         id="controls"
         index="03 · Controls"
-        title="shadcn primitives in Night Track"
-        description="Every control keeps its Radix behaviour: keyboard support, focus management and ARIA state."
+        title="shadcn primitives in Dense"
+        description="Every control keeps its Radix behaviour: keyboard support, focus management and ARIA state. Controls are 28px on desktop and 40px on touch; focus is a 2px primary ring offset by 2px."
       >
         <div className="grid gap-12 lg:grid-cols-2">
           <Specimen title="Buttons" meta="Button">

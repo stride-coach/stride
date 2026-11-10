@@ -21,4 +21,11 @@ describe("class merging with Dense tokens", () => {
     expect(cn("rounded-md", "rounded-lg")).toBe("rounded-lg");
     expect(cn("rounded-2xl", "rounded-none")).toBe("rounded-none");
   });
+
+  it("lets a call site override a control height or shadow", () => {
+    expect(cn("h-control-auto px-3", "h-13")).toBe("px-3 h-13");
+    expect(cn("min-h-control-auto", "min-h-7.5")).toBe("min-h-7.5");
+    expect(cn("size-control-auto", "size-8")).toBe("size-8");
+    expect(cn("shadow-float", "shadow-none")).toBe("shadow-none");
+  });
 });
