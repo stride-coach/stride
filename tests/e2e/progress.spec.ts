@@ -6,7 +6,7 @@ function signIn(page: Page) {
 }
 
 test("signed-out visitors cannot open progress", async ({ page }) => {
-  await page.goto("/progress");
+  await page.goto("/health/fitness");
   await expect(page).toHaveURL(/\/sign-in$/);
 });
 
@@ -19,7 +19,7 @@ for (const viewport of [
   }) => {
     await page.setViewportSize(viewport);
     await signIn(page);
-    await page.goto("/progress");
+    await page.goto("/health/fitness");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const goal = page.getByRole("region", { name: "EcoTrail Paris 120K" });
     await expect(goal.getByRole("link")).toHaveAttribute(
@@ -62,14 +62,14 @@ for (const viewport of [
 
 test("period choice is kept in the URL", async ({ page }) => {
   await signIn(page);
-  await page.goto("/progress");
+  await page.goto("/health/fitness");
   const periods = page.getByRole("navigation", { name: "Période" });
   await expect(periods.getByRole("link", { name: "6 mois" })).toHaveAttribute(
     "aria-current",
     "page",
   );
   await periods.getByRole("link", { name: "12 sem." }).click();
-  await expect(page).toHaveURL("/progress?period=12w");
+  await expect(page).toHaveURL("/health/fitness?period=12w");
   await page.reload();
   await expect(periods.getByRole("link", { name: "12 sem." })).toHaveAttribute(
     "aria-current",
@@ -84,7 +84,7 @@ test("sidebar links to Santé", async ({ page }) => {
   await signIn(page);
   await page.goto("/activities");
   await page.getByRole("link", { name: "Santé", exact: true }).click();
-  await expect(page).toHaveURL("/progress");
+  await expect(page).toHaveURL("/health/fitness");
   await expect(
     page.getByRole("link", { name: "Santé", exact: true }),
   ).toHaveAttribute("aria-current", "page");
@@ -94,12 +94,12 @@ for (const viewport of [
   { width: 1440, height: 900 },
   { width: 390, height: 844 },
 ]) {
-  test(`Corps renders readiness, factors and nights at ${viewport.width}px`, async ({
+  test(`Récupération renders readiness, factors and nights at ${viewport.width}px`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await signIn(page);
-    await page.goto("/progress/body");
+    await page.goto("/health/recovery");
     await expect(
       page.getByRole("heading", {
         level: 1,
@@ -107,7 +107,7 @@ for (const viewport of [
       }),
     ).toBeVisible();
     const readiness = page.getByRole("region", {
-      name: "Prêt pour aujourd’hui ?",
+      name: "Forme du jour",
     });
     await expect(readiness.getByText(/^Modéré|^Bas/)).toBeVisible();
     const factors = page.getByRole("region", {
@@ -120,7 +120,7 @@ for (const viewport of [
         .getByRole("region", { name: "VFC nocturne" })
         .getByText("Sous ta plage"),
     ).toBeVisible();
-    await expect(page.getByRole("region", { name: "Nuits" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Sommeil" })).toBeVisible();
     await expect(
       page
         .getByText("Aucune course passée avec des mesures de VFC.")
@@ -135,7 +135,7 @@ for (const viewport of [
 
 test("athlete records how they feel today", async ({ page }) => {
   await signIn(page);
-  await page.goto("/progress/body");
+  await page.goto("/health/recovery");
   const checkin = page.getByRole("region", { name: "Ton ressenti" });
   await expect(checkin.getByText("À saisir ce matin")).toBeVisible();
   const legs = checkin.getByRole("radiogroup", { name: "Jambes" });
@@ -160,42 +160,51 @@ test("athlete records how they feel today", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("progress tabs switch between Forme and Corps", async ({ page }) => {
+test("Santé tabs switch between Forme and Récupération", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/health/fitness");
+  const tabs = page
+    .getByRole("navigation", { name: "Sections de Santé" })
+    .filter({ visible: true });
+  await tabs.getByRole("link", { name: "Récupération" }).click();
+  await expect(page).toHaveURL("/health/recovery");
+  await expect(
+    tabs.getByRole("link", { name: "Récupération" }),
+  ).toHaveAttribute("aria-current", "page");
+});
+
+test("old Progression links land on their Santé tab", async ({ page }) => {
   await signIn(page);
   await page.goto("/progress");
-  await page
-    .getByRole("navigation", { name: "Sections de Santé" })
-    .last()
-    .getByRole("link", { name: "Corps" })
-    .click();
-  await expect(page).toHaveURL("/progress/body");
-  await expect(
-    page.getByRole("navigation", { name: "Fil d’Ariane" }).getByText("Corps"),
-  ).toBeVisible();
-});
-
-test("old Récupération and Santé links land on Corps", async ({ page }) => {
-  await signIn(page);
+  await expect(page).toHaveURL("/health/fitness");
+  await page.goto("/progress?period=12w");
+  await expect(page).toHaveURL("/health/fitness?period=12w");
+  await page.goto("/health");
+  await expect(page).toHaveURL("/health/fitness");
+  await page.goto("/progress/body");
+  await expect(page).toHaveURL("/health/recovery");
   await page.goto("/progress/recovery");
-  await expect(page).toHaveURL("/progress/body");
+  await expect(page).toHaveURL("/health/recovery");
   await page.goto("/progress/health?view=month");
-  await expect(page).toHaveURL("/progress/body?view=month");
-  await page.goto("/progress/health?view=day&date=2026-10-10");
-  await expect(page).toHaveURL("/progress/body?view=day&date=2026-10-10");
+  await expect(page).toHaveURL("/health/recovery?view=month");
+  await page.goto("/progress/body?view=day&date=2026-10-10");
+  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-10");
+  await page.goto("/progress/records");
+  await expect(page).toHaveURL("/health/records");
 });
 
-test("Corps switches to 30 days and explains nights on hover", async ({
+test("Récupération switches to 30 days and explains nights on hover", async ({
   page,
 }) => {
   await signIn(page);
-  await page.goto("/progress/body");
+  await page.goto("/health/recovery");
   await page
     .getByRole("navigation", { name: "Échelle" })
     .getByRole("link", { name: "30 jours" })
     .click();
-  await expect(page).toHaveURL("/progress/body?view=month");
+  await expect(page).toHaveURL("/health/recovery?view=month");
   const chart = page
-    .getByRole("region", { name: "Nuits" })
+    .getByRole("region", { name: "Sommeil" })
     .getByRole("group", { name: /Durée et phases de sommeil des 30/ });
   await chart.scrollIntoViewIfNeeded();
   const box = (await chart.boundingBox())!;
@@ -208,12 +217,12 @@ for (const viewport of [
   { width: 1440, height: 900 },
   { width: 390, height: 844 },
 ]) {
-  test(`Corps day view explains the day at ${viewport.width}px`, async ({
+  test(`Récupération day view explains the day at ${viewport.width}px`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await signIn(page);
-    await page.goto("/progress/body?view=day&date=2026-10-10");
+    await page.goto("/health/recovery?view=day&date=2026-10-10");
     await expect(
       page
         .getByRole("region", { name: "Choisir une journée" })
@@ -246,13 +255,13 @@ for (const viewport of [
   });
 }
 
-test("Corps day navigation moves between days", async ({ page }) => {
+test("Récupération day navigation moves between days", async ({ page }) => {
   await signIn(page);
-  await page.goto("/progress/body?view=day&date=2026-10-10");
+  await page.goto("/health/recovery?view=day&date=2026-10-10");
   await page.getByRole("link", { name: "Jour suivant" }).click();
-  await expect(page).toHaveURL("/progress/body?view=day&date=2026-10-11");
+  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-11");
   await page.getByRole("link", { name: "Jour précédent" }).click();
-  await expect(page).toHaveURL("/progress/body?view=day&date=2026-10-10");
+  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-10");
 });
 
 test("the health day shows the stored strip before the Garmin day arrives", async ({
@@ -267,7 +276,7 @@ test("the health day shows the stored strip before the Garmin day arrives", asyn
   expect((await hold(true)).ok).toBe(true);
   try {
     await signIn(page);
-    await page.goto("/progress/body?view=day&date=2026-10-07", {
+    await page.goto("/health/recovery?view=day&date=2026-10-07", {
       waitUntil: "commit",
     });
     await expect(
@@ -290,7 +299,7 @@ test("the health day shows the stored strip before the Garmin day arrives", asyn
 });
 
 test("signed-out visitors cannot open Records", async ({ page }) => {
-  await page.goto("/progress/records");
+  await page.goto("/health/records");
   await expect(page).toHaveURL(/\/sign-in$/);
 });
 for (const viewport of [
@@ -302,7 +311,7 @@ for (const viewport of [
   }) => {
     await page.setViewportSize(viewport);
     await signIn(page);
-    await page.goto("/progress/records");
+    await page.goto("/health/records");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const markers = page.getByRole("region", { name: "Tes repères actuels" });
     await expect(markers.getByText("4:38")).toBeVisible();
@@ -333,7 +342,7 @@ for (const viewport of [
 for (const mode of ["empty", "failure", "goal-failure"] as const) {
   test(`Records displays explicit ${mode} state`, async ({ page }) => {
     await signInAs(page, `records-${mode}@example.com`);
-    await page.goto("/progress/records");
+    await page.goto("/health/records");
     if (mode === "empty") {
       await expect(
         page.getByRole("heading", {
@@ -355,6 +364,6 @@ for (const mode of ["empty", "failure", "goal-failure"] as const) {
       .first()
       .getByRole("link", { name: "Forme", exact: true })
       .click();
-    await expect(page).toHaveURL("/progress", { timeout: 15_000 });
+    await expect(page).toHaveURL("/health/fitness", { timeout: 15_000 });
   });
 }

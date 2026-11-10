@@ -17,8 +17,13 @@ import {
   KpiCards,
   NightsSection,
   RaceRecoveries,
-  ReadinessCard,
+  ReadinessPanel,
 } from "@/features/progress/components/body-sections";
+import {
+  HealthGrid,
+  HealthPage,
+  HealthReading,
+} from "@/features/progress/components/health-frame";
 import { ScaleSwitch } from "@/features/progress/components/scale-switch";
 import { CheckinCard } from "@/features/progress/components/checkin-card";
 import { DayTimeline } from "@/features/progress/components/day-timeline";
@@ -32,6 +37,7 @@ import {
 import { KpiStrip } from "@/features/progress/components/health-sections";
 import {
   healthModel,
+  healthViewLabels,
   parseHealthView,
   type HealthModel,
 } from "@/features/progress/health";
@@ -43,10 +49,7 @@ import { requireAthlete } from "@/server/app/session";
 import { loadBody } from "@/server/progress/body";
 import { loadHealthDay, loadHealthStrip } from "@/server/progress/health-day";
 
-export const metadata: Metadata = { title: "Corps · Santé" };
-
-const titleClass =
-  "text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[1.08] sm:tracking-[-0.03em]";
+export const metadata: Metadata = { title: "Récupération · Santé" };
 
 async function HealthDay({
   loaded: pending,
@@ -67,8 +70,8 @@ async function HealthDay({
     <>
       <KpiStrip kpis={dayView.kpis} />
       <DayTimeline model={loaded.model} />
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-8">
-        <div className="flex flex-col gap-5">
+      <div className="grid items-start gap-3 lg:grid-cols-2">
+        <div className="flex flex-col gap-3">
           <DayReading view={dayView} today={day === today} />
           {dayView.night && <NightCard night={dayView.night} />}
         </div>
@@ -78,7 +81,7 @@ async function HealthDay({
   );
 }
 
-export default async function ProgressBodyPage({
+export default async function HealthRecoveryPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -92,11 +95,12 @@ export default async function ProgressBodyPage({
     const { reference, strip } = await loadHealthStrip(context, day, today);
     return (
       <DataCategoryScope categories={["recovery"]}>
-        <div className="flex flex-col gap-6 sm:gap-8">
-          <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <h1 className={titleClass}>Ta journée</h1>
-            <ScaleSwitch current="day" />
-          </section>
+        <HealthReading
+          kicker="Lecture de Stride · Jour"
+          title="Ta journée"
+          actions={<ScaleSwitch current="day" />}
+        />
+        <div className="flex flex-col gap-4.5 px-4 py-4.5 md:px-5">
           <DayNavigator day={day} today={today} strip={strip} />
           <Suspense key={day} fallback={<HealthDayLoading />}>
             <HealthDay
@@ -106,7 +110,7 @@ export default async function ProgressBodyPage({
               today={today}
             />
           </Suspense>
-          <p className="text-label leading-normal text-muted-foreground">
+          <p className="text-label text-muted-foreground">
             Vue jour : courbes détaillées chargées depuis Garmin quand tu ouvres
             une journée (FC toutes les 2 min, stress toutes les 3 min, Body
             Battery, phases de sommeil, pas par heure). Les vues 14 et 30 jours
@@ -121,65 +125,64 @@ export default async function ProgressBodyPage({
   const health = healthModel({ days, view, today });
   const reading = recoveryView(recovery);
   const advice = readinessAdvice(recovery.readiness, session);
+  const summary = readinessSummary(recovery.readiness);
   return (
     <DataCategoryScope categories={["recovery"]}>
-      <div className="flex flex-col gap-8 sm:gap-10">
-        <section className="grid items-start gap-6.5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
-          <div className="flex flex-col gap-2.5 sm:gap-3.5">
-            <h1 className={titleClass}>{reading.headline}</h1>
-            {reading.summary && (
-              <p className="max-w-150 text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
-                {reading.summary}
-              </p>
-            )}
-            <div className="mt-1.5">
-              <ScaleSwitch current={view} />
+      <HealthPage
+        aside={
+          <>
+            <div className="border-b border-border max-xl:hidden">
+              <ReadinessPanel
+                id="body-readiness"
+                summary={summary}
+                advice={advice}
+                session={session}
+              />
             </div>
-          </div>
-          <ReadinessCard
-            summary={readinessSummary(recovery.readiness)}
+            <CheckinCard
+              initial={recovery.checkin}
+              history={checkinHistory(checkins, today)}
+            />
+            <KpiCards kpis={bodyKpis(health, days)} />
+            <RaceRecoveries races={reading.races} note={reading.racesNote} />
+          </>
+        }
+      >
+        <HealthReading
+          kicker={`Lecture de Stride · ${healthViewLabels[view]}`}
+          title={reading.headline}
+          actions={<ScaleSwitch current={view} />}
+        >
+          {reading.summary}
+        </HealthReading>
+        <div className="border-b border-border px-4 md:px-5 xl:hidden">
+          <ReadinessPanel
+            id="body-readiness-compact"
+            summary={summary}
             advice={advice}
             session={session}
           />
-        </section>
-        <div className="flex flex-col gap-7 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start lg:gap-10">
-          <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-6">
-            <div className="order-2 lg:order-none">
-              <NightsSection
-                nights={bodyNights(
-                  days,
-                  health.sleep?.lastDay ?? today,
-                  health.chartDays,
-                )}
-              />
-            </div>
-            <div className="order-3 lg:order-none">
-              <HeartCards
-                hrv={health.hrv}
-                resting={health.restingHeartRate}
-                chartDays={health.chartDays}
-              />
-            </div>
-            <div className="order-5 lg:order-none">
-              <CheckinCard
-                initial={recovery.checkin}
-                history={checkinHistory(checkins, today)}
-              />
-            </div>
-          </div>
-          <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-7">
-            <div className="order-1 lg:order-none">
-              <FactorsSection factors={readinessFactors(recovery)} />
-            </div>
-            <div className="order-4 lg:order-none">
-              <KpiCards kpis={bodyKpis(health, days)} />
-            </div>
-            <div className="order-6 lg:order-none">
-              <RaceRecoveries races={reading.races} note={reading.racesNote} />
-            </div>
-          </div>
         </div>
-      </div>
+        <HealthGrid className="xl:grid-cols-3">
+          <FactorsSection
+            factors={readinessFactors(recovery)}
+            className="lg:col-span-2 xl:order-last xl:col-span-3"
+          />
+          <NightsSection
+            nights={bodyNights(
+              days,
+              health.sleep?.lastDay ?? today,
+              health.chartDays,
+            )}
+            className="lg:col-span-2 xl:col-span-1"
+          />
+          <HeartCards
+            hrv={health.hrv}
+            resting={health.restingHeartRate}
+            chartDays={health.chartDays}
+          />
+        </HealthGrid>
+      </HealthPage>
     </DataCategoryScope>
   );
 }

@@ -89,13 +89,13 @@ test("an unknown session opens Plan without a panel", async ({ page }) => {
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
-test("a session opens over Corps", async ({ page }) => {
+test("a session opens over Récupération", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
-  await page.goto("/progress/body");
-  await expect(
-    page.getByRole("region", { name: "Prêt pour aujourd’hui ?" }),
-  ).toBeVisible({ timeout: 20_000 });
+  await page.goto("/health/recovery");
+  await expect(page.getByRole("region", { name: "Forme du jour" })).toBeVisible(
+    { timeout: 20_000 },
+  );
   const link = page.getByRole("link", { name: "Voir la séance" });
   test.skip((await link.count()) === 0, "No session today");
   await link.click();
@@ -104,7 +104,7 @@ test("a session opens over Corps", async ({ page }) => {
   await expect(page.locator("main h1")).toBeAttached();
   await page.getByRole("button", { name: "Fermer" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page).toHaveURL(/\/progress\/body$/);
+  await expect(page).toHaveURL(/\/health\/recovery$/);
   await expect(link).toBeFocused();
 });
 

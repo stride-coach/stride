@@ -10,12 +10,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { bodyPath } from "../health";
+import { recoveryPath } from "../health";
 
 export const progressSections = [
-  { href: "/progress", label: "Forme" },
-  { href: bodyPath, label: "Corps" },
-  { href: "/progress/records", label: "Records" },
+  { href: "/health/fitness", label: "Forme" },
+  { href: recoveryPath, label: "Récupération" },
+  { href: "/health/records", label: "Records" },
 ] as const;
 
 function useSection() {
@@ -55,103 +55,73 @@ function SectionLink({
   );
 }
 
-const crumbDate = new Intl.DateTimeFormat("fr-FR", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+const healthTabs = [
+  ...progressSections,
+  { href: "/nutrition", label: "Nutrition" },
+] as const;
 
-export function ProgressBreadcrumb() {
+function useCurrentHref() {
+  const pathname = usePathname();
   const section = useSection();
-  const params = useSearchParams();
-  const date = params.get("date");
-  const dayCrumb =
-    section.href === bodyPath && params.get("view") === "day"
-      ? date && /^\d{4}-\d{2}-\d{2}$/.test(date)
-        ? crumbDate.format(new Date(`${date}T00:00:00Z`))
-        : "Aujourd’hui"
-      : null;
+  return pathname === "/nutrition" || pathname.startsWith("/nutrition/")
+    ? "/nutrition"
+    : section.href;
+}
+
+export function HealthHeaderNav() {
+  const currentHref = useCurrentHref();
   return (
-    <nav
-      aria-label="Fil d’Ariane"
-      className="flex min-w-0 flex-1 items-center gap-2 text-body"
-    >
-      <span className="text-muted-foreground">Santé</span>
-      <span aria-hidden="true" className="text-muted-foreground">
-        /
-      </span>
-      <span
-        aria-current={dayCrumb ? undefined : "page"}
-        className={cn("truncate", dayCrumb && "text-muted-foreground")}
+    <div className="flex min-w-0 items-stretch gap-5 self-stretch">
+      <span className="flex items-center font-semibold">Santé</span>
+      <nav
+        aria-label="Sections de Santé"
+        className="flex min-w-0 items-stretch gap-5"
       >
-        {section.label}
-      </span>
-      {dayCrumb && (
-        <>
-          <span aria-hidden="true" className="text-muted-foreground">
-            /
-          </span>
-          <span aria-current="page" className="truncate">
-            {dayCrumb}
-          </span>
-        </>
-      )}
-    </nav>
+        {healthTabs.map((item) => (
+          <SectionLink
+            key={item.href}
+            href={item.href}
+            current={item.href === currentHref}
+            keepPeriod={item.href !== "/nutrition"}
+            className={cn(
+              "flex items-center border-b-2 px-0.5 whitespace-nowrap transition-colors duration-150 ease-stride focus-visible:outline-offset-[-2px]",
+              item.href === currentHref
+                ? "border-foreground font-medium text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {item.label}
+          </SectionLink>
+        ))}
+      </nav>
+    </div>
   );
 }
 
-export function ProgressTabs({ mobileOnly = false }: { mobileOnly?: boolean }) {
-  const pathname = usePathname();
-  const section = useSection();
-  const onNutrition =
-    pathname === "/nutrition" || pathname.startsWith("/nutrition/");
-  const currentHref = onNutrition ? "/nutrition" : section.href;
+export function HealthTabs() {
+  const currentHref = useCurrentHref();
   return (
-    <>
-      <nav
-        aria-label="Sections de Santé"
-        className="flex gap-0.5 rounded-[11px] border border-border bg-card p-0.75 sm:hidden"
-      >
-        {[...progressSections, { href: "/nutrition", label: "Nutrition" }].map(
-          (item) => (
-            <SectionLink
-              key={item.href}
-              href={item.href}
-              current={item.href === currentHref}
-              keepPeriod={item.href !== "/nutrition"}
-              className={cn(
-                "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-                item.href === currentHref &&
-                  "bg-border font-semibold text-foreground",
-              )}
-            >
-              {item.label}
-            </SectionLink>
-          ),
-        )}
-      </nav>
-      {!mobileOnly && (
-        <nav
-          aria-label="Sections de Santé"
-          className="flex gap-5 text-body max-sm:hidden"
+    <nav
+      aria-label="Sections de Santé"
+      className="flex gap-1.5 overflow-x-auto border-b border-border px-4 py-2.5 md:hidden"
+    >
+      {healthTabs.map((item) => (
+        <SectionLink
+          key={item.href}
+          href={item.href}
+          current={item.href === currentHref}
+          keepPeriod={item.href !== "/nutrition"}
+          className={cn(
+            "inline-flex min-h-control-touch shrink-0 items-center rounded-full border px-3 whitespace-nowrap transition-colors duration-150 ease-stride",
+            item.href === currentHref
+              ? "border-control-border bg-muted font-medium text-foreground"
+              : "border-border text-muted-foreground hover:text-foreground",
+          )}
         >
-          {progressSections.map((item) => (
-            <SectionLink
-              key={item.href}
-              href={item.href}
-              current={item.href === section.href}
-              className={cn(
-                "border-b-2 border-transparent py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-                item.href === section.href && "border-primary text-foreground",
-              )}
-            >
-              {item.label}
-            </SectionLink>
-          ))}
-        </nav>
-      )}
-    </>
+          {item.label}
+        </SectionLink>
+      ))}
+    </nav>
   );
 }
 
@@ -162,49 +132,44 @@ export function ProgressSidebarGroup() {
     pathname === "/nutrition" || pathname.startsWith("/nutrition/");
   if (
     !onNutrition &&
-    pathname !== "/progress" &&
-    !pathname.startsWith("/progress/")
+    pathname !== "/health" &&
+    !pathname.startsWith("/health/")
   )
     return null;
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Santé</SidebarGroupLabel>
       <SidebarMenu>
-        {[...progressSections, { href: "/nutrition", label: "Nutrition" }].map(
-          (item) => {
-            const current = onNutrition
-              ? item.href === "/nutrition"
-              : item.href === section.href;
-            return (
-              <SidebarMenuItem
-                key={item.href}
-                className={cn(item.href === "/nutrition" && "max-md:hidden")}
+        {healthTabs.map((item) => {
+          const current = onNutrition
+            ? item.href === "/nutrition"
+            : item.href === section.href;
+          return (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                size="sm"
+                isActive={current}
+                className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
               >
-                <SidebarMenuButton
-                  asChild
-                  size="sm"
-                  isActive={current}
-                  className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
+                <SectionLink
+                  href={item.href}
+                  current={current}
+                  keepPeriod={item.href !== "/nutrition"}
                 >
-                  <SectionLink
-                    href={item.href}
-                    current={current}
-                    keepPeriod={item.href !== "/nutrition"}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "size-1 shrink-0 rounded-full",
-                        current ? "bg-primary" : "bg-control-border",
-                      )}
-                    />
-                    {item.label}
-                  </SectionLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          },
-        )}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "size-1 shrink-0 rounded-full",
+                      current ? "bg-primary" : "bg-control-border",
+                    )}
+                  />
+                  {item.label}
+                </SectionLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );

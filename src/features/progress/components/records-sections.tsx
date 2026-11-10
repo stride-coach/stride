@@ -1,13 +1,12 @@
 import { ChevronRightIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SourceMark } from "@/components/stride/marks";
-import { Metric } from "@/components/stride/metric";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { GoalCard } from "../goal";
 import { goalSummary } from "../goal";
 import type { MarkerCard, ReachCard, RecordRow } from "../records-view";
+import { PanelSection } from "./health-frame";
 
 const tones = {
   success: "text-primary",
@@ -15,8 +14,7 @@ const tones = {
   muted: "text-muted-foreground",
 } as const;
 
-const focus =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+const value = "font-semibold whitespace-nowrap tabular-nums";
 
 export function ReachSection({
   reach,
@@ -26,72 +24,54 @@ export function ReachSection({
   goal: GoalCard | null;
 }) {
   return (
-    <section aria-labelledby="records-reach" className="flex flex-col gap-3">
-      <h2
-        id="records-reach"
-        className="text-body-lg font-semibold sm:text-title"
-      >
-        À portée
-      </h2>
+    <PanelSection id="records-reach" title="À portée">
       {reach ? (
-        <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[15px] font-semibold sm:text-body-lg">
-              {reach.label}
-            </span>
+            <span className="font-medium">{reach.label}</span>
             <span className={cn("text-label", tones[reach.tone])}>
               {reach.gap}
             </span>
           </div>
-          <dl className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="flex flex-col gap-0.5">
-              <dt>
-                <MonoLabel size="micro">Record · {reach.recordDate}</MonoLabel>
+          <dl className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col-reverse gap-0.5">
+              <dt className="text-label text-secondary-foreground">
+                Record · {reach.recordDate}
               </dt>
-              <dd>
-                <Metric
-                  value={reach.record}
-                  className="text-[28px] sm:text-display"
-                />
+              <dd data-slot="metric" className={cn("text-title", value)}>
+                {reach.record}
               </dd>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <dt>
-                <MonoLabel size="micro" className="flex items-center gap-1.5">
-                  <SourceMark source="provider" />
-                  Prévision
-                </MonoLabel>
+            <div className="flex flex-col-reverse gap-0.5">
+              <dt className="flex items-center gap-1.5 text-label text-secondary-foreground">
+                <SourceMark source="provider" />
+                Prévision
               </dt>
-              <dd>
-                <Metric
-                  value={reach.prediction}
-                  className="text-[28px] text-secondary-foreground sm:text-display"
-                />
+              <dd
+                data-slot="metric"
+                className={cn("text-title text-secondary-foreground", value)}
+              >
+                {reach.prediction}
               </dd>
             </div>
           </dl>
           <span
             aria-hidden="true"
-            className="relative h-2 overflow-hidden rounded-full bg-border"
+            className="relative h-1.5 overflow-hidden rounded-mark bg-muted"
           >
             <span
-              className="absolute inset-y-0 left-0 rounded-full bg-primary"
+              className="absolute inset-y-0 left-0 rounded-mark bg-primary"
               style={{ width: `${reach.progress * 100}%` }}
             />
           </span>
-          <Button
-            asChild
-            variant="outline"
-            size="md"
-            className="max-sm:min-h-11"
-          >
+          <Button asChild variant="outline">
             <Link href={reach.coachHref}>
               Préparer une tentative avec le coach
             </Link>
           </Button>
         </div>
       ) : (
-        <p className="border-t border-border pt-3 text-body text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Aucun record sur route à moins de 3 % de ta prévision Garmin pour le
           moment.
         </p>
@@ -99,16 +79,13 @@ export function ReachSection({
       {goal && (
         <Link
           href={`/races/${goal.id}`}
-          className={cn(
-            "flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-control-border sm:px-4.5",
-            focus,
-          )}
+          className="-mx-2 flex min-h-control-touch items-center justify-between gap-3 rounded-md px-2 py-2 transition-colors duration-150 ease-stride hover:bg-muted"
         >
-          <span className="flex min-w-0 flex-col gap-1">
-            <span className="text-[15px] font-semibold">
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="font-medium">
               {goal.name} · {goal.date}
             </span>
-            <span className="text-body text-secondary-foreground">
+            <span className="text-label text-secondary-foreground">
               {goalSummary(goal)}
             </span>
           </span>
@@ -118,90 +95,86 @@ export function ReachSection({
           />
         </Link>
       )}
-    </section>
+    </PanelSection>
   );
 }
 
 export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
   return (
-    <section aria-labelledby="records-markers" className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-3">
+    <section
+      aria-labelledby="records-markers"
+      className="flex flex-col gap-3 border-b border-border px-4 py-4.5 md:px-5"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2
           id="records-markers"
-          className="text-body-lg font-semibold sm:text-title"
+          className="text-label font-medium text-muted-foreground"
         >
           Tes repères actuels
         </h2>
         <Link
           href="/settings/profile#entrainement"
-          className={cn(
-            "text-body text-primary hover:text-foreground max-sm:hidden",
-            focus,
-          )}
+          className="inline-flex min-h-control-touch items-center text-body text-primary hover:text-foreground md:min-h-0"
         >
           Voir tes zones d’allure et de FC →
         </Link>
       </div>
-      <dl className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         {markers.map((marker) => (
-          <div
-            key={marker.key}
-            className={cn(
-              "flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card p-3 sm:p-4",
-              marker.key === "vam" && "max-sm:hidden",
-            )}
-          >
-            <dt>
-              <MonoLabel size="micro">{marker.label}</MonoLabel>
+          <div key={marker.key} className="flex min-w-0 flex-col gap-0.5">
+            <dt className="order-2 text-label text-secondary-foreground">
+              {marker.label}
             </dt>
-            <dd>
-              <Metric
-                value={marker.value ?? "—"}
-                unit={marker.unit ?? undefined}
-                className={cn(
-                  "text-metric sm:text-[30px] [&>span]:text-body [&>span]:text-muted-foreground",
-                  marker.value === null && "text-muted-foreground",
-                )}
-              />
+            <dd
+              data-slot="metric"
+              className={cn(
+                "order-1 text-title",
+                value,
+                marker.value === null && "text-muted-foreground",
+              )}
+            >
+              {marker.value ?? "—"}
+              {marker.unit && (
+                <span className="ml-1 text-body font-normal text-secondary-foreground">
+                  {marker.unit}
+                </span>
+              )}
             </dd>
-            <dd className={cn("text-[11px] sm:text-label", tones[marker.tone])}>
+            <dd
+              className={cn("order-3 truncate text-label", tones[marker.tone])}
+            >
               {marker.detail}
             </dd>
           </div>
         ))}
       </dl>
-      <Link
-        href="/settings/profile#entrainement"
-        className={cn(
-          "flex min-h-11 items-center text-body text-primary hover:text-foreground sm:hidden",
-          focus,
-        )}
-      >
-        Voir tes zones d’allure et de FC →
-      </Link>
     </section>
   );
 }
 
+const rowLayout =
+  "grid min-h-row-touch grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 px-4 py-2.5 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_6rem_minmax(0,9rem)] md:px-5 lg:min-h-row lg:py-0";
+
 function Row({ row }: { row: RecordRow }) {
   const content = (
     <>
-      <span className="flex min-w-0 flex-col gap-0.5 max-sm:contents">
-        <span className="text-body sm:text-[15px]">{row.label}</span>
-        <span className="truncate text-label text-muted-foreground max-sm:order-3">
-          {row.detail}
-        </span>
-      </span>
-      <Metric
-        value={row.value ?? "—"}
+      <span className="min-w-0 truncate font-medium">{row.label}</span>
+      <span
+        data-slot="metric"
         className={cn(
-          "text-[22px] max-sm:order-2 max-sm:justify-self-end sm:text-[26px]",
+          "text-right md:order-3",
+          value,
           row.value === null && "text-muted-foreground",
         )}
-      />
+      >
+        {row.value ?? "—"}
+      </span>
+      <span className="min-w-0 truncate text-label text-secondary-foreground md:order-2">
+        {row.detail}
+      </span>
       <span
         className={cn(
-          "flex items-center justify-end gap-1 text-right text-label max-sm:order-4 sm:min-w-28",
+          "flex items-center justify-end gap-1 text-right text-label md:order-4",
           tones[row.tone],
         )}
       >
@@ -209,26 +182,29 @@ function Row({ row }: { row: RecordRow }) {
         {row.href && (
           <ChevronRightIcon
             aria-hidden="true"
-            className="size-4 text-muted-foreground"
+            className="size-3.5 text-muted-foreground"
           />
         )}
       </span>
     </>
   );
-  const className =
-    "grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.75 border-b border-border py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-x-4 sm:py-3.25";
-  return row.href ? (
-    <li>
-      <Link
-        href={row.href}
-        prefetch={false}
-        className={cn(className, "transition-colors hover:bg-muted/40", focus)}
-      >
-        {content}
-      </Link>
+  return (
+    <li className="border-b border-border">
+      {row.href ? (
+        <Link
+          href={row.href}
+          prefetch={false}
+          className={cn(
+            rowLayout,
+            "transition-colors duration-150 ease-stride hover:bg-muted focus-visible:outline-offset-[-2px]",
+          )}
+        >
+          {content}
+        </Link>
+      ) : (
+        <div className={rowLayout}>{content}</div>
+      )}
     </li>
-  ) : (
-    <li className={className}>{content}</li>
   );
 }
 
@@ -244,18 +220,21 @@ export function RecordList({
   empty: string;
 }) {
   return (
-    <section aria-labelledby={id} className="flex min-w-0 flex-col gap-2">
-      <h2 id={id} className="text-body-lg font-semibold sm:text-title">
+    <section aria-labelledby={id} className="flex min-w-0 flex-col">
+      <h2
+        id={id}
+        className="border-b border-border bg-muted px-4 py-2 text-label font-medium md:px-5"
+      >
         {title}
       </h2>
       {rows.length ? (
-        <ul className="flex flex-col border-t border-border">
+        <ul>
           {rows.map((row) => (
             <Row key={row.key} row={row} />
           ))}
         </ul>
       ) : (
-        <p className="border-t border-border pt-3 text-body text-muted-foreground">
+        <p className="border-b border-border px-4 py-3 text-body text-muted-foreground md:px-5">
           {empty}
         </p>
       )}

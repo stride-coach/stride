@@ -1,8 +1,8 @@
 # Progress measures
 
-The Progression destination reads normalized garmin_mcp rows (`provider_activities`, `lap` rows of `provider_activity_segments`, `provider_activity_tracks` and `provider_observations`), the athlete's races and the active plan. `src/server/progress` loads them; pure functions in `src/features/progress` compute every value. Dates are the activity's local day; weeks start on Monday.
+The Santé destination reads normalized garmin_mcp rows (`provider_activities`, `lap` rows of `provider_activity_segments`, `provider_activity_tracks` and `provider_observations`), the athlete's races and the active plan. `src/server/progress` loads them; pure functions in `src/features/progress` compute every value. Dates are the activity's local day; weeks start on Monday.
 
-Progression has three sections: Forme (`/progress`), Corps (`/progress/body`) and Records (`/progress/records`). Each page has one server loader that starts its reads in parallel (`loadFitness`, `loadBody`, `loadRecords`) and passes plain data to pure view builders. Every insight leads to the plan, the source activities or a prefilled Coach request: action links open `/coach/new?text=…` (trimmed, at most 500 characters, with an optional `session` attachment) and never create a proposal. The old `/progress/recovery` and `/progress/health` URLs redirect permanently to Corps and keep `view` and `date`.
+Santé has three data sections: Forme (`/health/fitness`), Récupération (`/health/recovery`) and Records (`/health/records`). Each page has one server loader that starts its reads in parallel (`loadFitness`, `loadBody`, `loadRecords`) and passes plain data to pure view builders. Every insight leads to the plan, the source activities or a prefilled Coach request: action links open `/coach/new?text=…` (trimmed, at most 500 characters, with an optional `session` attachment) and never create a proposal. The former `/progress`, `/progress/body`, `/progress/recovery`, `/progress/health` and `/progress/records` URLs redirect permanently to their Santé tab and keep `view`, `date` and `period`.
 
 ## Shared inputs
 
@@ -25,9 +25,9 @@ The period selector (6 weeks, 12 weeks, 6 months by default, 1 year, kept in the
 
 Aerobic efficiency is the median pace of flat laps (≥ 400 m, (D+ + D−)/distance ≤ 1.5 %, pace 2:30–10:00/km, outdoor runs) whose heart rate is within ±6 bpm of the top of zone 2 rounded to 5 bpm, scaled to that reference with heart-rate reserve; ±4 s/km sets the trend. Climbing speed is the median VAM of laps graded 8–15 % (≥ 200 m); ±30 m/h sets the trend. Cardiac drift is (HR/speed of the second half) ÷ (HR/speed of the first half) − 1 on runs of 90 minutes or more with 15 minutes of heart-rate laps per half, median of the last three; above 5 % is "watch", above 8 % or above 5 % and up two points is "investigate". Consistency is the share of due planned sessions completed. Threshold pace and VO₂ max live in Records.
 
-## Corps
+## Récupération
 
-Corps has three scales: 14 jours (default), 30 jours (`?view=month`) and Jour (`?view=day&date=YYYY-MM-DD`). The 14- and 30-day scales read stored daily observations; a measure is "today's" only when observed today or yesterday.
+Récupération has three scales: 14 jours (default), 30 jours (`?view=month`) and Jour (`?view=day&date=YYYY-MM-DD`). The 14- and 30-day scales read stored daily observations; a measure is "today's" only when observed today or yesterday.
 
 | Block                     | Definition                                                                                                                                                                                                                                                                                                                                                                                                                                     | Source                                                                  |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -44,7 +44,7 @@ Stride does not diagnose; the check-in says so.
 
 ### Jour
 
-`/progress/body?view=day&date=YYYY-MM-DD` (today by default, up to two years back) reads the day and the previous day from garmin_mcp's `GET /v1/wellness/days/{date}`, fetched on demand and never stored, plus the day's activities and the stored daily observations for reference ranges. The window runs from 22:00 the previous evening to 22:00, Europe/Paris time; the future part of today is hatched and never drawn.
+`/health/recovery?view=day&date=YYYY-MM-DD` (today by default, up to two years back) reads the day and the previous day from garmin_mcp's `GET /v1/wellness/days/{date}`, fetched on demand and never stored, plus the day's activities and the stored daily observations for reference ranges. The window runs from 22:00 the previous evening to 22:00, Europe/Paris time; the future part of today is hatched and never drawn.
 
 - Indicators: sleep (phases sum, bedtime, wake time, awakenings), the night's HRV against the usual range, resting HR against its median, latest Body Battery against wake-up, average stress with its longest high episode, and steps against the Garmin goal.
 - Timeline: sleep phases, heart rate (2-minute averages) with resting HR, stress (3-minute bars coloured by Garmin category), Body Battery and hourly steps. Ten-minute slots feed the inspector.
@@ -55,7 +55,7 @@ When garmin_mcp cannot provide the day, the page says why (unavailable, reconnec
 
 ## Records
 
-`/progress/records` reads the complete activity and lap history, 400 days of observations, elapsed time, distance and elevation arrays from normalized Garmin tracks (validated with Zod, at most 240 samples), Garmin predictions, the Garmin lactate threshold and the profile threshold heart-rate override. Read errors produce an explicit failure state.
+`/health/records` reads the complete activity and lap history, 400 days of observations, elapsed time, distance and elevation arrays from normalized Garmin tracks (validated with Zod, at most 240 samples), Garmin predictions, the Garmin lactate threshold and the profile threshold heart-rate override. Read errors produce an explicit failure state.
 
 - Reading and À portée: the road distance whose Garmin prediction is closest to its record, within 3 %, with "Préparer une tentative avec le coach". Without one, the reading counts documented records. The goal race card summarizes its preparation.
 - Tes repères actuels: Garmin threshold pace, threshold heart rate (the profile value wins over Garmin), VO₂ max with its change against the latest value at least 90 days older, and the 20-minute VAM record. The zones link opens the "Issu de ton entraînement" section of profile settings.

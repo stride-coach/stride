@@ -17,7 +17,7 @@ import {
   TodayShoeChip,
   TodayShoeRow,
 } from "@/features/gear/components/session-shoes";
-import { bodyPath } from "@/features/progress/health";
+import { recoveryPath } from "@/features/progress/health";
 import { cn } from "@/lib/utils";
 import type {
   TodayDaySession,
@@ -355,7 +355,7 @@ export function BodySection({
               </Status>
             )}
             <Link
-              href={bodyPath}
+              href={recoveryPath}
               className="rounded-md text-label font-medium text-secondary-foreground hover:text-foreground"
             >
               Détail

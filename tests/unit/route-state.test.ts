@@ -4,7 +4,7 @@ import { appSectionLabel } from "@/features/app-shell/route-state";
 describe("appSectionLabel", () => {
   it("names the app section from the first path segment", () => {
     expect(appSectionLabel("/activities/1f0c/details")).toBe("Activités");
-    expect(appSectionLabel("/progress/health")).toBe("Santé");
+    expect(appSectionLabel("/health/recovery")).toBe("Santé");
     expect(appSectionLabel("/today")).toBe("Aujourd’hui");
   });
 

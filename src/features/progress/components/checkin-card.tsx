@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { saveCheckin } from "@/server/progress/actions";
@@ -87,11 +86,14 @@ export function CheckinCard({
     index === history.days.length - 1 ? { ...day, legs: answers.legs } : day,
   );
   return (
-    <section aria-labelledby="body-checkin" className="flex flex-col gap-3">
+    <section
+      aria-labelledby="body-checkin"
+      className="flex flex-col gap-3 border-b border-border py-4.5 last:border-b-0"
+    >
       <div className="flex items-baseline justify-between gap-3">
         <h2
           id="body-checkin"
-          className="text-body-lg font-semibold sm:text-title"
+          className="text-label font-medium text-muted-foreground"
         >
           Ton ressenti
         </h2>
@@ -102,13 +104,10 @@ export function CheckinCard({
         </span>
       </div>
       {questions.map((question) => (
-        <div
-          key={question.field}
-          className="grid gap-2 sm:grid-cols-[150px_minmax(0,1fr)] sm:items-center sm:gap-3"
-        >
+        <div key={question.field} className="flex flex-col gap-1.5">
           <span
             id={`checkin-${question.field}`}
-            className="text-body text-secondary-foreground"
+            className="text-label text-secondary-foreground"
           >
             {question.label}
           </span>
@@ -124,25 +123,31 @@ export function CheckinCard({
             className="grid grid-cols-3 gap-1.5"
           >
             {question.options.map((option) => (
-              <ToggleGroupItem key={option} value={option}>
+              <ToggleGroupItem
+                key={option}
+                value={option}
+                className="max-md:min-h-control-touch"
+              >
                 {(question.labels as Record<string, string>)[option]}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </div>
       ))}
-      <div className="grid gap-2 sm:grid-cols-[150px_minmax(0,1fr)] sm:items-center sm:gap-3">
-        <MonoLabel size="micro">7 matins · jambes</MonoLabel>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-label text-secondary-foreground">
+          7 matins · jambes
+        </span>
         <ol
           aria-label={history.label}
-          className="grid grid-cols-7 gap-1 text-[11px] text-muted-foreground"
+          className="grid grid-cols-7 gap-1 text-label text-muted-foreground"
         >
           {days.map((day) => (
             <li key={day.day} className="flex flex-col items-center gap-1">
               <span
                 aria-hidden="true"
                 className={cn(
-                  "size-3 rounded-full",
+                  "size-2.5 rounded-full",
                   day.legs
                     ? legsDots[day.legs]
                     : "border border-control-border",
@@ -153,7 +158,7 @@ export function CheckinCard({
           ))}
         </ol>
       </div>
-      <p className="text-label leading-normal text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         Stride lit les tendances pour guider ton entraînement, il ne pose pas de
         diagnostic. Une douleur qui change ta foulée ou qui dure plus de
         quelques jours, c’est pour un kiné ou un médecin.

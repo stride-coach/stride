@@ -10,8 +10,12 @@ test("the nutrition page shows today's targets and the next seven days", async (
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
-  await page.goto("/progress");
-  await page.getByRole("link", { name: "Nutrition", exact: true }).click();
+  await page.goto("/health/fitness");
+  await page
+    .getByRole("navigation", { name: "Sections de Santé" })
+    .filter({ visible: true })
+    .getByRole("link", { name: "Nutrition", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/nutrition$/);
   await expect(
     page.getByRole("heading", {

@@ -6,6 +6,10 @@ import {
   ReachSection,
   RecordList,
 } from "@/features/progress/components/records-sections";
+import {
+  HealthPage,
+  HealthReading,
+} from "@/features/progress/components/health-frame";
 import { addDays } from "@/features/progress/period";
 import { garminPredictions } from "@/features/progress/garmin-predictions";
 import { goalCard, preparationWindowDays } from "@/features/progress/goal";
@@ -16,9 +20,6 @@ import { loadRecords } from "@/server/progress/records";
 
 export const metadata: Metadata = { title: "Records · Santé" };
 
-const titleClass =
-  "text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[1.08] sm:tracking-[-0.03em]";
-
 export default async function ProgressRecordsPage() {
   const context = await requireAthlete();
   const today = localToday(new Date());
@@ -27,8 +28,8 @@ export default async function ProgressRecordsPage() {
     .catch(() => ({ data: null, failed: true }));
   if (!loaded.data)
     return (
-      <div className="flex flex-col gap-6">
-        <h1 className={titleClass}>Records</h1>
+      <div className="flex flex-col gap-4 px-4 py-4.5 md:px-5">
+        <h1 className="text-verdict font-semibold">Records</h1>
         <Alert>
           <AlertDescription>
             Impossible de lire ton historique pour le moment. Réessaie plus
@@ -66,36 +67,28 @@ export default async function ProgressRecordsPage() {
     blockKinds: {},
   });
   return (
-    <div className="flex min-w-0 flex-col gap-8 sm:gap-10">
-      <section className="grid items-start gap-6.5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
-        <div className="flex flex-col gap-2.5 sm:gap-3.5">
-          <h1 className={titleClass}>{view.headline}</h1>
-          <p className="max-w-150 text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
-            {view.paragraph}
-          </p>
-        </div>
-        <ReachSection reach={view.reach} goal={goal} />
-      </section>
+    <HealthPage aside={<ReachSection reach={view.reach} goal={goal} />}>
+      <HealthReading kicker="Lecture de Stride · Records" title={view.headline}>
+        {view.paragraph}
+      </HealthReading>
       <MarkersSection markers={view.markers} />
-      <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-10">
-        <RecordList
-          id="records-speed"
-          title="Vitesse"
-          rows={view.speed}
-          empty="Aucun record sur route documenté."
-        />
-        <RecordList
-          id="records-endurance"
-          title="Endurance"
-          rows={view.endurance}
-          empty="Aucun record d’endurance documenté."
-        />
-      </div>
-      <p className="text-label leading-normal text-muted-foreground">
+      <RecordList
+        id="records-speed"
+        title="Vitesse"
+        rows={view.speed}
+        empty="Aucun record sur route documenté."
+      />
+      <RecordList
+        id="records-endurance"
+        title="Endurance"
+        rows={view.endurance}
+        empty="Aucun record d’endurance documenté."
+      />
+      <p className="px-4 py-4.5 text-label text-muted-foreground md:px-5">
         Records tirés de tes tours et tracés Garmin, sans dépasser la distance
         de plus de 5 %. Vitesse : sorties sur route et piste uniquement.
         Prévisions : Garmin. Chaque ligne ouvre l’activité d’origine.
       </p>
-    </div>
+    </HealthPage>
   );
 }

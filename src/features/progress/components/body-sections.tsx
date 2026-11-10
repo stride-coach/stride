@@ -1,7 +1,7 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { ChartInspector } from "@/components/stride/chart-inspector";
-import { Metric } from "@/components/stride/metric";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Status, type StatusLevel } from "@/components/stride/status";
+import { Widget } from "@/components/stride/widget";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
@@ -18,64 +18,23 @@ import type { HealthRange } from "../health";
 import type { RecoveryView } from "../recovery-view";
 import { formatSleep } from "../recovery-view";
 import { Legend, nightTitle, RangeChart } from "./charts";
+import { PanelSection, WidgetEmpty } from "./health-frame";
 
-const ringTones = {
-  success: "stroke-primary",
-  warning: "stroke-warning",
-  danger: "stroke-destructive",
-} as const;
+const value = "font-semibold whitespace-nowrap tabular-nums";
 
-export function ScoreRing({
-  score,
-  tone,
-  className,
-  metricClassName,
-}: {
-  score: number;
-  tone: keyof typeof ringTones;
-  className?: string;
-  metricClassName?: string;
-}) {
-  return (
-    <span className={cn("relative shrink-0", className)}>
-      <svg viewBox="0 0 64 64" aria-hidden="true" className="size-full">
-        <circle
-          cx="32"
-          cy="32"
-          r="27"
-          fill="none"
-          strokeWidth="6"
-          className="stroke-border"
-        />
-        <circle
-          cx="32"
-          cy="32"
-          r="27"
-          fill="none"
-          strokeWidth="6"
-          strokeLinecap="round"
-          pathLength="100"
-          strokeDasharray={`${Math.max(0, Math.min(100, score))} 100`}
-          transform="rotate(-90 32 32)"
-          className={ringTones[tone]}
-        />
-      </svg>
-      <Metric
-        value={formatInteger(score)}
-        className={cn(
-          "absolute inset-0 justify-center self-center",
-          metricClassName,
-        )}
-      />
-    </span>
-  );
-}
+const summaryLevels: Record<ReadinessSummary["tone"], StatusLevel> = {
+  success: "ok",
+  warning: "watch",
+  danger: "alert",
+};
 
-export function ReadinessCard({
+export function ReadinessPanel({
+  id,
   summary,
   advice,
   session,
 }: {
+  id: string;
   summary: ReadinessSummary | null;
   advice: ReadinessAdvice | null;
   session: TodaySession | null;
@@ -83,81 +42,55 @@ export function ReadinessCard({
   const planHref = session ? sessionHref(session) : null;
   const lighterHref = session ? lighterSessionHref(session) : null;
   return (
-    <section
-      aria-labelledby="body-readiness"
-      className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5"
-    >
+    <PanelSection id={id} title="Forme du jour">
       {summary ? (
-        <div className="flex items-center gap-4">
-          <ScoreRing
-            score={summary.score}
-            tone={summary.tone}
-            className="size-19"
-            metricClassName="text-[28px] leading-[76px]"
-          />
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <MonoLabel id="body-readiness" size="micro">
-              Prêt pour aujourd’hui ?
-            </MonoLabel>
-            <span className="text-title font-semibold sm:text-verdict">
-              {summary.level}
-              {summary.gap ? ` · ${summary.gap}` : ""}
-            </span>
-            <span className="text-body text-muted-foreground">
-              Disponibilité Garmin + ton ressenti
-            </span>
-          </span>
-        </div>
-      ) : (
         <div className="flex flex-col gap-1">
-          <MonoLabel id="body-readiness" size="micro">
-            Prêt pour aujourd’hui ?
-          </MonoLabel>
-          <p className="text-body text-muted-foreground">
-            Garmin n’a pas transmis de disponibilité pour aujourd’hui.
+          <div className="flex items-baseline gap-2.5">
+            <span data-slot="metric" className={cn("text-metric", value)}>
+              {formatInteger(summary.score)}
+            </span>
+            <Status level={summaryLevels[summary.tone]}>{summary.level}</Status>
+          </div>
+          <p className="text-label text-muted-foreground">
+            {summary.gap ? `${summary.gap} · ` : ""}Disponibilité Garmin + ton
+            ressenti
           </p>
         </div>
+      ) : (
+        <p className="text-body text-muted-foreground">
+          Garmin n’a pas transmis de disponibilité pour aujourd’hui.
+        </p>
       )}
       {advice &&
         (session && planHref ? (
           <Link
             href={planHref}
-            className="flex flex-col gap-1 rounded-lg border border-border p-3.5 transition-colors hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring"
+            className="flex flex-col gap-0.5 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors duration-150 ease-stride hover:border-control-border"
           >
-            <MonoLabel size="micro">Séance du jour</MonoLabel>
-            <span className="font-semibold">{session.title}</span>
-            <span className="text-body leading-normal text-secondary-foreground">
+            <span className="text-label text-muted-foreground">
+              Séance du jour
+            </span>
+            <span className="font-medium">{session.title}</span>
+            <span className="text-body text-secondary-foreground">
               {advice.text}
             </span>
           </Link>
         ) : (
-          <p className="text-body leading-normal text-secondary-foreground">
-            {advice.text}
-          </p>
+          <p className="text-body text-secondary-foreground">{advice.text}</p>
         ))}
       {session && planHref && (
-        <div className="flex gap-2 [&>*]:flex-1">
-          <Button
-            asChild
-            variant="outline"
-            size="md"
-            className="max-sm:min-h-11"
-          >
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
             <Link href={planHref}>Voir la séance</Link>
           </Button>
           {advice?.lighter && lighterHref && (
-            <Button
-              asChild
-              variant="outline"
-              size="md"
-              className="max-sm:min-h-11"
-            >
+            <Button asChild variant="outline">
               <Link href={lighterHref}>Version allégée</Link>
             </Button>
           )}
         </div>
       )}
-    </section>
+    </PanelSection>
   );
 }
 
@@ -168,28 +101,31 @@ const factorTones = {
   success: "text-primary",
 } as const;
 
-export function FactorsSection({ factors }: { factors: ReadinessFactor[] }) {
+export function FactorsSection({
+  factors,
+  className,
+}: {
+  factors: ReadinessFactor[];
+  className?: string;
+}) {
   return (
-    <section aria-labelledby="body-factors" className="flex flex-col gap-1.5">
-      <h2
-        id="body-factors"
-        className="text-body-lg font-semibold sm:text-title"
-      >
-        Ce qui pèse aujourd’hui
-      </h2>
+    <Widget
+      headingLevel={2}
+      title={<span id="body-factors">Ce qui pèse aujourd’hui</span>}
+      aria-labelledby="body-factors"
+      className={className}
+    >
       {factors.length ? (
-        <ul className="flex flex-col border-t border-border">
+        <ul className="flex flex-col">
           {factors.map((factor) => (
             <li
               key={factor.key}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border py-2.75"
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.5 border-b border-border py-2 last:border-b-0"
             >
-              <span className="text-body">{factor.label}</span>
+              <span className="font-medium">{factor.label}</span>
               <span
-                className={cn(
-                  "text-title font-semibold tabular-nums",
-                  factorTones[factor.tone],
-                )}
+                data-slot="metric"
+                className={cn(value, factorTones[factor.tone])}
               >
                 {factor.value}
               </span>
@@ -200,34 +136,37 @@ export function FactorsSection({ factors }: { factors: ReadinessFactor[] }) {
           ))}
         </ul>
       ) : (
-        <p className="border-t border-border pt-3 text-body text-muted-foreground">
+        <WidgetEmpty>
           Aucun signal Garmin récent ni ressenti saisi aujourd’hui.
-        </p>
+        </WidgetEmpty>
       )}
-    </section>
+    </Widget>
   );
 }
 
-export function NightsSection({ nights }: { nights: BodyNights }) {
+export function NightsSection({
+  nights,
+  className,
+}: {
+  nights: BodyNights;
+  className?: string;
+}) {
   const max = Math.max(1, ...nights.nights.map((night) => night.seconds ?? 0));
   const hasNight = nights.nights.some((night) => night.seconds !== null);
   return (
-    <section aria-labelledby="body-nights" className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2
-          id="body-nights"
-          className="text-body-lg font-semibold sm:text-title"
-        >
-          Nuits
-        </h2>
-        {nights.summary && (
-          <span className="text-body text-secondary-foreground">
-            {nights.summary}
-          </span>
-        )}
-      </div>
+    <Widget
+      headingLevel={2}
+      title={<span id="body-nights">Sommeil</span>}
+      aria-labelledby="body-nights"
+      className={className}
+    >
       {hasNight ? (
-        <>
+        <div className="flex flex-col gap-2.5">
+          {nights.summary && (
+            <p className="text-label text-secondary-foreground tabular-nums">
+              {nights.summary}
+            </p>
+          )}
           <ChartInspector
             label={`Durée et phases de sommeil des ${nights.nights.length} dernières nuits`}
             points={nights.nights.map((night, index, all) => ({
@@ -265,7 +204,7 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
                   : `Ta moyenne : ${formatSleep(nights.average)}`,
             }))}
           >
-            <ol className="flex h-30 items-end gap-1 border-b border-control-border sm:h-37.5 sm:gap-2">
+            <ol className="flex h-28 items-end gap-0.5 border-b border-control-border sm:gap-1">
               {nights.nights.map((night) => {
                 const staged =
                   night.deep !== null &&
@@ -276,10 +215,10 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
                   <li
                     key={night.day}
                     className={cn(
-                      "flex flex-1 flex-col overflow-hidden rounded-t-[3px]",
+                      "flex flex-1 flex-col overflow-hidden rounded-t-mark",
                       night.short &&
-                        "outline-[1.5px] outline-offset-2 outline-destructive",
-                      !staged && "bg-foreground/60",
+                        "outline-[1.5px] outline-offset-1 outline-warning",
+                      !staged && "bg-secondary-foreground",
                     )}
                     style={{
                       height: `${((night.seconds ?? 0) / max) * 100}%`,
@@ -313,30 +252,23 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
             items={[
               {
                 label: "Paradoxal",
-                swatch: "size-2.5 rounded-mark bg-data-2",
+                swatch: "size-2 rounded-mark bg-data-2",
               },
-              {
-                label: "Léger",
-                swatch: "size-2.5 rounded-mark bg-data-1",
-              },
-              {
-                label: "Profond",
-                swatch: "size-2.5 rounded-mark bg-data-3",
-              },
+              { label: "Léger", swatch: "size-2 rounded-mark bg-data-1" },
+              { label: "Profond", swatch: "size-2 rounded-mark bg-data-3" },
               {
                 label: "Nuit courte",
-                swatch:
-                  "size-2.5 rounded-mark outline-[1.5px] outline-destructive",
+                swatch: "size-2 rounded-mark outline-[1.5px] outline-warning",
               },
             ]}
           />
-        </>
+        </div>
       ) : (
-        <p className="border-t border-border pt-3 text-body text-muted-foreground">
+        <WidgetEmpty>
           Aucune nuit mesurée par Garmin sur cette période.
-        </p>
+        </WidgetEmpty>
       )}
-    </section>
+    </Widget>
   );
 }
 
@@ -365,44 +297,50 @@ function RangeCard({
   chartDays: number;
 }) {
   const unfavorable = higherIsBetter ? "below" : "above";
-  const status = !signal
+  const status: { label: string; level: StatusLevel | null } | null = !signal
     ? null
     : signal.position === null
-      ? { label: "Plage en cours de calcul", tone: "text-muted-foreground" }
+      ? { label: "Plage en cours de calcul", level: null }
       : signal.position === "within"
-        ? {
-            label: higherIsBetter ? "Dans ta plage" : "Stable",
-            tone: "text-primary",
-          }
+        ? { label: higherIsBetter ? "Dans ta plage" : "Stable", level: "ok" }
         : signal.position === unfavorable
           ? {
               label: higherIsBetter ? "Sous ta plage" : "Au-dessus",
-              tone: "text-warning",
+              level: "watch",
             }
           : {
               label: higherIsBetter ? "Au-dessus de ta plage" : "Plus basse",
-              tone: "text-primary",
+              level: "ok",
             };
   return (
-    <section
+    <Widget
+      headingLevel={2}
+      title={<span id={id}>{title}</span>}
       aria-labelledby={id}
-      className="flex min-w-0 flex-col gap-2 rounded-xl border border-border bg-card p-4"
+      verdict={
+        status &&
+        (status.level ? (
+          <Status level={status.level}>{status.label}</Status>
+        ) : (
+          <span className="text-label font-normal text-muted-foreground">
+            {status.label}
+          </span>
+        ))
+      }
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 id={id}>
-          <MonoLabel size="micro">{title}</MonoLabel>
-        </h3>
-        {status && (
-          <span className={cn("text-label", status.tone)}>{status.label}</span>
-        )}
-      </div>
       {signal ? (
-        <>
-          <Metric
-            value={formatInteger(signal.last)}
-            unit={unit}
-            className="text-[30px] [&>span]:text-[15px] [&>span]:text-muted-foreground"
-          />
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-3">
+            <span data-slot="metric" className={cn("text-metric", value)}>
+              {formatInteger(signal.last)}
+              <span className="ml-1 text-body font-normal text-secondary-foreground">
+                {unit}
+              </span>
+            </span>
+            <span className="text-label text-muted-foreground">
+              {caption(signal)}
+            </span>
+          </div>
           <ChartInspector
             label={`${title} sur ${chartDays} jours`}
             points={signal.points.map((point, index, all) => ({
@@ -430,16 +368,11 @@ function RangeCard({
               height={70}
             />
           </ChartInspector>
-          <span className="text-label text-muted-foreground">
-            {caption(signal)}
-          </span>
-        </>
+        </div>
       ) : (
-        <p className="text-body text-muted-foreground">
-          Aucune mesure ces deux derniers jours.
-        </p>
+        <WidgetEmpty>Aucune mesure ces deux derniers jours.</WidgetEmpty>
       )}
-    </section>
+    </Widget>
   );
 }
 
@@ -453,7 +386,7 @@ export function HeartCards({
   chartDays: number;
 }) {
   return (
-    <div className="grid gap-3.5 sm:grid-cols-2">
+    <>
       <RangeCard
         id="body-hrv"
         title="VFC nocturne"
@@ -480,7 +413,7 @@ export function HeartCards({
             : `médiane ${formatInteger(signal.median)} bpm · 28 j`
         }
       />
-    </div>
+    </>
   );
 }
 
@@ -493,22 +426,24 @@ const kpiTones = {
 export function KpiCards({ kpis }: { kpis: BodyKpi[] }) {
   if (kpis.length === 0) return null;
   return (
-    <dl className="grid grid-cols-2 gap-2.5">
-      {kpis.map((kpi) => (
-        <div
-          key={kpi.key}
-          className="flex flex-col gap-1 rounded-xl border border-border bg-card p-3.5"
-        >
-          <dt>
-            <MonoLabel size="micro">{kpi.label}</MonoLabel>
-          </dt>
-          <dd>
-            <Metric value={kpi.value} className="text-[26px]" />
-          </dd>
-          <dd className={cn("text-label", kpiTones[kpi.tone])}>{kpi.detail}</dd>
-        </div>
-      ))}
-    </dl>
+    <PanelSection id="body-signals" title="Autres signaux Garmin">
+      <dl className="flex flex-col">
+        {kpis.map((kpi) => (
+          <div
+            key={kpi.key}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.5 border-b border-border py-2 last:border-b-0"
+          >
+            <dt className="text-secondary-foreground">{kpi.label}</dt>
+            <dd data-slot="metric" className={value}>
+              {kpi.value}
+            </dd>
+            <dd className={cn("col-span-2 text-label", kpiTones[kpi.tone])}>
+              {kpi.detail}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </PanelSection>
   );
 }
 
@@ -525,34 +460,36 @@ export function RaceRecoveries({
   note: string;
 }) {
   return (
-    <section aria-labelledby="body-races" className="flex flex-col gap-2.5">
-      <h2 id="body-races" className="text-body-lg font-semibold sm:text-title">
-        Après tes courses
-      </h2>
+    <PanelSection id="body-races" title="Récupération après course">
       {races.length ? (
-        <dl className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3.5 gap-y-2.5 border-t border-border pt-3 text-body">
+        <dl className="flex flex-col">
           {races.map((race) => (
-            <div key={race.id} className="contents">
+            <div
+              key={race.id}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 border-b border-border py-2 last:border-b-0"
+            >
               <dt className="truncate">
                 {race.name} ·{" "}
                 {monthShort.format(new Date(`${race.day}T00:00:00Z`))}
               </dt>
-              <dd className="text-body text-secondary-foreground">
+              <dd className="text-label text-secondary-foreground">
                 {race.ongoing ? "VFC basse depuis " : "VFC normale en "}
-                <Metric
-                  value={`${formatInteger(race.days)} j`}
-                  className="text-title text-foreground"
-                />
+                <span
+                  data-slot="metric"
+                  className={cn("text-body text-foreground", value)}
+                >
+                  {formatInteger(race.days)} j
+                </span>
               </dd>
             </div>
           ))}
         </dl>
       ) : (
-        <p className="border-t border-border pt-3 text-body text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Aucune course passée avec des mesures de VFC.
         </p>
       )}
       <p className="text-label text-muted-foreground">{note}</p>
-    </section>
+    </PanelSection>
   );
 }

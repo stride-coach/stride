@@ -142,8 +142,8 @@ export function AppShell({
                           label="Activités"
                         />
                         <ShellNavItem
-                          href="/progress"
-                          match={["/nutrition"]}
+                          href="/health/fitness"
+                          match={["/health", "/nutrition"]}
                           icon={<NavProgressIcon />}
                           label="Santé"
                         />

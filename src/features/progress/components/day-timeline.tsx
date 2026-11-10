@@ -3,7 +3,6 @@ import {
   type InspectorPoint,
   type InspectorTone,
 } from "@/components/stride/chart-inspector";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import type { SleepStage } from "@/features/garmin/wellness";
 import { formatClock, stressLevel, type HealthDayModel } from "../health-day";
@@ -46,7 +45,7 @@ function Track({
     <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-stretch border-b border-border last:border-b-0 max-sm:grid-cols-[5rem_minmax(0,1fr)]">
       <div className="flex flex-col justify-center gap-0.5 pr-3">
         <span className="text-body">{label}</span>
-        <MonoLabel size="nano">{unit}</MonoLabel>
+        <span className="text-label text-muted-foreground">{unit}</span>
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
@@ -167,13 +166,14 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
   return (
     <section
       aria-labelledby="health-day-timeline"
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4.5 sm:p-6"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="health-day-timeline">
-          <MonoLabel size="micro" tone="secondary">
-            Ta journée heure par heure · de 22:00 à 22:00
-          </MonoLabel>
+        <h2
+          id="health-day-timeline"
+          className="text-body font-medium text-secondary-foreground"
+        >
+          Ta journée heure par heure · de 22:00 à 22:00
         </h2>
         <p className="text-label text-muted-foreground">
           Survole les courbes pour lire chaque moment

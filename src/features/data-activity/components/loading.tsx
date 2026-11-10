@@ -146,20 +146,20 @@ export function HealthDayLoading() {
   return (
     <LoadingScope
       label="Chargement de la journée"
-      className="flex flex-col gap-6 sm:gap-8"
+      className="flex flex-col gap-4.5"
     >
-      <div aria-hidden="true" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {[0, 1, 2, 3].map((item) => (
-          <Skeleton key={item} className="h-24 rounded-2xl" />
-        ))}
-      </div>
-      <Skeleton className="h-72 w-full rounded-2xl" />
       <div
         aria-hidden="true"
-        className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-8"
+        className="grid grid-cols-2 gap-4 border-y border-border py-3.5 sm:grid-cols-3 lg:grid-cols-6"
       >
-        <Skeleton className="h-64 rounded-2xl" />
-        <Skeleton className="h-64 rounded-2xl" />
+        {[0, 1, 2, 3, 4, 5].map((item) => (
+          <Skeleton key={item} className="h-12" />
+        ))}
+      </div>
+      <Skeleton className="h-72 w-full rounded-xl" />
+      <div aria-hidden="true" className="grid items-start gap-3 lg:grid-cols-2">
+        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     </LoadingScope>
   );

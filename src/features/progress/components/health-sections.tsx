@@ -1,4 +1,3 @@
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import type { HealthKpi, Tone } from "../health-view";
 
@@ -11,26 +10,24 @@ const toneDot: Record<Tone, string> = {
 
 export function KpiStrip({ kpis }: { kpis: HealthKpi[] }) {
   return (
-    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-3 lg:grid-cols-6">
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-3.5 border-y border-border py-3.5 sm:grid-cols-3 lg:grid-cols-6">
       {kpis.map((kpi) => (
-        <div
-          key={kpi.key}
-          className="flex flex-col gap-1.5 border-border p-4 not-last:border-b sm:not-last:border-r lg:border-b-0"
-        >
-          <dt>
-            <MonoLabel size="nano">{kpi.label}</MonoLabel>
-          </dt>
-          <dd className="flex items-baseline gap-1.5">
-            <span className="text-[28px] leading-none font-semibold tabular-nums">
+        <div key={kpi.key} className="flex min-w-0 flex-col gap-0.5">
+          <dt className="text-label text-secondary-foreground">{kpi.label}</dt>
+          <dd className="flex items-baseline gap-1">
+            <span
+              data-slot="metric"
+              className="text-title font-semibold whitespace-nowrap tabular-nums"
+            >
               {kpi.value}
             </span>
             {kpi.unit && (
-              <span className="text-label text-muted-foreground">
+              <span className="text-body text-secondary-foreground">
                 {kpi.unit}
               </span>
             )}
           </dd>
-          <dd className="flex items-center gap-1.5 text-label text-secondary-foreground">
+          <dd className="flex items-center gap-1.5 text-label text-muted-foreground">
             <span
               aria-hidden="true"
               className={cn(

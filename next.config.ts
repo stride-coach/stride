@@ -14,6 +14,18 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/coach/equipe", destination: "/coach/team", permanent: true },
+      { source: "/health", destination: "/health/fitness", permanent: false },
+      { source: "/progress", destination: "/health/fitness", permanent: true },
+      {
+        source: "/progress/:section(body|recovery|health)",
+        destination: "/health/recovery",
+        permanent: true,
+      },
+      {
+        source: "/progress/records",
+        destination: "/health/records",
+        permanent: true,
+      },
       { source: "/coach/nouvelle", destination: "/coach/new", permanent: true },
       {
         source: "/races/:id/preparation",
