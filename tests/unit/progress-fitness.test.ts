@@ -207,6 +207,29 @@ describe("fitness measures", () => {
     expect(measures.drift.value).toBeNull();
   });
 
+  it("measures the threshold pace on sustained zone-4 laps only", () => {
+    const activities: ProgressActivity[] = [];
+    const laps: ProgressLap[] = [];
+    for (let index = 0; index < 4; index++) {
+      const id = `quality-${index}`;
+      activities.push(run(id, addDays(today, -index * 3)));
+      for (let rep = 0; rep < 6; rep++)
+        laps.push(
+          lap(id, rep, { distance: 750, duration: 180, heartRate: 170 }),
+        );
+      laps.push(lap(id, 6, { distance: 1000, duration: 262, heartRate: 168 }));
+    }
+    const measures = fitnessMeasures({
+      activities,
+      laps,
+      vo2: [],
+      zones,
+      start: "2026-04-14",
+      today,
+    });
+    expect(measures.threshold.value).toBe(262);
+  });
+
   it("flags rising long-run drift", () => {
     const activities: ProgressActivity[] = [];
     const laps: ProgressLap[] = [];
@@ -292,9 +315,7 @@ describe("condition chart", () => {
       "Alléger ma semaine",
     ]);
     expect(advice.actions[0].href).toBe("/plan?week=2026-10-12");
-    expect(advice.actions[1].href).toMatch(
-      /^\/coach\/new\?text=Ma\+fatigue/,
-    );
+    expect(advice.actions[1].href).toMatch(/^\/coach\/new\?text=Ma\+fatigue/);
     expect(loadAdvice(chart, null).actions).toHaveLength(1);
   });
 

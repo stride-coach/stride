@@ -38,6 +38,7 @@ export const flatGradeLimit = 0.015;
 export const climbGrade = { min: 0.08, max: 0.15 } as const;
 export const longRunSeconds = 90 * 60;
 export const minimumWindowSamples = 3;
+export const thresholdLapMeters = 990;
 const sparklineBuckets = 8;
 const minimumHalfSeconds = 15 * 60;
 const referenceTolerance = 6;
@@ -298,6 +299,7 @@ export function fitnessMeasures({
     ? flat
         .filter(
           ({ lap }) =>
+            lap.distance >= thresholdLapMeters &&
             lap.heartRate !== null &&
             lap.heartRate >= zone4.lower &&
             lap.heartRate <= zone4.upper,

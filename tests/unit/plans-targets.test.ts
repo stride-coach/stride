@@ -104,6 +104,49 @@ describe("trainingTargets", () => {
     });
   });
 
+  it("drops a flat-lap pace much faster than the Garmin threshold", () => {
+    const targets = trainingTargets(
+      input({
+        flatLapThresholdPace: { secondsPerKm: 218, asOf: today },
+        garminLactateThreshold: {
+          speedMps: 1000 / 261,
+          heartRateBpm: 179,
+          asOf: "2026-09-30",
+        },
+      }),
+    );
+    expect(targets.intensities.threshold.paceSource?.kind).toBe(
+      "garmin_lactate_threshold",
+    );
+    expect(
+      targets.intensities.interval.paceRange!.fastSecondsPerKm,
+    ).toBeGreaterThan(235);
+  });
+
+  it("drops a flat-lap pace much faster than recent race efforts", () => {
+    const targets = trainingTargets(
+      input({
+        flatLapThresholdPace: { secondsPerKm: 218, asOf: today },
+        bestEfforts: [{ meters: 10_000, seconds: 2_644, asOf: "2026-09-30" }],
+      }),
+    );
+    expect(targets.intensities.threshold.paceSource?.kind).toBe("best_effort");
+  });
+
+  it("keeps a flat-lap pace close to the other evidence", () => {
+    const targets = trainingTargets(
+      input({
+        flatLapThresholdPace: { secondsPerKm: 255, asOf: today },
+        garminLactateThreshold: {
+          speedMps: 1000 / 261,
+          heartRateBpm: 179,
+          asOf: "2026-09-30",
+        },
+      }),
+    );
+    expect(targets.intensities.threshold.paceSource?.kind).toBe("flat_laps");
+  });
+
   it("falls back to the best recent race effort", () => {
     const targets = trainingTargets(
       input({
