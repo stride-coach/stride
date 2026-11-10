@@ -14,15 +14,15 @@ describe("session shape summary", () => {
         { minutes: 10, zone: 2 },
       ]),
     ).toBe(
-      "Session shape: 39 minutes, peaking in zone 4, 1 block removed (8 minutes)",
+      "Structure de la séance : 39 minutes, jusqu’en zone 4, 1 bloc retiré (8 minutes)",
     );
   });
 
   it("ignores negative durations and handles an empty session", () => {
     expect(summarizeSession([{ minutes: -5, zone: 3 }])).toBe(
-      "Session shape: 0 minutes, peaking in zone 3",
+      "Structure de la séance : 0 minutes, jusqu’en zone 3",
     );
-    expect(summarizeSession([])).toBe("Session shape: 0 minutes");
+    expect(summarizeSession([])).toBe("Structure de la séance : 0 minutes");
   });
 });
 

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import {
+  isWorkZone,
   summarizeSession,
   zoneHeights,
   type SessionBlock,
@@ -89,10 +90,11 @@ export function SessionShape({
             data-zone={block.zone}
             data-removed={block.removed || undefined}
             className={cn(
-              "min-w-0.5 rounded-mark",
+              "min-w-0.5 rounded-mark transition-[flex-grow] duration-320 ease-stride motion-reduce:transition-none",
               block.removed
                 ? "border border-dashed border-control-border"
                 : zoneFills[block.zone],
+              !block.removed && !isWorkZone(block.zone) && "opacity-55",
             )}
             style={{
               flexGrow: Math.max(block.minutes, 0),

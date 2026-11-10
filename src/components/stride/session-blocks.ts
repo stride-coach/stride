@@ -8,12 +8,16 @@ export type SessionBlock = {
 };
 
 export const zoneHeights: Record<Zone, number> = {
-  1: 20,
-  2: 32,
-  3: 60,
-  4: 88,
+  1: 22,
+  2: 40,
+  3: 100,
+  4: 100,
   5: 100,
 };
+
+export function isWorkZone(zone: Zone) {
+  return zone >= 3;
+}
 
 export function summarizeSession(blocks: readonly SessionBlock[]) {
   const kept = blocks.filter((block) => !block.removed);
@@ -26,10 +30,10 @@ export function summarizeSession(blocks: readonly SessionBlock[]) {
     undefined,
   );
   const parts = [`${minutes(kept)} minutes`];
-  if (hardest !== undefined) parts.push(`peaking in zone ${hardest}`);
+  if (hardest !== undefined) parts.push(`jusqu’en zone ${hardest}`);
   if (removed.length > 0)
     parts.push(
-      `${removed.length} ${removed.length === 1 ? "block" : "blocks"} removed (${minutes(removed)} minutes)`,
+      `${removed.length} ${removed.length === 1 ? "bloc retiré" : "blocs retirés"} (${minutes(removed)} minutes)`,
     );
-  return `Session shape: ${parts.join(", ")}`;
+  return `Structure de la séance : ${parts.join(", ")}`;
 }

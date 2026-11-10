@@ -101,20 +101,20 @@ export function ChartInspector({
         <>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 w-px bg-primary/70"
+            className="pointer-events-none absolute inset-y-0 w-px bg-muted-foreground"
             style={{ left: `${point.x * 100}%` }}
           />
           <div
             role="status"
             className={cn(
-              "pointer-events-none absolute top-0 z-10 flex w-max max-w-64 min-w-40 flex-col gap-1.5 rounded-lg border border-control-border bg-card px-3 py-2.5 shadow-lg",
+              "pointer-events-none absolute top-0 z-10 flex w-max max-w-64 min-w-40 flex-col gap-1.5 rounded-lg border border-control-border bg-card px-3 py-2.5 shadow-float",
               point.x > 0.6 ? "-translate-x-full" : "",
             )}
             style={{
               left: `calc(${point.x * 100}% ${point.x > 0.6 ? "- 10px" : "+ 10px"})`,
             }}
           >
-            <p className="text-micro text-foreground tabular-nums">
+            <p className="text-label font-medium text-foreground tabular-nums">
               {point.title}
             </p>
             {point.rows.map((row, index) => (
