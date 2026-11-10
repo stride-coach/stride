@@ -1373,7 +1373,9 @@ test("unseeded six-screen journey survives refresh, another device, Back edits a
         request.method() === "POST" &&
         Boolean(request.headers()["next-action"]),
     );
-    await device.getByRole("button", { name: /^Edited Athlete/ }).click();
+    await device
+      .getByRole("button", { name: /^Compte de Edited Athlete/ })
+      .click();
     await device.getByRole("menuitem", { name: "Se déconnecter" }).click();
     await expect(device).toHaveURL(/\/sign-in$/);
     const signOutAction = await signOutRequest;
@@ -1390,7 +1392,9 @@ test("unseeded six-screen journey survives refresh, another device, Back edits a
       available_weekdays: [2, 4, 6],
     });
     expect((await races(user))[0].name).toBe("Journey Race");
-    await device.getByRole("button", { name: /^Edited Athlete/ }).click();
+    await device
+      .getByRole("button", { name: /^Compte de Edited Athlete/ })
+      .click();
     await device.getByRole("menuitem", { name: "Se déconnecter" }).click();
     await expect(device).toHaveURL(/\/sign-in$/);
     const interrupted = await makeAthlete();

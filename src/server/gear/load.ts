@@ -82,13 +82,3 @@ export async function loadImportable(
           : 1,
     );
 }
-
-export async function countActiveShoes(context: GearContext) {
-  const { count, error } = await context.client
-    .from("athlete_shoes")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", context.userId)
-    .is("retired_on", null);
-  if (error) throw new Error("Unable to count shoes");
-  return count ?? 0;
-}

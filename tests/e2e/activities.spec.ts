@@ -516,13 +516,11 @@ test("mobile shows the list, then the activity alone, without overflow", async (
   ).toBe(true);
   await page.getByRole("link", { name: "Retour aux activités" }).click();
   await expect(page).toHaveURL(/\/activities$/);
-  await page
-    .getByRole("button", { name: "Afficher ou masquer la barre latérale" })
-    .first()
-    .click();
   await expect(
-    page.getByRole("dialog").getByRole("link", { name: "Activités" }),
-  ).toBeVisible();
+    page
+      .getByRole("navigation", { name: "Navigation principale" })
+      .getByRole("link", { name: "Activités" }),
+  ).toHaveAttribute("aria-current", "page");
 });
 
 test("a strength session shows effort and heart rate without running data", async ({

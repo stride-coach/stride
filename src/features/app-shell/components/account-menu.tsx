@@ -88,7 +88,7 @@ export function AccountAvatarMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Compte de ${athlete.name}, ${modelDetail}`}
-        className="grid size-6.5 shrink-0 place-items-center rounded-full border border-control-border bg-muted text-micro font-semibold text-foreground transition-colors duration-150 ease-stride hover:border-muted-foreground aria-expanded:border-muted-foreground"
+        className="relative grid size-6.5 shrink-0 place-items-center rounded-full border border-control-border bg-muted text-micro font-semibold text-foreground transition-colors duration-150 ease-stride after:absolute after:-inset-2 hover:border-muted-foreground aria-expanded:border-muted-foreground md:after:hidden"
       >
         {athlete.initials}
       </DropdownMenuTrigger>

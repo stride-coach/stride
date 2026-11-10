@@ -3,16 +3,12 @@
 import { useShellPathname } from "./shell-pathname";
 import {
   TabActivitiesIcon,
+  TabCoachIcon,
   TabPlanIcon,
   TabProgressIcon,
   TabTodayIcon,
 } from "@/components/stride/nav-icons";
-import {
-  MobileAskAction,
-  MobileTab,
-  MobileTabBar,
-} from "@/components/stride/mobile-tab-bar";
-import { NavBadge } from "@/components/stride/navigation";
+import { MobileTab, MobileTabBar } from "@/components/stride/mobile-tab-bar";
 import { isActivePath, mobileTabBarVisible } from "../mobile-nav";
 import {
   coachActionLabel,
@@ -28,35 +24,43 @@ export function AppMobileTabBar({
   const pathname = useShellPathname();
   if (!mobileTabBarVisible(pathname)) return null;
   const waiting = coachWaiting(attention);
-  const tab = (href: string, icon: React.ReactNode, label: string) => (
+  const tab = (
+    href: string,
+    icon: React.ReactNode,
+    label: string,
+    match: string[] = [],
+  ) => (
     <MobileTab
       href={href}
       icon={icon}
       label={label}
-      isActive={isActivePath(pathname, href)}
+      isActive={[href, ...match].some((path) => isActivePath(pathname, path))}
     />
   );
   return (
     <MobileTabBar className="relative z-10 shrink-0 md:hidden print:hidden">
       {tab("/today", <TabTodayIcon />, "Aujourd’hui")}
       {tab("/plan", <TabPlanIcon />, "Plan")}
-      <MobileAskAction
+      <MobileTab
         href="/coach"
-        label={coachActionLabel(attention)}
+        icon={<TabCoachIcon />}
+        label="Coach"
+        accessibleLabel={coachActionLabel(attention)}
         isActive={isActivePath(pathname, "/coach")}
         badge={
           waiting > 0 ? (
-            <NavBadge
-              kind="count"
-              className="-top-1 -right-1 translate-y-0 ring-2 ring-background"
+            <span
+              data-kind="count"
+              aria-hidden="true"
+              className="absolute top-0 left-1/2 ml-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-micro font-semibold text-primary-foreground tabular-nums ring-2 ring-background"
             >
-              <span aria-hidden="true">{waiting}</span>
-            </NavBadge>
+              {waiting}
+            </span>
           ) : undefined
         }
       />
-      {tab("/activities", <TabActivitiesIcon />, "Activités")}
-      {tab("/progress", <TabProgressIcon />, "Santé")}
+      {tab("/activities", <TabActivitiesIcon />, "Activités", ["/gear"])}
+      {tab("/progress", <TabProgressIcon />, "Santé", ["/nutrition"])}
     </MobileTabBar>
   );
 }

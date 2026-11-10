@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
+import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { DataActivityLink } from "@/features/data-activity/components/navigation";
 import {
   DataActivityStatus,
   DataActivityThread,
 } from "@/features/data-activity/components/status";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
@@ -68,10 +68,7 @@ export function ActivityListHeader({
           Activités
         </Heading>
         <DataActivityStatus />
-        <SidebarTrigger
-          aria-label="Afficher ou masquer la barre latérale"
-          className="-mr-2 size-11 md:hidden"
-        />
+        <MobileHeaderActions />
       </div>
       {loading ? (
         <>

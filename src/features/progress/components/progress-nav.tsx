@@ -101,47 +101,56 @@ export function ProgressBreadcrumb() {
   );
 }
 
-export function ProgressTabs() {
+export function ProgressTabs({ mobileOnly = false }: { mobileOnly?: boolean }) {
+  const pathname = usePathname();
   const section = useSection();
+  const onNutrition =
+    pathname === "/nutrition" || pathname.startsWith("/nutrition/");
+  const currentHref = onNutrition ? "/nutrition" : section.href;
   return (
     <>
       <nav
-        aria-label="Sections de la progression"
+        aria-label="Sections de Santé"
         className="flex gap-0.5 rounded-[11px] border border-border bg-card p-0.75 sm:hidden"
       >
-        {progressSections.map((item) => (
-          <SectionLink
-            key={item.href}
-            href={item.href}
-            current={item.href === section.href}
-            className={cn(
-              "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              item.href === section.href &&
-                "bg-border font-semibold text-foreground",
-            )}
-          >
-            {item.label}
-          </SectionLink>
-        ))}
+        {[...progressSections, { href: "/nutrition", label: "Nutrition" }].map(
+          (item) => (
+            <SectionLink
+              key={item.href}
+              href={item.href}
+              current={item.href === currentHref}
+              keepPeriod={item.href !== "/nutrition"}
+              className={cn(
+                "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+                item.href === currentHref &&
+                  "bg-border font-semibold text-foreground",
+              )}
+            >
+              {item.label}
+            </SectionLink>
+          ),
+        )}
       </nav>
-      <nav
-        aria-label="Sections de la progression"
-        className="flex gap-5 text-body max-sm:hidden"
-      >
-        {progressSections.map((item) => (
-          <SectionLink
-            key={item.href}
-            href={item.href}
-            current={item.href === section.href}
-            className={cn(
-              "border-b-2 border-transparent py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-              item.href === section.href && "border-primary text-foreground",
-            )}
-          >
-            {item.label}
-          </SectionLink>
-        ))}
-      </nav>
+      {!mobileOnly && (
+        <nav
+          aria-label="Sections de Santé"
+          className="flex gap-5 text-body max-sm:hidden"
+        >
+          {progressSections.map((item) => (
+            <SectionLink
+              key={item.href}
+              href={item.href}
+              current={item.href === section.href}
+              className={cn(
+                "border-b-2 border-transparent py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+                item.href === section.href && "border-primary text-foreground",
+              )}
+            >
+              {item.label}
+            </SectionLink>
+          ))}
+        </nav>
+      )}
     </>
   );
 }

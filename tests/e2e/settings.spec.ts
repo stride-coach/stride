@@ -77,11 +77,7 @@ test("mobile account menu opens gesture help and a connected keyboard opens shor
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto("/activities");
-  await page
-    .getByRole("button", { name: "Afficher ou masquer la barre latérale" })
-    .first()
-    .click();
-  await page.getByRole("button", { name: /^Jules Profil/ }).click();
+  await page.getByRole("button", { name: /^Compte de Jules/ }).click();
   await page.getByRole("menuitem", { name: "Gestes et commandes" }).click();
 
   const gestures = page.getByRole("dialog", { name: "Gestes et commandes" });

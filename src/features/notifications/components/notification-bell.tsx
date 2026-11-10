@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
-  badgeValue,
   bellLabel,
   isTodo,
   matchesFilter,
@@ -29,25 +28,24 @@ import { useNotifications } from "./notifications-context";
 const bell =
   "relative grid shrink-0 place-items-center rounded-md border border-border text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:border-control-border aria-expanded:bg-muted aria-expanded:text-foreground";
 
-function Dot({ count }: { count: number }) {
+function Dot({
+  count,
+  on = "shell",
+}: {
+  count: number;
+  on?: "shell" | "background";
+}) {
   if (count === 0) return null;
   return (
     <span
       aria-hidden="true"
-      className="absolute top-1 right-1.25 size-1.5 rounded-full bg-primary ring-2 ring-shell"
+      className={cn(
+        "absolute top-1 right-1.25 size-1.5 rounded-full bg-primary ring-2",
+        on === "shell"
+          ? "ring-shell"
+          : "ring-background md:top-2.5 md:right-2.75",
+      )}
     />
-  );
-}
-
-function Badge({ count }: { count: number }) {
-  if (count === 0) return null;
-  return (
-    <span
-      aria-hidden="true"
-      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-primary-foreground ring-2 ring-background"
-    >
-      {badgeValue(count)}
-    </span>
   );
 }
 
@@ -70,7 +68,7 @@ function PendingBell({ className }: { className?: string }) {
         aria-current={current ? "page" : undefined}
         className={cn(
           bell,
-          "size-11 border-transparent md:hidden",
+          "size-10 border-transparent md:hidden",
           current && "hidden",
           className,
         )}
@@ -123,13 +121,13 @@ function LoadedBell({
         aria-current={current ? "page" : undefined}
         className={cn(
           bell,
-          "size-11 border-transparent md:hidden",
+          "size-10 border-transparent md:hidden",
           current && "hidden",
           className,
         )}
       >
         <BellIcon className="size-4.5" />
-        <Badge count={unread} />
+        <Dot count={unread} on="background" />
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger

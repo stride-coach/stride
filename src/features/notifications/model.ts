@@ -551,7 +551,3 @@ export function unreadLabel(count: number) {
 export function bellLabel(count: number) {
   return count > 0 ? `Notifications, ${unreadLabel(count)}` : "Notifications";
 }
-
-export function badgeValue(count: number) {
-  return count > 99 ? "99+" : String(count);
-}

@@ -9,66 +9,40 @@ import {
   DataActivityStatus,
   DataActivityFeedback,
 } from "@/features/data-activity/components/status";
-import Link from "next/link";
-import { PlusIcon } from "lucide-react";
 import {
   NavActivitiesIcon,
-  NavGearIcon,
-  NavNutritionIcon,
   NavPlanIcon,
   NavProgressIcon,
   NavRacesIcon,
   NavTodayIcon,
 } from "@/components/stride/nav-icons";
 import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-} from "@/components/ui/dropdown-menu";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { NavGoalSwitcher, NavUser } from "@/components/stride/navigation";
 import {
   shellProfileDetail,
-  shellRaceDate,
   type ShellAccount,
   type ShellBadge,
   type ShellAthlete,
   type ShellGoal,
   type ShellNavigation,
-  type ShellRaceLink,
 } from "@/features/app-shell/shell";
 import { AppMobileTabBar } from "./app-mobile-tab-bar";
 import { CoachNavItem } from "./coach-nav";
-import { GarminSince } from "./garmin-since";
 import { PlanSidebarGroup, PlanSidebarGroupLoading } from "./plan-nav";
 import { ProgressSidebarGroup } from "@/features/progress/components/progress-nav";
 import { ShellNavItem } from "./shell-nav-item";
-import { ShellRaceItem } from "./shell-race-item";
-import { SignOutMenuItem } from "./sign-out-menu-item";
 import { TopBar } from "./top-bar";
+import { ShellIdentityProvider } from "./shell-identity";
 import { Relief } from "@/components/stride/relief";
-import { ShortcutHelp, ShortcutHelpMenuItem } from "./shortcut-help";
-import {
-  AccountMenuConnectionsIcon,
-  AccountMenuPrivacyIcon,
-  AccountMenuProfileIcon,
-  AccountMenuSettingsIcon,
-} from "./account-menu-icons";
+import { ShortcutHelp } from "./shortcut-help";
 
 type Navigation = { navigation: Promise<ShellNavigation> };
 
@@ -83,22 +57,6 @@ function TodayNavLink({ badge = null }: { badge?: ShellBadge | null }) {
       href="/today"
       icon={<NavTodayIcon />}
       label="Aujourd’hui"
-      badge={badge}
-    />
-  );
-}
-
-async function GearNavItem({ navigation }: Navigation) {
-  const { gearBadge } = await navigation;
-  return <GearNavLink badge={gearBadge} />;
-}
-
-function GearNavLink({ badge = null }: { badge?: ShellBadge | null }) {
-  return (
-    <ShellNavItem
-      href="/gear"
-      icon={<NavGearIcon />}
-      label="Matériel"
       badge={badge}
     />
   );
@@ -123,7 +81,6 @@ export function AppShell({
   athlete,
   account,
   goal,
-  races,
   staffFaces,
   navigation,
   notifications,
@@ -134,7 +91,6 @@ export function AppShell({
   athlete: ShellAthlete;
   account: ShellAccount;
   goal: ShellGoal | null;
-  races: ShellRaceLink[];
   staffFaces: StaffFaces;
   navigation: Promise<ShellNavigation>;
   notifications: Promise<NotificationFeed | null>;
@@ -142,224 +98,91 @@ export function AppShell({
   defaultOpen: boolean;
   children: React.ReactNode;
 }) {
+  const modelDetail = shellProfileDetail(account);
   return (
-    <StaffProvider faces={staffFaces}>
-      <NotificationsProvider feed={notifications} now={notificationsAt}>
-        <DataActivityProvider>
-          <SidebarProvider
-            defaultOpen={defaultOpen}
-            className="relative h-svh flex-col overflow-hidden md:bg-shell print:h-auto print:overflow-visible"
-          >
-            <ShortcutHelp />
-            <Relief corner="top-right" className="max-md:hidden print:hidden" />
-            <Relief
-              corner="bottom-left"
-              className="max-md:hidden print:hidden"
-            />
-            <TopBar
-              athlete={athlete}
-              goal={goal}
-              modelDetail={shellProfileDetail(account)}
-            />
-            <div className="relative flex min-h-0 flex-1">
-              <Sidebar
-                variant="inset"
-                collapsible="icon"
-                className="md:top-topbar md:h-[calc(100svh-var(--spacing-topbar))] print:hidden"
-              >
-                <SidebarHeader className="md:hidden">
-                  <NavGoalSwitcher
-                    name={goal?.name ?? "Stride"}
-                    detail={goal?.detail ?? "Aucun objectif"}
-                  >
-                    <DropdownMenuContent className="w-60" align="start">
-                      <DropdownMenuLabel>Objectif</DropdownMenuLabel>
-                      <p className="px-2 pb-2 text-body text-foreground">
-                        {goal
-                          ? `${goal.name} · ${goal.detail}`
-                          : "Aucun objectif"}
-                      </p>
-                    </DropdownMenuContent>
-                  </NavGoalSwitcher>
-                </SidebarHeader>
-                <SidebarContent>
-                  <SidebarGroup>
-                    <SidebarGroupLabel className="md:hidden">
-                      Entraînement
-                    </SidebarGroupLabel>
-                    <SidebarMenu>
-                      <Suspense fallback={<TodayNavLink />}>
-                        <TodayNavItem navigation={navigation} />
-                      </Suspense>
-                      <ShellNavItem
-                        href="/plan"
-                        icon={<NavPlanIcon />}
-                        label="Plan"
-                      />
-                      <ShellNavItem
-                        href="/activities"
-                        match={["/gear"]}
-                        icon={<NavActivitiesIcon />}
-                        label="Activités"
-                      />
-                      <ShellNavItem
-                        href="/progress"
-                        match={["/nutrition"]}
-                        icon={<NavProgressIcon />}
-                        label="Santé"
-                      />
-                      <ShellNavItem
-                        href="/races"
-                        icon={<NavRacesIcon />}
-                        label="Courses"
-                      />
-                      <Suspense fallback={<CoachNavItem attention={null} />}>
-                        <CoachNav navigation={navigation} />
-                      </Suspense>
-                    </SidebarMenu>
-                  </SidebarGroup>
-                  <Suspense fallback={<PlanSidebarGroupLoading />}>
-                    <PlanNav navigation={navigation} />
-                  </Suspense>
-                  <ProgressSidebarGroup />
-                  <SidebarGroup className="group-data-[collapsible=icon]:hidden md:hidden">
-                    <SidebarGroupLabel>Objectifs</SidebarGroupLabel>
-                    <SidebarMenu>
-                      {races.map((race) => (
-                        <ShellRaceItem
-                          key={race.id}
-                          id={race.id}
-                          name={race.name}
-                          priority={race.priority}
-                          date={shellRaceDate(race.date)}
+    <ShellIdentityProvider value={{ athlete, goal, modelDetail }}>
+      <StaffProvider faces={staffFaces}>
+        <NotificationsProvider feed={notifications} now={notificationsAt}>
+          <DataActivityProvider>
+            <SidebarProvider
+              defaultOpen={defaultOpen}
+              className="relative h-svh flex-col overflow-hidden md:bg-shell print:h-auto print:overflow-visible"
+            >
+              <ShortcutHelp />
+              <Relief
+                corner="top-right"
+                className="max-md:hidden print:hidden"
+              />
+              <Relief
+                corner="bottom-left"
+                className="max-md:hidden print:hidden"
+              />
+              <TopBar athlete={athlete} goal={goal} modelDetail={modelDetail} />
+              <div className="relative flex min-h-0 flex-1">
+                <Sidebar
+                  variant="inset"
+                  collapsible="icon"
+                  className="md:top-topbar md:h-[calc(100svh-var(--spacing-topbar))] print:hidden"
+                >
+                  <SidebarContent>
+                    <SidebarGroup>
+                      <SidebarMenu>
+                        <Suspense fallback={<TodayNavLink />}>
+                          <TodayNavItem navigation={navigation} />
+                        </Suspense>
+                        <ShellNavItem
+                          href="/plan"
+                          icon={<NavPlanIcon />}
+                          label="Plan"
                         />
-                      ))}
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          asChild
-                          size="sm"
-                          className="min-h-7.5 gap-2 text-body text-muted-foreground"
-                        >
-                          <Link href="/settings/goals">
-                            <PlusIcon className="size-3.5" />
-                            Ajouter une course
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroup>
-                  <SidebarGroup className="md:hidden">
-                    <SidebarGroupLabel>Athlète</SidebarGroupLabel>
-                    <SidebarMenu>
-                      <Suspense fallback={<GearNavLink />}>
-                        <GearNavItem navigation={navigation} />
-                      </Suspense>
-                      <ShellNavItem
-                        href="/nutrition"
-                        icon={<NavNutritionIcon />}
-                        label="Nutrition"
-                      />
-                    </SidebarMenu>
-                  </SidebarGroup>
-                </SidebarContent>
-                <SidebarFooter>
-                  <DataActivityStatus
-                    compact
-                    className="hidden justify-center group-data-[collapsible=icon]:flex"
-                  />
-                  <DataActivityStatus className="px-2 text-label group-data-[collapsible=icon]:hidden max-md:hidden" />
-                  <div className="md:hidden">
-                    <NavUser
-                      name={athlete.name}
-                      detail={shellProfileDetail(account)}
-                      initials={athlete.initials}
-                      sync={<DataActivityStatus />}
-                      syncDot={false}
-                    >
-                      <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-lg border border-control-border bg-popover p-1.5"
-                        side="top"
-                        align="start"
-                      >
-                        <div className="mb-1 flex items-center gap-2.5 border-b border-control-border px-2.5 pt-2 pb-2.5">
-                          <span
-                            aria-hidden="true"
-                            className="grid size-8 shrink-0 place-items-center rounded-md bg-control-border text-label font-semibold"
-                          >
-                            {athlete.initials}
-                          </span>
-                          <span className="flex min-w-0 flex-col">
-                            <span className="truncate text-body font-semibold">
-                              {athlete.name}
-                            </span>
-                            <span className="truncate text-label text-muted-foreground">
-                              {athlete.detail}
-                            </span>
-                          </span>
-                        </div>
-                        <DropdownMenuItem
-                          asChild
-                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                        >
-                          <Link href="/settings/profile">
-                            <AccountMenuProfileIcon />
-                            Profil
-                            <span className="ml-auto text-label text-muted-foreground">
-                              {account.profilePercent}%
-                            </span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          asChild
-                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                        >
-                          <Link href="/settings">
-                            <AccountMenuSettingsIcon />
-                            Réglages
-                            <DropdownMenuShortcut className="max-md:hidden">
-                              ⌘,
-                            </DropdownMenuShortcut>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          asChild
-                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                        >
-                          <Link href="/settings/connections">
-                            <AccountMenuConnectionsIcon />
-                            Connexions
-                            <GarminSince />
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          asChild
-                          className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
-                        >
-                          <Link href="/settings/privacy">
-                            <AccountMenuPrivacyIcon />
-                            Données et confidentialité
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="my-1 bg-control-border" />
-                        <ShortcutHelpMenuItem />
-                        <SignOutMenuItem />
-                      </DropdownMenuContent>
-                    </NavUser>
-                  </div>
-                </SidebarFooter>
-                <SidebarRail />
-              </Sidebar>
-              <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
-                <DataActivityFeedback />
-                <PullToSync>{children}</PullToSync>
-                <Suspense fallback={<AppMobileTabBar attention={null} />}>
-                  <MobileTabBar navigation={navigation} />
-                </Suspense>
-              </SidebarInset>
-            </div>
-          </SidebarProvider>
-        </DataActivityProvider>
-      </NotificationsProvider>
-    </StaffProvider>
+                        <ShellNavItem
+                          href="/activities"
+                          match={["/gear"]}
+                          icon={<NavActivitiesIcon />}
+                          label="Activités"
+                        />
+                        <ShellNavItem
+                          href="/progress"
+                          match={["/nutrition"]}
+                          icon={<NavProgressIcon />}
+                          label="Santé"
+                        />
+                        <ShellNavItem
+                          href="/races"
+                          icon={<NavRacesIcon />}
+                          label="Courses"
+                        />
+                        <Suspense fallback={<CoachNavItem attention={null} />}>
+                          <CoachNav navigation={navigation} />
+                        </Suspense>
+                      </SidebarMenu>
+                    </SidebarGroup>
+                    <Suspense fallback={<PlanSidebarGroupLoading />}>
+                      <PlanNav navigation={navigation} />
+                    </Suspense>
+                    <ProgressSidebarGroup />
+                  </SidebarContent>
+                  <SidebarFooter>
+                    <DataActivityStatus
+                      compact
+                      className="hidden justify-center group-data-[collapsible=icon]:flex"
+                    />
+                    <DataActivityStatus className="px-2 text-label group-data-[collapsible=icon]:hidden max-md:hidden" />
+                  </SidebarFooter>
+                  <SidebarRail />
+                </Sidebar>
+                <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
+                  <DataActivityFeedback />
+                  <PullToSync>{children}</PullToSync>
+                  <Suspense fallback={<AppMobileTabBar attention={null} />}>
+                    <MobileTabBar navigation={navigation} />
+                  </Suspense>
+                </SidebarInset>
+              </div>
+            </SidebarProvider>
+          </DataActivityProvider>
+        </NotificationsProvider>
+      </StaffProvider>
+    </ShellIdentityProvider>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -24,7 +25,6 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Toggle } from "@/components/ui/toggle";
 import { ContextChip } from "@/components/stride/context-chip";
 import { SuggestedReplies } from "@/components/stride/suggested-reply";
@@ -647,10 +647,7 @@ export function CoachScreen({
                       <PlusIcon aria-hidden="true" />
                     </Link>
                   </Button>
-                  <SidebarTrigger
-                    aria-label="Afficher ou masquer la barre latérale"
-                    className="-mr-2 size-11 md:hidden"
-                  />
+                  <MobileHeaderActions />
                 </div>
                 <section
                   aria-label="Ton staff"

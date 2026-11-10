@@ -1,12 +1,12 @@
 "use client";
 
+import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
 import { ChevronLeftIcon, PlusIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { LoadingScope } from "@/features/data-activity/components/loading";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
@@ -41,10 +41,7 @@ function ConversationListLoading() {
                 <PlusIcon aria-hidden="true" />
               </Link>
             </Button>
-            <SidebarTrigger
-              aria-label="Afficher ou masquer la barre latérale"
-              className="-mr-2 size-11 md:hidden"
-            />
+            <MobileHeaderActions />
           </div>
           <section aria-label="Ton staff" className="flex flex-col gap-2.5">
             <div className="flex items-baseline">

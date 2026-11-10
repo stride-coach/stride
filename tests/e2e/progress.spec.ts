@@ -76,9 +76,7 @@ test("period choice is kept in the URL", async ({ page }) => {
     "page",
   );
   await expect(
-    page
-      .getByRole("navigation", { name: "Sections de la progression" })
-      .first(),
+    page.getByRole("navigation", { name: "Sections de Santé" }).first(),
   ).toBeAttached();
 });
 
@@ -166,7 +164,7 @@ test("progress tabs switch between Forme and Corps", async ({ page }) => {
   await signIn(page);
   await page.goto("/progress");
   await page
-    .getByRole("navigation", { name: "Sections de la progression" })
+    .getByRole("navigation", { name: "Sections de Santé" })
     .last()
     .getByRole("link", { name: "Corps" })
     .click();
@@ -353,7 +351,7 @@ for (const mode of ["empty", "failure", "goal-failure"] as const) {
           .filter({ hasText: "Impossible de lire ton historique" }),
       ).toContainText("Impossible de lire ton historique");
     await page
-      .getByRole("navigation", { name: "Sections de la progression" })
+      .getByRole("navigation", { name: "Sections de Santé" })
       .first()
       .getByRole("link", { name: "Forme", exact: true })
       .click();
