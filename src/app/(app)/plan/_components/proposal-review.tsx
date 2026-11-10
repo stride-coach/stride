@@ -90,9 +90,7 @@ function Banner({ banner }: { banner: ReviewBanner }) {
         <ToneDot tone={banner.tone} />
         {banner.title}
       </span>
-      <span className="text-body leading-normal text-secondary-foreground">
-        {banner.body}
-      </span>
+      <span className="text-body text-secondary-foreground">{banner.body}</span>
     </div>
   );
 }
@@ -260,7 +258,7 @@ function Metrics({ metrics }: { metrics: { label: string; value: string }[] }) {
           <dt className="order-2">
             <MonoLabel size="micro">{metric.label}</MonoLabel>
           </dt>
-          <dd className="order-1 text-metric leading-none font-semibold tabular-nums">
+          <dd className="order-1 text-metric font-semibold tabular-nums">
             {metric.value}
           </dd>
         </div>
@@ -326,7 +324,7 @@ function Extension({
         <ExternalLinkIcon aria-hidden="true" className="size-3" />
         Voir le programme prolongé
       </Link>
-      <p className="text-body leading-normal text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         Les semaines déjà prévues ne changent pas. Tes séances passées et déjà
         faites restent intactes.
       </p>
@@ -386,7 +384,7 @@ function NewPlan({ plan }: { plan: NonNullable<ProposalReview["newPlan"]> }) {
           </ul>
         </div>
       )}
-      <p className="text-body leading-normal text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         {plan.replacesActive
           ? "Si tu l’actives, ton plan actuel est archivé et reste lisible dans l’historique."
           : "Si tu l’actives, il devient ton plan d’entraînement."}

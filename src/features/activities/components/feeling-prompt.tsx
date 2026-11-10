@@ -259,7 +259,7 @@ export function DebriefFeeling({
       className="flex flex-col gap-2.5"
     >
       <div className="flex items-center gap-2.5">
-        <MonoLabel size="nano" className="text-label" asChild>
+        <MonoLabel size="nano" asChild>
           <h3 id={`feeling-${activityId}`}>Ton ressenti</h3>
         </MonoLabel>
         <span className="ml-auto inline-flex items-center gap-1.5 text-label text-muted-foreground">

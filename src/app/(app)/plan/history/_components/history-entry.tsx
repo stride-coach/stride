@@ -72,9 +72,7 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
           {entry.origin.line}
         </span>
         {entry.note && (
-          <p className="text-body leading-normal text-muted-foreground">
-            {entry.note}
-          </p>
+          <p className="text-body text-muted-foreground">{entry.note}</p>
         )}
       </div>
       {action && (
