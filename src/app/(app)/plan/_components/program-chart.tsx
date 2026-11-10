@@ -1,5 +1,4 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/features/plans/view/format";
 import {
@@ -35,7 +34,7 @@ function RaceMark({
   return (
     <span
       className={cn(
-        "grid size-4 place-items-center rounded-[4px] text-[10px] leading-none font-bold tabular-nums",
+        "grid size-4 place-items-center rounded-sm text-micro leading-none font-bold tabular-nums",
         primary
           ? "bg-primary text-primary-foreground"
           : "border border-muted-foreground text-secondary-foreground",
@@ -77,14 +76,14 @@ function Bar({
         .join(", ")}
       onClick={onSelect}
       className={cn(
-        "flex min-w-0 flex-col items-center gap-1.5 rounded-[9px] border border-transparent py-2 hover:bg-card",
-        selected && "border-foreground bg-muted hover:bg-muted",
+        "flex min-w-0 flex-col items-center gap-1.5 rounded-lg py-2 transition-colors duration-150 ease-stride hover:bg-muted",
+        selected && "bg-muted",
         week.status === "past" && !selected && "opacity-55",
       )}
     >
       <span
         className={cn(
-          "text-[11px] leading-none font-semibold tabular-nums",
+          "text-micro leading-none font-semibold tabular-nums",
           selected ? "text-foreground" : "text-secondary-foreground",
         )}
       >
@@ -100,8 +99,8 @@ function Bar({
         )}
         <span
           className={cn(
-            "w-[62%] rounded-t-[3px]",
-            muted ? "bg-data-1" : "bg-foreground",
+            "w-[62%] rounded-t-mark bg-intensity-2",
+            muted && "opacity-45",
           )}
           style={{ height: `${week.easySeconds * scale}px` }}
         />
@@ -113,16 +112,17 @@ function Bar({
           style={{ height: `${week.qualitySeconds * scale}px` }}
         />
       </span>
-      <span className="text-[11px] leading-none font-semibold text-muted-foreground tabular-nums">
+      <span className="text-micro leading-none font-medium text-muted-foreground tabular-nums">
         {distance ? `${approximate ? "≈" : ""}${distance}` : "–"}
       </span>
-      <MonoLabel
-        size="nano"
-        tone={selected ? "foreground" : "muted"}
-        className="text-[9px]"
+      <span
+        className={cn(
+          "text-micro font-medium tabular-nums",
+          selected ? "text-foreground" : "text-muted-foreground",
+        )}
       >
         S{week.number}
-      </MonoLabel>
+      </span>
     </button>
   );
 }
@@ -148,28 +148,28 @@ export function ProgramChart({
     gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
   };
   return (
-    <section
-      aria-labelledby="program-volume"
-      className="flex flex-col gap-1.5 rounded-xl border border-border bg-background px-2.5 pt-2.5 pb-3 sm:rounded-2xl sm:px-4 sm:py-3.5"
-    >
+    <section aria-labelledby="program-volume" className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-3.5 px-1 max-sm:sr-only">
-        <MonoLabel id="program-volume">
+        <h2
+          id="program-volume"
+          className="text-label font-medium text-secondary-foreground"
+        >
           {weeks.length > 1
             ? `Les ${weeks.length} semaines · durée en haut, km en bas`
             : "Durée en haut, km en bas"}
-        </MonoLabel>
+        </h2>
         <span className="ml-auto flex gap-3.5 text-label text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-mark bg-foreground"
+              className="size-2 rounded-mark bg-intensity-2"
             />
             Facile
           </span>
           <span className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-mark bg-intensity-4"
+              className="size-2 rounded-mark bg-intensity-4"
             />
             Qualité
           </span>
@@ -187,7 +187,7 @@ export function ProgramChart({
                   key={item.raceId}
                   href={`/plan?race=${item.raceId}`}
                   style={column(item.start, item.span)}
-                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-md border border-b-0 border-dashed border-control-border px-2 text-[11px] whitespace-nowrap text-secondary-foreground hover:text-foreground"
+                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-md border border-b-0 border-dashed border-control-border px-2 text-label whitespace-nowrap text-secondary-foreground hover:text-foreground"
                 >
                   <RaceMark letter={item.letter} primary={false} />
                   <span className="truncate">
@@ -231,13 +231,14 @@ export function ProgramChart({
                     !band.current && "opacity-55",
                   )}
                 />
-                <MonoLabel
-                  size="nano"
-                  tone={band.current ? "foreground" : "muted"}
-                  className="truncate text-[9px]"
+                <span
+                  className={cn(
+                    "truncate text-micro font-medium",
+                    band.current ? "text-foreground" : "text-muted-foreground",
+                  )}
                 >
                   {band.name}
-                </MonoLabel>
+                </span>
               </span>
             ))}
           </div>

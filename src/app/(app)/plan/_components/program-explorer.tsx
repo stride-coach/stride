@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import type { WeekProposal } from "@/features/plans/review/proposal";
 import {
@@ -43,29 +42,36 @@ function Milestones({
   return (
     <section
       aria-labelledby="program-milestones"
-      className="flex flex-col gap-2.5"
+      className="flex flex-col gap-1"
     >
-      <MonoLabel id="program-milestones">Repères du programme</MonoLabel>
-      <ul className="flex flex-wrap gap-2">
+      <h2
+        id="program-milestones"
+        className="text-label font-medium text-muted-foreground"
+      >
+        Repères du programme
+      </h2>
+      <ul className="flex flex-col">
         {milestones.map((milestone) => (
           <li key={milestone.key}>
             <button
               type="button"
               onClick={() => onSelect(milestone.weekKey)}
-              className="flex min-h-8.5 items-center gap-2 rounded-full border border-border px-3 text-[13px] whitespace-nowrap hover:border-control-border hover:bg-card"
+              className="grid w-full grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-md py-1.5 text-left transition-colors duration-150 ease-stride hover:bg-muted"
             >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "size-1.5 rounded-full",
-                  milestoneTones[milestone.tone],
-                )}
-              />
-              <span className="text-body font-semibold text-muted-foreground tabular-nums">
+              <span className="text-label text-muted-foreground tabular-nums">
                 S{milestone.number}
               </span>
-              {milestone.label}
-              <span className="text-label text-muted-foreground">
+              <span className="flex min-w-0 items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-1.5 shrink-0 rounded-full",
+                    milestoneTones[milestone.tone],
+                  )}
+                />
+                <span className="truncate">{milestone.label}</span>
+              </span>
+              <span className="text-label whitespace-nowrap text-muted-foreground">
                 {milestone.when}
               </span>
             </button>
@@ -141,12 +147,12 @@ export function ProgramExplorer({
 
   const navigation = (
     <div className="ml-auto flex items-center gap-1.5 max-sm:hidden">
-      <MonoLabel size="nano" className="mr-1.5 max-lg:hidden">
+      <span className="mr-1.5 text-label text-muted-foreground max-lg:hidden">
         ← → au clavier
-      </MonoLabel>
+      </span>
       <Button
         variant="outline"
-        size="icon"
+        size="icon-sm"
         aria-label="Semaine précédente"
         disabled={index <= 0}
         onClick={() => step(-1)}
@@ -156,8 +162,7 @@ export function ProgramExplorer({
       {program.defaultWeekKey && (
         <Button
           variant="outline"
-          size="md"
-          className="min-h-9 text-label"
+          size="sm"
           aria-pressed={selected === program.defaultWeekKey}
           onClick={() => select(program.defaultWeekKey!)}
         >
@@ -166,7 +171,7 @@ export function ProgramExplorer({
       )}
       <Button
         variant="outline"
-        size="icon"
+        size="icon-sm"
         aria-label="Semaine suivante"
         disabled={index < 0 || index >= weeks.length - 1}
         onClick={() => step(1)}
@@ -177,47 +182,60 @@ export function ProgramExplorer({
   );
 
   return (
-    <>
-      <ProgramHeader
-        program={program}
-        eyebrow={
-          week && selected !== program.defaultWeekKey
-            ? weekEyebrow(week, weeks.length)
-            : program.eyebrow
-        }
-      />
-      <ProgramChart
-        weeks={weeks}
-        bands={program.bands}
-        nested={program.nested}
-        selected={selected}
-        onSelect={select}
-      />
-      {week && (
-        <ProgramWeekPanel
-          week={week}
-          watchTags={watchTags}
-          navigation={navigation}
-          sessionHref={(sessionKey) => {
-            const query = new URLSearchParams();
-            if (program.raceId) query.set("race", program.raceId);
-            query.set("week", week.weekStart);
-            query.set("session", sessionKey);
-            return `/plan?${query}`;
-          }}
-          proposals={proposals[week.weekStart]}
-          reviewHref={(proposalId) => {
-            const query = new URLSearchParams();
-            if (program.raceId) query.set("race", program.raceId);
-            query.set("week", week.weekStart);
-            query.set("proposal", proposalId);
-            return `/plan?${query}`;
-          }}
-        />
-      )}
-      {program.milestones.length > 0 && (
-        <Milestones milestones={program.milestones} onSelect={select} />
-      )}
-    </>
+    <div className="flex flex-col xl:flex-row xl:items-start">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="px-4 pt-4.5 md:px-5">
+          <ProgramChart
+            weeks={weeks}
+            bands={program.bands}
+            nested={program.nested}
+            selected={selected}
+            onSelect={select}
+          />
+        </div>
+        {week && (
+          <ProgramWeekPanel
+            week={week}
+            watchTags={watchTags}
+            navigation={navigation}
+            sessionHref={(sessionKey) => {
+              const query = new URLSearchParams();
+              if (program.raceId) query.set("race", program.raceId);
+              query.set("week", week.weekStart);
+              query.set("session", sessionKey);
+              return `/plan?${query}`;
+            }}
+            proposals={proposals[week.weekStart]}
+            reviewHref={(proposalId) => {
+              const query = new URLSearchParams();
+              if (program.raceId) query.set("race", program.raceId);
+              query.set("week", week.weekStart);
+              query.set("proposal", proposalId);
+              return `/plan?${query}`;
+            }}
+          />
+        )}
+      </div>
+      <aside
+        aria-label="Programme"
+        className="contents xl:flex xl:w-panel xl:shrink-0 xl:flex-col xl:gap-6 xl:self-stretch xl:border-l xl:border-border xl:px-5 xl:py-4.5"
+      >
+        <div className="border-b border-border px-4 py-4.5 max-xl:order-first md:px-5 xl:border-0 xl:p-0">
+          <ProgramHeader
+            program={program}
+            eyebrow={
+              week && selected !== program.defaultWeekKey
+                ? weekEyebrow(week, weeks.length)
+                : program.eyebrow
+            }
+          />
+        </div>
+        {program.milestones.length > 0 && (
+          <div className="px-4 py-4.5 md:px-5 xl:p-0">
+            <Milestones milestones={program.milestones} onSelect={select} />
+          </div>
+        )}
+      </aside>
+    </div>
   );
 }

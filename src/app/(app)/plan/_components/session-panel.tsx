@@ -3,10 +3,10 @@ import { CheckIcon, ChevronRightIcon, InfoIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
 import { SheetTitle } from "@/components/ui/sheet";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { PulseDot } from "@/components/stride/marks";
-import { zoneHeights } from "@/components/stride/session-blocks";
-import { SessionKindTile } from "@/components/stride/session-kind-tile";
+import { isWorkZone, zoneHeights } from "@/components/stride/session-blocks";
+import { Chip } from "@/components/stride/chip";
+import { Status } from "@/components/stride/status";
+import { dayIntensity } from "@/features/plans/view/intensity";
 import { FreeBlock, zoneFills } from "@/components/stride/session-shape";
 import { cn } from "@/lib/utils";
 import { ProposalLink } from "./proposal-sheet";
@@ -35,54 +35,49 @@ const toneDots: Record<PanelTone, string> = {
   muted: "bg-muted-foreground",
 };
 
-function Dk({ children, ...props }: React.ComponentProps<typeof MonoLabel>) {
+function Dk({ children, className, ...props }: React.ComponentProps<"span">) {
   return (
-    <MonoLabel size="nano" className="text-[9.5px]" {...props}>
+    <span
+      className={cn("text-label font-medium text-muted-foreground", className)}
+      {...props}
+    >
       {children}
-    </MonoLabel>
+    </span>
   );
 }
 
-function Status({ status }: { status: Exclude<PanelStatus, null> }) {
+function PanelStatusLabel({ status }: { status: Exclude<PanelStatus, null> }) {
   const label = panelStatusLabel(status);
-  if (status === "today")
-    return (
-      <span className="flex items-center gap-1.5 text-label text-primary">
-        <PulseDot breathing={false} />
-        {label}
-      </span>
-    );
-  if (status === "done" || status === "partial")
-    return (
-      <span
-        className={cn(
-          "flex items-center gap-1.5 text-label",
-          status === "done" ? "text-primary" : "text-warning",
-        )}
-      >
-        <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
-        {label}
-      </span>
-    );
+  if (status === "today") return <Status level="ok">{label}</Status>;
+  if (status === "done") return <Status level="ok">{label}</Status>;
+  if (status === "partial") return <Status level="watch">{label}</Status>;
   return <span className="text-label text-muted-foreground">{label}</span>;
 }
 
 function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
+  const intensity = dayIntensity(
+    panel.family,
+    panel.segments
+      .filter((segment) => !segment.free)
+      .map((segment) => ({
+        minutes: segment.seconds / 60,
+        zone: segment.zone,
+      })),
+  );
   return (
-    <div className="flex items-start gap-3 sm:gap-3.5">
-      <SessionKindTile
-        kind={panel.family}
-        size="xl"
-        className="max-sm:size-10 max-sm:rounded-[10px]"
-      />
-      <div className="flex min-w-0 flex-col gap-1 sm:gap-1.25">
-        {panel.status && <Status status={panel.status} />}
-        <SheetTitle
-          id={titleId}
-          className="text-[26px] leading-[1.1] font-semibold tracking-[-0.02em]"
-        >
-          {panel.title}
-        </SheetTitle>
+    <div className="flex items-start gap-3">
+      <div className="flex min-w-0 flex-col gap-1.5">
+        {panel.status && <PanelStatusLabel status={panel.status} />}
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <SheetTitle id={titleId} className="text-verdict font-semibold">
+            {panel.title}
+          </SheetTitle>
+          {intensity && (
+            <Chip intensity={intensity.level ?? undefined}>
+              {intensity.label}
+            </Chip>
+          )}
+        </div>
         <p className="text-body leading-normal text-secondary-foreground max-sm:hidden">
           {panel.purpose}
         </p>
@@ -110,18 +105,11 @@ function Proposal({
   return (
     <section
       aria-label="Changement proposé"
-      className="flex flex-col gap-2.5 rounded-xl border border-border bg-warning/4 p-3.5"
+      className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-3.5"
     >
-      <span className="flex items-center gap-2 text-[13px] text-warning">
-        <PulseDot tone="warning" breathing={false} />
-        Changement proposé {proposal.when}
-      </span>
+      <Status level="watch">Changement proposé {proposal.when}</Status>
       <p className="text-body leading-normal">{proposal.text}</p>
-      <Button
-        asChild
-        size="md"
-        className="self-start max-sm:h-11 max-sm:w-full"
-      >
+      <Button asChild size="md" className="self-start max-sm:w-full">
         <ProposalLink
           href={proposalHref(searchParams, proposal.id)}
           data-proposal-id={proposal.id}
@@ -141,7 +129,7 @@ function Stats({ panel }: { panel: SessionPanel }) {
           <dt className="order-2">
             <Dk>{stat.label}</Dk>
           </dt>
-          <dd className="order-1 truncate text-[22px] leading-none font-semibold tabular-nums sm:text-metric">
+          <dd className="order-1 truncate text-title leading-none font-semibold tabular-nums">
             {stat.value}
           </dd>
         </div>
@@ -170,12 +158,13 @@ function Structure({ panel }: { panel: SessionPanel }) {
           >
             <span className="flex h-11 items-end">
               {segment.free ? (
-                <FreeBlock className="w-full rounded-[3px]" />
+                <FreeBlock className="w-full rounded-mark" />
               ) : (
                 <span
                   className={cn(
-                    "w-full rounded-[2px]",
+                    "w-full rounded-mark",
                     zoneFills[segment.zone],
+                    !isWorkZone(segment.zone) && "opacity-55",
                   )}
                   style={{ height: `${zoneHeights[segment.zone]}%` }}
                 />
@@ -183,7 +172,7 @@ function Structure({ panel }: { panel: SessionPanel }) {
             </span>
             <span
               aria-hidden="true"
-              className="h-3 text-center text-[11px] leading-none font-semibold text-muted-foreground tabular-nums"
+              className="h-3 text-center text-micro leading-none font-medium text-muted-foreground tabular-nums"
             >
               {segment.label}
             </span>
@@ -197,7 +186,7 @@ function Structure({ panel }: { panel: SessionPanel }) {
 function Steps({ panel }: { panel: SessionPanel }) {
   return (
     <section aria-labelledby="panel-steps" className="flex flex-col">
-      <Dk id="panel-steps" className="pb-1 text-[9.5px]">
+      <Dk id="panel-steps" className="pb-1 text-label">
         Étapes
       </Dk>
       <ol>
@@ -208,24 +197,21 @@ function Steps({ panel }: { panel: SessionPanel }) {
           >
             <span
               aria-hidden="true"
-              className={cn(
-                "self-stretch rounded-[2px]",
-                step.zone === 1 ? "bg-data-1" : zoneFills[step.zone],
-              )}
+              className={cn("self-stretch rounded-mark", zoneFills[step.zone])}
             />
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-body font-semibold">{step.name}</span>
               {step.cue && (
-                <span className="text-[12.5px] leading-[1.45] text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {step.cue}
                 </span>
               )}
             </span>
             <span className="flex flex-col items-end gap-0.5">
-              <span className="text-[17px] leading-[1.1] font-semibold tabular-nums">
+              <span className="text-body-lg font-semibold tabular-nums">
                 {step.duration}
               </span>
-              <span className="text-[11.5px] whitespace-nowrap text-secondary-foreground">
+              <span className="text-label whitespace-nowrap text-secondary-foreground">
                 {step.target}
                 {step.pace && (
                   <>
@@ -245,7 +231,7 @@ function Steps({ panel }: { panel: SessionPanel }) {
 function Contents({ panel }: { panel: SessionPanel }) {
   return (
     <section aria-labelledby="panel-contents" className="flex flex-col">
-      <Dk id="panel-contents" className="pb-1 text-[9.5px]">
+      <Dk id="panel-contents" className="pb-1 text-label">
         Contenu
       </Dk>
       <ol>
@@ -255,7 +241,7 @@ function Contents({ panel }: { panel: SessionPanel }) {
             className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-t border-border py-2.75"
           >
             <span className="text-body leading-normal">{step.cue}</span>
-            <span className="text-[17px] leading-[1.1] font-semibold tabular-nums">
+            <span className="text-body-lg font-semibold tabular-nums">
               {step.duration}
             </span>
           </li>
@@ -267,7 +253,7 @@ function Contents({ panel }: { panel: SessionPanel }) {
 
 function Untracked() {
   return (
-    <p className="flex items-start gap-2 text-[12.5px] leading-normal text-muted-foreground">
+    <p className="flex items-start gap-2 text-label leading-normal text-muted-foreground">
       <InfoIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
       Séance libre, sans suivi Garmin. Marque-la faite une fois terminée pour
       qu’elle compte dans ton suivi.
@@ -284,7 +270,7 @@ function CheckedIn({ day }: { day: string }) {
         strokeWidth={2.5}
       />
       <span className="flex flex-1 flex-col gap-0.5">
-        <span className="text-[15px] font-semibold">Fait · noté par toi</span>
+        <span className="text-body-lg font-semibold">Fait · noté par toi</span>
         <span className="text-label text-muted-foreground">
           {day} · séance libre, sans suivi Garmin
         </span>
@@ -297,10 +283,10 @@ function Contingencies({ items }: { items: string[] }) {
   return (
     <section
       aria-labelledby="panel-contingencies"
-      className="flex flex-col gap-2 rounded-[10px] border border-border bg-background px-3.5 py-3"
+      className="flex flex-col gap-2 rounded-lg border border-border bg-background px-3.5 py-3"
     >
       <Dk id="panel-contingencies">Si ça se passe mal</Dk>
-      <p className="text-[13px] leading-normal text-secondary-foreground">
+      <p className="text-body leading-normal text-secondary-foreground">
         {items.join(" ")}
       </p>
     </section>
@@ -311,14 +297,14 @@ function SurgeIdeas({ items }: { items: string[] }) {
   return (
     <section
       aria-labelledby="panel-surges"
-      className="flex flex-col gap-2 rounded-[10px] border border-border bg-background px-3.5 py-3"
+      className="flex flex-col gap-2 rounded-lg border border-border bg-background px-3.5 py-3"
     >
       <Dk id="panel-surges">Idées de relances, sans obligation</Dk>
       <ul className="flex flex-col gap-1.5">
         {items.map((item) => (
           <li
             key={item}
-            className="flex items-start gap-2 text-[13px] leading-[1.45] text-secondary-foreground"
+            className="flex items-start gap-2 text-body text-secondary-foreground"
           >
             <span
               aria-hidden="true"
@@ -328,7 +314,7 @@ function SurgeIdeas({ items }: { items: string[] }) {
           </li>
         ))}
       </ul>
-      <p className="text-[12.5px] leading-[1.45] text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         6 à 10 relances de 30” à 3’ suffisent. Récupère au moins aussi longtemps
         que tu as relancé.
       </p>
@@ -341,7 +327,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
   const minimum = Math.min(...completion.pace);
   const { debrief } = completion;
   const rows = (
-    <table className="w-full table-fixed border-collapse text-[13px]">
+    <table className="w-full table-fixed border-collapse text-body">
       <thead>
         <tr>
           <th scope="col" className="pb-1.5">
@@ -422,7 +408,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
             strokeWidth={2.5}
           />
           <span className="flex flex-1 flex-col gap-0.5">
-            <span className="text-[15px] font-semibold">
+            <span className="text-body-lg font-semibold">
               {completion.headline}
             </span>
             <span className="text-label text-muted-foreground">
@@ -432,7 +418,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
           {completion.pct !== null && (
             <span
               aria-hidden="true"
-              className="text-[30px] leading-none font-semibold text-primary tabular-nums"
+              className="text-metric leading-none font-semibold text-primary tabular-nums"
             >
               {completion.pct}
             </span>
@@ -444,9 +430,9 @@ function Completion({ completion }: { completion: PanelCompletion }) {
         (debrief || completion.totalsLabel ? (
           <section aria-label="Sur l’ensemble" className="flex flex-col">
             <div className="flex items-baseline gap-2.5 pb-1.5">
-              <Dk asChild>
-                <h3>Sur l’ensemble</h3>
-              </Dk>
+              <h3 className="text-label font-medium text-muted-foreground">
+                Sur l’ensemble
+              </h3>
               {completion.totalsLabel && (
                 <span className="ml-auto text-label text-muted-foreground">
                   {completion.totalsLabel}
@@ -469,7 +455,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
             {completion.pace.map((secondsPerKm, index) => (
               <span
                 key={index}
-                className="min-w-0 flex-1 rounded-[1px] bg-foreground/85"
+                className="min-w-0 flex-1 rounded-mark bg-foreground/85"
                 style={{
                   height: `${
                     maximum === minimum
@@ -485,9 +471,12 @@ function Completion({ completion }: { completion: PanelCompletion }) {
       )}
       {completion.activities.length > 0 && (
         <section aria-labelledby="panel-activities" className="flex flex-col">
-          <Dk id="panel-activities" className="pb-2" asChild>
-            <h3>Activités Garmin</h3>
-          </Dk>
+          <h3
+            id="panel-activities"
+            className="pb-2 text-label font-medium text-muted-foreground"
+          >
+            Activités Garmin
+          </h3>
           <ul className="flex flex-col">
             {completion.activities.map((activity) => (
               <li key={activity.id} className="border-t border-border">
@@ -499,7 +488,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
                     {activity.time}
                   </span>
                   <span className="flex min-w-0 flex-col gap-px">
-                    <span className="truncate text-[13px] font-semibold">
+                    <span className="truncate text-body font-semibold">
                       {activity.title}
                     </span>
                     <span className="truncate text-label text-muted-foreground">
@@ -526,7 +515,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
           asChild
           variant="outline"
           size="md"
-          className="min-h-9.5 self-start rounded-md text-[13px]"
+          className="min-h-9.5 self-start rounded-md text-body"
         >
           <Link href={`/activities/${completion.activityId}`}>
             Voir l’activité Garmin

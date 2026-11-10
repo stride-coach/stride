@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HistoryIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { mondayOf } from "@/features/plans/model/dates";
 import { proposalsByWeek } from "@/features/plans/review/proposal";
@@ -69,11 +70,11 @@ export default async function PlanPage({
         { label: "Plan", href: "/plan" },
         { label: "Programme complet" },
       ]}
-      className="gap-5 sm:gap-4.5 sm:pt-6"
+      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
     >
-      <div className="flex items-start gap-3 max-sm:flex-col-reverse max-sm:items-stretch">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
         <ProgramTabs programs={programs} active={program} />
-        <div className="ml-auto flex shrink-0 gap-2 max-sm:self-end">
+        <div className="ml-auto flex shrink-0 gap-1.5">
           <CopyProgramButton
             text={programText({
               state: overview.plan.state,
@@ -84,13 +85,12 @@ export default async function PlanPage({
               paces,
             })}
           />
-          <Link
-            href="/plan/history"
-            className="flex min-h-9 shrink-0 items-center gap-2 rounded-lg border border-border px-3 text-[13px] text-secondary-foreground hover:text-foreground max-sm:min-h-11"
-          >
-            <HistoryIcon aria-hidden="true" className="size-3.5" />
-            Historique
-          </Link>
+          <Button asChild variant="outline" size="md">
+            <Link href="/plan/history">
+              <HistoryIcon aria-hidden="true" />
+              Historique
+            </Link>
+          </Button>
         </div>
       </div>
       <ProgramExplorer

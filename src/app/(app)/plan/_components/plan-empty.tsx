@@ -4,19 +4,19 @@ import { StrideMark } from "@/components/stride/stride-mark";
 
 export function PlanEmpty() {
   return (
-    <section className="flex max-w-200 flex-col gap-5">
-      <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[clamp(32px,4vw,46px)] sm:leading-[1.05] sm:tracking-[-0.03em]">
+    <section className="flex max-w-160 flex-col gap-4">
+      <h1 className="text-verdict font-semibold text-balance">
         Pas encore de programme
       </h1>
       <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
-        <p className="text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
+        <p className="text-body-lg text-pretty text-secondary-foreground">
           Demande au Coach de construire ton plan. Il part de tes objectifs, de
           tes disponibilités et de ton historique, puis te le propose avant de
           l’enregistrer.
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         <Button asChild>
           <Link href="/coach/new?request=plan">Demander un plan</Link>
         </Button>

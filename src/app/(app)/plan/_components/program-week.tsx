@@ -1,12 +1,14 @@
-import { Fragment } from "react";
 import { CheckIcon, WatchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { PulseDot } from "@/components/stride/marks";
-import { SessionKindTile } from "@/components/stride/session-kind-tile";
-import { SessionShape } from "@/components/stride/session-shape";
+import { Chip } from "@/components/stride/chip";
+import {
+  SessionStateMark,
+  type SessionRowState,
+} from "@/components/stride/session-row";
+import { Status } from "@/components/stride/status";
 import { StrideMark } from "@/components/stride/stride-mark";
+import { dayIntensity } from "@/features/plans/view/intensity";
 import { cn } from "@/lib/utils";
 import {
   formatDuration,
@@ -45,12 +47,7 @@ function DayState({
         </span>
       );
     case "proposed":
-      return (
-        <span className="flex items-center gap-1.5 text-label text-warning">
-          <PulseDot tone="warning" breathing={false} />
-          Proposé
-        </span>
-      );
+      return <Status level="watch">Proposé</Status>;
     case "substituted":
       return <span className="text-label text-muted-foreground">Remplacé</span>;
     case "missed":
@@ -112,174 +109,100 @@ function sessionCount(day: ProgramDay) {
   return `${day.sessions.length} séances`;
 }
 
-function DayDate({ day, size }: { day: ProgramDay; size: "micro" | "nano" }) {
-  return (
-    <>
-      <MonoLabel size={size} tone={day.isToday ? "accent" : "muted"}>
-        {day.weekday}
-      </MonoLabel>
-      <span className="text-title leading-none font-semibold tabular-nums">
-        {day.dayNumber}
-      </span>
-    </>
-  );
+function shortDay(day: ProgramDay) {
+  const weekday = day.weekday.replace(".", "");
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${day.dayNumber}`;
 }
 
-function SessionShapeStrip({
-  blocks,
-  className,
-}: {
-  blocks: ProgramDaySession["blocks"];
-  className?: string;
-}) {
-  if (blocks.length === 0) return null;
-  return (
-    <SessionShape
-      blocks={blocks}
-      aria-hidden="true"
-      role={undefined}
-      aria-label={undefined}
-      className={cn("h-3.5 gap-px", className)}
-    />
-  );
+function rowState(
+  day: ProgramDay,
+  state: ProgramDaySession["state"],
+  rest: boolean,
+): SessionRowState {
+  if (day.isToday) return "today";
+  if (rest) return "rest";
+  if (state === "done" || state === "substituted") return "done";
+  if (state === "partial") return "partial";
+  if (state === "missed") return "missed";
+  if (state === "proposed") return "proposed";
+  return "upcoming";
 }
 
-function DayCard({
+const rowGrid =
+  "grid min-h-row-touch grid-cols-[14px_48px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:min-h-row sm:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_auto] sm:py-1.5 md:px-5 lg:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_62px_auto]";
+
+function SessionCells({
   day,
-  sessionHref,
-  watchTags,
+  session,
+  rest,
+  showDay,
+  watch,
 }: {
   day: ProgramDay;
-  sessionHref: SessionHref;
-  watchTags: WatchTags;
+  session: Pick<
+    ProgramDaySession,
+    | "family"
+    | "title"
+    | "summary"
+    | "duration"
+    | "distance"
+    | "elevation"
+    | "blocks"
+    | "state"
+    | "compliancePct"
+  >;
+  rest: boolean;
+  showDay: boolean;
+  watch: WatchDayTag | undefined;
 }) {
-  const rest = day.sessionKey === null;
-  const className = cn(
-    "flex min-w-0 flex-col rounded-xl border p-3",
-    rest
-      ? "border-dashed border-border"
-      : "border-border bg-card hover:border-control-border",
-    day.isPast && !rest && "bg-background",
-    day.isPast && "opacity-70",
-    day.isToday && "border-foreground bg-muted opacity-100",
-  );
-  if (day.sessions.length > 1)
-    return (
-      <div
-        role="group"
-        aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
-        aria-current={day.isToday ? "date" : undefined}
-        className={cn(className, "gap-1.5 hover:border-border")}
-      >
-        <span className="flex min-h-6.5 items-center justify-between gap-1.5">
-          <span className="flex items-baseline gap-1.25">
-            <DayDate day={day} size="micro" />
-          </span>
-          <MonoLabel size="micro" tone="muted">
-            {sessionCount(day)}
-          </MonoLabel>
-        </span>
-        {day.sessions.map((session, index) => (
-          <Fragment key={session.sessionKey}>
-            {index > 0 && (
-              <span aria-hidden="true" className="h-px shrink-0 bg-border" />
-            )}
-            <SessionLink
-              session={session}
-              sessionHref={sessionHref}
-              className={cn(
-                "-mx-2 flex flex-col gap-2 rounded-lg p-2 hover:bg-muted",
-                index === day.sessions.length - 1 && "flex-1",
-              )}
-            >
-              <span className="text-[13.5px] leading-tight font-semibold">
-                {session.title}
-              </span>
-              <span className="flex items-center gap-1.75">
-                <SessionKindTile
-                  kind={session.family}
-                  size="sm"
-                  className="size-5.5"
-                />
-                {session.summary && (
-                  <span className="text-body-lg leading-tight font-semibold tabular-nums">
-                    {session.summary}
-                  </span>
-                )}
-              </span>
-              {session.elevation && (
-                <span className="-mt-1 text-label text-muted-foreground">
-                  {session.elevation}
-                </span>
-              )}
-              <SessionShapeStrip
-                blocks={session.blocks}
-                className={
-                  index === day.sessions.length - 1 ? "mt-auto" : undefined
-                }
-              />
-              <DayState
-                state={session.state}
-                compliancePct={session.compliancePct}
-              />
-              {session.state !== "proposed" && (
-                <WatchTag tag={watchTags[session.sessionKey]} />
-              )}
-            </SessionLink>
-          </Fragment>
-        ))}
-      </div>
-    );
-  const watch = day.sessionKey ? watchTags[day.sessionKey] : undefined;
-  const body = (
+  const state = rowState(day, session.state, rest);
+  const intensity = dayIntensity(session.family, session.blocks);
+  return (
     <>
-      <span className="flex items-center justify-between gap-1.5">
-        <span className="flex items-baseline gap-1.25">
-          <DayDate day={day} size="micro" />
-        </span>
-        <SessionKindTile kind={day.family} size="md" />
+      <SessionStateMark state={state} />
+      <span className="text-label text-muted-foreground tabular-nums">
+        {showDay && shortDay(day)}
       </span>
-      <span className="flex min-h-9 flex-col gap-0.75">
+      <span className="flex min-w-0 flex-col">
         <span
           className={cn(
-            "text-[13.5px] leading-tight",
-            rest ? "text-muted-foreground" : "font-semibold",
+            "truncate",
+            rest ? "text-muted-foreground" : "font-medium",
           )}
         >
-          {day.title}
+          {session.title}
         </span>
+        {session.summary && (
+          <span className="truncate text-label text-muted-foreground tabular-nums sm:hidden">
+            {[session.summary, session.elevation].filter(Boolean).join(" · ")}
+          </span>
+        )}
+        {session.state !== "proposed" && <WatchTag tag={watch} />}
       </span>
-      {day.summary && (
-        <span className="text-body-lg leading-tight font-semibold tabular-nums">
-          {day.summary}
-        </span>
-      )}
-      {day.elevation && (
-        <span className="-mt-2 text-label text-muted-foreground">
-          {day.elevation}
-        </span>
-      )}
-      <SessionShapeStrip blocks={day.blocks} className="mt-auto" />
-      <DayState state={day.state} compliancePct={day.compliancePct} />
-      {day.state !== "proposed" && <WatchTag tag={watch} />}
+      <span className="max-sm:hidden">
+        {intensity && (
+          <Chip intensity={intensity.level ?? undefined}>
+            {intensity.label}
+          </Chip>
+        )}
+      </span>
+      <span className="text-right tabular-nums max-sm:hidden">
+        {rest ? "" : (session.duration ?? "–")}
+      </span>
+      <span className="text-right tabular-nums max-sm:hidden">
+        {rest ? "" : (session.distance ?? "–")}
+      </span>
+      <span className="text-right text-muted-foreground tabular-nums max-lg:hidden">
+        {session.elevation?.replace(" D+", "")}
+      </span>
+      <span className="justify-self-end">
+        <DayState state={session.state} compliancePct={session.compliancePct} />
+      </span>
     </>
-  );
-  const single = day.sessions[0];
-  return single ? (
-    <SessionLink
-      session={single}
-      sessionHref={sessionHref}
-      current={day.isToday}
-      className={cn(className, "gap-2.5")}
-    >
-      {body}
-    </SessionLink>
-  ) : (
-    <div className={cn(className, "gap-2.5")}>{body}</div>
   );
 }
 
-function DayRow({
+function DayRows({
   day,
   sessionHref,
   watchTags,
@@ -289,99 +212,64 @@ function DayRow({
   watchTags: WatchTags;
 }) {
   const rest = day.sessionKey === null;
-  const date = (
-    <span className="flex flex-col items-center">
-      <DayDate day={day} size="nano" />
-    </span>
-  );
-  const sessionBody = (
-    session: Pick<
-      ProgramDaySession,
-      "family" | "title" | "summary" | "elevation" | "state" | "compliancePct"
-    >,
-    watch: WatchDayTag | undefined,
-  ) => {
-    const details = [session.summary, session.elevation]
-      .filter(Boolean)
-      .join(" · ");
-    return (
-      <>
-        <SessionKindTile kind={session.family} size="lg" />
-        <span className="flex min-w-0 flex-col gap-0.5">
-          <span
-            className={cn(
-              "text-body",
-              rest ? "text-muted-foreground" : "font-semibold",
-            )}
-          >
-            {session.title}
-          </span>
-          {details && (
-            <span className="text-label text-muted-foreground">{details}</span>
-          )}
-          {session.state !== "proposed" && <WatchTag tag={watch} />}
-        </span>
-        <DayState state={session.state} compliancePct={session.compliancePct} />
-      </>
-    );
-  };
   const frame = cn(
-    "border-t border-border",
-    day.isPast && "opacity-65",
-    day.isToday &&
-      "my-0.5 rounded-xl border border-control-border bg-muted px-3",
+    "border-b border-border",
+    day.isPast && !day.isToday && "opacity-55",
+    day.isToday && "bg-muted",
+  );
+  const link = cn(
+    rowGrid,
+    "transition-colors duration-150 ease-stride hover:bg-muted focus-visible:outline-offset-[-2px]",
   );
   if (day.sessions.length > 1)
     return (
-      <div
+      <li
         role="group"
         aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
         aria-current={day.isToday ? "date" : undefined}
-        className={cn(
-          frame,
-          "grid grid-cols-[40px_minmax(0,1fr)] items-start gap-2.5 py-0.5",
-        )}
+        className={frame}
       >
-        <span className="pt-3.75">{date}</span>
-        <div className="flex min-w-0 flex-col">
-          {day.sessions.map((session, index) => (
-            <SessionLink
-              key={session.sessionKey}
+        {day.sessions.map((session, index) => (
+          <SessionLink
+            key={session.sessionKey}
+            session={session}
+            sessionHref={sessionHref}
+            className={cn(
+              link,
+              index > 0 && "border-t border-dashed border-border",
+            )}
+          >
+            <SessionCells
+              day={day}
               session={session}
-              sessionHref={sessionHref}
-              className={cn(
-                "grid min-h-11 grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-2.5 py-2.5",
-                index > 0 && "border-t border-dashed border-control-border",
-              )}
-            >
-              {sessionBody(session, watchTags[session.sessionKey])}
-            </SessionLink>
-          ))}
-        </div>
-      </div>
+              rest={false}
+              showDay={index === 0}
+              watch={watchTags[session.sessionKey]}
+            />
+          </SessionLink>
+        ))}
+      </li>
     );
-  const className = cn(
-    frame,
-    "grid min-h-11 grid-cols-[40px_32px_minmax(0,1fr)_auto] items-center gap-2.5 py-3",
-  );
-  const body = (
-    <>
-      {date}
-      {sessionBody(day, day.sessionKey ? watchTags[day.sessionKey] : undefined)}
-    </>
+  const watch = day.sessionKey ? watchTags[day.sessionKey] : undefined;
+  const cells = (
+    <SessionCells day={day} session={day} rest={rest} showDay watch={watch} />
   );
   const single = day.sessions[0];
-  return single ? (
-    <SessionLink
-      session={single}
-      sessionHref={sessionHref}
-      current={day.isToday}
-      className={className}
-    >
-      {body}
-    </SessionLink>
-  ) : (
-    <div className={className}>{body}</div>
+  return (
+    <li className={frame}>
+      {single ? (
+        <SessionLink
+          session={single}
+          sessionHref={sessionHref}
+          current={day.isToday}
+          className={link}
+        >
+          {cells}
+        </SessionLink>
+      ) : (
+        <div className={rowGrid}>{cells}</div>
+      )}
+    </li>
   );
 }
 
@@ -389,9 +277,7 @@ function WeekNote({ note }: { note: string }) {
   return (
     <div className="flex items-start gap-2.5">
       <StrideMark className="mt-0.75 size-3.5 shrink-0" />
-      <p className="text-[13px] leading-normal text-secondary-foreground">
-        {note}
-      </p>
+      <p className="max-w-170 text-body-lg text-secondary-foreground">{note}</p>
     </div>
   );
 }
@@ -406,7 +292,7 @@ function WeekProposals({
   return (
     <section
       aria-label="Changements proposés cette semaine"
-      className="flex flex-col divide-y divide-border rounded-xl border border-border bg-warning/4"
+      className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card"
     >
       {proposals.map((proposal) => (
         <div
@@ -414,18 +300,15 @@ function WeekProposals({
           className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3.5 py-3"
         >
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-center gap-2 text-label text-warning">
-              <PulseDot tone="warning" breathing={false} />
-              Changement proposé
-            </span>
-            <span className="text-body font-semibold">{proposal.title}</span>
+            <Status level="watch">Changement proposé</Status>
+            <span className="font-semibold">{proposal.title}</span>
             {proposal.summary && (
-              <span className="text-[13px] leading-normal text-secondary-foreground">
+              <span className="text-secondary-foreground">
                 {proposal.summary}
               </span>
             )}
           </span>
-          <Button asChild size="md" className="max-sm:h-11 max-sm:w-full">
+          <Button asChild size="md" className="max-sm:w-full">
             <Link
               href={reviewHref(proposal.id)}
               onClick={markProposalOpened}
@@ -441,13 +324,7 @@ function WeekProposals({
 }
 
 function WeekStatus({ week }: { week: ProgramWeek }) {
-  if (week.status === "current")
-    return (
-      <span className="flex items-center gap-1.5 text-label">
-        <PulseDot breathing={false} />
-        En cours
-      </span>
-    );
+  if (week.status === "current") return <Status level="ok">En cours</Status>;
   if (week.status === "future")
     return (
       <span className="text-label text-muted-foreground">
@@ -475,14 +352,14 @@ function SplitBar({ split }: { split: Split }) {
     <span
       role="img"
       aria-label={`${split.easyPct} % du temps de course en facile, cible ${easyTargetPct} %`}
-      className="relative flex h-1.5 gap-0.5"
+      className="relative flex h-1 gap-0.5"
     >
       <span
-        className="rounded-l-mark bg-foreground"
+        className="rounded-l-mark bg-intensity-2"
         style={{ width: `${split.easyPct}%` }}
       />
       {split.qualitySeconds > 0 && (
-        <span className="flex-1 rounded-r-mark bg-primary/70" />
+        <span className="flex-1 rounded-r-mark bg-intensity-4" />
       )}
       <span
         aria-hidden="true"
@@ -524,16 +401,16 @@ function WeekSplitCell({ split }: { split: Split }) {
       <dt className="col-start-2 row-start-1 text-label text-secondary-foreground">
         facile
       </dt>
-      <dd className="col-start-1 row-start-1 text-[26px] leading-none font-semibold whitespace-nowrap tabular-nums">
+      <dd className="col-start-1 row-start-1 text-title leading-none font-semibold whitespace-nowrap tabular-nums">
         {split.easyPct} %
       </dd>
-      <dd className="col-start-3 row-start-1 justify-self-end text-[11px]">
+      <dd className="col-start-3 row-start-1 justify-self-end text-label">
         <SplitState split={split} long={false} />
       </dd>
       <dd className="col-span-3">
         <SplitBar split={split} />
       </dd>
-      <dd className="col-span-3 text-[11px] text-muted-foreground">
+      <dd className="col-span-3 text-label text-muted-foreground">
         {formatDuration(split.easySeconds)} facile ·{" "}
         {formatDuration(split.qualitySeconds)} de qualité
       </dd>
@@ -545,30 +422,30 @@ function WeekSplitCard({ split }: { split: Split }) {
   return (
     <div
       title={splitTitle}
-      className="flex flex-col gap-2 rounded-xl border border-border bg-background px-3.5 py-3 sm:hidden"
+      className="flex flex-col gap-2 rounded-xl border border-border bg-card px-3.5 py-3 sm:hidden"
     >
       <div className="flex items-baseline gap-2">
-        <span className="text-[22px] leading-none font-semibold tabular-nums">
+        <span className="text-title leading-none font-semibold tabular-nums">
           {split.easyPct} %
         </span>
-        <span className="text-[13px] text-secondary-foreground">en facile</span>
+        <span className="text-secondary-foreground">en facile</span>
         <span className="ml-auto text-label">
           <SplitState split={split} long />
         </span>
       </div>
       <SplitBar split={split} />
-      <div className="flex gap-3.5 text-[11px] text-muted-foreground">
+      <div className="flex gap-3.5 text-label text-muted-foreground">
         <span className="inline-flex items-center gap-1.25">
           <span
             aria-hidden="true"
-            className="size-1.5 rounded-full bg-foreground"
+            className="size-1.5 rounded-full bg-intensity-2"
           />
           Facile {formatDuration(split.easySeconds)}
         </span>
         <span className="inline-flex items-center gap-1.25">
           <span
             aria-hidden="true"
-            className="size-1.5 rounded-full bg-primary/70"
+            className="size-1.5 rounded-full bg-intensity-4"
           />
           Qualité {formatDuration(split.qualitySeconds)}
         </span>
@@ -647,7 +524,7 @@ export function ProgramWeekPanel({
   return (
     <section
       aria-labelledby="program-week-title"
-      className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-4 sm:gap-4 sm:px-5.5 sm:py-5"
+      className="flex flex-col gap-3.5 px-4 pt-4.5 md:px-5"
     >
       <div className="flex flex-wrap items-start gap-3 sm:items-center">
         <div className="flex flex-col gap-0.75">
@@ -655,12 +532,10 @@ export function ProgramWeekPanel({
             id="program-week-title"
             className="flex flex-wrap items-baseline gap-2.5"
           >
-            <span className="text-[22px] leading-none font-semibold tabular-nums sm:text-metric">
+            <span className="text-title font-semibold tabular-nums">
               S{week.number}
             </span>
-            <span className="text-[15px] font-semibold sm:text-[17px]">
-              {week.range}
-            </span>
+            <span className="text-title font-semibold">{week.range}</span>
           </h2>
           <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label text-muted-foreground">
             <WeekStatus week={week} />
@@ -674,10 +549,10 @@ export function ProgramWeekPanel({
           <dl className="flex flex-wrap items-baseline gap-3.5 sm:gap-4.5">
             {weekMetrics(week).map((metric) => (
               <div key={metric.key} className="flex flex-col gap-0.5">
-                <dt className="order-2 text-[11px] text-muted-foreground">
+                <dt className="order-2 text-label text-muted-foreground">
                   {metric.note}
                 </dt>
-                <dd className="order-1 text-[22px] leading-none font-semibold whitespace-nowrap tabular-nums sm:text-[26px]">
+                <dd className="order-1 text-title leading-none font-semibold whitespace-nowrap tabular-nums">
                   {metric.value}
                 </dd>
               </div>
@@ -702,26 +577,16 @@ export function ProgramWeekPanel({
       {proposals.length > 0 && (
         <WeekProposals proposals={proposals} reviewHref={reviewHref} />
       )}
-      <div className="grid grid-cols-7 gap-2 max-lg:hidden">
+      <ol className="-mx-4 border-t border-border md:-mx-5">
         {week.days.map((day) => (
-          <DayCard
+          <DayRows
             key={day.date}
             day={day}
             sessionHref={sessionHref}
             watchTags={watchTags}
           />
         ))}
-      </div>
-      <div className="flex flex-col lg:hidden">
-        {week.days.map((day) => (
-          <DayRow
-            key={day.date}
-            day={day}
-            sessionHref={sessionHref}
-            watchTags={watchTags}
-          />
-        ))}
-      </div>
+      </ol>
     </section>
   );
 }
