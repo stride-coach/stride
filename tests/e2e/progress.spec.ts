@@ -107,7 +107,7 @@ for (const viewport of [
       }),
     ).toBeVisible();
     const readiness = page.getByRole("region", {
-      name: "Prêt pour aujourd’hui ?",
+      name: "Forme du jour",
     });
     await expect(readiness.getByText(/^Modéré|^Bas/)).toBeVisible();
     const factors = page.getByRole("region", {
@@ -163,17 +163,14 @@ test("athlete records how they feel today", async ({ page }) => {
 test("Santé tabs switch between Forme and Récupération", async ({ page }) => {
   await signIn(page);
   await page.goto("/health/fitness");
-  await page
+  const tabs = page
     .getByRole("navigation", { name: "Sections de Santé" })
-    .last()
-    .getByRole("link", { name: "Récupération" })
-    .click();
+    .filter({ visible: true });
+  await tabs.getByRole("link", { name: "Récupération" }).click();
   await expect(page).toHaveURL("/health/recovery");
   await expect(
-    page
-      .getByRole("navigation", { name: "Fil d’Ariane" })
-      .getByText("Récupération"),
-  ).toBeVisible();
+    tabs.getByRole("link", { name: "Récupération" }),
+  ).toHaveAttribute("aria-current", "page");
 });
 
 test("old Progression links land on their Santé tab", async ({ page }) => {

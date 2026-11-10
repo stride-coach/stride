@@ -93,9 +93,9 @@ test("a session opens over Récupération", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto("/health/recovery");
-  await expect(
-    page.getByRole("region", { name: "Prêt pour aujourd’hui ?" }),
-  ).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("region", { name: "Forme du jour" })).toBeVisible(
+    { timeout: 20_000 },
+  );
   const link = page.getByRole("link", { name: "Voir la séance" });
   test.skip((await link.count()) === 0, "No session today");
   await link.click();
