@@ -83,7 +83,12 @@ export function RaceBreadcrumb({
           </span>
         </>
       ) : (
-        <span aria-current="page" className="truncate font-medium">
+        <span
+          aria-current={
+            pathname.replace(/\/$/, "") === base ? "page" : undefined
+          }
+          className="truncate font-medium"
+        >
           {name}
         </span>
       )}

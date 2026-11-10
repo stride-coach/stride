@@ -29,8 +29,7 @@ export default async function RacesPage({
   const view = parseRacesView(query.view);
   const today = localToday(new Date());
   const overview = await readRacesOverview(context, today);
-  const { upcoming, past, featured, calendar, phases, roadGoals, results } =
-    overview;
+  const { upcoming, past, featured, calendar, phases, results } = overview;
   const counts = { upcoming: upcoming.length, past: past.length };
   const upcomingClass = view === "past" ? "max-md:hidden" : undefined;
   const pastClass = view === "upcoming" ? "max-md:hidden" : undefined;
@@ -88,7 +87,7 @@ export default async function RacesPage({
           )}
           {upcoming.length > 0 && (
             <div className={upcomingClass}>
-              <UpcomingRaces races={upcoming} today={today} goals={roadGoals} />
+              <UpcomingRaces races={upcoming} today={today} />
             </div>
           )}
           {past.length > 0 && (

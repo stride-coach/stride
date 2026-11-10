@@ -234,7 +234,7 @@ function Aside({
   return (
     <aside
       aria-label="Résumé du plan de course"
-      className="flex flex-col max-xl:hidden xl:w-panel xl:shrink-0 print:hidden"
+      className="flex flex-col max-xl:hidden xl:sticky xl:top-0 xl:w-panel xl:shrink-0 print:hidden"
     >
       <section aria-labelledby="plan-where" className={panelSection}>
         <h2 id="plan-where" className={panelHeading}>

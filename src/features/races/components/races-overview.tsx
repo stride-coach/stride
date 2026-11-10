@@ -8,7 +8,6 @@ import {
   formatInteger,
   formatKm,
 } from "../format";
-import type { GoalCard } from "@/features/progress/goal";
 import type { RaceOnTrack } from "../on-track";
 import { countdownLabel, type SeasonTimeline } from "../overview";
 import {
@@ -76,19 +75,13 @@ function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
   );
 }
 
-function SeasonGraphic({
-  timeline,
-  compact,
-}: {
-  timeline: SeasonTimeline;
-  compact: boolean;
-}) {
-  const lanes = compact ? 1 : timeline.lanes;
-  const laneHeight = 24;
-  const bandTop = compact ? 64 : 48 + lanes * laneHeight;
-  const badgeTop = bandTop - 33;
-  const lineHeight = bandTop + 24;
-  const monthTop = lineHeight + 4;
+const graphicWidth = 260;
+const bandTop = 64;
+const badgeTop = bandTop - 33;
+const lineHeight = bandTop + 24;
+const monthTop = lineHeight + 4;
+
+function SeasonGraphic({ timeline }: { timeline: SeasonTimeline }) {
   return (
     <div
       aria-hidden="true"
@@ -113,8 +106,7 @@ function SeasonGraphic({
         <span
           key={phase.key}
           className={cn(
-            "absolute flex h-4 items-center overflow-hidden rounded-sm border-r-2 border-background px-1.5 whitespace-nowrap text-secondary-foreground",
-            "text-label",
+            "absolute flex h-4 items-center overflow-hidden rounded-sm border-r-2 border-background px-1.5 text-label whitespace-nowrap text-secondary-foreground",
             phaseTones[phase.stage],
           )}
           style={{
@@ -123,9 +115,8 @@ function SeasonGraphic({
             top: bandTop,
           }}
         >
-          {(compact
-            ? (phase.width / 100) * 350 >= phase.label.length * 5.5 + 12
-            : phase.labelled) && phase.label}
+          {(phase.width / 100) * graphicWidth >=
+            phase.label.length * 5.5 + 12 && phase.label}
         </span>
       ))}
       <span
@@ -136,42 +127,20 @@ function SeasonGraphic({
           Auj.
         </span>
       </span>
-      {timeline.markers.map((marker) => {
-        const end = marker.align === "end";
-        const label = compact ? marker.short : marker.label;
-        const showLabel = !compact || marker.priority === "A";
-        return (
-          <div
-            key={marker.id}
-            className="absolute -translate-x-1/2"
-            style={{ left: `${marker.left}%`, top: badgeTop }}
-          >
-            <TimelineBadge priority={marker.priority} />
-            {showLabel && (
-              <span
-                className={cn(
-                  "absolute leading-4 whitespace-nowrap text-foreground",
-                  "text-label",
-                  compact
-                    ? "-top-5 right-0"
-                    : end
-                      ? "top-0.75 right-full mr-1.25"
-                      : marker.align === "start"
-                        ? "left-0"
-                        : "left-1/2 -translate-x-1/2",
-                )}
-                style={
-                  compact || end
-                    ? undefined
-                    : { top: -20 - marker.lane * laneHeight }
-                }
-              >
-                {label}
-              </span>
-            )}
-          </div>
-        );
-      })}
+      {timeline.markers.map((marker) => (
+        <div
+          key={marker.id}
+          className="absolute -translate-x-1/2"
+          style={{ left: `${marker.left}%`, top: badgeTop }}
+        >
+          <TimelineBadge priority={marker.priority} />
+          {marker.priority === "A" && (
+            <span className="absolute -top-5 right-0 text-label leading-4 whitespace-nowrap text-foreground">
+              {marker.short}
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -199,7 +168,7 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
         </Link>
       </div>
       <div role="img" aria-label={label}>
-        <SeasonGraphic timeline={timeline} compact />
+        <SeasonGraphic timeline={timeline} />
       </div>
       <p className="text-label text-muted-foreground">
         {timeline.phases.length
@@ -265,6 +234,7 @@ export function FeaturedRace({
     >
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
         <PriorityBadge priority={race.priority} />
+        <span className="sr-only">Course {race.priority}</span>
         <h2
           id="races-featured"
           className="min-w-0 text-verdict font-semibold text-balance"
@@ -344,11 +314,9 @@ const upcomingColumns =
 export function UpcomingRaces({
   races,
   today,
-  goals,
 }: {
   races: RaceSummary[];
   today: string;
-  goals: Record<string, GoalCard>;
 }) {
   return (
     <section aria-labelledby="races-upcoming">
@@ -376,10 +344,9 @@ export function UpcomingRaces({
       <ul>
         {races.map((race) => {
           const countdown = countdownLabel(race.date, today);
-          const goal = goals[race.id];
-          const target =
-            goal?.target ??
-            (race.targetSeconds ? formatDuration(race.targetSeconds) : null);
+          const target = race.targetSeconds
+            ? formatDuration(race.targetSeconds)
+            : null;
           const summary = [
             race.date ? formatCompactDate(race.date) : "Date à définir",
             race.distanceKm ? `${formatInteger(race.distanceKm)} km` : null,
@@ -403,6 +370,7 @@ export function UpcomingRaces({
                     {race.date ? formatCompactDate(race.date) : "—"}
                   </span>
                   <span className="min-w-0 truncate font-medium">
+                    <span className="sr-only">Course {race.priority} · </span>
                     {race.name}
                   </span>
                   <span className="truncate text-label text-muted-foreground tabular-nums lg:hidden">
@@ -507,8 +475,9 @@ export function PastRaces({
                 <Link
                   href={`/races/${race.id}`}
                   prefetch={false}
-                  className="min-w-0 truncate font-medium hover:text-primary"
+                  className="inline-flex min-h-control-touch min-w-0 items-center truncate font-medium hover:text-primary lg:min-h-0"
                 >
+                  <span className="sr-only">Course {race.priority} · </span>
                   {race.name}
                 </Link>
                 <span className="truncate text-label text-muted-foreground tabular-nums lg:hidden">
@@ -553,7 +522,7 @@ export function PastRaces({
                       <Link
                         href={`/activities/${result.activityId}`}
                         prefetch={false}
-                        className="text-primary hover:text-foreground"
+                        className="inline-flex min-h-control-touch items-center text-primary hover:text-foreground lg:min-h-0"
                       >
                         Voir l’activité
                       </Link>

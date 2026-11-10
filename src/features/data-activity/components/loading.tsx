@@ -169,10 +169,10 @@ export function RaceLoading() {
   return (
     <LoadingScope
       label="Chargement des courses"
-      className="flex flex-col gap-5 sm:gap-9"
+      className="flex flex-col gap-5 md:gap-6"
     >
-      <Skeleton className="h-56 w-full rounded-2xl" />
-      <Skeleton className="h-56 w-full rounded-2xl md:h-105" />
+      <Skeleton className="h-56 w-full rounded-xl" />
+      <Skeleton className="h-56 w-full rounded-xl md:h-105" />
     </LoadingScope>
   );
 }

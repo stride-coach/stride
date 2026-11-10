@@ -65,10 +65,12 @@ function Countdown({
           days <= 7 && "text-primary",
         )}
       >
-        {days === 0 ? "Jour J" : `J-${days}`}
+        <span aria-hidden={days > 0 ? true : undefined}>
+          {days === 0 ? "Jour J" : `J-${days}`}
+        </span>
         {days > 0 && (
           <span className="sr-only">
-            {days === 1 ? " jour restant" : " jours restants"}
+            {days} {days === 1 ? "jour restant" : "jours restants"}
           </span>
         )}
       </span>
@@ -215,8 +217,14 @@ export function RaceHeader({
         </div>
       </div>
       <dl
-        className="grid grid-cols-3 gap-x-4 gap-y-3 border-y border-border py-3.5 sm:grid-cols-[repeat(var(--stat-count),minmax(0,1fr))]"
-        style={{ "--stat-count": items.length } as React.CSSProperties}
+        className="grid grid-cols-3 gap-x-4 gap-y-3 border-y border-border py-3.5 sm:grid-cols-[repeat(var(--stat-count),minmax(0,1fr))] md:grid-cols-[repeat(var(--stat-desktop-count),minmax(0,1fr))]"
+        style={
+          {
+            "--stat-count": items.length,
+            "--stat-desktop-count": items.filter((stat) => !stat.mobileOnly)
+              .length,
+          } as React.CSSProperties
+        }
       >
         {items.map((stat) => (
           <div
@@ -237,7 +245,7 @@ export function RaceHeader({
                 ? editTrigger(
                     <button
                       type="button"
-                      className="rounded-sm text-left decoration-muted-foreground underline-offset-4 hover:underline"
+                      className="inline-flex min-h-control-touch items-center rounded-sm text-left decoration-muted-foreground underline-offset-4 hover:underline md:min-h-0"
                     >
                       {stat.value}
                       <span className="sr-only">
