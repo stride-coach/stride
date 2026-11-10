@@ -30,19 +30,19 @@ export function ResetForm({
   return (
     <div className="grid flex-1 content-start md:grid-cols-3 md:content-stretch">
       <RecoveryStage number={1} title="Demande un lien" active={false}>
-        <p className="text-sm leading-relaxed text-secondary-foreground">
+        <p className="text-body leading-relaxed text-secondary-foreground">
           Besoin d’un autre lien ? Demande-en un nouveau avec l’e-mail de ton
           compte.
         </p>
         <Link
           href="/forgot-password"
-          className="text-sm text-primary hover:underline"
+          className="text-body text-primary hover:underline"
         >
           Demander un lien de réinitialisation
         </Link>
       </RecoveryStage>
       <RecoveryStage number={2} title="Vérifie ta boîte mail" active={false}>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="text-body leading-relaxed text-muted-foreground">
           Ouvre le lien reçu par e-mail pour vérifier ton compte.
         </p>
       </RecoveryStage>
@@ -91,7 +91,7 @@ export function ResetForm({
             />
             {confirmation && !mismatch && (
               <p
-                className="flex items-center gap-2 text-meta text-success"
+                className="flex items-center gap-2 text-body text-primary"
                 role="status"
               >
                 <CheckIcon
@@ -111,11 +111,11 @@ export function ResetForm({
               {pending ? "Enregistrement…" : "Enregistrer et se connecter"}
             </Button>
             {state.status === "success" && (
-              <Link href="/" className="text-sm text-primary hover:underline">
+              <Link href="/" className="text-body text-primary hover:underline">
                 Continuer vers Stride
               </Link>
             )}
-            <p className="text-xs leading-relaxed text-muted-foreground">
+            <p className="text-label leading-relaxed text-muted-foreground">
               Tu seras déconnecté des autres appareils après l’enregistrement.
               Les accès déjà ouverts restent valides jusqu’à leur expiration.
             </p>
@@ -131,7 +131,7 @@ export function ResetForm({
             />
             <Link
               href="/forgot-password"
-              className="text-sm text-primary hover:underline"
+              className="text-body text-primary hover:underline"
             >
               Obtenir un nouveau lien
             </Link>

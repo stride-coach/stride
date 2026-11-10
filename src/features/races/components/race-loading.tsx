@@ -13,7 +13,7 @@ export function RaceEntryLoading() {
         breadcrumb={
           <nav
             aria-label="Fil d’Ariane"
-            className="flex min-w-0 flex-1 items-center gap-2 text-sm"
+            className="flex min-w-0 flex-1 items-center gap-2 text-body"
           >
             <Link
               href="/races"

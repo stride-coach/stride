@@ -71,14 +71,14 @@ export function WithdrawConsentButton({ contact }: { contact: string }) {
             {changes.map((change) => (
               <div
                 key={change.label}
-                className="flex flex-col gap-0.75 border-b border-border py-2.25 text-sm last:border-b-0 md:grid md:grid-cols-[4.375rem_1fr] md:gap-3.5 md:py-3.25"
+                className="flex flex-col gap-0.75 border-b border-border py-2.25 text-body last:border-b-0 md:grid md:grid-cols-[4.375rem_1fr] md:gap-3.5 md:py-3.25"
               >
                 <dt>
                   <MonoLabel
                     size="micro"
                     tone={change.tone === "warning" ? "warning" : undefined}
                     className={
-                      change.tone === "success" ? "text-success" : undefined
+                      change.tone === "success" ? "text-primary" : undefined
                     }
                   >
                     {change.label}

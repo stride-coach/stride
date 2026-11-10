@@ -16,14 +16,14 @@ const labels: Record<SplitColumn, string> = {
 };
 
 const head =
-  "pb-2 pl-2 text-right font-mono text-[9.5px] font-normal tracking-[0.08em] whitespace-nowrap text-muted-foreground uppercase";
+  "pb-2 pl-2 text-right tabular-nums text-[9.5px] font-normal whitespace-nowrap text-muted-foreground ";
 const cell =
-  "py-2.5 pl-2 text-right font-metric text-[17px] font-semibold whitespace-nowrap tabular-nums";
+  "py-2.5 pl-2 text-right tabular-nums text-[17px] font-semibold whitespace-nowrap ";
 
 function Missing() {
   return (
     <>
-      <span aria-hidden="true" className="text-dim">
+      <span aria-hidden="true" className="text-muted-foreground">
         —
       </span>
       <span className="sr-only">non disponible</span>
@@ -44,8 +44,8 @@ function KmTable({ splits }: { splits: KmSplits }) {
         className={cn(
           "py-2.5 text-left",
           average
-            ? "text-meta font-semibold"
-            : "font-metric text-[17px] font-semibold tabular-nums",
+            ? "text-body font-semibold"
+            : "text-[17px] font-semibold tabular-nums",
         )}
       >
         {item.label}
@@ -53,7 +53,7 @@ function KmTable({ splits }: { splits: KmSplits }) {
       <td className={cell}>
         {item.pace}
         {!average && (
-          <span className="ml-1 text-xs font-medium text-muted-foreground max-sm:hidden">
+          <span className="ml-1 text-label font-medium text-muted-foreground max-sm:hidden">
             /km
           </span>
         )}
@@ -64,7 +64,7 @@ function KmTable({ splits }: { splits: KmSplits }) {
             aria-hidden="true"
             className={cn(
               "block h-2 rounded-mark",
-              item.bar.fast ? "bg-provider" : "bg-border-strong",
+              item.bar.fast ? "bg-foreground" : "bg-control-border",
             )}
             style={{ width: `${item.bar.width}%` }}
           />
@@ -104,7 +104,7 @@ function KmTable({ splits }: { splits: KmSplits }) {
     <table className="w-full border-collapse">
       <caption className="sr-only">Splits par km</caption>
       <thead>
-        <tr className="border-b border-border-strong">
+        <tr className="border-b border-control-border">
           <th scope="col" className={cn(head, "pl-0 text-left")}>
             Km
           </th>
@@ -166,7 +166,10 @@ export function SplitsSection({
   return (
     <section aria-labelledby="activity-splits" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 id="activity-splits" className="text-lg font-semibold sm:text-xl">
+        <h2
+          id="activity-splits"
+          className="text-title font-semibold sm:text-verdict"
+        >
           Splits
         </h2>
         {laps && (
@@ -203,10 +206,10 @@ export function SplitsSection({
       ) : (
         <>
           <KmTable splits={splits} />
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="flex items-center gap-1.5 text-label text-muted-foreground">
             <span
               aria-hidden="true"
-              className="inline-block h-1.5 w-2.5 rounded-mark bg-provider"
+              className="inline-block h-1.5 w-2.5 rounded-mark bg-foreground"
             />
             Bleu : km plus rapides que ta moyenne · calculé sur le tracé Garmin
           </p>

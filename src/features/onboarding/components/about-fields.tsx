@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="hidden font-mono text-label text-muted-foreground uppercase lg:block">
+    <h2 className="hidden text-label text-muted-foreground tabular-nums lg:block">
       {children}
     </h2>
   );
@@ -32,7 +32,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function StrideNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex items-start gap-2 text-xs text-muted-foreground">
+    <p className="flex items-start gap-2 text-label text-muted-foreground">
       <StrideMark className="mt-0.5 size-3" />
       <span>{children}</span>
     </p>
@@ -241,7 +241,7 @@ export function ChoiceField<T extends string>({
       aria-label={label}
       className={cn("flex flex-col gap-2.5", className)}
     >
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-body font-medium">{label}</span>
       <ToggleGroup
         type="single"
         value={value ?? ""}
@@ -289,7 +289,7 @@ export function DaysField({
       aria-label="Jours où tu peux courir"
       className="flex flex-col gap-2.5"
     >
-      <span className="hidden text-sm font-medium lg:block">
+      <span className="hidden text-body font-medium lg:block">
         Jours où tu peux courir
       </span>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
@@ -311,7 +311,7 @@ export function DaysField({
               <span className="hidden lg:inline">{day.short}</span>
               <span
                 aria-hidden="true"
-                className="grid size-5.5 place-items-center rounded-full border border-border-strong group-data-[state=on]/day:border-primary group-data-[state=on]/day:bg-primary lg:hidden"
+                className="grid size-5.5 place-items-center rounded-full border border-control-border group-data-[state=on]/day:border-primary group-data-[state=on]/day:bg-primary lg:hidden"
               >
                 <CheckIcon className="hidden size-3.5 text-primary-foreground group-data-[state=on]/day:block" />
               </span>
@@ -319,8 +319,8 @@ export function DaysField({
           ))}
         </ToggleGroup>
         {selected.length > 0 && (
-          <p className="hidden text-sm text-secondary-foreground lg:block">
-            <span className="font-metric text-metric-sm font-semibold text-foreground">
+          <p className="hidden text-body text-secondary-foreground lg:block">
+            <span className="text-metric font-semibold text-foreground tabular-nums">
               {selected.length}
             </span>{" "}
             jour{selected.length > 1 ? "s" : ""} par semaine max
@@ -352,7 +352,7 @@ export function AccessField({
       aria-label="Tu as accès à"
       className="flex flex-col gap-2.5"
     >
-      <span className="text-sm font-medium">Tu as accès à</span>
+      <span className="text-body font-medium">Tu as accès à</span>
       <ToggleGroup
         type="multiple"
         value={value ?? []}
@@ -365,7 +365,7 @@ export function AccessField({
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         Me permet de prévoir du travail en côte même sur les semaines plates.
       </p>
     </div>
@@ -393,7 +393,7 @@ export function SaveIndicator({
       role="status"
       data-status={status}
       className={cn(
-        "flex items-center gap-1.5 text-xs text-muted-foreground lg:text-meta",
+        "flex items-center gap-1.5 text-label text-muted-foreground lg:text-body",
         (status === "error" || status === "conflict") && "text-warning",
       )}
     >
@@ -404,7 +404,7 @@ export function SaveIndicator({
         />
       )}
       {status === "saved" && (
-        <CheckIcon aria-hidden="true" className="size-3.5 text-success" />
+        <CheckIcon aria-hidden="true" className="size-3.5 text-primary" />
       )}
       {status === "offline" && (
         <CloudOffIcon aria-hidden="true" className="size-3.5" />
@@ -430,7 +430,7 @@ export function KnownPanel({ known }: { known: KnownValue[] }) {
     <section aria-labelledby="known-title" className="flex flex-col">
       <h2
         id="known-title"
-        className="border-b border-border pb-3 font-mono text-label text-muted-foreground uppercase"
+        className="border-b border-border pb-3 text-label text-muted-foreground tabular-nums"
       >
         Déjà connu — je ne demande pas
       </h2>
@@ -440,17 +440,17 @@ export function KnownPanel({ known }: { known: KnownValue[] }) {
             key={item.key}
             className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-1 border-b border-border py-3"
           >
-            <dt className="text-sm">{item.label}</dt>
-            <dd className="text-right font-metric text-metric-sm font-semibold">
+            <dt className="text-body">{item.label}</dt>
+            <dd className="text-right text-metric font-semibold tabular-nums">
               {item.value}
             </dd>
-            <dd className="col-span-2 font-mono text-nano text-muted-foreground uppercase">
+            <dd className="col-span-2 text-label text-muted-foreground tabular-nums">
               {item.detail}
             </dd>
           </div>
         ))}
       </dl>
-      <p className="pt-4 text-xs text-muted-foreground">
+      <p className="pt-4 text-label text-muted-foreground">
         Ces valeurs viennent de tes données Garmin. Tu pourras les corriger à la
         fin.
       </p>

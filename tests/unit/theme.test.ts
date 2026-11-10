@@ -3,14 +3,15 @@ import {
   parseThemePreference,
   resolveTheme,
   themeButtonLabel,
+  themeScript,
 } from "../../src/features/theme/model";
 
 describe("theme preference", () => {
-  it("keeps known preferences and falls back to dark", () => {
+  it("keeps known preferences and falls back to the system theme", () => {
     expect(parseThemePreference("light")).toBe("light");
     expect(parseThemePreference("system")).toBe("system");
-    expect(parseThemePreference(null)).toBe("dark");
-    expect(parseThemePreference("sepia")).toBe("dark");
+    expect(parseThemePreference(null)).toBe("system");
+    expect(parseThemePreference("sepia")).toBe("system");
   });
 
   it("follows the operating system only for the system preference", () => {
@@ -22,5 +23,25 @@ describe("theme preference", () => {
 
   it("names the current choice in French", () => {
     expect(themeButtonLabel("system")).toBe("Thème : Système");
+  });
+
+  it("applies every stored preference before first paint", () => {
+    const cases = [
+      ["dark", true, "dark"],
+      ["light", false, "light"],
+      ["system", true, "light"],
+      ["system", false, "dark"],
+      [null, true, "light"],
+      ["sepia", false, "dark"],
+    ] as const;
+    for (const [stored, prefersLight, expected] of cases) {
+      const root = { dataset: {} as Record<string, string> };
+      new Function("localStorage", "matchMedia", "document", themeScript)(
+        { getItem: () => stored },
+        () => ({ matches: prefersLight }),
+        { documentElement: root },
+      );
+      expect(root.dataset.theme).toBe(expected);
+    }
   });
 });

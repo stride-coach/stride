@@ -31,8 +31,8 @@ export function Wordmark({
       </svg>
       <span
         className={cn(
-          "font-metric font-bold tracking-wider italic",
-          compactOnMobile ? "text-lg md:text-2xl" : "text-2xl",
+          "font-bold tracking-wider italic tabular-nums",
+          compactOnMobile ? "text-title md:text-metric" : "text-metric",
         )}
       >
         STRIDE
@@ -157,7 +157,7 @@ export function AuthShell({
                 <li key={label} className="flex gap-3">
                   <span
                     className={cn(
-                      "w-3.5 font-metric text-[17px]",
+                      "w-3.5 text-[17px] tabular-nums",
                       index === 0 ? "text-primary" : "text-muted-foreground",
                     )}
                   >
@@ -168,7 +168,7 @@ export function AuthShell({
               ))}
             </ol>
           ) : (
-            <p className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
+            <p className="text-[11px] text-muted-foreground tabular-nums">
               Route &amp; trail · Basé sur ton historique Garmin
             </p>
           )}
@@ -176,7 +176,7 @@ export function AuthShell({
       </section>
       <section
         aria-label={signup ? "Créer un compte" : "Se connecter"}
-        className="flex flex-1 flex-col px-6 pb-8 md:m-2 md:justify-center md:rounded-lg md:border md:border-border md:bg-surface-inset md:py-12"
+        className="flex flex-1 flex-col px-6 pb-8 md:m-2 md:justify-center md:rounded-lg md:border md:border-border md:bg-background md:py-12"
       >
         <div className="mx-auto flex w-full max-w-95 flex-1 flex-col md:flex-none">
           {children}

@@ -70,7 +70,7 @@ export default async function ProgressRecordsPage() {
       <section className="grid items-start gap-6.5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
         <div className="flex flex-col gap-2.5 sm:gap-3.5">
           <h1 className={titleClass}>{view.headline}</h1>
-          <p className="max-w-150 text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
+          <p className="max-w-150 text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
             {view.paragraph}
           </p>
         </div>
@@ -91,7 +91,7 @@ export default async function ProgressRecordsPage() {
           empty="Aucun record d’endurance documenté."
         />
       </div>
-      <p className="text-xs leading-normal text-muted-foreground">
+      <p className="text-label leading-normal text-muted-foreground">
         Records tirés de tes tours et tracés Garmin, sans dépasser la distance
         de plus de 5 %. Vitesse : sorties sur route et piste uniquement.
         Prévisions : Garmin. Chaque ligne ouvre l’activité d’origine.

@@ -8,7 +8,7 @@ function PairChip({ name, href }: { name: string; href: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex min-h-8 items-center gap-1.75 rounded-full border border-border-strong pr-2.75 pl-2.25 text-[13px] whitespace-nowrap text-foreground hover:border-muted-foreground"
+      className="inline-flex min-h-8 items-center gap-1.75 rounded-full border border-control-border pr-2.75 pl-2.25 text-[13px] whitespace-nowrap text-foreground hover:border-muted-foreground"
     >
       <NavGearIcon className="size-3.5 text-muted-foreground" />
       {name}
@@ -24,12 +24,12 @@ export function PlannedPairs({ rows }: { rows: WeekShoeRow[] }) {
           <span className="md:hidden">Cette semaine</span>
           <span className="max-md:hidden">Paires prévues cette semaine</span>
         </h2>
-        <span className="text-xs text-muted-foreground max-md:hidden">
+        <span className="text-label text-muted-foreground max-md:hidden">
           choisies par Stride, modifiables sur chaque séance
         </span>
       </div>
       {rows.length === 0 ? (
-        <p className="border-t border-border pt-3 text-sm text-secondary-foreground">
+        <p className="border-t border-border pt-3 text-body text-secondary-foreground">
           Plus de séance de course prévue cette semaine.
         </p>
       ) : (
@@ -43,8 +43,8 @@ export function PlannedPairs({ rows }: { rows: WeekShoeRow[] }) {
                 {row.day}
               </MonoLabel>
               <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-sm font-medium">{row.title}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-body font-medium">{row.title}</span>
+                <span className="text-label text-muted-foreground">
                   <span className="md:hidden">{row.day} · </span>
                   {row.detail}
                 </span>
@@ -54,7 +54,7 @@ export function PlannedPairs({ rows }: { rows: WeekShoeRow[] }) {
               ) : (
                 <Link
                   href={row.href}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="text-label text-muted-foreground hover:text-foreground"
                 >
                   Aucune paire
                 </Link>
@@ -79,7 +79,7 @@ export function RotationStrip({ view }: { view: RotationView }) {
         <h2 className="text-[17px] font-semibold">
           Rotation · 14 derniers jours
         </h2>
-        <span className="text-xs text-muted-foreground">{view.range}</span>
+        <span className="text-label text-muted-foreground">{view.range}</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-105 table-fixed border-collapse">
@@ -94,7 +94,7 @@ export function RotationStrip({ view }: { view: RotationView }) {
                 <th
                   key={day.day}
                   scope="col"
-                  className="pb-2 text-center font-mono text-[9.5px] font-normal text-muted-foreground"
+                  className="pb-2 text-center text-[9.5px] font-normal text-muted-foreground tabular-nums"
                 >
                   <abbr title={day.label} className="no-underline">
                     {day.letter}
@@ -143,7 +143,7 @@ export function RotationStrip({ view }: { view: RotationView }) {
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+      <div className="flex flex-wrap gap-4 text-label text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <span
             aria-hidden="true"

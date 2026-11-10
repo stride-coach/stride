@@ -23,7 +23,7 @@ function Contents({ sections }: { sections: readonly LegalSection[] }) {
     <li key={section.id}>
       <a
         href={`#${section.id}`}
-        className="block border-l border-border py-1.75 pl-3 text-sm text-muted-foreground hover:border-primary hover:text-foreground"
+        className="block border-l border-border py-1.75 pl-3 text-body text-muted-foreground hover:border-primary hover:text-foreground"
       >
         {section.toc ?? section.title}
       </a>
@@ -46,7 +46,7 @@ export function LegalDocument({
     <>
       <PublicHeader />
       <main className="mx-auto flex max-w-300 flex-col gap-7 px-4 pt-6 pb-14 md:gap-12 md:px-10 md:pt-14 md:pb-28">
-        <div className="flex flex-col gap-4 md:gap-5.5 md:border-b md:border-border-subtle md:pb-9">
+        <div className="flex flex-col gap-4 md:gap-5.5 md:border-b md:border-border md:pb-9">
           <nav
             aria-label="Documents légaux"
             className="-mx-4 flex gap-1 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0"
@@ -57,7 +57,7 @@ export function LegalDocument({
                 href={page.href}
                 aria-current={page.href === current ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-10 items-center rounded-lg px-3 text-sm whitespace-nowrap text-secondary-foreground hover:text-foreground md:px-3.5",
+                  "inline-flex min-h-10 items-center rounded-lg px-3 text-body whitespace-nowrap text-secondary-foreground hover:text-foreground md:px-3.5",
                   page.href === current && "bg-muted text-foreground",
                 )}
               >
@@ -66,16 +66,16 @@ export function LegalDocument({
               </Link>
             ))}
           </nav>
-          <h1 className="text-4xl leading-none font-semibold tracking-[-0.035em] md:text-[clamp(36px,4.2vw,56px)]">
+          <h1 className="text-display leading-none font-semibold tracking-[-0.035em] md:text-[clamp(36px,4.2vw,56px)]">
             {title}
           </h1>
           {intro && (
-            <p className="hidden max-w-180 text-lead leading-relaxed text-secondary-foreground md:block">
+            <p className="hidden max-w-180 text-body-lg leading-relaxed text-secondary-foreground md:block">
               {intro}
             </p>
           )}
           <MonoLabel>Dernière mise à jour · {legalUpdatedOn}</MonoLabel>
-          <details className="group rounded-lg border border-border-strong bg-card md:hidden">
+          <details className="group rounded-lg border border-control-border bg-card md:hidden">
             <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-lg px-3.5 text-[15px] [&::-webkit-details-marker]:hidden">
               Sommaire
               <ChevronDownIcon
@@ -111,12 +111,12 @@ export function LegalDocument({
                   id={`${section.id}-title`}
                   className="flex items-baseline gap-3 text-[19px] font-semibold tracking-[-0.015em] md:gap-3.5 md:text-title"
                 >
-                  <span className="w-5.5 flex-none font-metric text-lg font-semibold text-muted-foreground md:w-7 md:text-xl">
+                  <span className="w-5.5 flex-none text-title font-semibold text-muted-foreground tabular-nums md:w-7 md:text-verdict">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   {section.title}
                 </h2>
-                <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-secondary-foreground md:text-base md:leading-[1.65] [&_a]:text-primary [&_a]:hover:text-foreground [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5">
+                <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-secondary-foreground md:text-body-lg md:leading-[1.65] [&_a]:text-primary [&_a]:hover:text-foreground [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5">
                   {section.content}
                 </div>
               </section>
@@ -138,14 +138,14 @@ export function LegalTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-body">
         <thead>
           <tr>
             {head.map((cell) => (
               <th
                 key={cell}
                 scope="col"
-                className="border-b border-border-strong pr-3 pb-2.5 text-left font-mono text-micro font-medium text-muted-foreground uppercase"
+                className="border-b border-control-border pr-3 pb-2.5 text-left text-label font-medium text-muted-foreground tabular-nums"
               >
                 {cell}
               </th>

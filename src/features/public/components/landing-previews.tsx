@@ -38,7 +38,7 @@ export function ProposalPreview() {
   return (
     <figure
       aria-label="Exemple de proposition du coach"
-      className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface-inset p-4.5 md:gap-4.5 md:rounded-2xl md:p-6"
+      className="flex flex-col gap-3.5 rounded-xl border border-border bg-background p-4.5 md:gap-4.5 md:rounded-2xl md:p-6"
     >
       <div className="flex items-center justify-between gap-3">
         <MonoLabel size="micro" className="md:text-label">
@@ -47,16 +47,16 @@ export function ProposalPreview() {
         <MonoLabel
           size="micro"
           tone="warning"
-          className="rounded-sm border border-warning-border px-1.75 py-0.75"
+          className="rounded-sm border border-border px-1.75 py-0.75"
         >
           À surveiller
         </MonoLabel>
       </div>
       <div className="flex flex-col gap-2.5">
-        <p className="text-xl leading-tight font-semibold tracking-[-0.02em] md:text-2xl">
+        <p className="text-verdict leading-tight font-semibold tracking-[-0.02em] md:text-metric">
           Le seuil attend. Endurance 45 min à la place.
         </p>
-        <p className="text-sm leading-normal text-secondary-foreground md:text-body">
+        <p className="text-body leading-normal text-secondary-foreground md:text-body">
           Ta VFC est 12 % sous ta moyenne et tu as signalé une gêne au mollet
           gauche hier.
           <span className="hidden md:inline"> Je décale le seuil à jeudi.</span>
@@ -67,7 +67,7 @@ export function ProposalPreview() {
           <div
             key={signal.label}
             className={cn(
-              "grid grid-cols-[96px_1fr_auto] items-baseline gap-2 border-t border-border py-2.25 text-meta md:grid-cols-[120px_1fr_auto] md:gap-3 md:py-2.5 md:text-sm",
+              "grid grid-cols-[96px_1fr_auto] items-baseline gap-2 border-t border-border py-2.25 text-body md:grid-cols-[120px_1fr_auto] md:gap-3 md:py-2.5 md:text-body",
               !signal.compact && "hidden md:grid",
             )}
           >
@@ -79,7 +79,7 @@ export function ProposalPreview() {
                 size="sm"
                 value={signal.value}
                 className={cn(
-                  "md:text-xl",
+                  "md:text-verdict",
                   "warning" in signal && "text-warning",
                 )}
               />{" "}
@@ -87,17 +87,17 @@ export function ProposalPreview() {
                 {signal.context}
               </span>
             </dd>
-            <MonoLabel size="nano" className="md:text-micro">
+            <MonoLabel size="nano" className="md:text-label">
               {signal.source}
             </MonoLabel>
           </div>
         ))}
       </dl>
       <div className="flex items-center gap-2 md:gap-2.5" aria-hidden="true">
-        <span className="flex h-11 flex-1 items-center justify-center rounded-lg bg-primary text-[15px] font-semibold text-primary-foreground md:h-10 md:flex-none md:px-5.5 md:text-sm">
+        <span className="flex h-11 flex-1 items-center justify-center rounded-lg bg-primary text-[15px] font-semibold text-primary-foreground md:h-10 md:flex-none md:px-5.5 md:text-body">
           Accepter
         </span>
-        <span className="flex h-11 flex-1 items-center justify-center rounded-lg border border-border-strong text-sm text-foreground md:h-10 md:flex-none md:px-5">
+        <span className="flex h-11 flex-1 items-center justify-center rounded-lg border border-control-border text-body text-foreground md:h-10 md:flex-none md:px-5">
           Garder le seuil
         </span>
         <MonoLabel size="micro" className="ml-auto hidden md:inline">
@@ -123,10 +123,10 @@ export function HealthPreview() {
   return (
     <figure
       aria-label="Exemple de tendances de récupération"
-      className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface-inset p-4.5 md:gap-5.5 md:rounded-2xl md:p-6.5"
+      className="flex flex-col gap-3.5 rounded-xl border border-border bg-background p-4.5 md:gap-5.5 md:rounded-2xl md:p-6.5"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-body font-semibold md:text-base">
+        <span className="text-body font-semibold md:text-body-lg">
           <span className="md:hidden">VFC nuit · 28 jours</span>
           <span className="hidden md:inline">Récupération · 28 jours</span>
         </span>
@@ -140,7 +140,7 @@ export function HealthPreview() {
           <MonoLabel>VFC nuit</MonoLabel>
           <span>
             <Metric size="lg" value="52" />{" "}
-            <span className="text-meta text-muted-foreground">ms · stable</span>
+            <span className="text-body text-muted-foreground">ms · stable</span>
           </span>
         </div>
         <svg
@@ -169,7 +169,7 @@ export function HealthPreview() {
           <MonoLabel>Sommeil</MonoLabel>
           <span>
             <Metric size="lg" value="7 h 05" />{" "}
-            <span className="text-meta text-muted-foreground">
+            <span className="text-body text-muted-foreground">
               moyenne 14 nuits
             </span>
           </span>
@@ -181,13 +181,13 @@ export function HealthPreview() {
               style={{ height: `${(value / 54) * 100}%` }}
               className={cn(
                 "flex-1 rounded-mark",
-                value < 40 ? "bg-warning" : "bg-border-strong",
+                value < 40 ? "bg-warning" : "bg-control-border",
               )}
             />
           ))}
         </div>
       </div>
-      <p className="border-t border-border pt-3 text-sm leading-normal text-secondary-foreground md:pt-4">
+      <p className="border-t border-border pt-3 text-body leading-normal text-secondary-foreground md:pt-4">
         <span className="text-primary">Lecture du coach ·</span> Le creux du
         14/10 suit ta sortie longue de 28 km. Ta VFC est revenue à ta référence
         en trois nuits

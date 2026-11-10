@@ -26,12 +26,12 @@ import { FacePicker } from "./face-picker";
 
 const roleTone: Record<StaffAgent, { dot: string; text: string }> = {
   coach: { dot: "bg-primary", text: "text-primary" },
-  medical: { dot: "bg-staff-medical", text: "text-staff-medical" },
-  director: { dot: "bg-staff-director", text: "text-staff-director" },
-  strategist: { dot: "bg-staff-strategist", text: "text-staff-strategist" },
+  medical: { dot: "bg-foreground", text: "text-foreground" },
+  director: { dot: "bg-foreground", text: "text-foreground" },
+  strategist: { dot: "bg-foreground", text: "text-foreground" },
   nutritionist: {
-    dot: "bg-staff-nutritionist",
-    text: "text-staff-nutritionist",
+    dot: "bg-foreground",
+    text: "text-foreground",
   },
 };
 
@@ -57,7 +57,7 @@ function RoleLine({ agent, label }: { agent: StaffAgent; label: string }) {
       </MonoLabel>
       <MonoLabel
         size="nano"
-        className="ml-auto rounded-[4px] border border-border-strong px-1.25 py-px max-md:hidden"
+        className="ml-auto rounded-[4px] border border-control-border px-1.25 py-px max-md:hidden"
       >
         IA
       </MonoLabel>
@@ -79,7 +79,7 @@ function Checklist({
         {items.map((item) => (
           <li
             key={item}
-            className="grid grid-cols-[14px_minmax(0,1fr)] gap-2 text-meta leading-[1.45] text-secondary-foreground"
+            className="grid grid-cols-[14px_minmax(0,1fr)] gap-2 text-body leading-[1.45] text-secondary-foreground"
           >
             <CheckIcon
               aria-hidden="true"
@@ -104,7 +104,7 @@ function Reads({ items }: { items: readonly string[] }) {
         {items.map((item) => (
           <li
             key={item}
-            className="rounded-md border border-border-strong px-1.75 py-0.5 text-[11px] text-secondary-foreground"
+            className="rounded-md border border-control-border px-1.75 py-0.5 text-[11px] text-secondary-foreground"
           >
             {item}
           </li>
@@ -125,10 +125,8 @@ function Usage({
 }) {
   return (
     <span className={cn("flex items-baseline gap-1.5", className)}>
-      <span className="font-metric text-[22px] font-semibold tabular-nums">
-        {count}
-      </span>{" "}
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-[22px] font-semibold tabular-nums">{count}</span>{" "}
+      <span className="text-label text-muted-foreground">{label}</span>
     </span>
   );
 }
@@ -144,7 +142,7 @@ function FaceRow({
     <span className={cn("flex items-center gap-2.5", className)}>
       <span
         aria-hidden="true"
-        className="text-xs text-muted-foreground max-md:mr-auto"
+        className="text-label text-muted-foreground max-md:mr-auto"
       >
         Visage
       </span>
@@ -179,7 +177,7 @@ function CoachCard({ usage }: { usage: StaffUsage }) {
           >
             {coach.name}
           </h2>
-          <p className="max-w-140 text-sm leading-normal text-secondary-foreground md:text-base">
+          <p className="max-w-140 text-body leading-normal text-secondary-foreground md:text-body-lg">
             {profile.summary(coach)}
           </p>
         </div>
@@ -237,11 +235,11 @@ function SpecialistCard({
           <RoleLine agent={agent} label={profile.tagline} />
           <h3
             id={id}
-            className="text-xl font-semibold tracking-[-0.02em] md:text-[22px]"
+            className="text-verdict font-semibold tracking-[-0.02em] md:text-[22px]"
           >
             {member.name}
           </h3>
-          <p className="text-sm leading-normal text-secondary-foreground">
+          <p className="text-body leading-normal text-secondary-foreground">
             {profile.summary(member)}
           </p>
         </div>
@@ -266,7 +264,7 @@ function Initials({ initials }: { initials: string }) {
   return (
     <span
       aria-hidden="true"
-      className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-border text-xs font-semibold"
+      className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-border text-label font-semibold"
     >
       {initials}
     </span>
@@ -274,7 +272,12 @@ function Initials({ initials }: { initials: string }) {
 }
 
 function Arrow() {
-  return <ArrowRightIcon aria-hidden="true" className="size-4.5 text-dim" />;
+  return (
+    <ArrowRightIcon
+      aria-hidden="true"
+      className="size-4.5 text-muted-foreground"
+    />
+  );
 }
 
 function Step({
@@ -293,7 +296,7 @@ function Step({
       <span className="flex items-center gap-2.5">
         <span
           aria-hidden="true"
-          className="grid size-6 place-items-center rounded-[7px] bg-muted font-metric text-body font-semibold"
+          className="grid size-6 place-items-center rounded-[7px] bg-muted text-body font-semibold tabular-nums"
         >
           {index}
         </span>
@@ -302,7 +305,7 @@ function Step({
       <span aria-hidden="true" className="flex min-h-10 items-center gap-1.5">
         {children}
       </span>
-      <p className="text-meta leading-normal text-secondary-foreground">
+      <p className="text-body leading-normal text-secondary-foreground">
         {text}
       </p>
     </li>
@@ -316,7 +319,7 @@ function HowItWorks({ initials }: { initials: string }) {
       aria-labelledby="team-how"
       className="flex flex-col gap-3.5 max-md:hidden"
     >
-      <h2 id="team-how" className="text-lg font-semibold">
+      <h2 id="team-how" className="text-title font-semibold">
         Comment le staff travaille
       </h2>
       <ol className="grid grid-cols-3 gap-3">
@@ -346,14 +349,14 @@ function HowItWorks({ initials }: { initials: string }) {
           <StaffPortrait agent="coach" size={36} decorative />
           <Arrow />
           <Initials initials={initials} />
-          <span className="rounded-md border border-primary bg-primary px-2 py-0.75 text-xs font-semibold text-primary-foreground">
+          <span className="rounded-md border border-primary bg-primary px-2 py-0.75 text-label font-semibold text-primary-foreground">
             Valider
           </span>
         </Step>
       </ol>
-      <ul className="flex flex-wrap gap-5 pt-1 text-meta text-muted-foreground">
+      <ul className="flex flex-wrap gap-5 pt-1 text-body text-muted-foreground">
         <li className="inline-flex items-center gap-2">
-          <Dot className="bg-staff-medical" />
+          <Dot className="bg-foreground" />
           Ta santé passe avant la performance
         </li>
         <li className="inline-flex items-center gap-2">
@@ -371,9 +374,9 @@ function HowItWorks({ initials }: { initials: string }) {
 
 function Principles() {
   return (
-    <ul className="flex flex-col gap-2 rounded-2xl border border-border px-4 py-3.5 text-meta text-secondary-foreground md:hidden">
+    <ul className="flex flex-col gap-2 rounded-2xl border border-border px-4 py-3.5 text-body text-secondary-foreground md:hidden">
       <li className="inline-flex items-center gap-2">
-        <Dot className="bg-staff-medical" />
+        <Dot className="bg-foreground" />
         Ta santé passe avant la performance
       </li>
       <li className="inline-flex items-center gap-2">
@@ -417,11 +420,11 @@ export function TeamScreen({
                 Une équipe autour de toi, dans une seule conversation.
               </span>
             </h1>
-            <p className="text-sm leading-normal text-secondary-foreground md:hidden">
+            <p className="text-body leading-normal text-secondary-foreground md:hidden">
               {coach.name} mène. Les spécialistes te parlent directement quand
               ta demande touche leur domaine, et tu valides chaque changement.
             </p>
-            <p className="max-w-170 text-base leading-[1.55] text-secondary-foreground max-md:hidden">
+            <p className="max-w-170 text-body-lg leading-[1.55] text-secondary-foreground max-md:hidden">
               Comme le staff d’un athlète pro : {coach.name} mène, et chaque
               spécialiste apporte son regard quand ta demande touche son
               domaine. Choisis le visage de chacun, leur expertise reste la
@@ -436,11 +439,11 @@ export function TeamScreen({
             <div className="flex items-baseline gap-2.5 pt-1.5 md:gap-3 md:pt-0">
               <h2
                 id="team-specialists"
-                className="text-[17px] font-semibold md:text-lg"
+                className="text-[17px] font-semibold md:text-title"
               >
                 Les spécialistes
               </h2>
-              <span className="text-xs text-muted-foreground md:text-meta">
+              <span className="text-label text-muted-foreground md:text-body">
                 Consultés par {coach.name}
                 <span className="max-md:hidden">, jamais en direct</span>
               </span>

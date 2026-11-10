@@ -11,7 +11,7 @@ export function ChoiceRow({
 }) {
   return (
     <fieldset className="border-b border-border py-4 last:border-b-0">
-      <legend className="mb-3 text-sm font-medium">{legend}</legend>
+      <legend className="mb-3 text-body font-medium">{legend}</legend>
       <div className="flex flex-wrap gap-1.5">
         {options.map((option) => (
           <label key={option.value} className="cursor-pointer">
@@ -22,7 +22,7 @@ export function ChoiceRow({
               value={option.value}
               defaultChecked={value === option.value}
             />
-            <span className="inline-flex min-h-10 items-center rounded-md border border-border-strong px-3 text-sm text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+            <span className="inline-flex min-h-10 items-center rounded-md border border-control-border px-3 text-body text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
               {option.label}
             </span>
           </label>

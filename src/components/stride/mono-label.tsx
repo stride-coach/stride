@@ -2,11 +2,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
-const monoLabelVariants = cva("font-mono uppercase", {
+const monoLabelVariants = cva("font-medium tabular-nums", {
   variants: {
     size: {
-      nano: "text-nano",
-      micro: "text-micro",
+      nano: "text-label",
+      micro: "text-label",
       label: "text-label",
     },
     tone: {

@@ -31,7 +31,7 @@ export function ProvenanceLabel({
       data-slot="provenance"
       data-source={source}
       className={cn(
-        "inline-flex items-center gap-1.75 text-xs text-muted-foreground",
+        "inline-flex items-center gap-1.75 text-label text-muted-foreground",
         className,
       )}
       {...props}
@@ -81,7 +81,7 @@ export function SignalRow({
       )}
       {...props}
     >
-      <dt className="text-sm">{label}</dt>
+      <dt className="text-body">{label}</dt>
       <dd className={cn("self-start", provenance != null && "row-span-2")}>
         <Metric size="sm" value={value} unit={unit} />
       </dd>

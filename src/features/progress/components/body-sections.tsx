@@ -20,7 +20,7 @@ import { formatSleep } from "../recovery-view";
 import { Legend, nightTitle, RangeChart } from "./charts";
 
 const ringTones = {
-  success: "stroke-success",
+  success: "stroke-primary",
   warning: "stroke-warning",
   danger: "stroke-destructive",
 } as const;
@@ -99,11 +99,11 @@ export function ReadinessCard({
             <MonoLabel id="body-readiness" size="micro">
               Prêt pour aujourd’hui ?
             </MonoLabel>
-            <span className="text-lg font-semibold sm:text-xl">
+            <span className="text-title font-semibold sm:text-verdict">
               {summary.level}
               {summary.gap ? ` · ${summary.gap}` : ""}
             </span>
-            <span className="text-meta text-muted-foreground">
+            <span className="text-body text-muted-foreground">
               Disponibilité Garmin + ton ressenti
             </span>
           </span>
@@ -113,7 +113,7 @@ export function ReadinessCard({
           <MonoLabel id="body-readiness" size="micro">
             Prêt pour aujourd’hui ?
           </MonoLabel>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             Garmin n’a pas transmis de disponibilité pour aujourd’hui.
           </p>
         </div>
@@ -122,16 +122,16 @@ export function ReadinessCard({
         (session && planHref ? (
           <Link
             href={planHref}
-            className="flex flex-col gap-1 rounded-lg border border-border p-3.5 transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring"
+            className="flex flex-col gap-1 rounded-lg border border-border p-3.5 transition-colors hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring"
           >
             <MonoLabel size="micro">Séance du jour</MonoLabel>
             <span className="font-semibold">{session.title}</span>
-            <span className="text-meta leading-normal text-secondary-foreground">
+            <span className="text-body leading-normal text-secondary-foreground">
               {advice.text}
             </span>
           </Link>
         ) : (
-          <p className="text-meta leading-normal text-secondary-foreground">
+          <p className="text-body leading-normal text-secondary-foreground">
             {advice.text}
           </p>
         ))}
@@ -165,13 +165,16 @@ const factorTones = {
   danger: "text-destructive",
   warning: "text-warning",
   muted: "text-secondary-foreground",
-  success: "text-success",
+  success: "text-primary",
 } as const;
 
 export function FactorsSection({ factors }: { factors: ReadinessFactor[] }) {
   return (
     <section aria-labelledby="body-factors" className="flex flex-col gap-1.5">
-      <h2 id="body-factors" className="text-base font-semibold sm:text-lg">
+      <h2
+        id="body-factors"
+        className="text-body-lg font-semibold sm:text-title"
+      >
         Ce qui pèse aujourd’hui
       </h2>
       {factors.length ? (
@@ -179,25 +182,25 @@ export function FactorsSection({ factors }: { factors: ReadinessFactor[] }) {
           {factors.map((factor) => (
             <li
               key={factor.key}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border-subtle py-2.75"
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border py-2.75"
             >
-              <span className="text-sm">{factor.label}</span>
+              <span className="text-body">{factor.label}</span>
               <span
                 className={cn(
-                  "font-metric text-lg font-semibold",
+                  "text-title font-semibold tabular-nums",
                   factorTones[factor.tone],
                 )}
               >
                 {factor.value}
               </span>
-              <span className="col-span-2 text-xs text-muted-foreground">
+              <span className="col-span-2 text-label text-muted-foreground">
                 {factor.reason}
               </span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+        <p className="border-t border-border pt-3 text-body text-muted-foreground">
           Aucun signal Garmin récent ni ressenti saisi aujourd’hui.
         </p>
       )}
@@ -211,11 +214,14 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
   return (
     <section aria-labelledby="body-nights" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="body-nights" className="text-base font-semibold sm:text-lg">
+        <h2
+          id="body-nights"
+          className="text-body-lg font-semibold sm:text-title"
+        >
           Nuits
         </h2>
         {nights.summary && (
-          <span className="text-meta text-secondary-foreground">
+          <span className="text-body text-secondary-foreground">
             {nights.summary}
           </span>
         )}
@@ -259,7 +265,7 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
                   : `Ta moyenne : ${formatSleep(nights.average)}`,
             }))}
           >
-            <ol className="flex h-30 items-end gap-1 border-b border-border-strong sm:h-37.5 sm:gap-2">
+            <ol className="flex h-30 items-end gap-1 border-b border-control-border sm:h-37.5 sm:gap-2">
               {nights.nights.map((night) => {
                 const staged =
                   night.deep !== null &&
@@ -273,7 +279,7 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
                       "flex flex-1 flex-col overflow-hidden rounded-t-[3px]",
                       night.short &&
                         "outline-[1.5px] outline-offset-2 outline-destructive",
-                      !staged && "bg-provider/60",
+                      !staged && "bg-foreground/60",
                     )}
                     style={{
                       height: `${((night.seconds ?? 0) / max) * 100}%`,
@@ -282,15 +288,15 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
                     {staged && (
                       <>
                         <span
-                          className="bg-provider"
+                          className="bg-data-2"
                           style={{ flex: night.rem! }}
                         />
                         <span
-                          className="bg-provider/60"
+                          className="bg-data-1"
                           style={{ flex: night.light! }}
                         />
                         <span
-                          className="bg-provider/35"
+                          className="bg-data-3"
                           style={{ flex: night.deep! }}
                         />
                       </>
@@ -307,15 +313,15 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
             items={[
               {
                 label: "Paradoxal",
-                swatch: "size-2.5 rounded-mark bg-provider",
+                swatch: "size-2.5 rounded-mark bg-data-2",
               },
               {
                 label: "Léger",
-                swatch: "size-2.5 rounded-mark bg-provider/60",
+                swatch: "size-2.5 rounded-mark bg-data-1",
               },
               {
                 label: "Profond",
-                swatch: "size-2.5 rounded-mark bg-provider/35",
+                swatch: "size-2.5 rounded-mark bg-data-3",
               },
               {
                 label: "Nuit courte",
@@ -326,7 +332,7 @@ export function NightsSection({ nights }: { nights: BodyNights }) {
           />
         </>
       ) : (
-        <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+        <p className="border-t border-border pt-3 text-body text-muted-foreground">
           Aucune nuit mesurée par Garmin sur cette période.
         </p>
       )}
@@ -366,7 +372,7 @@ function RangeCard({
       : signal.position === "within"
         ? {
             label: higherIsBetter ? "Dans ta plage" : "Stable",
-            tone: "text-success",
+            tone: "text-primary",
           }
         : signal.position === unfavorable
           ? {
@@ -375,7 +381,7 @@ function RangeCard({
             }
           : {
               label: higherIsBetter ? "Au-dessus de ta plage" : "Plus basse",
-              tone: "text-success",
+              tone: "text-primary",
             };
   return (
     <section
@@ -387,7 +393,7 @@ function RangeCard({
           <MonoLabel size="micro">{title}</MonoLabel>
         </h3>
         {status && (
-          <span className={cn("text-xs", status.tone)}>{status.label}</span>
+          <span className={cn("text-label", status.tone)}>{status.label}</span>
         )}
       </div>
       {signal ? (
@@ -424,12 +430,12 @@ function RangeCard({
               height={70}
             />
           </ChartInspector>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             {caption(signal)}
           </span>
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Aucune mesure ces deux derniers jours.
         </p>
       )}
@@ -480,7 +486,7 @@ export function HeartCards({
 
 const kpiTones = {
   warning: "text-warning",
-  success: "text-success",
+  success: "text-primary",
   muted: "text-muted-foreground",
 } as const;
 
@@ -499,7 +505,7 @@ export function KpiCards({ kpis }: { kpis: BodyKpi[] }) {
           <dd>
             <Metric value={kpi.value} className="text-[26px]" />
           </dd>
-          <dd className={cn("text-xs", kpiTones[kpi.tone])}>{kpi.detail}</dd>
+          <dd className={cn("text-label", kpiTones[kpi.tone])}>{kpi.detail}</dd>
         </div>
       ))}
     </dl>
@@ -520,33 +526,33 @@ export function RaceRecoveries({
 }) {
   return (
     <section aria-labelledby="body-races" className="flex flex-col gap-2.5">
-      <h2 id="body-races" className="text-base font-semibold sm:text-lg">
+      <h2 id="body-races" className="text-body-lg font-semibold sm:text-title">
         Après tes courses
       </h2>
       {races.length ? (
-        <dl className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3.5 gap-y-2.5 border-t border-border pt-3 text-sm">
+        <dl className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3.5 gap-y-2.5 border-t border-border pt-3 text-body">
           {races.map((race) => (
             <div key={race.id} className="contents">
               <dt className="truncate">
                 {race.name} ·{" "}
                 {monthShort.format(new Date(`${race.day}T00:00:00Z`))}
               </dt>
-              <dd className="text-meta text-secondary-foreground">
+              <dd className="text-body text-secondary-foreground">
                 {race.ongoing ? "VFC basse depuis " : "VFC normale en "}
                 <Metric
                   value={`${formatInteger(race.days)} j`}
-                  className="text-lg text-foreground"
+                  className="text-title text-foreground"
                 />
               </dd>
             </div>
           ))}
         </dl>
       ) : (
-        <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+        <p className="border-t border-border pt-3 text-body text-muted-foreground">
           Aucune course passée avec des mesures de VFC.
         </p>
       )}
-      <p className="text-xs text-muted-foreground">{note}</p>
+      <p className="text-label text-muted-foreground">{note}</p>
     </section>
   );
 }

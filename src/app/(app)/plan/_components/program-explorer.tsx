@@ -18,11 +18,11 @@ import { ProgramWeekPanel } from "./program-week";
 import type { WatchDayTag } from "@/features/garmin/watch";
 
 const milestoneTones: Record<MilestoneTone, string> = {
-  provider: "bg-provider",
+  provider: "bg-foreground",
   accent: "bg-primary",
   terrain: "bg-intensity-3",
   quality: "bg-intensity-4",
-  success: "bg-success",
+  success: "bg-primary",
 };
 
 function typing(target: EventTarget | null) {
@@ -52,7 +52,7 @@ function Milestones({
             <button
               type="button"
               onClick={() => onSelect(milestone.weekKey)}
-              className="flex min-h-8.5 items-center gap-2 rounded-full border border-border px-3 text-[13px] whitespace-nowrap hover:border-border-strong hover:bg-card"
+              className="flex min-h-8.5 items-center gap-2 rounded-full border border-border px-3 text-[13px] whitespace-nowrap hover:border-control-border hover:bg-card"
             >
               <span
                 aria-hidden="true"
@@ -61,11 +61,11 @@ function Milestones({
                   milestoneTones[milestone.tone],
                 )}
               />
-              <span className="font-metric text-sm font-semibold text-muted-foreground tabular-nums">
+              <span className="text-body font-semibold text-muted-foreground tabular-nums">
                 S{milestone.number}
               </span>
               {milestone.label}
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {milestone.when}
               </span>
             </button>
@@ -157,7 +157,7 @@ export function ProgramExplorer({
         <Button
           variant="outline"
           size="md"
-          className="min-h-9 text-xs"
+          className="min-h-9 text-label"
           aria-pressed={selected === program.defaultWeekKey}
           onClick={() => select(program.defaultWeekKey!)}
         >

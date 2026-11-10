@@ -29,7 +29,7 @@ export function ActivitySplitFrame({
     <div className="flex min-h-0 flex-1">
       <div
         className={cn(
-          "min-h-0 w-full flex-col bg-surface-inset lg:flex lg:w-85 lg:shrink-0 lg:border-r lg:border-border-subtle",
+          "min-h-0 w-full flex-col bg-background lg:flex lg:w-85 lg:shrink-0 lg:border-r lg:border-border",
           current ? "hidden" : "flex",
         )}
       >
@@ -62,13 +62,13 @@ export function ActivityListHeader({
 }) {
   const Heading = current ? "h2" : "h1";
   return (
-    <div className="relative flex shrink-0 flex-col gap-3 border-b border-border-subtle px-5 pt-5 pb-3 lg:px-3.5 lg:pt-3.5 lg:pb-2.5">
+    <div className="relative flex shrink-0 flex-col gap-3 border-b border-border px-5 pt-5 pb-3 lg:px-3.5 lg:pt-3.5 lg:pb-2.5">
       <div className="flex items-center gap-2">
         <SidebarTrigger
           aria-label="Afficher ou masquer la barre latérale"
           className="-ml-2 max-md:hidden lg:hidden"
         />
-        <Heading className="flex-1 text-headline font-semibold lg:text-base">
+        <Heading className="flex-1 text-verdict font-semibold lg:text-body-lg">
           Activités
         </Heading>
         <DataActivityStatus />
@@ -122,7 +122,7 @@ export function ActivityToolbar({
       breadcrumb={
         <nav
           aria-label="Fil d’Ariane"
-          className="flex min-w-0 items-center gap-2 text-sm"
+          className="flex min-w-0 items-center gap-2 text-body"
         >
           <DataActivityLink
             href={href}

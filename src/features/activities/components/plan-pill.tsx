@@ -2,10 +2,10 @@ import { cn } from "@/lib/utils";
 import type { ActivityPill, PillTone } from "@/features/activities/plan-status";
 
 const tones: Record<PillTone, { pill: string; dot: string }> = {
-  success: { pill: "border-success-border text-success", dot: "bg-success" },
-  warning: { pill: "border-warning-border text-warning", dot: "bg-warning" },
+  success: { pill: "border-border text-primary", dot: "bg-primary" },
+  warning: { pill: "border-border text-warning", dot: "bg-warning" },
   off: {
-    pill: "border-border-strong text-secondary-foreground",
+    pill: "border-control-border text-secondary-foreground",
     dot: "border-[1.5px] border-muted-foreground",
   },
   todo: { pill: "border-primary/30 text-primary", dot: "bg-primary" },

@@ -124,7 +124,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
       .locator("span", { hasText: /^@Inès$/ })
       .last()
       .evaluate((element) => getComputedStyle(element).color),
-  ).toBe("rgb(213, 255, 63)");
+  ).toBe("rgb(36, 86, 230)");
   await expect(log).not.toContainText("Vérifie s’il peut courir");
   await expect(log).not.toContainText("Concertation");
   const question = log.getByRole("group", {

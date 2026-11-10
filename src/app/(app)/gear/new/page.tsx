@@ -21,7 +21,7 @@ export default async function NewShoeRoute() {
         <h1 className="text-[clamp(30px,3.2vw,40px)] leading-none font-semibold tracking-[-0.03em]">
           Ajouter une paire
         </h1>
-        <p className="max-w-155 text-sm text-secondary-foreground">
+        <p className="max-w-155 text-body text-secondary-foreground">
           Donne le nom de la paire : Stride propose son type, son terrain et une
           phrase pour la décrire. Tu corriges si besoin.
         </p>

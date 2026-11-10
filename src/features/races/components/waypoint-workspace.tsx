@@ -55,7 +55,7 @@ const mapLayers: MapLayers = {
 };
 
 const chipClass =
-  "min-h-10 rounded-full border border-border-strong px-3 text-meta font-normal text-secondary-foreground hover:border-dim hover:text-foreground data-[state=on]:border-dim data-[state=on]:bg-muted data-[state=on]:text-foreground lg:min-h-8";
+  "min-h-10 rounded-full border border-control-border px-3 text-body font-normal text-secondary-foreground hover:border-muted-foreground hover:text-foreground data-[state=on]:border-muted-foreground data-[state=on]:bg-muted data-[state=on]:text-foreground lg:min-h-8";
 
 function counted(count: number, singular: string, plural: string) {
   return `${count.toLocaleString("fr-FR")} ${count > 1 ? plural : singular}`;
@@ -106,7 +106,7 @@ function WaypointBadge({
               ? "border-secondary-foreground"
               : mark.tone === "caution"
                 ? "border-warning"
-                : "border-night",
+                : "border-data-2",
           )}
         />
       </span>
@@ -115,13 +115,13 @@ function WaypointBadge({
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-5.5 items-center justify-center border-[1.4px] font-metric text-xs leading-none font-bold",
+        "flex size-5.5 items-center justify-center border-[1.4px] text-label leading-none font-bold tabular-nums",
         mark.shape === "square" ? "rounded-md" : "rounded-full",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : mark.shape === "square"
-            ? "border-provider bg-surface-inset text-foreground"
-            : "border-foreground bg-surface-inset text-foreground",
+            ? "border-data-2 bg-background text-foreground"
+            : "border-foreground bg-background text-foreground",
       )}
     >
       {mark.label}
@@ -162,15 +162,15 @@ function WaypointRow({
       <span className="flex min-w-0 flex-col">
         <span
           className={cn(
-            "truncate text-sm",
+            "truncate text-body",
             active ? "font-semibold" : "font-medium",
             point.kind === "caution" && "text-warning",
-            point.kind === "instruction" && "text-night",
+            point.kind === "instruction" && "text-muted-foreground",
           )}
         >
           {instruction ? kindLabels[point.kind] : point.name}
         </span>
-        <span className="truncate text-xs text-muted-foreground">
+        <span className="truncate text-label text-muted-foreground">
           {details.join(" · ")}
         </span>
       </span>
@@ -210,15 +210,15 @@ function WatchPreview({
       aria-hidden="true"
       className="flex size-33 shrink-0 flex-col items-center justify-center gap-1 rounded-full border-6 border-border bg-background px-3 text-center"
     >
-      <span className="font-mono text-[0.5rem] tracking-[0.08em] text-muted-foreground uppercase">
+      <span className="text-[0.5rem] text-muted-foreground tabular-nums">
         {alertDistanceM === 0
           ? "Au point"
           : `Dans ${alertDistanceM.toLocaleString("fr-FR")} m`}
       </span>
-      <span className="font-metric text-[1.0625rem] leading-none font-bold break-all text-foreground">
+      <span className="text-[1.0625rem] leading-none font-bold break-all text-foreground tabular-nums">
         {label}
       </span>
-      <span className="font-metric text-xs text-primary">
+      <span className="text-label text-primary tabular-nums">
         km {formatKm(distanceM)}
       </span>
     </div>
@@ -302,10 +302,10 @@ function WaypointEditor({
   return (
     <section
       aria-label={point ? `Modifier ${point.name}` : "Ajouter un point"}
-      className="flex min-w-0 flex-col gap-3.5 rounded-2xl border border-dim bg-card px-4 py-4.5 lg:rounded-none lg:border-0 lg:border-t lg:border-border-strong lg:bg-transparent lg:px-0 lg:pt-4 lg:pb-0"
+      className="flex min-w-0 flex-col gap-3.5 rounded-2xl border border-muted-foreground bg-card px-4 py-4.5 lg:rounded-none lg:border-0 lg:border-t lg:border-control-border lg:bg-transparent lg:px-0 lg:pt-4 lg:pb-0"
     >
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lead font-semibold lg:text-base">
+        <h3 className="text-body-lg font-semibold lg:text-body-lg">
           {point ? `Modifier · ${point.name}` : "Ajouter un point"}
         </h3>
         <MonoLabel size="nano" className="lg:hidden">
@@ -340,7 +340,7 @@ function WaypointEditor({
           <Input
             value={input.name}
             maxLength={60}
-            className="h-10 rounded-lg bg-surface-panel text-sm md:h-10 md:text-sm"
+            className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
             onChange={(event) => set("name", event.target.value)}
           />
         </label>
@@ -349,7 +349,7 @@ function WaypointEditor({
           <Input
             value={km}
             inputMode="decimal"
-            className="h-10 rounded-lg bg-surface-panel text-sm md:h-10 md:text-sm"
+            className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
             onChange={(event) => setKm(event.target.value)}
           />
           <span className="text-[0.6875rem] text-muted-foreground">
@@ -362,14 +362,14 @@ function WaypointEditor({
             value={cutoff}
             placeholder="HH:MM"
             inputMode="numeric"
-            className="h-10 rounded-lg bg-surface-panel text-sm md:h-10 md:text-sm"
+            className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
             onChange={(event) => setCutoff(event.target.value)}
           />
           {passage?.marginSeconds != null && (
             <span
               className={cn(
                 "text-[0.6875rem]",
-                passage.marginSeconds < 0 ? "text-destructive" : "text-success",
+                passage.marginSeconds < 0 ? "text-destructive" : "text-primary",
               )}
             >
               Marge prévue {formatMargin(passage.marginSeconds)}
@@ -385,7 +385,7 @@ function WaypointEditor({
           {services.map((service) => (
             <label
               key={service}
-              className="inline-flex min-h-11 items-center gap-1.5 text-meta text-secondary-foreground lg:min-h-7.5"
+              className="inline-flex min-h-11 items-center gap-1.5 text-body text-secondary-foreground lg:min-h-7.5"
             >
               <Checkbox
                 checked={input.services.includes(service)}
@@ -413,7 +413,7 @@ function WaypointEditor({
                 value={input.watchLabel ?? ""}
                 maxLength={24}
                 placeholder={fallbackLabel}
-                className="h-10 rounded-lg bg-surface-panel text-sm md:h-10 md:text-sm"
+                className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
                 onChange={(event) =>
                   set("watchLabel", event.target.value || null)
                 }
@@ -426,7 +426,7 @@ function WaypointEditor({
             <label className="flex flex-col gap-1.5">
               <MonoLabel size="micro">Prévenir</MonoLabel>
               <select
-                className="h-10 w-full rounded-lg border border-input bg-surface-panel px-3 text-sm"
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-body"
                 value={input.alertDistanceM}
                 onChange={(event) =>
                   set(
@@ -458,7 +458,7 @@ function WaypointEditor({
           <Textarea
             value={input.voiceNote ?? ""}
             maxLength={280}
-            className="min-h-16 rounded-lg bg-surface-panel text-sm"
+            className="min-h-16 rounded-lg bg-background text-body"
             onChange={(event) => set("voiceNote", event.target.value || null)}
           />
           <span className="text-[0.6875rem] text-muted-foreground">
@@ -472,12 +472,12 @@ function WaypointEditor({
         <Textarea
           value={input.todo ?? ""}
           maxLength={400}
-          className="min-h-16 rounded-lg bg-surface-panel text-sm"
+          className="min-h-16 rounded-lg bg-background text-body"
           onChange={(event) => set("todo", event.target.value || null)}
         />
       </label>
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-body text-destructive">
           {error}
         </p>
       )}
@@ -553,7 +553,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
   return (
     <RaceCard
       id="import-roadbook"
-      className="gap-2.5 border-dim px-4 py-4.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-5 lg:px-6 lg:py-5.5"
+      className="gap-2.5 border-muted-foreground px-4 py-4.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-5 lg:px-6 lg:py-5.5"
     >
       <MonoLabel
         size="nano"
@@ -565,7 +565,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
           GPX importé
         </h2>
       </MonoLabel>
-      <p className="text-sm/[1.55] text-secondary-foreground lg:flex-[1_1_420px]">
+      <p className="text-body/[1.55] text-secondary-foreground lg:flex-[1_1_420px]">
         {count ? (
           <>
             <b className="font-semibold text-foreground">
@@ -614,7 +614,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
             size="md"
             disabled={pending}
             aria-busy={pending}
-            className="min-h-11 text-meta lg:min-h-9.5"
+            className="min-h-11 text-body lg:min-h-9.5"
           >
             Importer le roadbook (PDF ou lien)
           </Button>
@@ -652,7 +652,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
               placeholder="Lien https vers le roadbook"
               aria-label="Lien vers le roadbook"
               value={link}
-              className="h-10 text-sm md:h-10 md:text-sm"
+              className="h-10 text-body md:h-10 md:text-body"
               onChange={(event) => setLink(event.target.value)}
             />
             <Button type="submit" variant="outline" size="md">
@@ -664,7 +664,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
       {pending && (
         <p
           role="status"
-          className="text-xs text-muted-foreground lg:basis-full"
+          className="text-label text-muted-foreground lg:basis-full"
         >
           Lecture du roadbook…
         </p>
@@ -693,7 +693,7 @@ function WatchExport({
     return (
       <RaceCard className="gap-2.5 px-4 py-4.5 lg:hidden">
         <h2 className="text-body font-semibold">Envoyer à ta montre</h2>
-        <p className="text-meta text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Course .fit avec les points, les consignes et leurs alertes, à
           importer dans Garmin Connect. Stride n’écrit jamais sur ton compte
           Garmin.
@@ -710,20 +710,20 @@ function WatchExport({
     <RaceCard className="flex-row flex-wrap items-center gap-5 max-lg:hidden">
       <div className="flex flex-[1_1_380px] flex-col gap-1">
         <h2 className="text-body font-semibold">Envoyer à ta montre</h2>
-        <p className="text-meta text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Télécharge la course au format .fit, avec {contents} et leurs alertes.
           Importe-la ensuite dans Garmin Connect, rubrique Parcours. Stride
           n’écrit jamais sur ton compte Garmin.
         </p>
       </div>
       <div className="flex gap-2">
-        <Button asChild size="md" variant="outline" className="text-meta">
+        <Button asChild size="md" variant="outline" className="text-body">
           <a href={`/api/races/${raceId}/export?format=gpx`}>
             <DownloadIcon />
             GPX enrichi
           </a>
         </Button>
-        <Button asChild size="md" className="text-meta">
+        <Button asChild size="md" className="text-body">
           <a href={`/api/races/${raceId}/export?format=fit`}>
             <DownloadIcon />
             Course .fit

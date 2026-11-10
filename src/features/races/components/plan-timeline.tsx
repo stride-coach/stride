@@ -22,7 +22,7 @@ const dotTone: Record<TimelineStation["kind"], string> = {
   start: "border-foreground",
   finish: "border-foreground",
   aid: "border-primary",
-  water: "border-provider",
+  water: "border-data-2",
   base: "border-warning",
   summit: "border-foreground",
   caution: "border-foreground",
@@ -50,10 +50,8 @@ function CutoffPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.25 py-0.5 text-xs whitespace-nowrap",
-        late
-          ? "border-danger-border text-destructive"
-          : "border-success-border text-success",
+        "inline-flex items-center rounded-full border px-2.25 py-0.5 text-label whitespace-nowrap",
+        late ? "border-border text-destructive" : "border-border text-primary",
         compact && "text-micro",
       )}
     >
@@ -93,7 +91,7 @@ function Station({ station }: { station: TimelineStation }) {
     <span
       aria-hidden="true"
       className={cn(
-        "block shrink-0 rounded-full border-2 bg-surface-inset",
+        "block shrink-0 rounded-full border-2 bg-background",
         dotTone[station.kind],
       )}
     />
@@ -106,23 +104,23 @@ function Station({ station }: { station: TimelineStation }) {
         </span>
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-baseline gap-2.5">
-            <h3 className="text-base font-semibold">{station.name}</h3>
-            <span className="font-metric text-base font-semibold text-muted-foreground tabular-nums">
+            <h3 className="text-body-lg font-semibold">{station.name}</h3>
+            <span className="text-body-lg font-semibold text-muted-foreground tabular-nums">
               km {kmText(station.distanceM)}
             </span>
             <CutoffPill station={station} />
           </div>
           {station.refill && (
-            <p className="text-meta text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               {station.refill}
             </p>
           )}
         </div>
         <div className="flex flex-col items-end gap-0.5">
-          <span className="font-metric text-2xl font-semibold tabular-nums">
+          <span className="text-metric font-semibold tabular-nums">
             {formatClock(station.clockMinutes)}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             <StationWeatherText station={station} />
           </span>
         </div>
@@ -130,11 +128,11 @@ function Station({ station }: { station: TimelineStation }) {
       <div className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-0.75 py-3 md:hidden print:hidden">
         <span className="pt-0.75 [&>span]:size-3.5">{dot}</span>
         <h3 className="text-[0.9375rem] font-semibold">{station.name}</h3>
-        <span className="font-metric text-xl font-semibold tabular-nums">
+        <span className="text-verdict font-semibold tabular-nums">
           {formatClock(station.clockMinutes)}
         </span>
         <span />
-        <span className="flex items-center gap-1.25 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.25 text-label text-muted-foreground">
           km {kmText(station.distanceM)}
           {(station.weather || station.night) && " · "}
           <StationWeatherText station={station} sky={false} />
@@ -143,7 +141,7 @@ function Station({ station }: { station: TimelineStation }) {
           <CutoffPill station={station} compact />
         </span>
         {station.refill && (
-          <p className="col-start-2 col-end-4 text-xs leading-normal text-secondary-foreground">
+          <p className="col-start-2 col-end-4 text-label leading-normal text-secondary-foreground">
             {station.refill}
           </p>
         )}
@@ -169,12 +167,12 @@ function Value({
         <span className="max-md:hidden print:inline">{label}</span>
         <span className="md:hidden print:hidden">{short}</span>
       </MonoLabel>
-      <span className="font-metric text-[1.0625rem] font-semibold tabular-nums md:text-xl">
+      <span className="text-[1.0625rem] font-semibold tabular-nums md:text-verdict">
         {value}
         {unit && (
           <span
             className={cn(
-              "text-xs text-muted-foreground max-md:text-[1.0625rem] max-md:text-foreground",
+              "text-label text-muted-foreground max-md:text-[1.0625rem] max-md:text-foreground",
               unit === "/km" && "max-md:hidden print:inline",
             )}
           >
@@ -205,7 +203,7 @@ function Segment({
         <span
           className={cn(
             "w-0.5",
-            segment.night ? "bg-night" : "bg-border-strong",
+            segment.night ? "bg-data-2" : "bg-control-border",
           )}
         />
       </span>
@@ -214,29 +212,29 @@ function Segment({
         aria-label={`Tronçon T${segment.index}, ${segment.fromName} → ${segment.toName}`}
         className={cn(
           "my-0.5 flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-3 md:gap-2.5 md:px-4 md:py-3.5",
-          segment.night ? "border-night/35" : "border-border",
+          segment.night ? "border-data-2/35" : "border-border",
         )}
       >
         <div className="flex flex-wrap items-center gap-2 md:gap-2.5">
-          <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-border-strong bg-muted font-metric text-xs font-semibold">
+          <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-control-border bg-muted text-label font-semibold tabular-nums">
             T{segment.index}
           </span>
-          <span className="text-meta font-semibold md:text-sm">
+          <span className="text-body font-semibold md:text-body">
             {formatKm(segment.toM - segment.fromM).replace(/,0$/, "")} km
           </span>
-          <span className="text-xs text-secondary-foreground md:text-meta">
+          <span className="text-label text-secondary-foreground md:text-body">
             +{formatInteger(segment.gainM ?? 0)}
             <span className="max-md:hidden print:inline"> m</span> · −
             {formatInteger(segment.lossM ?? 0)}
             <span className="max-md:hidden print:inline"> m</span>
           </span>
           {segment.night && (
-            <span className="inline-flex items-center gap-1.25 rounded-full border border-night/35 px-2.25 py-0.5 text-xs text-night max-md:hidden print:inline-flex">
+            <span className="inline-flex items-center gap-1.25 rounded-full border border-data-2/35 px-2.25 py-0.5 text-label text-muted-foreground max-md:hidden print:inline-flex">
               <WeatherIcon glyph="moon" className="size-3" />
               de nuit
             </span>
           )}
-          <span className="ml-auto font-metric text-[0.9375rem] font-semibold tabular-nums md:text-base">
+          <span className="ml-auto text-[0.9375rem] font-semibold tabular-nums md:text-body-lg">
             {formatHours(segment.movingSeconds)}
           </span>
         </div>
@@ -265,7 +263,7 @@ function Segment({
           />
         </div>
         {segment.items && (
-          <div className="flex items-start gap-2 text-xs text-secondary-foreground md:text-meta">
+          <div className="flex items-start gap-2 text-label text-secondary-foreground md:text-body">
             <MonoLabel
               size="nano"
               className="shrink-0 pt-0.5 max-md:hidden print:inline"
@@ -276,12 +274,12 @@ function Segment({
           </div>
         )}
         {segment.note && (
-          <div className="flex items-start gap-2 text-xs leading-normal md:text-meta">
+          <div className="flex items-start gap-2 text-label leading-normal md:text-body">
             <StrideMark className="size-3.5 shrink-0" />
             <span className="flex-1">{segment.note}</span>
             <Link
               href={ask}
-              className="text-xs whitespace-nowrap text-primary underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
+              className="text-label whitespace-nowrap text-primary underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
             >
               Demander au stratège
             </Link>
@@ -290,7 +288,7 @@ function Segment({
         <Link
           href={ask}
           className={cn(
-            "flex min-h-8 items-center self-start text-xs text-primary underline underline-offset-2 hover:text-foreground print:hidden",
+            "flex min-h-8 items-center self-start text-label text-primary underline underline-offset-2 hover:text-foreground print:hidden",
             segment.note && "md:hidden",
           )}
         >

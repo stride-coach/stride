@@ -26,7 +26,7 @@ export function ShellRaceItem({
         size="sm"
         isActive={active}
         tooltip={name}
-        className="min-h-7.5 gap-2 text-meta data-[active=true]:font-semibold"
+        className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
       >
         <Link href={href} aria-current={active ? "page" : undefined}>
           <MonoLabel

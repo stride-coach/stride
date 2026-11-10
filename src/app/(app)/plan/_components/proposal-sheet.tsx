@@ -99,7 +99,7 @@ function Footer({
   return (
     <footer
       className={cn(
-        "flex flex-col gap-2.5 border-t border-border-subtle bg-surface-inset px-4 py-3.5",
+        "flex flex-col gap-2.5 border-t border-border bg-background px-4 py-3.5",
         mobile && "pb-[max(0.875rem,env(safe-area-inset-bottom))]",
       )}
     >
@@ -145,7 +145,7 @@ function Footer({
           )}
           <span
             className={cn(
-              "text-xs text-muted-foreground",
+              "text-label text-muted-foreground",
               mobile ? "text-center" : "ml-auto max-w-55 text-right",
             )}
           >
@@ -219,7 +219,7 @@ export function ProposalSheet({ review }: { review: ProposalReview }) {
           [...links].find((link) => link.offsetParent !== null)?.focus();
         }}
         className={cn(
-          "gap-0 overflow-hidden border-border-strong bg-surface-panel text-foreground",
+          "gap-0 overflow-hidden border-control-border bg-background text-foreground",
           mobile
             ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
             : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
@@ -228,13 +228,13 @@ export function ProposalSheet({ review }: { review: ProposalReview }) {
         {mobile && (
           <span
             aria-hidden="true"
-            className="mt-2 mb-1 h-1 w-10 self-center rounded-mark bg-border-strong"
+            className="mt-2 mb-1 h-1 w-10 self-center rounded-mark bg-control-border"
           />
         )}
-        <header className="flex items-center gap-2.5 border-b border-border-subtle px-4 py-3.5">
+        <header className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
           <span className="flex min-w-0 flex-col gap-0.5">
             <MonoLabel size="micro">{review.kicker}</MonoLabel>
-            <span className="truncate text-meta text-secondary-foreground">
+            <span className="truncate text-body text-secondary-foreground">
               {review.subkicker}
             </span>
           </span>
@@ -259,7 +259,7 @@ export function ProposalSheet({ review }: { review: ProposalReview }) {
           <ProposalReviewBody
             review={review}
             titleSlot={
-              <SheetTitle className="text-headline font-semibold">
+              <SheetTitle className="text-verdict font-semibold">
                 {review.title}
               </SheetTitle>
             }

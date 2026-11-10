@@ -11,7 +11,7 @@ import { CardFeeling } from "./feeling-prompt";
 import { PlanPill } from "./plan-pill";
 
 const tones: Record<Comparison["tone"], string> = {
-  better: "text-success",
+  better: "text-primary",
   worse: "text-warning",
   same: "text-foreground",
 };
@@ -40,10 +40,10 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
       <div className="flex flex-col gap-2 pt-2">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-border-strong">
+            <tr className="border-b border-control-border">
               <th
                 scope="col"
-                className="pb-2 text-left font-mono text-[9.5px] font-normal tracking-[0.08em] text-muted-foreground uppercase"
+                className="pb-2 text-left text-[9.5px] font-normal text-muted-foreground tabular-nums"
               >
                 {comparison.firstColumn}
               </th>
@@ -51,7 +51,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                 <th
                   key={column.key}
                   scope="col"
-                  className="pb-2 text-right font-mono text-[9.5px] font-normal tracking-[0.08em] whitespace-nowrap text-muted-foreground uppercase"
+                  className="pb-2 text-right text-[9.5px] font-normal whitespace-nowrap text-muted-foreground tabular-nums"
                 >
                   {column.label}
                 </th>
@@ -68,7 +68,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                 <th
                   scope="row"
                   className={cn(
-                    "py-2.5 text-left text-meta",
+                    "py-2.5 text-left text-body",
                     row.current
                       ? "font-semibold text-foreground"
                       : "font-normal text-secondary-foreground",
@@ -80,14 +80,17 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                   <td
                     key={column.key}
                     className={cn(
-                      "py-2.5 text-right font-metric text-[17px] font-semibold whitespace-nowrap tabular-nums",
+                      "py-2.5 text-right text-[17px] font-semibold whitespace-nowrap tabular-nums",
                       row.current
                         ? "text-foreground"
                         : "text-secondary-foreground",
                     )}
                   >
                     {row.cells[column.key] ?? (
-                      <span aria-label="non disponible" className="text-dim">
+                      <span
+                        aria-label="non disponible"
+                        className="text-muted-foreground"
+                      >
                         —
                       </span>
                     )}
@@ -117,10 +120,10 @@ function Programme({ items }: { items: ProgrammeItem[] }) {
         {items.map((item, index) => (
           <li
             key={index}
-            className="flex justify-between gap-3 border-t border-border py-2.25 text-sm"
+            className="flex justify-between gap-3 border-t border-border py-2.25 text-body"
           >
             <span>{item.label}</span>
-            <span className="font-metric text-base font-semibold whitespace-nowrap text-secondary-foreground tabular-nums">
+            <span className="text-body-lg font-semibold whitespace-nowrap text-secondary-foreground tabular-nums">
               {item.value}
             </span>
           </li>
@@ -158,7 +161,7 @@ export function PlanCard({ card }: { card: PlanCardView }) {
         {pill && <PlanPill pill={pill} />}
         {planned ? (
           <>
-            <span className="text-meta text-muted-foreground">
+            <span className="text-body text-muted-foreground">
               {card.strength
                 ? `Séance du plan · ${card.sessionTitle}`
                 : "Séance du plan"}
@@ -173,7 +176,7 @@ export function PlanCard({ card }: { card: PlanCardView }) {
           </>
         ) : (
           card.load && (
-            <span className="text-meta text-muted-foreground">{card.load}</span>
+            <span className="text-body text-muted-foreground">{card.load}</span>
           )
         )}
       </div>

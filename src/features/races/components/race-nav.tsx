@@ -60,7 +60,7 @@ export function RaceBreadcrumb({
   return (
     <nav
       aria-label="Fil d’Ariane"
-      className="flex min-w-0 flex-1 items-center gap-2 text-sm"
+      className="flex min-w-0 flex-1 items-center gap-2 text-body"
     >
       <Link
         href="/races"
@@ -119,7 +119,7 @@ export function RaceTabs({
             href={`${base}${section.path}`}
             aria-current={current ? "page" : undefined}
             className={cn(
-              "-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-0.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+              "-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-0.5 text-body whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
               current && "border-primary text-foreground",
             )}
           >

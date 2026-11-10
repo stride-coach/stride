@@ -17,7 +17,7 @@ export function Toaster({ ...props }: ToasterProps) {
       duration={6000}
       className="toaster group"
       icons={{
-        success: <CircleCheckIcon className="size-4 text-success" />,
+        success: <CircleCheckIcon className="size-4 text-primary" />,
         info: <InfoIcon className="size-4" />,
         warning: <TriangleAlertIcon className="size-4 text-warning" />,
         error: <OctagonXIcon className="size-4 text-destructive" />,
@@ -27,7 +27,7 @@ export function Toaster({ ...props }: ToasterProps) {
         {
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border-strong)",
+          "--normal-border": "var(--control-border)",
           "--border-radius": "var(--radius-lg)",
         } as React.CSSProperties
       }

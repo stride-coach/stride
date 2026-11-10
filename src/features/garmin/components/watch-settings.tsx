@@ -49,7 +49,7 @@ export function WatchToggle({
       />
       <span
         id="watch-toggle-detail"
-        className="col-span-full text-xs leading-normal text-muted-foreground"
+        className="col-span-full text-label leading-normal text-muted-foreground"
       >
         {pending && checked
           ? "Envoi vers ta montre…"

@@ -72,7 +72,7 @@ export function ProgressBreadcrumb() {
   return (
     <nav
       aria-label="Fil d’Ariane"
-      className="flex min-w-0 flex-1 items-center gap-2 text-sm"
+      className="flex min-w-0 flex-1 items-center gap-2 text-body"
     >
       <span className="text-muted-foreground">Progression</span>
       <span aria-hidden="true" className="text-muted-foreground">
@@ -112,7 +112,7 @@ export function ProgressTabs() {
             href={item.href}
             current={item.href === section.href}
             className={cn(
-              "flex min-h-10 flex-1 items-center justify-center rounded-lg text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+              "flex min-h-10 flex-1 items-center justify-center rounded-lg text-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
               item.href === section.href &&
                 "bg-border font-semibold text-foreground",
             )}
@@ -123,7 +123,7 @@ export function ProgressTabs() {
       </nav>
       <nav
         aria-label="Sections de la progression"
-        className="flex gap-5 text-sm max-sm:hidden"
+        className="flex gap-5 text-body max-sm:hidden"
       >
         {progressSections.map((item) => (
           <SectionLink
@@ -160,14 +160,14 @@ export function ProgressSidebarGroup() {
                 asChild
                 size="sm"
                 isActive={current}
-                className="min-h-7.5 gap-2 text-meta data-[active=true]:font-semibold"
+                className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
               >
                 <SectionLink href={item.href} current={current}>
                   <span
                     aria-hidden="true"
                     className={cn(
                       "size-1 shrink-0 rounded-full",
-                      current ? "bg-primary" : "bg-border-strong",
+                      current ? "bg-primary" : "bg-control-border",
                     )}
                   />
                   {item.label}

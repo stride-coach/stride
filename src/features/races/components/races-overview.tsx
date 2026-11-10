@@ -42,13 +42,17 @@ export function PriorityBadge({
     <span
       aria-hidden="true"
       className={cn(
-        "flex shrink-0 items-center justify-center font-metric font-bold",
-        small ? "size-6 rounded-sm text-sm" : "size-8 rounded-md text-base",
+        "flex shrink-0 items-center justify-center font-bold tabular-nums",
+        small
+          ? "size-6 rounded-sm text-body"
+          : "size-8 rounded-md text-body-lg",
         priority === "A"
           ? "bg-primary text-primary-foreground"
           : cn(
               "border-[1.5px] text-secondary-foreground",
-              planned ? "border-border-strong" : "border-dashed border-dim",
+              planned
+                ? "border-control-border"
+                : "border-dashed border-control-border",
             ),
       )}
     >
@@ -64,10 +68,10 @@ function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
     <span
       aria-hidden="true"
       className={cn(
-        "flex items-center justify-center font-metric leading-none font-bold",
+        "flex items-center justify-center leading-none font-bold tabular-nums",
         priority === "A"
-          ? "size-5.5 rounded-md bg-primary text-sm text-primary-foreground"
-          : "size-5 rounded-sm border-[1.5px] border-dim bg-background text-meta text-secondary-foreground",
+          ? "size-5.5 rounded-md bg-primary text-body text-primary-foreground"
+          : "size-5 rounded-sm border-[1.5px] border-muted-foreground bg-background text-body text-secondary-foreground",
       )}
     >
       {priority}
@@ -97,7 +101,7 @@ function SeasonGraphic({
       {timeline.months.map((month) => (
         <span
           key={month.key}
-          className="absolute top-0 border-l border-border-subtle"
+          className="absolute top-0 border-l border-border"
           style={{ left: `${month.left}%`, height: lineHeight }}
         >
           <MonoLabel
@@ -114,7 +118,7 @@ function SeasonGraphic({
           key={phase.key}
           className={cn(
             "absolute flex h-4 items-center overflow-hidden rounded-sm border-r-2 border-card px-1.5 whitespace-nowrap text-secondary-foreground",
-            compact ? "text-micro" : "text-label",
+            compact ? "text-label" : "text-label",
             "tracking-normal",
             phaseTones[phase.stage],
           )}
@@ -156,7 +160,7 @@ function SeasonGraphic({
               <span
                 className={cn(
                   "absolute leading-4 whitespace-nowrap text-foreground",
-                  compact ? "text-[11px]" : "text-xs",
+                  compact ? "text-[11px]" : "text-label",
                   compact
                     ? "-top-5 right-0"
                     : end
@@ -188,17 +192,17 @@ export function SeasonCard({ timeline }: { timeline: SeasonTimeline }) {
   return (
     <section className="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-card px-3.5 pt-3.5 pb-2 md:gap-2 md:px-5.5 md:pt-4.5 md:pb-2.5">
       <div className="flex items-baseline gap-3">
-        <MonoLabel size="nano" className="md:text-micro">
+        <MonoLabel size="nano" className="md:text-label">
           Ta saison
         </MonoLabel>
-        <span className="text-xs text-muted-foreground max-md:hidden">
+        <span className="text-label text-muted-foreground max-md:hidden">
           {timeline.phases.length
             ? `Phases du plan et courses, ${timeline.range}`
             : `Courses à venir, ${timeline.range}`}
         </span>
         <Link
           href="/plan"
-          className="ml-auto text-xs text-primary hover:text-foreground md:text-meta"
+          className="ml-auto text-label text-primary hover:text-foreground md:text-body"
         >
           <span className="md:hidden">Plan →</span>
           <span className="max-md:hidden">Voir le plan →</span>
@@ -261,7 +265,7 @@ export function FeaturedRace({
           )}
         </MonoLabel>
         {countdown && (
-          <span className="ml-auto shrink-0 font-metric text-[22px] leading-none font-semibold tabular-nums sm:text-[28px]">
+          <span className="ml-auto shrink-0 text-[22px] leading-none font-semibold tabular-nums sm:text-[28px]">
             {countdown}
           </span>
         )}
@@ -270,7 +274,7 @@ export function FeaturedRace({
         <h2 className="text-[26px] leading-[1.05] font-semibold tracking-[-0.02em] text-balance sm:text-[32px]">
           {race.name}
         </h2>
-        <span className="text-meta text-muted-foreground max-sm:basis-full sm:text-sm">
+        <span className="text-body text-muted-foreground max-sm:basis-full sm:text-body">
           {meta.join(" · ")}
           {objective && <span className="max-sm:hidden"> · {objective}</span>}
         </span>
@@ -328,15 +332,15 @@ export function CalendarCard({
     <Link
       href={`/races/${race.id}`}
       prefetch={false}
-      className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-border bg-card p-4 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring md:gap-3.5 md:px-6 md:py-5.5"
+      className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-border bg-card p-4 hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring md:gap-3.5 md:px-6 md:py-5.5"
     >
       <span className="flex items-center gap-2.5">
         <PriorityBadge priority={race.priority} small />
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-[15px] font-semibold md:text-base">
+          <span className="truncate text-[15px] font-semibold md:text-body-lg">
             {race.name}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             {race.date && (
               <>
                 <span className="md:hidden">
@@ -355,7 +359,7 @@ export function CalendarCard({
           </span>
         </span>
         {label && (
-          <span className="shrink-0 font-metric text-xl leading-none font-semibold tabular-nums md:text-[22px]">
+          <span className="shrink-0 text-verdict leading-none font-semibold tabular-nums md:text-[22px]">
             {label}
           </span>
         )}
@@ -365,7 +369,7 @@ export function CalendarCard({
           <span key={item.label} className="flex flex-col md:gap-0.5">
             <MonoLabel
               size="nano"
-              className="flex items-center gap-1.5 md:text-micro"
+              className="flex items-center gap-1.5 md:text-label"
             >
               {"provider" in item && (
                 <SourceMark source="provider" className="max-md:hidden" />
@@ -374,8 +378,8 @@ export function CalendarCard({
             </MonoLabel>
             <span
               className={cn(
-                "font-metric text-lg leading-tight font-semibold tabular-nums md:text-[22px]",
-                item.tone === "success" && "text-success",
+                "text-title leading-tight font-semibold tabular-nums md:text-[22px]",
+                item.tone === "success" && "text-primary",
                 item.tone === "warning" && "text-warning",
               )}
             >
@@ -390,12 +394,12 @@ export function CalendarCard({
 
 export function OpenSlot({ priority }: { priority: "B" }) {
   return (
-    <section className="flex min-w-0 flex-col gap-3 rounded-2xl border border-dashed border-dim px-6 py-5.5">
+    <section className="flex min-w-0 flex-col gap-3 rounded-2xl border border-dashed border-control-border px-6 py-5.5">
       <div className="flex items-center gap-2.5">
         <PriorityBadge priority={priority} planned={false} small />
         <h3 className="text-[15px] font-semibold">Place pour une course B</h3>
       </div>
-      <p className="text-meta leading-relaxed text-pretty text-secondary-foreground">
+      <p className="text-body leading-relaxed text-pretty text-secondary-foreground">
         Une course B sert de répétition générale avant l’objectif : départ,
         nutrition et équipement testés dans les conditions réelles.
       </p>
@@ -439,15 +443,15 @@ export function PastRaces({
             >
               {race.name}
             </Link>
-            <span className="text-xs text-muted-foreground max-md:order-3 md:text-meta">
+            <span className="text-label text-muted-foreground max-md:order-3 md:text-body">
               {[race.date ? formatCompactDate(race.date) : null, distance]
                 .filter(Boolean)
                 .join(" · ")}
             </span>
-            <span className="font-metric text-xl leading-none font-semibold tabular-nums max-md:order-2 max-md:text-right">
+            <span className="text-verdict leading-none font-semibold tabular-nums max-md:order-2 max-md:text-right">
               {result ? formatResultTime(result.seconds) : "—"}
             </span>
-            <span className="text-xs max-md:order-4 max-md:text-right md:text-meta">
+            <span className="text-label max-md:order-4 max-md:text-right md:text-body">
               {result ? (
                 race.targetSeconds && result.deltaSeconds !== null ? (
                   <>
@@ -459,7 +463,7 @@ export function PastRaces({
                     <span
                       className={
                         result.deltaSeconds <= 0
-                          ? "text-success"
+                          ? "text-primary"
                           : "text-warning"
                       }
                     >
@@ -479,7 +483,7 @@ export function PastRaces({
               <Link
                 href={`/activities/${result.activityId}`}
                 prefetch={false}
-                className="text-xs text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-md:order-5 max-md:col-span-2 md:text-right md:text-meta"
+                className="text-label text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-md:order-5 max-md:col-span-2 md:text-right md:text-body"
               >
                 Voir l’activité ›
               </Link>

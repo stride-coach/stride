@@ -19,7 +19,7 @@ function Crumbs({ crumbs, detail }: { crumbs: AppCrumb[]; detail?: string }) {
   return (
     <nav
       aria-label="Fil d’Ariane"
-      className="flex min-w-0 items-center gap-2 text-sm"
+      className="flex min-w-0 items-center gap-2 text-body"
     >
       {crumbs.map((crumb, index) => {
         const last = index === crumbs.length - 1;
@@ -80,7 +80,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "relative flex shrink-0 items-center gap-2.5 px-5 pt-3.5 pb-1 md:min-h-14 md:gap-3 md:border-b md:border-border-subtle md:py-0",
+        "relative flex shrink-0 items-center gap-2.5 px-5 pt-3.5 pb-1 md:min-h-14 md:gap-3 md:border-b md:border-border md:py-0",
         className,
       )}
     >
@@ -102,7 +102,7 @@ export function AppHeader({
               {title}
             </p>
             {detail && (
-              <span className="text-xs text-muted-foreground">{detail}</span>
+              <span className="text-label text-muted-foreground">{detail}</span>
             )}
           </>
         )}

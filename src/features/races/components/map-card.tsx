@@ -27,7 +27,7 @@ function LayerChip({
       pressed={pressed}
       onPressedChange={onPressedChange}
       className={cn(
-        "min-h-8.5 rounded-full border border-border-strong bg-surface-inset px-3 text-meta text-secondary-foreground hover:bg-muted data-[state=on]:border-dim data-[state=on]:bg-surface-inset data-[state=on]:font-semibold data-[state=on]:text-foreground",
+        "min-h-8.5 rounded-full border border-control-border bg-background px-3 text-body text-secondary-foreground hover:bg-muted data-[state=on]:border-muted-foreground data-[state=on]:bg-background data-[state=on]:font-semibold data-[state=on]:text-foreground",
         className,
       )}
     >
@@ -73,7 +73,7 @@ function subscribeNever() {
 
 function SegmentBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-border-strong bg-muted px-1 font-metric text-xs font-semibold">
+    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-control-border bg-muted px-1 text-label font-semibold tabular-nums">
       {label}
     </span>
   );
@@ -136,11 +136,11 @@ function FullscreenMap({
       {rows.length > 0 && (
         <aside
           aria-label="Tronçons"
-          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-[1rem] border-t border-border bg-surface-inset/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-2xl md:border md:bg-surface-inset md:p-4"
+          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-[1rem] border-t border-border bg-background/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-2xl md:border md:bg-background md:p-4"
         >
           <span
             aria-hidden="true"
-            className="h-1 w-9 self-center rounded-mark bg-border-strong md:hidden"
+            className="h-1 w-9 self-center rounded-mark bg-control-border md:hidden"
           />
           <MonoLabel size="nano" className="md:pb-2.5">
             <span className="md:hidden">Tronçons · glisse pour voir</span>
@@ -155,13 +155,13 @@ function FullscreenMap({
                 <span className="self-start md:row-span-2">
                   <SegmentBadge label={row.label} />
                 </span>
-                <span className="truncate text-meta">
+                <span className="truncate text-body">
                   {row.name}
                   {row.clock && (
                     <span className="md:hidden"> · {row.clock}</span>
                   )}
                 </span>
-                <span className="font-metric text-[15px] leading-none font-semibold tabular-nums max-md:hidden">
+                <span className="text-[15px] leading-none font-semibold tabular-nums max-md:hidden">
                   {row.clock ?? ""}
                 </span>
                 <span className="text-[11px] text-muted-foreground md:col-start-2">

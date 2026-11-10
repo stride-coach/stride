@@ -108,7 +108,7 @@ export function GarminCredentials({
                 },
               ]}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Mot de passe Garmin oublié ? Réinitialise-le dans l’app Garmin
               Connect, puis reviens.
             </p>
@@ -184,7 +184,7 @@ export function GarminCredentials({
                   }
                   aria-pressed={visible}
                   aria-controls="garmin-password"
-                  className="h-8 px-2 text-meta text-muted-foreground"
+                  className="h-8 px-2 text-body text-muted-foreground"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => {
                     setVisible(!visible);
@@ -252,7 +252,7 @@ export function GarminCredentials({
             </Button>
           </div>
           {slow && (
-            <p role="status" className="text-sm text-secondary-foreground">
+            <p role="status" className="text-body text-secondary-foreground">
               Toujours en contact avec Garmin…
             </p>
           )}

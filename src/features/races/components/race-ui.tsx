@@ -48,14 +48,14 @@ export function Figure({
     <div className={cn("flex min-w-0 flex-col gap-1", className)}>
       <span
         className={cn(
-          "font-metric text-[1.625rem] leading-none font-semibold tracking-[-0.01em] tabular-nums",
-          tone === "night" && "text-night",
+          "text-[1.625rem] leading-none font-semibold tracking-[-0.01em] tabular-nums",
+          tone === "night" && "text-muted-foreground",
           tone === "accent" && "text-primary",
         )}
       >
         {value}
       </span>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-label text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -81,15 +81,15 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.25 py-0.75 text-xs whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-full px-2.25 py-0.75 text-label whitespace-nowrap",
         {
           neutral: "bg-muted text-foreground",
-          outline: "border border-border-strong text-secondary-foreground",
+          outline: "border border-control-border text-secondary-foreground",
           accent: "bg-primary text-primary-foreground",
-          success: "bg-success-surface text-success",
+          success: "bg-card text-primary",
           warning: "bg-warning/10 text-warning",
           danger: "bg-destructive/10 text-destructive",
-          provider: "bg-provider/10 text-provider",
+          provider: "bg-data-2/10 text-data-2",
         }[tone],
         className,
       )}
@@ -110,7 +110,7 @@ export function LegendItem({
   children: React.ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-2 text-xs text-secondary-foreground">
+    <span className="inline-flex items-center gap-2 text-label text-secondary-foreground">
       {mark}
       {children}
     </span>
@@ -131,12 +131,12 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-start gap-2 rounded-xl border border-dashed border-border-strong bg-surface-inset px-4 py-4",
+        "flex flex-col items-start gap-2 rounded-xl border border-dashed border-control-border bg-background px-4 py-4",
         className,
       )}
     >
-      <p className="text-sm font-semibold">{title}</p>
-      <p className="text-meta text-muted-foreground">{children}</p>
+      <p className="text-body font-semibold">{title}</p>
+      <p className="text-body text-muted-foreground">{children}</p>
       {action}
     </div>
   );

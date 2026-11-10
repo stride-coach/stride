@@ -27,14 +27,14 @@ import { NotificationList } from "./notification-list";
 import { useNotifications } from "./notifications-context";
 
 const bell =
-  "relative grid shrink-0 place-items-center rounded-md border border-border text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:border-border-strong aria-expanded:bg-muted aria-expanded:text-foreground";
+  "relative grid shrink-0 place-items-center rounded-md border border-border text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-expanded:border-control-border aria-expanded:bg-muted aria-expanded:text-foreground";
 
 function Badge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
     <span
       aria-hidden="true"
-      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-background ring-2 ring-surface-inset"
+      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-primary-foreground ring-2 ring-background"
     >
       {badgeValue(count)}
     </span>
@@ -133,7 +133,7 @@ function LoadedBell({
         >
           <div className="flex items-center gap-2.5 px-3.5 pt-3.5 pb-2.5">
             <h2 className="text-[15px] font-semibold">Notifications</h2>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-label text-muted-foreground">
               {unreadLabel(unread)}
             </span>
             {unread > 0 && <MarkAllRead className="ml-auto" />}

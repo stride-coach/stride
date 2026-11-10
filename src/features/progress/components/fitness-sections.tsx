@@ -26,7 +26,7 @@ export function SectionTitle({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <h2 id={id} className="text-base font-semibold sm:text-lg">
+      <h2 id={id} className="text-body-lg font-semibold sm:text-title">
         {children}
       </h2>
       {meta}
@@ -36,7 +36,7 @@ export function SectionTitle({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+    <p className="border-t border-border pt-3 text-body text-muted-foreground">
       {children}
     </p>
   );
@@ -55,14 +55,14 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
         <h2 id="progress-goal">
           <MonoLabel size="micro">Objectif</MonoLabel>
         </h2>
-        <p className="text-sm text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Aucune course A ou B à venir. Ajoute ton prochain objectif pour suivre
           ta préparation ici.
         </p>
         <Link
           href="/races"
           className={cn(
-            "w-fit text-sm text-primary hover:text-foreground",
+            "w-fit text-body text-primary hover:text-foreground",
             linkFocus,
           )}
         >
@@ -76,7 +76,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
       <Link
         href={`/races/${goal.id}`}
         className={cn(
-          "flex flex-col gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-border-strong sm:p-5",
+          "flex flex-col gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-control-border sm:p-5",
           linkFocus,
         )}
       >
@@ -87,14 +87,14 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
           <MonoLabel size="micro">
             · {goal.date} · {goal.countdown}
           </MonoLabel>
-          <span className="ml-auto flex items-center text-meta text-muted-foreground">
+          <span className="ml-auto flex items-center text-body text-muted-foreground">
             <span className="max-sm:sr-only">Ouvrir la course</span>
             <ChevronRightIcon aria-hidden="true" className="size-4" />
           </span>
         </span>
         <h2
           id="progress-goal"
-          className="text-lead font-semibold tracking-[-0.015em] sm:text-title"
+          className="text-body-lg font-semibold tracking-[-0.015em] sm:text-title"
         >
           {goal.name}
         </h2>
@@ -116,8 +116,8 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
             </span>
             <span
               className={cn(
-                "col-span-2 text-meta",
-                goal.road.tone === "success" && "text-success",
+                "col-span-2 text-body",
+                goal.road.tone === "success" && "text-primary",
                 goal.road.tone === "warning" && "text-warning",
                 goal.road.tone === "muted" && "text-muted-foreground",
               )}
@@ -138,7 +138,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
                   <Metric
                     value={prep.longest ?? "—"}
                     unit={prep.distance ? `/ ${prep.distance} km` : "km"}
-                    className="text-[22px] [&>span]:text-meta [&>span]:text-muted-foreground"
+                    className="text-[22px] [&>span]:text-body [&>span]:text-muted-foreground"
                   />
                 </span>
                 <span className="flex flex-col gap-0.5">
@@ -146,7 +146,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
                   <Metric
                     value={prep.weeklyGain ?? "—"}
                     unit="m"
-                    className="text-[22px] [&>span]:text-meta [&>span]:text-muted-foreground"
+                    className="text-[22px] [&>span]:text-body [&>span]:text-muted-foreground"
                   />
                 </span>
                 <span className="flex flex-col gap-0.5">
@@ -162,19 +162,21 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
                         ? `/ ${formatInteger(prep.preparation.total)}`
                         : undefined
                     }
-                    className="text-[22px] [&>span]:text-meta [&>span]:text-muted-foreground"
+                    className="text-[22px] [&>span]:text-body [&>span]:text-muted-foreground"
                   />
                 </span>
               </span>
             )}
             {goal.note && (
-              <span className="text-xs text-muted-foreground">{goal.note}</span>
+              <span className="text-label text-muted-foreground">
+                {goal.note}
+              </span>
             )}
           </>
         )}
         {goal.phase ? (
           <span className="flex flex-col gap-1.5">
-            <span className="flex justify-between gap-3 text-xs text-secondary-foreground">
+            <span className="flex justify-between gap-3 text-label text-secondary-foreground">
               <span>{goal.phase.label}</span>
               {goal.phase.taper && <span>{goal.phase.taper}</span>}
             </span>
@@ -190,12 +192,12 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
               {goal.phase.segments.map((segment) => (
                 <span
                   key={segment.key}
-                  className="overflow-hidden rounded-mark bg-border-strong"
+                  className="overflow-hidden rounded-mark bg-control-border"
                 >
                   <span
                     className={cn(
                       "block h-full",
-                      segment.state === "past" ? "bg-provider" : "bg-primary",
+                      segment.state === "past" ? "bg-foreground" : "bg-primary",
                     )}
                     style={{ width: `${segment.progress * 100}%` }}
                   />
@@ -219,7 +221,9 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
             </span>
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">{goal.planNote}</span>
+          <span className="text-label text-muted-foreground">
+            {goal.planNote}
+          </span>
         )}
       </Link>
     </section>
@@ -229,7 +233,7 @@ export function GoalCardView({ goal }: { goal: GoalCard | null }) {
 export function LoadAdviceCard({ advice }: { advice: LoadAdvice }) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:gap-4">
-      <p className="flex flex-1 items-start gap-2.5 text-sm leading-normal text-pretty">
+      <p className="flex flex-1 items-start gap-2.5 text-body leading-normal text-pretty">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
         {advice.text}
       </p>
@@ -291,17 +295,17 @@ export function PredictionSection({
               const change = delta(prediction);
               return (
                 <div key={prediction.key} className="contents">
-                  <dt className="text-sm">{prediction.label}</dt>
+                  <dt className="text-body">{prediction.label}</dt>
                   <dd>
                     <Metric
                       value={formatClock(prediction.seconds)}
-                      className="text-2xl"
+                      className="text-metric"
                     />
                   </dd>
                   <dd
                     className={cn(
-                      "text-right text-xs",
-                      change.tone === "success" && "text-success",
+                      "text-right text-label",
+                      change.tone === "success" && "text-primary",
                       change.tone === "warning" && "text-warning",
                       change.tone === "muted" && "text-muted-foreground",
                     )}
@@ -312,7 +316,7 @@ export function PredictionSection({
               );
             })}
           </dl>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-label text-muted-foreground">
             Écart sur 4 semaines · mêmes chiffres que ton coach.
           </p>
         </>
@@ -327,9 +331,9 @@ export function PredictionSection({
 }
 
 const intensityColors = {
-  easy: "bg-success",
-  tempo: "bg-warning",
-  hard: "bg-destructive",
+  easy: "bg-intensity-2",
+  tempo: "bg-intensity-3",
+  hard: "bg-intensity-5",
 } as const;
 
 export function IntensitySection({
@@ -362,7 +366,7 @@ export function IntensitySection({
               />
             ))}
           </div>
-          <dl className="grid grid-cols-3 gap-2 text-xs">
+          <dl className="grid grid-cols-3 gap-2 text-label">
             {intensity.shares.map((share) => (
               <div key={share.key} className="flex flex-col gap-0.5">
                 <dt className="text-secondary-foreground">{share.label}</dt>
@@ -370,7 +374,7 @@ export function IntensitySection({
                   <Metric
                     value={`${formatInteger(share.share * 100)} %`}
                     className={cn(
-                      "text-2xl",
+                      "text-metric",
                       !share.onTarget &&
                         share.key === "tempo" &&
                         "text-warning",
@@ -385,7 +389,7 @@ export function IntensitySection({
             <Link
               href="/activities"
               className={cn(
-                "text-meta leading-normal text-secondary-foreground hover:text-foreground",
+                "text-body leading-normal text-secondary-foreground hover:text-foreground",
                 linkFocus,
               )}
             >
@@ -421,7 +425,7 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
       <SectionTitle
         id="progress-volume"
         meta={
-          <ul className="flex gap-3.5 text-xs text-muted-foreground">
+          <ul className="flex gap-3.5 text-label text-muted-foreground">
             <li className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
@@ -443,7 +447,7 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
       >
         Course à pied · km par semaine
       </SectionTitle>
-      <ol className="flex h-36 items-end gap-1.5 border-b border-border-strong sm:h-45 sm:gap-2.5">
+      <ol className="flex h-36 items-end gap-1.5 border-b border-control-border sm:h-45 sm:gap-2.5">
         {volume.weeks.map((week) => (
           <li
             key={week.start}
@@ -454,7 +458,7 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
                 aria-hidden="true"
                 className={cn(
                   "absolute inset-x-0 bottom-0 border-[1.5px] border-b-0 border-dashed",
-                  week.current ? "border-primary" : "border-dim",
+                  week.current ? "border-primary" : "border-muted-foreground",
                 )}
                 style={{ height: `${(week.plannedMeters / max) * 100}%` }}
               />
@@ -475,15 +479,15 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
           </li>
         ))}
       </ol>
-      <div className="flex justify-between text-xs text-muted-foreground">
+      <div className="flex justify-between text-label text-muted-foreground">
         <span>{formatDayMonth(volume.weeks[0].start)}</span>
         <span>Cette semaine</span>
       </div>
-      <p className="text-sm leading-normal text-secondary-foreground">
+      <p className="text-body leading-normal text-secondary-foreground">
         {volume.summary}
       </p>
       {!hasPlan && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-label text-muted-foreground">
           Sans plan actif, Stride affiche seulement les kilomètres réalisés.
         </p>
       )}
@@ -492,7 +496,7 @@ export function RunningVolumeSection({ volume }: { volume: RunningVolume }) {
 }
 
 const toneText = {
-  success: "text-success",
+  success: "text-primary",
   muted: "text-secondary-foreground",
   warning: "text-warning",
   danger: "text-destructive",
@@ -523,17 +527,20 @@ export function MeasureSection({
             >
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-[15px] font-medium">{row.label}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {row.detail}
                 </span>
               </span>
               <Metric
                 value={row.value}
-                className={cn("text-[26px]", !row.trend && "text-dim")}
+                className={cn(
+                  "text-[26px]",
+                  !row.trend && "text-muted-foreground",
+                )}
               />
               <span
                 className={cn(
-                  "col-span-2 flex items-center gap-1.5 text-meta",
+                  "col-span-2 flex items-center gap-1.5 text-body",
                   toneText[row.tone],
                 )}
               >
@@ -549,7 +556,7 @@ export function MeasureSection({
         ))}
       </ul>
       {note && <CoachNote className="mt-2 leading-normal">{note}</CoachNote>}
-      <p className="text-xs text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         Seuil et VO₂ max : dans Records, avec tes repères.
       </p>
     </section>

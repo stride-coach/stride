@@ -19,7 +19,9 @@ function Lede() {
 }
 
 function SectionTitle({ children }: { children: string }) {
-  return <h2 className="text-base font-semibold sm:text-lg">{children}</h2>;
+  return (
+    <h2 className="text-body-lg font-semibold sm:text-title">{children}</h2>
+  );
 }
 
 function Rows({ count }: { count: number }) {

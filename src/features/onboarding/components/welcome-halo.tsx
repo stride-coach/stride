@@ -13,7 +13,7 @@ export function WelcomeHalo() {
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 hidden bg-linear-to-r from-surface-inset/95 via-surface-inset/70 via-55% to-transparent to-80% xl:block"
+        className="absolute inset-0 -z-10 hidden bg-linear-to-r from-background/95 via-background/70 via-55% to-transparent to-80% xl:block"
       />
       <Halo
         viewBox="0 0 390 320"

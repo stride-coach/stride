@@ -161,8 +161,8 @@ function Composer({
 
   if (closed)
     return (
-      <div className="mx-auto flex w-full max-w-205 flex-col gap-2 border-t border-border-subtle px-4 py-4 sm:px-[clamp(20px,3vw,44px)]">
-        <p className="text-sm text-secondary-foreground">
+      <div className="mx-auto flex w-full max-w-205 flex-col gap-2 border-t border-border px-4 py-4 sm:px-[clamp(20px,3vw,44px)]">
+        <p className="text-body text-secondary-foreground">
           Cette conversation est terminée. Démarre une nouvelle conversation
           pour continuer.
         </p>
@@ -178,14 +178,14 @@ function Composer({
         event.preventDefault();
         void submit();
       }}
-      className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border-subtle bg-surface-inset px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5"
+      className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5"
     >
       <SuggestedReplies
         replies={replies}
         onSelect={(message) => void reply(message)}
         className="max-sm:-mx-4 max-sm:px-4"
       />
-      <InputGroup className="h-auto flex-wrap rounded-xl border-border-strong bg-card p-1.5 has-[>[data-align=block-start]]:flex-row md:h-auto">
+      <InputGroup className="h-auto flex-wrap rounded-xl border-control-border bg-card p-1.5 has-[>[data-align=block-start]]:flex-row md:h-auto">
         {!answering && attachments.length > 0 && (
           <InputGroupAddon
             align="block-start"
@@ -224,7 +224,7 @@ function Composer({
               aria-expanded={pickerOpen}
               disabled={busy}
               onClick={() => setPickerOpen(true)}
-              className="size-11 rounded-lg p-0 text-secondary-foreground md:h-9 md:w-auto md:border md:border-border md:px-2.5 md:text-meta md:font-normal"
+              className="size-11 rounded-lg p-0 text-secondary-foreground md:h-9 md:w-auto md:border md:border-border md:px-2.5 md:text-body md:font-normal"
             >
               <PlusIcon aria-hidden="true" />
               <span aria-hidden="true" className="max-md:hidden">
@@ -262,7 +262,7 @@ function Composer({
               onPressedChange={setConsult}
               aria-label={`Mentionner ${staff.medical.name}`}
               disabled={busy}
-              className="min-h-9 gap-1.5 rounded-md border-border bg-transparent pr-2 pl-1.5 text-meta font-normal data-[state=on]:border-foreground data-[state=on]:bg-muted data-[state=on]:font-semibold data-[state=on]:text-foreground"
+              className="min-h-9 gap-1.5 rounded-md border-border bg-transparent pr-2 pl-1.5 text-body font-normal data-[state=on]:border-foreground data-[state=on]:bg-muted data-[state=on]:font-semibold data-[state=on]:text-foreground"
             >
               <StaffStack agents={["medical"]} size={18} />@{staff.medical.name}
             </Toggle>
@@ -291,7 +291,7 @@ function Composer({
           }
         />
       )}
-      <p className="text-xs text-muted-foreground max-sm:hidden">
+      <p className="text-label text-muted-foreground max-sm:hidden">
         {staff.coach.name} lit chaque message et passe la main au bon
         spécialiste, deux au plus par demande. Les questions d’un spécialiste
         lui reviennent directement. Rien ne change sans ton accord.
@@ -624,7 +624,7 @@ export function CoachScreen({
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(
-            "min-h-0 w-full flex-col bg-surface-inset min-[980px]:flex min-[980px]:w-80 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border-subtle",
+            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-80 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border",
             current ? "hidden" : "flex",
           )}
         >
@@ -660,7 +660,7 @@ export function CoachScreen({
                     <MonoLabel size="nano">Ton staff</MonoLabel>
                     <Link
                       href="/coach/team"
-                      className="ml-auto inline-flex items-center gap-1.5 text-xs text-secondary-foreground hover:text-foreground"
+                      className="ml-auto inline-flex items-center gap-1.5 text-label text-secondary-foreground hover:text-foreground"
                     >
                       Voir l’équipe
                       <ChevronRightIcon
@@ -675,7 +675,7 @@ export function CoachScreen({
                         key={agent}
                         href="/coach/team"
                         aria-label={`${staff[agent].alt}, voir l’équipe`}
-                        className="flex w-15.5 flex-col items-center gap-1.5 text-xs text-secondary-foreground hover:text-foreground"
+                        className="flex w-15.5 flex-col items-center gap-1.5 text-label text-secondary-foreground hover:text-foreground"
                       >
                         <StaffPortrait agent={agent} size={56} decorative />
                         <span aria-hidden="true">{staff[agent].name}</span>
@@ -694,7 +694,7 @@ export function CoachScreen({
             current ? "flex" : "hidden",
           )}
         >
-          <div className="flex min-h-14 shrink-0 items-center gap-2.5 border-b border-border-subtle py-2 pr-2.5 pl-1.5 min-[980px]:gap-3 min-[980px]:px-6 min-[980px]:py-3">
+          <div className="flex min-h-14 shrink-0 items-center gap-2.5 border-b border-border py-2 pr-2.5 pl-1.5 min-[980px]:gap-3 min-[980px]:px-6 min-[980px]:py-3">
             <Button
               asChild
               variant="ghost"
@@ -710,7 +710,7 @@ export function CoachScreen({
               <h1 className="truncate text-body font-semibold">
                 {empty && !thread ? "Nouvelle conversation" : title}
               </h1>
-              <span className="truncate text-xs text-muted-foreground">
+              <span className="truncate text-label text-muted-foreground">
                 {participantsLine(staff, participants)}
                 {startedAt &&
                   !empty &&
@@ -736,7 +736,7 @@ export function CoachScreen({
             {empty ? (
               <div className="mx-auto flex w-full max-w-205 flex-col gap-4 px-4 pt-8 sm:px-[clamp(20px,3vw,44px)] sm:pt-12">
                 <StaffPortrait agent="coach" size={56} />
-                <h2 className="text-headline font-semibold">
+                <h2 className="text-verdict font-semibold">
                   {mode === "plan"
                     ? `Demande ton plan à ${staff.coach.name}`
                     : "Écris à ton staff"}
@@ -788,7 +788,7 @@ export function CoachScreen({
         {!empty && (
           <aside
             aria-label="Suivi de la conversation"
-            className="hidden w-85 shrink-0 overflow-y-auto border-l border-border-subtle px-5.5 pt-5.5 pb-7 min-[1180px]:block"
+            className="hidden w-85 shrink-0 overflow-y-auto border-l border-border px-5.5 pt-5.5 pb-7 min-[1180px]:block"
           >
             {suivi}
           </aside>
@@ -799,10 +799,10 @@ export function CoachScreen({
           side="bottom"
           showCloseButton={false}
           aria-describedby={undefined}
-          className="max-h-[85svh] gap-0 overflow-hidden border-border-strong bg-surface-panel min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-2xl min-[640px]:border"
+          className="max-h-[85svh] gap-0 overflow-hidden border-control-border bg-background min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-2xl min-[640px]:border"
         >
-          <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-3">
-            <SheetTitle className="text-sm font-semibold">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+            <SheetTitle className="text-body font-semibold">
               Suivi de la conversation
             </SheetTitle>
             <SheetClose asChild>

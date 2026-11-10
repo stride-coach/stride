@@ -1,29 +1,8 @@
-import {
-  Barlow_Condensed,
-  IBM_Plex_Mono,
-  Instrument_Sans,
-} from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Inter } from "next/font/google";
 
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const barlowCondensed = Barlow_Condensed({
-  variable: "--font-barlow-condensed",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-export const fontVariables = cn(
-  instrumentSans.variable,
-  barlowCondensed.variable,
-  ibmPlexMono.variable,
-);
+export const fontVariables = inter.variable;

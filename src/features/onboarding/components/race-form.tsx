@@ -96,7 +96,7 @@ export function RaceForm({
     <fieldset className="flex flex-col gap-5 border-t border-border pt-5 first:border-t-0 first:pt-0">
       <legend className="sr-only">Course {index + 1}</legend>
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-label text-muted-foreground uppercase">
+        <span className="text-label text-muted-foreground tabular-nums">
           Course {index + 1}
         </span>
         <Button
@@ -236,7 +236,7 @@ export function RaceForm({
       {state.conflicts.length > 0 && (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning-border p-3 text-sm"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-body"
         >
           <span>Cette course a changé sur un autre appareil.</span>
           <span className="flex gap-2">

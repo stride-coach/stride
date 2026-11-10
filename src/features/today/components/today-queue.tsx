@@ -21,18 +21,18 @@ function ActivityRow({ activity }: { activity: TodayActivity }) {
     >
       <SessionKindTile kind={activity.family} size="lg" className="size-8" />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-sm font-semibold">
+        <span className="truncate text-body font-semibold">
           {activity.heading} · {activity.title}
         </span>
-        <span className="truncate text-xs text-muted-foreground">
+        <span className="truncate text-label text-muted-foreground">
           {activity.detail}
         </span>
       </span>
       {activity.compliance && (
         <span
           className={cn(
-            "flex items-center gap-1.25 text-xs whitespace-nowrap",
-            activity.compliance.partial ? "text-warning" : "text-success",
+            "flex items-center gap-1.25 text-label whitespace-nowrap",
+            activity.compliance.partial ? "text-warning" : "text-primary",
           )}
         >
           <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
@@ -91,7 +91,7 @@ export function TodayQueue({ items }: { items: TodayQueueItem[] }) {
               key={item.key}
               className={cn(
                 "size-1.5 rounded-full",
-                item === current ? "bg-primary" : "bg-border-strong",
+                item === current ? "bg-primary" : "bg-control-border",
               )}
             />
           ))}
@@ -102,7 +102,7 @@ export function TodayQueue({ items }: { items: TodayQueueItem[] }) {
       </div>
       <QueueItem key={current.key} item={current} />
       {next && (
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2.5 text-label text-muted-foreground">
           <span className="flex-1">{next}</span>
           <Button
             type="button"

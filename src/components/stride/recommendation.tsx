@@ -38,7 +38,7 @@ export function RecommendationHeader({
       {...props}
     >
       <StrideMark />
-      <span className="text-sm font-semibold">Stride Coach</span>
+      <span className="text-body font-semibold">Stride Coach</span>
       {source && <MonoLabel size="micro">{source}</MonoLabel>}
       {status && <span className="ml-auto">{status}</span>}
     </header>
@@ -83,7 +83,7 @@ export function RecommendationDiff({
   return (
     <p
       data-slot="recommendation-diff"
-      className={cn("flex flex-wrap items-center gap-2.5 text-sm", className)}
+      className={cn("flex flex-wrap items-center gap-2.5 text-body", className)}
     >
       <span className="sr-only">Change from </span>
       <del className="text-muted-foreground">{from}</del>

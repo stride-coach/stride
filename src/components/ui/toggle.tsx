@@ -11,10 +11,10 @@ const toggleVariants = cva(
     variants: {
       variant: {
         choice:
-          "min-h-10.5 rounded-lg border border-input bg-card px-3 text-sm text-secondary-foreground hover:border-dim hover:text-foreground data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:font-semibold data-[state=on]:text-background",
-        day: "size-11 rounded-full border border-input bg-card text-meta font-semibold text-muted-foreground hover:border-dim hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-muted data-[state=on]:text-foreground",
+          "min-h-10.5 rounded-lg border border-input bg-card px-3 text-body text-secondary-foreground hover:border-muted-foreground hover:text-foreground data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:font-semibold data-[state=on]:text-background",
+        day: "size-11 rounded-full border border-input bg-card text-body font-semibold text-muted-foreground hover:border-muted-foreground hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-muted data-[state=on]:text-foreground",
         segment:
-          "min-h-9 px-3.5 text-meta text-muted-foreground hover:text-foreground data-[state=on]:bg-muted data-[state=on]:text-foreground",
+          "min-h-9 px-3.5 text-body text-muted-foreground hover:text-foreground data-[state=on]:bg-muted data-[state=on]:text-foreground",
       },
     },
     defaultVariants: {

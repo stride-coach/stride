@@ -45,7 +45,7 @@ export function LegsCheckin({
         <span id="today-legs" className="text-[15px] font-semibold">
           Et tes jambes ce matin ?
         </span>
-        <span className="text-xs text-muted-foreground">{hint}</span>
+        <span className="text-label text-muted-foreground">{hint}</span>
       </span>
       <ToggleGroup
         type="single"

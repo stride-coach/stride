@@ -28,11 +28,11 @@ export default async function ConnexionsSettingsPage() {
       />
       <div className="mb-9 overflow-hidden rounded-lg border border-border bg-card">
         <div className="flex flex-wrap items-center gap-4 p-5">
-          <span className="grid size-12 place-items-center rounded-md border border-border-strong font-semibold">
+          <span className="grid size-12 place-items-center rounded-md border border-control-border font-semibold">
             G
           </span>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">Garmin</h2>
+            <h2 className="text-title font-semibold">Garmin</h2>
             <GarminConnectionLabel status={state.connection?.status ?? null} />
           </div>
           <Button variant="secondary" asChild>
@@ -41,23 +41,23 @@ export default async function ConnexionsSettingsPage() {
         </div>
         <div className="grid grid-cols-2 border-t border-border md:grid-cols-3">
           <div className="p-5">
-            <strong className="block font-metric text-2xl">
+            <strong className="block text-metric tabular-nums">
               {counts.activities ?? "—"}
             </strong>
-            <span className="font-mono text-label text-secondary-foreground uppercase">
+            <span className="text-label text-secondary-foreground tabular-nums">
               Activités enregistrées
             </span>
           </div>
           <div className="border-l border-border p-5">
-            <strong className="block font-metric text-2xl">
+            <strong className="block text-metric tabular-nums">
               {counts.observations ?? "—"}
             </strong>
-            <span className="font-mono text-label text-secondary-foreground uppercase">
+            <span className="text-label text-secondary-foreground tabular-nums">
               Mesures de santé
             </span>
           </div>
           <div className="col-span-2 border-t border-border p-5 md:col-span-1 md:border-t-0 md:border-l">
-            <strong className="block text-sm">
+            <strong className="block text-body">
               {state.connection?.lastSyncAt
                 ? new Date(state.connection.lastSyncAt).toLocaleString(
                     "fr-FR",
@@ -65,7 +65,7 @@ export default async function ConnexionsSettingsPage() {
                   )
                 : "Aucune synchro enregistrée"}
             </strong>
-            <span className="font-mono text-label text-secondary-foreground uppercase">
+            <span className="text-label text-secondary-foreground tabular-nums">
               Dernière synchro
             </span>
           </div>
@@ -73,14 +73,14 @@ export default async function ConnexionsSettingsPage() {
       </div>
       <SettingsGroup title="Autres sources">
         <div className="border-b border-border p-4 md:px-0">
-          <strong className="text-sm">Autres montres et applications</strong>
-          <p className="mt-1 text-sm text-secondary-foreground">
+          <strong className="text-body">Autres montres et applications</strong>
+          <p className="mt-1 text-body text-secondary-foreground">
             Les autres fournisseurs ne sont pas encore pris en charge.
           </p>
         </div>
         <div className="p-4 md:px-0">
-          <strong className="text-sm">Saisie manuelle</strong>
-          <p className="mt-1 text-sm text-secondary-foreground">
+          <strong className="text-body">Saisie manuelle</strong>
+          <p className="mt-1 text-body text-secondary-foreground">
             L’ajout de séances sans montre n’est pas encore disponible.
           </p>
         </div>

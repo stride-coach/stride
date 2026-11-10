@@ -36,7 +36,7 @@ export default async function PlanHistoryPage({
             Historique du plan
           </h1>
           {history.subtitle && (
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               {history.subtitle}
             </p>
           )}
@@ -72,12 +72,12 @@ export default async function PlanHistoryPage({
         )}
       </div>
       {history.empty ? (
-        <p className="rounded-xl border border-border bg-card px-4 py-3.5 text-sm leading-normal text-secondary-foreground">
+        <p className="rounded-xl border border-border bg-card px-4 py-3.5 text-body leading-normal text-secondary-foreground">
           Aucune proposition pour l’instant. Les changements proposés par Claire
           apparaîtront ici, avec ta décision.
         </p>
       ) : history.groups.length === 0 ? (
-        <p className="text-sm text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Aucune proposition ne correspond à ce filtre.
         </p>
       ) : (
@@ -103,7 +103,7 @@ export default async function PlanHistoryPage({
           ))}
         </div>
       )}
-      <p className="text-xs text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         Chaque changement de ton plan passe par une proposition que tu acceptes
         ou refuses. Rien ne change sans ton accord.
       </p>

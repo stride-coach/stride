@@ -32,16 +32,18 @@ export function ProgramTabs({
             aria-current={current ? "page" : undefined}
             className={cn(
               "flex min-h-12 shrink-0 items-center gap-2.5 rounded-[10px] border px-3 sm:min-h-13 sm:px-3.5",
-              current ? "border-dim bg-muted" : "border-border hover:bg-card",
+              current
+                ? "border-muted-foreground bg-muted"
+                : "border-border hover:bg-card",
             )}
           >
             <span
               aria-hidden="true"
               className={cn(
-                "grid size-6 shrink-0 place-items-center rounded-[6px] font-metric text-[13px] font-bold",
+                "grid size-6 shrink-0 place-items-center rounded-[6px] text-[13px] font-bold tabular-nums",
                 tab.primary
                   ? "bg-primary text-primary-foreground"
-                  : "border-[1.5px] border-dim text-secondary-foreground",
+                  : "border-[1.5px] border-muted-foreground text-secondary-foreground",
               )}
             >
               {tab.letter}
@@ -49,7 +51,7 @@ export function ProgramTabs({
             <span className="flex min-w-0 flex-col gap-px">
               <span
                 className={cn(
-                  "text-sm font-semibold whitespace-nowrap",
+                  "text-body font-semibold whitespace-nowrap",
                   current ? "text-foreground" : "text-secondary-foreground",
                 )}
               >
@@ -57,7 +59,7 @@ export function ProgramTabs({
                 {tab.name}
               </span>
               {tab.when && (
-                <span className="text-xs whitespace-nowrap text-muted-foreground">
+                <span className="text-label whitespace-nowrap text-muted-foreground">
                   {tab.when}
                 </span>
               )}
@@ -80,7 +82,7 @@ export function ProgramTabs({
       <Link
         href="/races"
         aria-label="Nouveau programme"
-        className="grid min-h-12 w-12 shrink-0 place-items-center rounded-[10px] border border-dashed border-border-strong text-muted-foreground hover:text-foreground sm:min-h-13 sm:w-13"
+        className="grid min-h-12 w-12 shrink-0 place-items-center rounded-[10px] border border-dashed border-control-border text-muted-foreground hover:text-foreground sm:min-h-13 sm:w-13"
       >
         <PlusIcon aria-hidden="true" className="size-4.5" />
       </Link>
@@ -101,7 +103,7 @@ export function ProgramHeader({
         <MonoLabel size="nano" className="sm:text-label">
           {eyebrow}
         </MonoLabel>
-        <h1 className="text-2xl leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[34px] sm:leading-[1.05] sm:tracking-[-0.025em]">
+        <h1 className="text-metric leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[34px] sm:leading-[1.05] sm:tracking-[-0.025em]">
           {program.title}
         </h1>
         {program.summary && (
@@ -124,7 +126,7 @@ export function ProgramHeader({
                 {kpi.label}
               </MonoLabel>
             </dt>
-            <dd className="order-1 font-metric text-xl leading-none font-semibold whitespace-nowrap tabular-nums sm:text-[26px]">
+            <dd className="order-1 text-verdict leading-none font-semibold whitespace-nowrap tabular-nums sm:text-[26px]">
               {kpi.value}
             </dd>
           </div>

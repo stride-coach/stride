@@ -38,7 +38,7 @@ const updatedFormat = new Intl.DateTimeFormat("fr-FR", {
 });
 
 const headClass =
-  "px-2 py-2.5 font-mono text-micro font-normal tracking-[0.08em] text-muted-foreground uppercase";
+  "px-2 py-2.5 tabular-nums text-label font-normal text-muted-foreground ";
 
 export type NutritionBodyProps = {
   data: {
@@ -59,7 +59,7 @@ export type NutritionBodyProps = {
 
 function SegmentBadge({ index }: { index: number }) {
   return (
-    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-border-strong bg-muted font-metric text-xs font-semibold">
+    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-control-border bg-muted text-label font-semibold tabular-nums">
       T{index}
     </span>
   );
@@ -77,24 +77,24 @@ function ShoppingCard({
       aria-labelledby="liste-courses"
       className="gap-1.5 max-sm:p-4 sm:gap-2"
     >
-      <h2 id="liste-courses" className="text-base font-semibold">
+      <h2 id="liste-courses" className="text-body-lg font-semibold">
         Liste de courses
       </h2>
       <dl>
         {rows.map((row) => (
           <div
             key={row.id}
-            className="flex justify-between gap-3 border-t border-border py-2 text-meta sm:text-sm"
+            className="flex justify-between gap-3 border-t border-border py-2 text-body sm:text-body"
           >
             <dt>{row.name}</dt>
-            <dd className="font-metric text-base font-semibold tabular-nums">
+            <dd className="text-body-lg font-semibold tabular-nums">
               {row.count}
             </dd>
           </div>
         ))}
       </dl>
       {note && (
-        <span className="text-xs text-muted-foreground max-lg:hidden">
+        <span className="text-label text-muted-foreground max-lg:hidden">
           {note}
         </span>
       )}
@@ -107,7 +107,7 @@ function CheckMark() {
     <svg
       viewBox="0 0 12 12"
       aria-hidden="true"
-      className="mt-1 size-3 shrink-0 text-success"
+      className="mt-1 size-3 shrink-0 text-primary"
     >
       <path
         d="M2 6 L5 9 L10 3"
@@ -133,21 +133,24 @@ export function ProductsCard({
   return (
     <RaceCard aria-labelledby="mes-produits" className="gap-1.5 max-sm:p-4">
       <div className="flex items-center gap-3">
-        <h2 id="mes-produits" className="text-base font-semibold sm:text-lg">
+        <h2
+          id="mes-produits"
+          className="text-body-lg font-semibold sm:text-title"
+        >
           Mes produits
         </h2>
         <AddProductButton added={added} className="ml-auto max-sm:min-h-9" />
       </div>
       {rows.length === 0 ? (
-        <p className="border-t border-border py-3 text-meta text-secondary-foreground">
+        <p className="border-t border-border py-3 text-body text-secondary-foreground">
           Ajoute tes gels, boissons et barres : Stride calcule alors les
           quantités exactes de chaque tronçon.
         </p>
       ) : (
         <>
-          <table className="w-full table-fixed border-collapse text-left text-meta max-md:hidden">
+          <table className="w-full table-fixed border-collapse text-left text-body max-md:hidden">
             <thead>
-              <tr className="border-b border-border-strong">
+              <tr className="border-b border-control-border">
                 {[
                   "Produit",
                   "Type",
@@ -175,7 +178,7 @@ export function ProductsCard({
                   {[row.carbs, row.sodium, row.caffeine].map((value, index) => (
                     <td
                       key={index}
-                      className="px-2 py-3 align-top font-metric text-[0.9375rem] font-semibold tabular-nums"
+                      className="px-2 py-3 align-top text-[0.9375rem] font-semibold tabular-nums"
                     >
                       {value}
                     </td>
@@ -186,7 +189,7 @@ export function ProductsCard({
                   <td
                     className={cn(
                       "px-2 py-3 align-top",
-                      row.product.tested ? "text-success" : "text-warning",
+                      row.product.tested ? "text-primary" : "text-warning",
                     )}
                   >
                     {row.tested}
@@ -201,8 +204,11 @@ export function ProductsCard({
                 key={row.product.id}
                 className="flex flex-col items-start gap-0.5 border-t border-border py-2.25"
               >
-                <EditProductButton product={row.product} className="text-sm" />
-                <span className="text-xs text-muted-foreground">
+                <EditProductButton
+                  product={row.product}
+                  className="text-body"
+                />
+                <span className="text-label text-muted-foreground">
                   {[
                     row.shortKind,
                     `${row.carbs} glucides`,
@@ -214,7 +220,7 @@ export function ProductsCard({
                   {" · "}
                   <span
                     className={
-                      row.product.tested ? "text-success" : "text-warning"
+                      row.product.tested ? "text-primary" : "text-warning"
                     }
                   >
                     {row.product.tested ? "✓ testé" : "à tester"}
@@ -225,7 +231,7 @@ export function ProductsCard({
           </ul>
         </>
       )}
-      <span className="text-xs text-muted-foreground max-md:hidden">
+      <span className="text-label text-muted-foreground max-md:hidden">
         Catalogue des marques courantes (Maurten, Näak, Overstims, Precision
         Fuel…) ou saisie libre.
       </span>
@@ -425,9 +431,9 @@ export function NutritionBody({
       </section>
       <section
         aria-label="Base commune"
-        className="flex flex-col gap-2 rounded-2xl border border-border p-3.5 text-meta text-secondary-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:px-4.5"
+        className="flex flex-col gap-2 rounded-2xl border border-border p-3.5 text-body text-secondary-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:px-4.5"
       >
-        <MonoLabel size="nano" tone="accent" className="sm:text-micro">
+        <MonoLabel size="nano" tone="accent" className="sm:text-label">
           Base commune
         </MonoLabel>
         <p className="leading-normal sm:min-w-65 sm:flex-1">
@@ -450,11 +456,14 @@ export function NutritionBody({
             className="gap-2 max-sm:p-4 sm:gap-3"
           >
             <div className="flex items-baseline gap-3">
-              <h2 id="au-depart" className="text-base font-semibold sm:text-lg">
+              <h2
+                id="au-depart"
+                className="text-body-lg font-semibold sm:text-title"
+              >
                 Au départ
                 <span className="sm:hidden"> · {formatClock(startClock)}</span>
               </h2>
-              <span className="ml-auto text-meta text-muted-foreground max-sm:hidden">
+              <span className="ml-auto text-body text-muted-foreground max-sm:hidden">
                 {formatClock(startClock)} · {start?.name}
               </span>
             </div>
@@ -466,7 +475,7 @@ export function NutritionBody({
                 >
                   <MonoLabel size="micro">{box.label}</MonoLabel>
                   <span className="text-body font-semibold">{box.value}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     {box.detail}
                   </span>
                 </div>
@@ -476,7 +485,7 @@ export function NutritionBody({
               {boxes.map((box) => (
                 <div
                   key={box.label}
-                  className="flex items-center justify-between gap-2.5 border-t border-border py-2 text-meta"
+                  className="flex items-center justify-between gap-2.5 border-t border-border py-2 text-body"
                 >
                   <dt>
                     <MonoLabel size="nano">
@@ -492,10 +501,10 @@ export function NutritionBody({
           </RaceCard>
           <RaceCard aria-labelledby="teste-ravito" className="gap-2 max-sm:p-4">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h2 id="teste-ravito" className="text-base font-semibold">
+              <h2 id="teste-ravito" className="text-body-lg font-semibold">
                 Teste ton ravito
               </h2>
-              <span className="text-xs text-muted-foreground sm:ml-auto">
+              <span className="text-label text-muted-foreground sm:ml-auto">
                 Sorties de 1 h 30 ou plus avant la course
               </span>
             </div>
@@ -504,7 +513,7 @@ export function NutritionBody({
                 {sessions.map((session) => (
                   <li
                     key={session.sessionKey}
-                    className="flex items-start gap-2.5 border-t border-border py-2 text-meta"
+                    className="flex items-start gap-2.5 border-t border-border py-2 text-body"
                   >
                     <span
                       aria-hidden="true"
@@ -518,7 +527,7 @@ export function NutritionBody({
                         {formatShortDate(session.date)} · {session.title} ·{" "}
                         {formatDuration(session.durationSeconds)}
                       </Link>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-label text-muted-foreground">
                         {formatInteger(session.carbsG.max)} g à{" "}
                         {formatInteger(plan.carbsPerHourG)} g/h
                       </span>
@@ -527,7 +536,7 @@ export function NutritionBody({
                 ))}
               </ul>
             ) : (
-              <p className="border-t border-border pt-2 text-meta text-secondary-foreground">
+              <p className="border-t border-border pt-2 text-body text-secondary-foreground">
                 Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
               </p>
             )}
@@ -540,7 +549,7 @@ export function NutritionBody({
                   {tested.map((row, index) => (
                     <li
                       key={index}
-                      className="flex items-start gap-2.5 border-t border-border py-2 text-meta"
+                      className="flex items-start gap-2.5 border-t border-border py-2 text-body"
                     >
                       {row.done ? (
                         <CheckMark />
@@ -561,7 +570,7 @@ export function NutritionBody({
                 </ul>
               </>
             ) : (
-              <p className="pt-1 text-xs text-muted-foreground">
+              <p className="pt-1 text-label text-muted-foreground">
                 Coche « Testé à l’entraînement » dans Mes produits après ta
                 prochaine sortie longue.
               </p>
@@ -569,7 +578,7 @@ export function NutritionBody({
             {sessions.length > 0 && (
               <Link
                 href="/plan"
-                className="inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:min-h-0"
+                className="inline-flex min-h-11 items-center text-body text-primary hover:text-foreground sm:min-h-0"
               >
                 Voir ces séances dans le plan →
               </Link>
@@ -589,11 +598,11 @@ export function NutritionBody({
       >
         <h2
           id="plan-par-troncon"
-          className="text-base font-semibold md:text-lg"
+          className="text-body-lg font-semibold md:text-title"
         >
           Plan par tronçon
         </h2>
-        <table className="w-full table-fixed border-collapse text-left text-meta max-md:hidden">
+        <table className="w-full table-fixed border-collapse text-left text-body max-md:hidden">
           <colgroup>
             <col className="w-12" />
             <col className="w-[22%]" />
@@ -602,7 +611,7 @@ export function NutritionBody({
             <col />
           </colgroup>
           <thead>
-            <tr className="border-b border-border-strong">
+            <tr className="border-b border-control-border">
               <th scope="col" className={headClass}>
                 <span className="sr-only">Numéro</span>
               </th>
@@ -631,16 +640,16 @@ export function NutritionBody({
                 <th scope="row" className="px-2 py-3 font-normal">
                   <span className="font-medium">{row.route}</span>
                   <br />
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     {row.timing}
                   </span>
                 </th>
                 <td className="px-2 py-3">
-                  <span className="font-metric text-[1.0625rem] font-semibold tabular-nums">
+                  <span className="text-[1.0625rem] font-semibold tabular-nums">
                     {row.carbs}
                   </span>
                   <br />
-                  <span className="text-xs whitespace-nowrap text-muted-foreground">
+                  <span className="text-label whitespace-nowrap text-muted-foreground">
                     {row.water} · {row.sodium}
                   </span>
                 </td>
@@ -660,17 +669,17 @@ export function NutritionBody({
             >
               <div className="flex items-center gap-2">
                 <SegmentBadge index={row.index} />
-                <span className="text-meta font-medium">{row.route}</span>
-                <span className="ml-auto font-metric text-base font-semibold tabular-nums">
+                <span className="text-body font-medium">{row.route}</span>
+                <span className="ml-auto text-body-lg font-semibold tabular-nums">
                   {row.carbs}
                 </span>
               </div>
-              <span className="flex gap-3 text-xs text-secondary-foreground">
+              <span className="flex gap-3 text-label text-secondary-foreground">
                 <span>Eau {row.water}</span>
                 <span>Sodium {row.sodium}</span>
               </span>
-              <span className="text-meta">{row.eat}</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-body">{row.eat}</span>
+              <span className="text-label text-muted-foreground">
                 Au ravito : {row.arrival}
               </span>
             </li>

@@ -58,11 +58,11 @@ export function SignUpForm({
   if (state.status === "success" && state.email) {
     return (
       <div className="flex flex-1 flex-col gap-6 md:flex-none">
-        <p className="font-mono text-xs tracking-widest text-primary uppercase">
+        <p className="text-label text-primary tabular-nums">
           Étape 1 sur 4 · Confirme ton e-mail
         </p>
         <div
-          className="grid size-12 place-items-center rounded-md border border-border text-2xl text-primary"
+          className="grid size-12 place-items-center rounded-md border border-border text-metric text-primary"
           aria-hidden="true"
         >
           ✉
@@ -71,14 +71,14 @@ export function SignUpForm({
           title="Vérifie ta boîte mail"
           description={`On a envoyé un lien de confirmation à ${state.email}. Ouvre-le pour activer ton compte.`}
         />
-        <ol className="flex flex-col gap-3 rounded-lg border border-border bg-muted p-4 text-sm text-secondary-foreground">
+        <ol className="flex flex-col gap-3 rounded-lg border border-border bg-muted p-4 text-body text-secondary-foreground">
           {[
             "Ouvre l’e-mail de Stride",
             "Clique sur « Confirmer l’adresse e-mail »",
             "Tu reviens ici, connecté, prêt à configurer ton coach",
           ].map((step, index) => (
             <li key={step} className="flex items-start gap-3">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border font-mono text-xs text-foreground">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-label text-foreground tabular-nums">
                 {index + 1}
               </span>
               <span>{step}</span>
@@ -93,18 +93,18 @@ export function SignUpForm({
         <form
           action="/sign-up"
           method="get"
-          className="text-sm text-secondary-foreground"
+          className="text-body text-secondary-foreground"
         >
           Mauvaise adresse ?{" "}
           <button type="submit" className="text-primary hover:underline">
             Changer d’e-mail
           </button>
         </form>
-        <p className="text-sm text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Introuvable ? Regarde dans les spams ou promotions. Les liens expirent
           : utilise l’e-mail le plus récent.
         </p>
-        <p className="mt-auto border-t border-border pt-5 text-center text-sm text-secondary-foreground md:mt-0">
+        <p className="mt-auto border-t border-border pt-5 text-center text-body text-secondary-foreground md:mt-0">
           Déjà confirmé ?{" "}
           <Link href="/sign-in" className="text-primary hover:underline">
             Se connecter
@@ -149,7 +149,10 @@ export function SignUpForm({
                 : "full-name-help"
             }
           />
-          <p id="full-name-help" className="text-xs text-secondary-foreground">
+          <p
+            id="full-name-help"
+            className="text-label text-secondary-foreground"
+          >
             C’est ainsi que ton coach t’appellera.
           </p>
           {!edited.fullName && state.errors?.fullName && (
@@ -208,10 +211,10 @@ export function SignUpForm({
       <Button type="submit" disabled={pending || !valid} className="w-full">
         {pending ? "Création du compte…" : "Créer un compte"}
       </Button>
-      <p className="text-xs text-secondary-foreground">
+      <p className="text-label text-secondary-foreground">
         On t’envoie un lien par e-mail pour confirmer ton adresse.
       </p>
-      <p className="text-xs leading-relaxed text-muted-foreground">
+      <p className="text-label leading-relaxed text-muted-foreground">
         En créant un compte, tu acceptes les{" "}
         <Link href="/terms" className="text-primary hover:underline">
           Conditions d’utilisation
@@ -222,7 +225,7 @@ export function SignUpForm({
         </Link>
         . Tes données ne sont jamais vendues.
       </p>
-      <p className="text-center text-sm text-secondary-foreground">
+      <p className="text-center text-body text-secondary-foreground">
         Déjà un compte ?{" "}
         <Link href="/sign-in" className="text-primary hover:underline">
           Se connecter

@@ -10,7 +10,7 @@ import { goalSummary } from "../goal";
 import type { MarkerCard, ReachCard, RecordRow } from "../records-view";
 
 const tones = {
-  success: "text-success",
+  success: "text-primary",
   warning: "text-warning",
   muted: "text-muted-foreground",
 } as const;
@@ -27,16 +27,19 @@ export function ReachSection({
 }) {
   return (
     <section aria-labelledby="records-reach" className="flex flex-col gap-3">
-      <h2 id="records-reach" className="text-base font-semibold sm:text-lg">
+      <h2
+        id="records-reach"
+        className="text-body-lg font-semibold sm:text-title"
+      >
         À portée
       </h2>
       {reach ? (
         <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-card p-4 sm:p-5">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[15px] font-semibold sm:text-base">
+            <span className="text-[15px] font-semibold sm:text-body-lg">
               {reach.label}
             </span>
-            <span className={cn("text-xs", tones[reach.tone])}>
+            <span className={cn("text-label", tones[reach.tone])}>
               {reach.gap}
             </span>
           </div>
@@ -48,7 +51,7 @@ export function ReachSection({
               <dd>
                 <Metric
                   value={reach.record}
-                  className="text-[28px] sm:text-4xl"
+                  className="text-[28px] sm:text-display"
                 />
               </dd>
             </div>
@@ -62,7 +65,7 @@ export function ReachSection({
               <dd>
                 <Metric
                   value={reach.prediction}
-                  className="text-[28px] text-secondary-foreground sm:text-4xl"
+                  className="text-[28px] text-secondary-foreground sm:text-display"
                 />
               </dd>
             </div>
@@ -88,7 +91,7 @@ export function ReachSection({
           </Button>
         </div>
       ) : (
-        <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+        <p className="border-t border-border pt-3 text-body text-muted-foreground">
           Aucun record sur route à moins de 3 % de ta prévision Garmin pour le
           moment.
         </p>
@@ -97,7 +100,7 @@ export function ReachSection({
         <Link
           href={`/races/${goal.id}`}
           className={cn(
-            "flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-border-strong sm:px-4.5",
+            "flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-control-border sm:px-4.5",
             focus,
           )}
         >
@@ -105,7 +108,7 @@ export function ReachSection({
             <span className="text-[15px] font-semibold">
               {goal.name} · {goal.date}
             </span>
-            <span className="text-meta text-secondary-foreground">
+            <span className="text-body text-secondary-foreground">
               {goalSummary(goal)}
             </span>
           </span>
@@ -123,13 +126,16 @@ export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
   return (
     <section aria-labelledby="records-markers" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="records-markers" className="text-base font-semibold sm:text-lg">
+        <h2
+          id="records-markers"
+          className="text-body-lg font-semibold sm:text-title"
+        >
           Tes repères actuels
         </h2>
         <Link
           href="/settings/profile#entrainement"
           className={cn(
-            "text-meta text-primary hover:text-foreground max-sm:hidden",
+            "text-body text-primary hover:text-foreground max-sm:hidden",
             focus,
           )}
         >
@@ -153,12 +159,12 @@ export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
                 value={marker.value ?? "—"}
                 unit={marker.unit ?? undefined}
                 className={cn(
-                  "text-2xl sm:text-[30px] [&>span]:text-sm [&>span]:text-muted-foreground",
-                  marker.value === null && "text-dim",
+                  "text-metric sm:text-[30px] [&>span]:text-body [&>span]:text-muted-foreground",
+                  marker.value === null && "text-muted-foreground",
                 )}
               />
             </dd>
-            <dd className={cn("text-[11px] sm:text-xs", tones[marker.tone])}>
+            <dd className={cn("text-[11px] sm:text-label", tones[marker.tone])}>
               {marker.detail}
             </dd>
           </div>
@@ -167,7 +173,7 @@ export function MarkersSection({ markers }: { markers: MarkerCard[] }) {
       <Link
         href="/settings/profile#entrainement"
         className={cn(
-          "flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:hidden",
+          "flex min-h-11 items-center text-body text-primary hover:text-foreground sm:hidden",
           focus,
         )}
       >
@@ -181,8 +187,8 @@ function Row({ row }: { row: RecordRow }) {
   const content = (
     <>
       <span className="flex min-w-0 flex-col gap-0.5 max-sm:contents">
-        <span className="text-sm sm:text-[15px]">{row.label}</span>
-        <span className="truncate text-xs text-muted-foreground max-sm:order-3">
+        <span className="text-body sm:text-[15px]">{row.label}</span>
+        <span className="truncate text-label text-muted-foreground max-sm:order-3">
           {row.detail}
         </span>
       </span>
@@ -195,7 +201,7 @@ function Row({ row }: { row: RecordRow }) {
       />
       <span
         className={cn(
-          "flex items-center justify-end gap-1 text-right text-xs max-sm:order-4 sm:min-w-28",
+          "flex items-center justify-end gap-1 text-right text-label max-sm:order-4 sm:min-w-28",
           tones[row.tone],
         )}
       >
@@ -239,7 +245,7 @@ export function RecordList({
 }) {
   return (
     <section aria-labelledby={id} className="flex min-w-0 flex-col gap-2">
-      <h2 id={id} className="text-base font-semibold sm:text-lg">
+      <h2 id={id} className="text-body-lg font-semibold sm:text-title">
         {title}
       </h2>
       {rows.length ? (
@@ -249,7 +255,7 @@ export function RecordList({
           ))}
         </ul>
       ) : (
-        <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+        <p className="border-t border-border pt-3 text-body text-muted-foreground">
           {empty}
         </p>
       )}

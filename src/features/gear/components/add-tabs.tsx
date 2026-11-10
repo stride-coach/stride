@@ -22,7 +22,7 @@ export function AddTabs({
           href={tab.href}
           aria-current={tab.key === current ? "page" : undefined}
           className={cn(
-            "flex min-h-10 flex-1 items-center justify-center rounded-md px-2 text-center text-sm",
+            "flex min-h-10 flex-1 items-center justify-center rounded-md px-2 text-center text-body",
             tab.key === current
               ? "bg-border font-semibold text-foreground"
               : "text-muted-foreground hover:text-foreground",

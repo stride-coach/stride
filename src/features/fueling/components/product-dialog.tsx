@@ -226,7 +226,7 @@ function ProductForm({
         {draft.kind === "drink" &&
           number("servingMl", "Volume d’une dose (ml)")}
       </div>
-      <Label className="flex items-center gap-2.5 text-meta">
+      <Label className="flex items-center gap-2.5 text-body">
         <Checkbox
           checked={draft.tested}
           onCheckedChange={(checked) => set("tested", checked === true)}
@@ -246,7 +246,7 @@ function ProductForm({
         </Field>
       )}
       {message && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-body text-destructive">
           {message}
         </p>
       )}
@@ -299,8 +299,8 @@ function Catalogue({ added }: { added: ReadonlySet<string> }) {
               className="flex items-center gap-3 border-t border-border py-2.5 first:border-t-0"
             >
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-sm font-medium">{name}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-body font-medium">{name}</span>
+                <span className="text-label text-muted-foreground">
                   {productKindLabels[item.kind]} · {item.carbsG} g glucides
                   {item.sodiumMg > 0 && ` · ${item.sodiumMg} mg sodium`}
                   {item.caffeineMg > 0 && ` · ${item.caffeineMg} mg caféine`}
@@ -322,7 +322,7 @@ function Catalogue({ added }: { added: ReadonlySet<string> }) {
           );
         })}
       </ul>
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 text-label text-muted-foreground">
         Valeurs indicatives par portion : vérifie l’étiquette de ton produit et
         corrige-les si besoin.
       </p>
@@ -344,7 +344,7 @@ export function AddProductButton({
         type="button"
         variant="outline"
         size="md"
-        className={cn("rounded-lg text-meta", className)}
+        className={cn("rounded-lg text-body", className)}
         onClick={() => setOpen(true)}
       >
         <span aria-hidden="true">+</span>
@@ -389,7 +389,7 @@ export function EditProductButton({
       <button
         type="button"
         className={cn(
-          "rounded-sm text-left font-medium decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring",
+          "rounded-sm text-left font-medium decoration-muted-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring",
           className,
         )}
         onClick={() => setOpen(true)}

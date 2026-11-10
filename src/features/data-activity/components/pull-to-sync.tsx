@@ -91,7 +91,7 @@ export function PullToSync({ children }: { children: React.ReactNode }) {
           className="pointer-events-none absolute inset-x-0 top-16 z-20 flex justify-center md:hidden"
           style={{ transform: `translateY(${Math.round(share * 12)}px)` }}
         >
-          <span className="flex items-center gap-2.5 rounded-full border border-border-strong bg-muted py-1.5 pr-3.5 pl-2 text-xs text-muted-foreground">
+          <span className="flex items-center gap-2.5 rounded-full border border-control-border bg-muted py-1.5 pr-3.5 pl-2 text-label text-muted-foreground">
             <svg
               viewBox="0 0 22 22"
               aria-hidden="true"
@@ -113,7 +113,7 @@ export function PullToSync({ children }: { children: React.ReactNode }) {
                 pathLength={100}
                 strokeDasharray={`${share * 100} 100`}
                 transform="rotate(-90 11 11)"
-                className="stroke-provider"
+                className="stroke-primary"
               />
             </svg>
             {label}

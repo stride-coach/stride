@@ -37,46 +37,48 @@ test("signed-out visitors land on the public page and reach legal pages", async 
   await expect(page).toHaveURL("/sign-up");
 });
 
-test("Night Track utilities and global accessibility defaults resolve in the browser", async ({
+test("Dense utilities and global accessibility defaults resolve in the browser", async ({
   page,
 }) => {
   await page.goto("/sign-in");
   await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
     const surface = document.createElement("div");
     surface.id = "theme-probe";
     surface.className =
-      "bg-card text-secondary-foreground font-metric rounded-lg border border-border";
+      "bg-card text-secondary-foreground rounded-lg border border-border";
     document.body.append(surface);
     const input = document.createElement("input");
     input.id = "state-probe";
     input.className =
-      "bg-surface-inset text-foreground font-mono rounded-md border border-border";
+      "bg-background text-foreground tabular-nums rounded-md border border-input";
     input.setAttribute("aria-invalid", "true");
     input.disabled = true;
     document.body.append(input);
     const raised = document.createElement("div");
     raised.id = "raised-probe";
     raised.className =
-      "bg-muted text-muted-foreground outline-focus motion-safe:animate-pulse";
+      "bg-muted text-muted-foreground outline-ring motion-safe:animate-pulse";
     document.body.append(raised);
   });
   const surface = page.locator("#theme-probe");
-  await expect(surface).toHaveCSS("background-color", "rgb(19, 20, 17)");
-  await expect(surface).toHaveCSS("color", "rgb(179, 178, 170)");
-  await expect(surface).toHaveCSS("border-color", "rgb(38, 39, 34)");
-  await expect(surface).toHaveCSS("border-radius", "8px");
-  await expect(surface).toHaveCSS("font-family", /Barlow/);
+  await expect(surface).toHaveCSS("background-color", "rgb(18, 19, 22)");
+  await expect(surface).toHaveCSS("color", "rgb(179, 182, 189)");
+  await expect(surface).toHaveCSS("border-color", "rgb(30, 32, 37)");
+  await expect(surface).toHaveCSS("border-radius", "9px");
+  await expect(surface).toHaveCSS("font-size", "13px");
+  await expect(surface).toHaveCSS("font-family", /Inter/);
   const input = page.locator("#state-probe");
-  await expect(input).toHaveCSS("background-color", "rgb(12, 13, 11)");
-  await expect(input).toHaveCSS("color", "rgb(237, 236, 230)");
-  await expect(input).toHaveCSS("border-color", "rgb(255, 106, 61)");
+  await expect(input).toHaveCSS("background-color", "rgb(12, 13, 15)");
+  await expect(input).toHaveCSS("color", "rgb(237, 238, 240)");
+  await expect(input).toHaveCSS("border-color", "rgb(240, 128, 106)");
   await expect(input).toHaveCSS("border-radius", "6px");
-  await expect(input).toHaveCSS("font-family", /IBM/);
+  await expect(input).toHaveCSS("font-variant-numeric", "tabular-nums");
   await expect(input).toHaveCSS("opacity", "0.5");
   const raised = page.locator("#raised-probe");
-  await expect(raised).toHaveCSS("background-color", "rgb(26, 27, 24)");
-  await expect(raised).toHaveCSS("color", "rgb(138, 137, 129)");
-  await expect(raised).toHaveCSS("outline-color", "rgb(213, 255, 63)");
+  await expect(raised).toHaveCSS("background-color", "rgb(24, 25, 29)");
+  await expect(raised).toHaveCSS("color", "rgb(134, 138, 148)");
+  await expect(raised).toHaveCSS("outline-color", "rgb(110, 155, 255)");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(raised).toHaveCSS("animation-name", "none");
 });

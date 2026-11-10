@@ -45,7 +45,7 @@ export function FacePicker({
           type="button"
           aria-pressed={option === face}
           onClick={() => choose(option)}
-          className="flex min-h-9 items-center gap-1.5 rounded-[10px] border border-border py-0.75 pr-2.5 pl-0.75 text-meta text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground aria-pressed:border-foreground aria-pressed:text-foreground md:min-h-8 md:rounded-[9px] md:pr-2 md:text-xs"
+          className="flex min-h-9 items-center gap-1.5 rounded-[10px] border border-border py-0.75 pr-2.5 pl-0.75 text-body text-muted-foreground transition-colors hover:border-control-border hover:text-foreground aria-pressed:border-foreground aria-pressed:text-foreground md:min-h-8 md:rounded-[9px] md:pr-2 md:text-label"
         >
           <StaffPortrait
             agent={agent}

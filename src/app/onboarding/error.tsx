@@ -6,7 +6,7 @@ export default function OnboardingError({ reset }: { reset: () => void }) {
       lang="fr"
       className="flex min-h-svh flex-col items-center justify-center gap-5 px-5"
     >
-      <h1 className="text-headline">
+      <h1 className="text-verdict">
         Ton parcours est temporairement indisponible.
       </h1>
       <p role="alert" className="text-secondary-foreground">

@@ -65,10 +65,10 @@ const priorities: {
 ];
 
 const fieldLabel =
-  "flex items-center justify-between gap-2 text-meta text-secondary-foreground";
+  "flex items-center justify-between gap-2 text-body text-secondary-foreground";
 const fieldInput = "h-10 bg-card px-3 text-body md:text-body";
 const segment =
-  "min-h-10 flex-1 rounded-md border border-border-strong bg-card px-3 text-sm text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:font-semibold aria-pressed:text-background";
+  "min-h-10 flex-1 rounded-md border border-control-border bg-card px-3 text-body text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:font-semibold aria-pressed:text-background";
 
 function Field({
   label,
@@ -94,7 +94,7 @@ function Field({
       {(error || hint) && (
         <span
           className={cn(
-            "text-xs",
+            "text-label",
             error ? "text-warning" : "text-muted-foreground",
           )}
         >
@@ -123,19 +123,19 @@ function Stepper({ step }: { step: number }) {
             <span
               aria-current={current ? "step" : undefined}
               className={cn(
-                "grid size-5.5 shrink-0 place-items-center rounded-full border-[1.5px] font-metric text-sm",
+                "grid size-5.5 shrink-0 place-items-center rounded-full border-[1.5px] text-body tabular-nums",
                 current && "border-foreground bg-foreground text-background",
-                done && "border-success text-success",
+                done && "border-primary text-primary",
                 !current &&
                   !done &&
-                  "border-border-strong text-muted-foreground",
+                  "border-control-border text-muted-foreground",
               )}
             >
               {done ? <CheckIcon className="size-3" /> : number}
             </span>
             <span
               className={cn(
-                "text-meta whitespace-nowrap",
+                "text-body whitespace-nowrap",
                 current
                   ? "font-semibold text-foreground"
                   : "text-secondary-foreground",
@@ -145,7 +145,7 @@ function Stepper({ step }: { step: number }) {
               {label}
             </span>
             {index < steps.length - 1 && (
-              <span className="h-px w-4.5 bg-border-strong md:w-8 md:flex-none" />
+              <span className="h-px w-4.5 bg-control-border md:w-8 md:flex-none" />
             )}
           </li>
         );
@@ -314,7 +314,7 @@ export function RaceWizard({
     <Dialog open onOpenChange={(open) => !open && close()}>
       <DialogContent
         showCloseButton={false}
-        className="top-0 left-0 block h-svh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none border-0 bg-surface-inset p-0 ring-0 md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100svh-4rem)] md:w-215 md:max-w-215 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border-strong md:bg-popover md:shadow-2xl"
+        className="top-0 left-0 block h-svh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none border-0 bg-background p-0 ring-0 md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100svh-4rem)] md:w-215 md:max-w-215 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-control-border md:bg-popover md:shadow-2xl"
       >
         <form
           onSubmit={(event) => {
@@ -337,7 +337,7 @@ export function RaceWizard({
               <DialogTitle className="flex-1 text-center text-body font-semibold md:flex-none md:text-left md:text-[1.375rem] md:tracking-tight">
                 {mode === "edit" ? "Modifier la course" : "Ajouter une course"}
               </DialogTitle>
-              <span className="min-w-14 text-right font-mono text-micro tracking-wider text-muted-foreground uppercase md:ml-auto">
+              <span className="min-w-14 text-right text-label text-muted-foreground tabular-nums md:ml-auto">
                 <span className="md:hidden">{step} / 3</span>
                 <span className="hidden md:inline">Étape {step} sur 3</span>
               </span>
@@ -361,17 +361,17 @@ export function RaceWizard({
           </DialogDescription>
 
           <div className="flex flex-1 flex-col gap-6 px-5 py-5 md:px-7 md:py-6">
-            <h1 className="text-2xl font-semibold tracking-tight md:hidden">
+            <h1 className="text-metric font-semibold tracking-tight md:hidden">
               {steps[step - 1]}
             </h1>
 
             {step === 1 && (
               <section className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-baseline gap-2.5">
-                  <span className="font-mono text-micro tracking-wider text-secondary-foreground uppercase">
+                  <span className="text-label text-secondary-foreground tabular-nums">
                     Détails
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     Tout reste modifiable après l’ajout
                   </span>
                 </div>
@@ -437,7 +437,7 @@ export function RaceWizard({
                         onChange={(event) => setDistance(event.target.value)}
                         className={cn(fieldInput, "pr-10")}
                       />
-                      <span className="absolute top-1/2 right-3 -translate-y-1/2 text-meta text-muted-foreground">
+                      <span className="absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted-foreground">
                         km
                       </span>
                     </span>
@@ -455,7 +455,7 @@ export function RaceWizard({
                         onChange={(event) => setElevation(event.target.value)}
                         className={cn(fieldInput, "pr-8")}
                       />
-                      <span className="absolute top-1/2 right-3 -translate-y-1/2 text-meta text-muted-foreground">
+                      <span className="absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted-foreground">
                         m
                       </span>
                     </span>
@@ -505,7 +505,7 @@ export function RaceWizard({
                 <section className="flex flex-col gap-2.5">
                   <span
                     id="race-priority"
-                    className="font-mono text-micro tracking-wider text-secondary-foreground uppercase"
+                    className="text-label text-secondary-foreground tabular-nums"
                   >
                     Priorité
                   </span>
@@ -528,20 +528,20 @@ export function RaceWizard({
                           aria-checked={selected}
                           onClick={() => setPriority(option.value)}
                           className={cn(
-                            "flex w-full items-start gap-3 rounded-lg border border-border-strong bg-card p-3.5 text-left focus-visible:outline-2 focus-visible:outline-ring",
+                            "flex w-full items-start gap-3 rounded-lg border border-control-border bg-card p-3.5 text-left focus-visible:outline-2 focus-visible:outline-ring",
                             selected &&
                               "border-foreground shadow-[inset_0_0_0_1px_var(--foreground)]",
                           )}
                         >
                           <span
                             className={cn(
-                              "grid size-7.5 shrink-0 place-items-center rounded-md font-metric text-base font-bold",
+                              "grid size-7.5 shrink-0 place-items-center rounded-md text-body-lg font-bold tabular-nums",
                               option.value === "A" &&
-                                "bg-primary text-background",
+                                "bg-primary text-primary-foreground",
                               option.value === "B" &&
                                 "border-[1.5px] border-foreground text-foreground",
                               option.value === "C" &&
-                                "border-[1.5px] border-border-strong text-secondary-foreground",
+                                "border-[1.5px] border-control-border text-secondary-foreground",
                             )}
                           >
                             {option.value}
@@ -550,7 +550,7 @@ export function RaceWizard({
                             <span className="text-body font-semibold">
                               {option.title}
                             </span>
-                            <span className="text-meta leading-snug text-muted-foreground">
+                            <span className="text-body leading-snug text-muted-foreground">
                               {description}
                             </span>
                           </span>
@@ -559,7 +559,7 @@ export function RaceWizard({
                               "mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border-[1.5px]",
                               selected
                                 ? "border-foreground"
-                                : "border-border-strong",
+                                : "border-control-border",
                             )}
                           >
                             {selected && (
@@ -571,7 +571,7 @@ export function RaceWizard({
                     })}
                   </div>
                   {warning && (
-                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <p className="flex items-center gap-2 text-label text-muted-foreground">
                       <span className="size-1.5 shrink-0 rounded-full bg-warning" />
                       {warning}
                     </p>
@@ -598,7 +598,7 @@ export function RaceWizard({
 
             {step === 3 && (
               <>
-                <p className="flex items-center gap-2 text-sm font-semibold text-success">
+                <p className="flex items-center gap-2 text-body font-semibold text-primary">
                   <CheckIcon className="size-4" />
                   {mode === "edit"
                     ? "Course mise à jour."
@@ -607,10 +607,10 @@ export function RaceWizard({
                 <div className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-3.5">
                   <StrideMark className="mt-0.5 size-3.5 shrink-0" />
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-sm font-semibold">
+                    <p className="text-body font-semibold">
                       Aucun plan n’est défini pour l’instant.
                     </p>
-                    <p className="text-sm leading-relaxed text-secondary-foreground">
+                    <p className="text-body leading-relaxed text-secondary-foreground">
                       Cette course est enregistrée sans modifier aucune semaine.
                       Quand tu auras un plan, Stride s’appuiera sur elle pour le
                       construire et te proposera les ajustements à relire avant
@@ -643,10 +643,10 @@ export function RaceWizard({
                     },
                   ].map((item) => (
                     <div key={item.label} className="flex flex-col gap-0.5">
-                      <dd className="font-metric text-2xl leading-none font-semibold tabular-nums">
+                      <dd className="text-metric leading-none font-semibold tabular-nums">
                         {item.value}
                       </dd>
-                      <dt className="text-xs text-muted-foreground">
+                      <dt className="text-label text-muted-foreground">
                         {item.label}
                       </dt>
                     </div>
@@ -656,7 +656,7 @@ export function RaceWizard({
             )}
           </div>
 
-          <footer className="sticky bottom-0 flex items-center gap-2.5 border-t border-border bg-surface-inset px-5 py-4 md:bg-popover md:px-7">
+          <footer className="sticky bottom-0 flex items-center gap-2.5 border-t border-border bg-background px-5 py-4 md:bg-popover md:px-7">
             {step === 1 && (
               <Button
                 type="button"

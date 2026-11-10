@@ -43,13 +43,13 @@ export function LedgerEntry({
           {title}
         </h3>
         {children && (
-          <p className="text-meta text-secondary-foreground">{children}</p>
+          <p className="text-body text-secondary-foreground">{children}</p>
         )}
         {attribution && (
-          <p className="text-xs text-muted-foreground">{attribution}</p>
+          <p className="text-label text-muted-foreground">{attribution}</p>
         )}
         {action && (
-          <div className="text-xs text-secondary-foreground">{action}</div>
+          <div className="text-label text-secondary-foreground">{action}</div>
         )}
       </div>
     </article>
@@ -66,7 +66,7 @@ export function DecisionLegend({
   return (
     <ul
       className={cn(
-        "flex flex-wrap gap-3.5 text-xs text-secondary-foreground",
+        "flex flex-wrap gap-3.5 text-label text-secondary-foreground",
         className,
       )}
     >

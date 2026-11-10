@@ -30,7 +30,7 @@ function isEditableTarget(target: EventTarget | null) {
 
 function Shortcut({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded-md border border-border-strong bg-card px-1.5 py-0.5 font-mono text-xs text-foreground">
+    <kbd className="rounded-md border border-control-border bg-card px-1.5 py-0.5 text-label text-foreground tabular-nums">
       {children}
     </kbd>
   );
@@ -53,7 +53,7 @@ function ShortcutRow({
 
   return (
     <div className="flex min-h-10 items-center justify-between gap-4 border-b border-border py-2 last:border-0">
-      <span className="text-sm text-foreground">{label}</span>
+      <span className="text-body text-foreground">{label}</span>
       <span className="flex shrink-0 items-center gap-1">{keys}</span>
     </div>
   );
@@ -90,7 +90,7 @@ export function ShortcutHelp() {
   const navigationKeys = (key: string) => (
     <>
       <Shortcut>G</Shortcut>
-      <span className="text-xs text-muted-foreground">puis</span>
+      <span className="text-label text-muted-foreground">puis</span>
       <Shortcut>{key}</Shortcut>
     </>
   );
@@ -163,13 +163,13 @@ export function ShortcutHelp() {
       >
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-background/75 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
-          <DialogPrimitive.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(90svh,54rem)] w-[min(820px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border-strong bg-popover text-popover-foreground shadow-xl outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0">
+          <DialogPrimitive.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(90svh,54rem)] w-[min(820px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-control-border bg-popover text-popover-foreground shadow-xl outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
               <div>
                 <DialogPrimitive.Title className="font-semibold text-foreground">
                   Raccourcis clavier
                 </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="text-sm text-muted-foreground">
+                <DialogPrimitive.Description className="text-body text-muted-foreground">
                   Les raccourcis disponibles dans Stride.
                 </DialogPrimitive.Description>
               </div>
@@ -219,7 +219,7 @@ export function ShortcutHelp() {
                 <section aria-labelledby="shortcut-navigation">
                   <h3
                     id="shortcut-navigation"
-                    className="mb-1 font-mono text-xs tracking-wider text-muted-foreground uppercase"
+                    className="mb-1 text-label text-muted-foreground tabular-nums"
                   >
                     Navigation
                   </h3>
@@ -270,7 +270,7 @@ export function ShortcutHelp() {
                 >
                   <h3
                     id="shortcut-commands"
-                    className="mb-1 font-mono text-xs tracking-wider text-muted-foreground uppercase"
+                    className="mb-1 text-label text-muted-foreground tabular-nums"
                   >
                     Commandes
                   </h3>
@@ -280,7 +280,7 @@ export function ShortcutHelp() {
                     query={query}
                     keys={<Shortcut>/</Shortcut>}
                   />
-                  <p className="py-2 text-sm text-muted-foreground">
+                  <p className="py-2 text-body text-muted-foreground">
                     Les actions de navigation affichées ici sont disponibles
                     dans cette version.
                   </p>
@@ -289,7 +289,7 @@ export function ShortcutHelp() {
               {visibleRows === 0 && (
                 <p
                   role="status"
-                  className="py-6 text-center text-sm text-muted-foreground"
+                  className="py-6 text-center text-body text-muted-foreground"
                 >
                   Aucun raccourci trouvé.
                 </p>
@@ -297,7 +297,7 @@ export function ShortcutHelp() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-3">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-body text-muted-foreground">
                 Seules les commandes disponibles sont affichées.
               </span>
               <Button asChild variant="outline" size="sm">
@@ -317,9 +317,9 @@ export function ShortcutHelp() {
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[92svh] gap-0 overflow-hidden rounded-t-xl border-border-strong bg-popover px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          className="max-h-[92svh] gap-0 overflow-hidden rounded-t-xl border-control-border bg-popover px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border-strong" />
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-control-border" />
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <SheetTitle>Gestes et commandes</SheetTitle>
@@ -358,7 +358,7 @@ export function ShortcutHelp() {
             </Button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <h3 className="mb-2 font-mono text-xs tracking-wider text-muted-foreground uppercase">
+            <h3 className="mb-2 text-label text-muted-foreground tabular-nums">
               Navigation tactile
             </h3>
             <div className="divide-y divide-border">
@@ -379,7 +379,7 @@ export function ShortcutHelp() {
               />
             </div>
           </div>
-          <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
+          <p className="mt-4 border-t border-border pt-3 text-label text-muted-foreground">
             Clavier connecté ? Appuyez sur <Shortcut>?</Shortcut> pour ouvrir
             l’aide complète.
           </p>
@@ -392,7 +392,7 @@ export function ShortcutHelp() {
 export function ShortcutHelpMenuItem() {
   return (
     <DropdownMenuItem
-      className="min-h-9 gap-2.5 px-2.5 text-sm [&_svg]:text-muted-foreground"
+      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
       onSelect={() => window.dispatchEvent(new Event(OPEN_SHORTCUT_HELP_EVENT))}
     >
       <AccountMenuKeyboardIcon />
@@ -413,14 +413,14 @@ function GestureRow({
 }) {
   return (
     <div className="flex gap-3 py-3">
-      <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-muted font-mono text-muted-foreground">
+      <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-muted text-muted-foreground tabular-nums">
         {icon}
       </span>
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-foreground">
+        <span className="block text-body font-medium text-foreground">
           {title}
         </span>
-        <span className="block text-xs text-muted-foreground">{detail}</span>
+        <span className="block text-label text-muted-foreground">{detail}</span>
       </span>
     </div>
   );

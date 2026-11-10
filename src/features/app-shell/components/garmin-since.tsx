@@ -11,8 +11,8 @@ export function GarminSince() {
   );
   if (!since) return null;
   return (
-    <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="size-1.5 rounded-full bg-success" />
+    <span className="ml-auto flex items-center gap-1.5 text-label text-muted-foreground">
+      <span className="size-1.5 rounded-full bg-primary" />
       Garmin · {since}
     </span>
   );

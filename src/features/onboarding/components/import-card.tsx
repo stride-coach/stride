@@ -12,7 +12,7 @@ export function ImportCard({ summary }: { summary: ImportSummary }) {
       aria-label="Import depuis Garmin"
       className="mt-auto flex flex-col gap-2.5 rounded-xl border border-border p-3.5"
     >
-      <p className="flex items-center gap-2 text-xs font-semibold">
+      <p className="flex items-center gap-2 text-label font-semibold">
         {active && <PulseDot tone="provider" />}
         {summary.phase === "attention" || summary.phase === "unavailable" ? (
           <PulseDot tone="warning" breathing={false} />
@@ -32,12 +32,14 @@ export function ImportCard({ summary }: { summary: ImportSummary }) {
           <span
             className={cn(
               "absolute inset-0",
-              summary.phase === "complete" ? "bg-success" : "bg-warning/60",
+              summary.phase === "complete" ? "bg-primary" : "bg-warning/60",
             )}
           />
         )}
       </span>
-      <p className="text-xs text-muted-foreground">{importCaption(summary)}</p>
+      <p className="text-label text-muted-foreground">
+        {importCaption(summary)}
+      </p>
     </section>
   );
 }

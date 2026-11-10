@@ -41,14 +41,14 @@ export function SettingsShell({
       <aside className="hidden h-svh min-h-0 flex-col border-r border-border bg-background px-2 pt-4 pb-2 md:flex">
         <Link
           href="/activities"
-          className="mb-8 flex items-center gap-2 rounded-md px-2 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+          className="mb-8 flex items-center gap-2 rounded-md px-2 text-body focus-visible:outline-2 focus-visible:outline-ring"
         >
-          <span className="grid size-9 place-items-center rounded-md border border-border-strong">
+          <span className="grid size-9 place-items-center rounded-md border border-control-border">
             <ArrowLeftIcon className="size-4" />
           </span>
           <span>
             <strong className="block">Réglages</strong>
-            <span className="text-xs text-secondary-foreground">
+            <span className="text-label text-secondary-foreground">
               Retour à Stride
             </span>
           </span>
@@ -56,7 +56,7 @@ export function SettingsShell({
         <div className="min-h-0 overflow-y-auto">
           {(["You", "Data"] as const).map((group) => (
             <div key={group} className="mb-4">
-              <p className="mb-1 px-2 font-mono text-label tracking-wider text-secondary-foreground uppercase">
+              <p className="mb-1 px-2 text-label text-secondary-foreground tabular-nums">
                 {group === "You" ? "Toi" : "Données"}
               </p>
               <nav
@@ -79,7 +79,7 @@ export function SettingsShell({
                           active?.slug === section.slug ? "page" : undefined
                         }
                         className={cn(
-                          "rounded-md px-2 py-2 text-sm text-secondary-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+                          "rounded-md px-2 py-2 text-body text-secondary-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
                           active?.slug === section.slug &&
                             "bg-muted font-medium text-foreground",
                           section.slug === "connections" &&
@@ -88,7 +88,7 @@ export function SettingsShell({
                       >
                         {section.label}
                         {section.slug === "connections" && activity && (
-                          <span className="ml-auto flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
+                          <span className="ml-auto flex items-center gap-1.5 text-label font-normal text-muted-foreground">
                             {activity.state !== "checking" && (
                               <PulseDot
                                 tone={activityTone(activity.state)}
@@ -110,15 +110,15 @@ export function SettingsShell({
           className="mt-auto flex flex-col gap-1.5 p-2"
         >
           <DataActivityStatus className="px-2.5" />
-          <div className="flex min-h-12 items-center gap-2.5 px-1.5 text-sm">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-xs font-semibold">
+          <div className="flex min-h-12 items-center gap-2.5 px-1.5 text-body">
+            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-label font-semibold">
               {athlete.initials}
             </span>
             <span className="flex min-w-0 flex-col text-left">
-              <strong className="truncate text-meta leading-tight font-semibold">
+              <strong className="truncate text-body leading-tight font-semibold">
                 {athlete.name}
               </strong>
-              <span className="block truncate text-xs text-muted-foreground">
+              <span className="block truncate text-label text-muted-foreground">
                 {athlete.detail}
               </span>
             </span>
@@ -126,8 +126,8 @@ export function SettingsShell({
         </div>
       </aside>
       <main className="min-w-0 p-0 md:h-svh md:min-h-0 md:overflow-hidden md:p-2">
-        <div className="border-subtle min-h-svh rounded-2xl border-0 bg-surface-inset md:flex md:h-full md:min-h-0 md:flex-col md:border">
-          <header className="flex min-h-14 items-center gap-3 border-b border-border px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:border-0 max-md:bg-surface-inset md:shrink-0 md:px-6">
+        <div className="min-h-svh rounded-2xl border-0 bg-background md:flex md:h-full md:min-h-0 md:flex-col md:border">
+          <header className="flex min-h-14 items-center gap-3 border-b border-border px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:border-0 max-md:bg-background md:shrink-0 md:px-6">
             <Link
               href={
                 garmin
@@ -144,7 +144,7 @@ export function SettingsShell({
               <ArrowLeftIcon className="size-4" />
             </Link>
             {active?.slug ? (
-              <span className="font-mono text-label tracking-wider text-secondary-foreground uppercase md:font-sans md:text-sm md:tracking-normal md:normal-case">
+              <span className="text-label text-secondary-foreground tabular-nums md:font-sans md:text-body md:tracking-normal md:normal-case">
                 Réglages
                 {profile ? <span className="md:hidden"> / Profil</span> : null}
                 {goals ? (
@@ -152,7 +152,7 @@ export function SettingsShell({
                 ) : null}
               </span>
             ) : (
-              <h1 className="text-2xl font-semibold tracking-tight md:text-sm md:font-normal md:tracking-normal md:text-secondary-foreground">
+              <h1 className="text-metric font-semibold tracking-tight md:text-body md:font-normal md:tracking-normal md:text-secondary-foreground">
                 Réglages
               </h1>
             )}
@@ -165,17 +165,17 @@ export function SettingsShell({
                   <>
                     <Link
                       href="/settings/connections"
-                      className="hidden text-sm text-secondary-foreground hover:text-foreground md:inline"
+                      className="hidden text-body text-secondary-foreground hover:text-foreground md:inline"
                     >
                       {active.label}
                     </Link>
                     <span className="hidden text-secondary-foreground md:inline">
                       /
                     </span>
-                    <span className="hidden text-sm md:inline">Garmin</span>
+                    <span className="hidden text-body md:inline">Garmin</span>
                   </>
                 ) : (
-                  <span className="hidden text-sm md:inline">
+                  <span className="hidden text-body md:inline">
                     {active.label}
                   </span>
                 )}
@@ -185,7 +185,7 @@ export function SettingsShell({
               <Link
                 href="/settings/goals?course=nouvelle"
                 aria-label="Ajouter une course"
-                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-xl font-semibold text-background hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-md md:px-3.5 md:text-sm"
+                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-verdict font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-md md:px-3.5 md:text-body"
               >
                 <span className="md:hidden" aria-hidden="true">
                   +
@@ -238,11 +238,11 @@ export function SettingsHeading({
 }) {
   return (
     <div className="mb-9">
-      <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+      <h1 className="text-display font-semibold tracking-tight md:text-display">
         {title}
       </h1>
       {description && (
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-secondary-foreground md:text-base">
+        <p className="mt-2 max-w-3xl text-body leading-relaxed text-secondary-foreground md:text-body-lg">
           {description}
         </p>
       )}
@@ -259,7 +259,7 @@ export function SettingsGroup({
 }) {
   return (
     <section className="mb-9">
-      <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
+      <h2 className="mb-3 text-label text-secondary-foreground tabular-nums">
         {title}
       </h2>
       <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
@@ -283,10 +283,10 @@ export function SettingsLinkRow({
       href={href}
       className="flex min-h-17 items-center gap-4 border-b border-border px-4 py-3 last:border-b-0 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring md:grid md:grid-cols-[9.5rem_minmax(0,1fr)_1rem] md:gap-5 md:px-0 md:py-4.5"
     >
-      <strong className="min-w-0 flex-1 text-sm md:flex-none md:text-base">
+      <strong className="min-w-0 flex-1 text-body md:flex-none md:text-body-lg">
         {title}
       </strong>
-      <span className="max-w-[55%] text-right text-sm text-secondary-foreground md:max-w-none md:text-left">
+      <span className="max-w-[55%] text-right text-body text-secondary-foreground md:max-w-none md:text-left">
         {detail}
       </span>
       <ChevronRightIcon className="size-4 shrink-0 text-secondary-foreground" />
@@ -305,9 +305,9 @@ export function UnavailableSettingRow({
 }) {
   return (
     <div className="grid gap-2 border-b border-border px-4 py-4 last:border-b-0 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-center md:px-0">
-      <strong className="text-sm font-medium">{title}</strong>
-      <p className="text-sm text-secondary-foreground">{detail}</p>
-      <span className="font-mono text-label text-secondary-foreground uppercase">
+      <strong className="text-body font-medium">{title}</strong>
+      <p className="text-body text-secondary-foreground">{detail}</p>
+      <span className="text-label text-secondary-foreground tabular-nums">
         {value ?? "Indisponible"}
       </span>
     </div>

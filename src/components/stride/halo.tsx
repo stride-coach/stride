@@ -49,7 +49,7 @@ const scrims: Record<
 
 const surfaces = {
   background: "var(--background)",
-  inset: "var(--surface-inset)",
+  inset: "var(--background)",
 } as const;
 
 export function Halo({

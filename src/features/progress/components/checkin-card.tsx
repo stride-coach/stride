@@ -31,7 +31,7 @@ const errors = {
 const legsOrder: readonly Legs[] = ["fresh", "normal", "heavy"];
 
 const legsDots: Record<Legs, string> = {
-  fresh: "bg-success",
+  fresh: "bg-primary",
   normal: "bg-secondary-foreground",
   heavy: "bg-warning",
 };
@@ -89,10 +89,13 @@ export function CheckinCard({
   return (
     <section aria-labelledby="body-checkin" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="body-checkin" className="text-base font-semibold sm:text-lg">
+        <h2
+          id="body-checkin"
+          className="text-body-lg font-semibold sm:text-title"
+        >
           Ton ressenti
         </h2>
-        <span className="text-xs text-muted-foreground" aria-live="polite">
+        <span className="text-label text-muted-foreground" aria-live="polite">
           {savedAt
             ? `ce matin · enregistré à ${time.format(new Date(savedAt))}`
             : "À saisir ce matin"}
@@ -105,7 +108,7 @@ export function CheckinCard({
         >
           <span
             id={`checkin-${question.field}`}
-            className="text-sm text-secondary-foreground"
+            className="text-body text-secondary-foreground"
           >
             {question.label}
           </span>
@@ -140,7 +143,9 @@ export function CheckinCard({
                 aria-hidden="true"
                 className={cn(
                   "size-3 rounded-full",
-                  day.legs ? legsDots[day.legs] : "border border-border-strong",
+                  day.legs
+                    ? legsDots[day.legs]
+                    : "border border-control-border",
                 )}
               />
               <span aria-hidden="true">{day.weekday}</span>
@@ -148,7 +153,7 @@ export function CheckinCard({
           ))}
         </ol>
       </div>
-      <p className="text-xs leading-normal text-muted-foreground">
+      <p className="text-label leading-normal text-muted-foreground">
         Stride lit les tendances pour guider ton entraînement, il ne pose pas de
         diagnostic. Une douleur qui change ta foulée ou qui dure plus de
         quelques jours, c’est pour un kiné ou un médecin.

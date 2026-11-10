@@ -18,7 +18,7 @@ import {
 } from "../coach-attention";
 
 const subClass =
-  "min-h-7.5 pl-4 text-meta text-muted-foreground data-[active=true]:bg-transparent data-[active=true]:text-foreground";
+  "min-h-7.5 pl-4 text-body text-muted-foreground data-[active=true]:bg-transparent data-[active=true]:text-foreground";
 
 export function CoachNavItem({
   attention,

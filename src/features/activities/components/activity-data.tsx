@@ -23,7 +23,7 @@ import { RouteMap } from "./route-map";
 const kilometers = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 const strokes: Record<DataSeriesKey, string> = {
-  pace: "stroke-provider",
+  pace: "stroke-foreground",
   heartRate: "stroke-destructive",
   power: "stroke-primary",
   cadence: "stroke-foreground",
@@ -31,7 +31,7 @@ const strokes: Record<DataSeriesKey, string> = {
 };
 
 const swatches: Record<DataSeriesKey, string> = {
-  pace: "bg-provider",
+  pace: "bg-foreground",
   heartRate: "bg-destructive",
   power: "bg-primary",
   cadence: "bg-foreground",
@@ -39,7 +39,7 @@ const swatches: Record<DataSeriesKey, string> = {
 };
 
 const texts: Record<DataSeriesKey, string> = {
-  pace: "text-provider",
+  pace: "text-foreground",
   heartRate: "text-destructive",
   power: "text-primary",
   cadence: "text-foreground",
@@ -76,7 +76,7 @@ function DataChart({
         role="group"
         aria-label={`Inspecter ${names} · flèches pour parcourir, Échap pour fermer`}
         tabIndex={0}
-        className="relative touch-pan-y rounded-md outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        className="relative touch-pan-y rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onFocus={() => onCursor(cursor ?? 0)}
         onBlur={() => onCursor(null)}
         onPointerMove={inspect}
@@ -123,7 +123,7 @@ function DataChart({
               width={band.width}
               y={0}
               height={chartHeight}
-              className="fill-surface-current"
+              className="fill-muted"
             />
           ))}
           {view.relief && <path d={view.relief} className="fill-muted" />}
@@ -144,7 +144,7 @@ function DataChart({
               x2={x}
               y1={0}
               y2={chartHeight}
-              className="stroke-dim"
+              className="stroke-data-1"
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
             />
@@ -154,7 +154,7 @@ function DataChart({
           <div
             role="status"
             className={cn(
-              "pointer-events-none absolute top-0.5 flex flex-col gap-0.5 rounded-lg border border-border-strong bg-muted px-2.25 py-1.5 text-xs",
+              "pointer-events-none absolute top-0.5 flex flex-col gap-0.5 rounded-lg border border-control-border bg-muted px-2.25 py-1.5 text-label",
               x > chartWidth * 0.6 ? "-translate-x-full" : "",
             )}
             style={{
@@ -172,7 +172,7 @@ function DataChart({
                   <span className="text-muted-foreground">—</span>
                 ) : (
                   <>
-                    <span className="font-metric text-sm font-semibold tabular-nums">
+                    <span className="text-body font-semibold tabular-nums">
                       {series.values[cursor]}
                     </span>
                     {series.unit}
@@ -183,7 +183,7 @@ function DataChart({
           </div>
         )}
       </div>
-      <div className="flex justify-between pt-1 font-mono text-micro text-muted-foreground uppercase">
+      <div className="flex justify-between pt-1 text-label text-muted-foreground tabular-nums">
         {view.timeLabels.map((label, index) => (
           <span key={index}>{label}</span>
         ))}
@@ -287,7 +287,7 @@ export function ActivityData({
           </ToggleGroup>
         )}
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel">
+      <div className="overflow-hidden rounded-2xl border border-border bg-background">
         {route ? (
           <div
             role={fullscreen ? "dialog" : undefined}
@@ -331,10 +331,10 @@ export function ActivityData({
         )}
       </div>
       {notes.length > 0 && (
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="flex items-center gap-1.5 text-label text-muted-foreground">
           <span
             aria-hidden="true"
-            className="size-2.5 shrink-0 border border-border bg-surface-current"
+            className="size-2.5 shrink-0 border border-border bg-muted"
           />
           {note}
         </p>

@@ -70,7 +70,7 @@ export function FeelingPrompt({
     return (
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-col gap-1.5">
-          <span id={`${id}-title`} className="text-meta font-semibold">
+          <span id={`${id}-title`} className="text-body font-semibold">
             {strength ? "Effort de la séance" : "Comment c’était ?"}{" "}
             <span className="font-normal text-muted-foreground">
               {strength
@@ -100,7 +100,7 @@ export function FeelingPrompt({
               <ToggleGroupItem
                 key={value}
                 value={String(value)}
-                className="min-h-10 rounded-md px-0 font-metric text-base tabular-nums sm:min-h-8"
+                className="min-h-10 rounded-md px-0 text-body-lg tabular-nums sm:min-h-8"
               >
                 {value}
               </ToggleGroupItem>
@@ -111,7 +111,7 @@ export function FeelingPrompt({
           <div className="flex flex-col gap-1.5">
             <span
               id={`${id}-feel`}
-              className="text-meta text-secondary-foreground"
+              className="text-body text-secondary-foreground"
             >
               Sensations
             </span>
@@ -131,7 +131,7 @@ export function FeelingPrompt({
                 <ToggleGroupItem
                   key={value}
                   value={String(value)}
-                  className="min-h-10 rounded-md px-1 text-xs whitespace-normal sm:min-h-8"
+                  className="min-h-10 rounded-md px-1 text-label whitespace-normal sm:min-h-8"
                 >
                   {feelLabels[value]}
                 </ToggleGroupItem>
@@ -161,7 +161,7 @@ export function FeelingPrompt({
         {!compact && (
           <span
             id={`${id}-effort`}
-            className="text-meta text-secondary-foreground"
+            className="text-body text-secondary-foreground"
           >
             Effort perçu, de 1 à 10
           </span>
@@ -184,7 +184,7 @@ export function FeelingPrompt({
             <ToggleGroupItem
               key={value}
               value={String(value)}
-              className="min-h-11 px-0 font-metric text-lg tabular-nums"
+              className="min-h-11 px-0 text-title tabular-nums"
             >
               {value}
             </ToggleGroupItem>
@@ -199,7 +199,7 @@ export function FeelingPrompt({
         <div className="flex flex-col gap-1.5">
           <span
             id={`${id}-feel`}
-            className="text-meta text-secondary-foreground"
+            className="text-body text-secondary-foreground"
           >
             Sensations
           </span>
@@ -243,7 +243,7 @@ export function DebriefFeeling({
     return (
       <section
         aria-label="Ton ressenti"
-        className="rounded-xl border border-border-strong bg-card p-3.5"
+        className="rounded-xl border border-control-border bg-card p-3.5"
       >
         <FeelingPrompt
           activityId={activityId}
@@ -262,7 +262,7 @@ export function DebriefFeeling({
         <MonoLabel size="nano" className="text-[9.5px]" asChild>
           <h3 id={`feeling-${activityId}`}>Ton ressenti</h3>
         </MonoLabel>
-        <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="ml-auto inline-flex items-center gap-1.5 text-label text-muted-foreground">
           {garmin && !feeling.sessionWide && (
             <PulseDot tone="provider" breathing={false} />
           )}
@@ -273,20 +273,20 @@ export function DebriefFeeling({
         <dl className="grid grid-cols-2 gap-2.5">
           {feeling.effort && (
             <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-card px-3.5 py-3">
-              <dt className="order-2 text-xs text-muted-foreground">
+              <dt className="order-2 text-label text-muted-foreground">
                 {feeling.effortLabel}
               </dt>
-              <dd className="order-1 font-metric text-2xl leading-[1.1] font-semibold tabular-nums">
+              <dd className="order-1 text-metric leading-[1.1] font-semibold tabular-nums">
                 {feeling.effort}
               </dd>
             </div>
           )}
           {feeling.feel && (
             <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-card px-3.5 py-3">
-              <dt className="order-2 text-xs text-muted-foreground">
+              <dt className="order-2 text-label text-muted-foreground">
                 Sensations
               </dt>
-              <dd className="order-1 text-lg leading-[1.35] font-semibold">
+              <dd className="order-1 text-title leading-[1.35] font-semibold">
                 {feeling.feel}
               </dd>
             </div>
@@ -297,7 +297,7 @@ export function DebriefFeeling({
           <span className="flex flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2.5">
               {feeling.effort && (
-                <span className="font-metric text-2xl leading-[1.1] font-semibold tabular-nums">
+                <span className="text-metric leading-[1.1] font-semibold tabular-nums">
                   {feeling.effort}
                 </span>
               )}
@@ -307,7 +307,7 @@ export function DebriefFeeling({
                 </span>
               )}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-label text-muted-foreground">
               Effort perçu · sensations
             </span>
           </span>
@@ -349,10 +349,10 @@ export function CardFeeling({
       />
     );
   return (
-    <span className="inline-flex flex-wrap items-center gap-2 text-meta text-secondary-foreground">
+    <span className="inline-flex flex-wrap items-center gap-2 text-body text-secondary-foreground">
       Ressenti
       {feeling.effort !== null && (
-        <span className="font-metric text-[17px] font-semibold text-foreground tabular-nums">
+        <span className="text-[17px] font-semibold text-foreground tabular-nums">
           {feeling.effort}/10
         </span>
       )}
@@ -363,7 +363,7 @@ export function CardFeeling({
         </span>
       )}
       {feeling.source === "garmin" ? (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-label text-muted-foreground">
           · saisi sur ta montre
         </span>
       ) : (

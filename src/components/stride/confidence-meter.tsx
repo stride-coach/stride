@@ -34,13 +34,15 @@ export function ConfidenceMeter({
             key={segment}
             className={cn(
               "h-1.25 w-3",
-              segment <= filled[level] ? "bg-foreground" : "bg-border-strong",
+              segment <= filled[level] ? "bg-foreground" : "bg-control-border",
             )}
           />
         ))}
       </span>
       <span
-        className={hideLabel ? "sr-only" : "text-xs text-secondary-foreground"}
+        className={
+          hideLabel ? "sr-only" : "text-label text-secondary-foreground"
+        }
       >
         {label ?? (
           <>

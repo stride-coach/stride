@@ -101,7 +101,7 @@ export function StaffStack({
           agent={agent}
           size={size}
           decorative
-          className={cn("ring-2 ring-surface-inset", index > 0 && "-ml-1.5")}
+          className={cn("ring-2 ring-background", index > 0 && "-ml-1.5")}
         />
       ))}
     </span>

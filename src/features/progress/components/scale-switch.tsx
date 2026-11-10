@@ -20,7 +20,7 @@ export function ScaleSwitch({ current }: { current: HealthView }) {
           aria-current={view === current ? "page" : undefined}
           scroll={false}
           className={cn(
-            "flex min-h-9 items-center justify-center rounded-md px-3.5 text-meta text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-sm:min-h-10 max-sm:flex-1",
+            "flex min-h-9 items-center justify-center rounded-md px-3.5 text-body text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-sm:min-h-10 max-sm:flex-1",
             view === current && "bg-muted font-semibold text-foreground",
           )}
         >

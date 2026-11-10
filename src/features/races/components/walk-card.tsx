@@ -58,7 +58,7 @@ export function WalkCard({
   return (
     <RaceCard aria-busy={pending} className="gap-2.5">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-        <p className="text-meta">
+        <p className="text-body">
           Marche dès <b>{value} %</b>
           <span className="max-md:hidden"> de pente</span> à{" "}
           <b>{formatPace(paceSecondsPerKm)} /km</b> · {distance}
@@ -71,7 +71,7 @@ export function WalkCard({
           aria-expanded={open}
           aria-controls="walk-settings"
           onClick={() => setOpen((current) => !current)}
-          className="rounded-lg text-meta max-md:min-h-11 md:ml-auto"
+          className="rounded-lg text-body max-md:min-h-11 md:ml-auto"
         >
           Régler la marche
         </Button>
@@ -88,7 +88,7 @@ export function WalkCard({
         </div>
         <label htmlFor="walk-grade" className="text-body">
           Je marche dès{" "}
-          <b className="font-metric text-[1.375rem] font-semibold text-primary">
+          <b className="text-[1.375rem] font-semibold text-primary tabular-nums">
             {value} %
           </b>{" "}
           de pente
@@ -127,23 +127,25 @@ export function WalkCard({
             <div
               key={row.threshold}
               className={cn(
-                "grid grid-cols-[52px_1fr_auto] gap-2.5 border-t border-border-subtle py-1.5 text-meta",
+                "grid grid-cols-[52px_1fr_auto] gap-2.5 border-t border-border py-1.5 text-body",
                 row.threshold === value
                   ? "text-foreground"
                   : "text-muted-foreground",
               )}
             >
-              <span className="font-metric text-base">{row.threshold} %</span>
+              <span className="text-body-lg tabular-nums">
+                {row.threshold} %
+              </span>
               <span>
                 {row.count} {row.count > 1 ? "portions" : "portion"}
               </span>
-              <span className="font-metric text-base">
+              <span className="text-body-lg tabular-nums">
                 {formatDecimal(row.distanceM / 1000)} km
               </span>
             </div>
           ))}
         </div>
-        <p className="text-meta text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Pente mesurée sur 100 m glissants du GPX. Marche comptée à{" "}
           {formatPace(paceSecondsPerKm)} /km dans la simulation.
         </p>

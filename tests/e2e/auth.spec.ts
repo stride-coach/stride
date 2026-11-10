@@ -136,7 +136,7 @@ for (const route of ["forgot-password", "reset-password"]) {
     await expect(stages.nth(0)).toHaveCSS("border-top-width", "1px");
     await expect(page.locator("main")).toHaveCSS(
       "background-color",
-      "rgb(12, 13, 11)",
+      "rgb(250, 250, 249)",
     );
   });
 }

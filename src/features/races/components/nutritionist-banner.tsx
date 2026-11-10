@@ -82,18 +82,18 @@ export function NutritionistBanner({
           className="md:hidden"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5 md:gap-0.75">
-          <span className="text-sm font-semibold md:text-body">
+          <span className="text-body font-semibold md:text-body">
             <span className="max-md:hidden">{title}</span>
             <span className="md:hidden">{mobileTitle}</span>
           </span>
-          <span className="text-xs text-muted-foreground md:text-meta md:text-secondary-foreground">
+          <span className="text-label text-muted-foreground md:text-body md:text-secondary-foreground">
             <span className="max-md:hidden">{detail}</span>
             <span className="md:hidden">{mobileDetail}</span>
           </span>
         </div>
       </div>
       {proposal && (
-        <span className="inline-flex items-center self-center rounded-full border border-warning/30 px-2.25 py-0.5 text-xs whitespace-nowrap text-warning max-md:hidden">
+        <span className="inline-flex items-center self-center rounded-full border border-warning/30 px-2.25 py-0.5 text-label whitespace-nowrap text-warning max-md:hidden">
           {changeCountLabel(proposal.changes)}
         </span>
       )}
@@ -101,7 +101,7 @@ export function NutritionistBanner({
         <Button
           asChild
           size="md"
-          className="rounded-lg text-meta max-md:min-h-11"
+          className="rounded-lg text-body max-md:min-h-11"
         >
           <Link href={examine} scroll={false} data-proposal-id={proposal.id}>
             <span className="max-md:hidden">Examiner</span>
@@ -115,7 +115,7 @@ export function NutritionistBanner({
         asChild
         variant="outline"
         size="md"
-        className="rounded-lg text-meta max-md:min-h-11"
+        className="rounded-lg text-body max-md:min-h-11"
       >
         <Link href={adjust}>Ajuster avec {name}</Link>
       </Button>

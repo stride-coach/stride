@@ -25,7 +25,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "flex w-fit max-w-full items-center gap-5 overflow-x-auto text-sm",
+        "flex w-fit max-w-full items-center gap-5 overflow-x-auto text-body",
         className,
       )}
       {...props}
@@ -56,7 +56,7 @@ function TabsContent({
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 text-sm", className)}
+      className={cn("flex-1 text-body", className)}
       {...props}
     />
   );

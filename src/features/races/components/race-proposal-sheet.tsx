@@ -51,7 +51,7 @@ function ChangeList({
       {items.length ? (
         <ul
           className={cn(
-            "flex flex-col gap-1 text-meta leading-normal",
+            "flex flex-col gap-1 text-body leading-normal",
             tone === "before" ? "text-muted-foreground" : "text-foreground",
           )}
         >
@@ -60,7 +60,7 @@ function ChangeList({
           ))}
         </ul>
       ) : (
-        <span className="text-meta text-muted-foreground">Aucun</span>
+        <span className="text-body text-muted-foreground">Aucun</span>
       )}
     </div>
   );
@@ -112,7 +112,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         aria-describedby={undefined}
         overlayClassName="bg-background/45"
         className={cn(
-          "gap-0 overflow-hidden border-border-strong bg-surface-panel text-foreground",
+          "gap-0 overflow-hidden border-control-border bg-background text-foreground",
           mobile
             ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
             : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-140 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-140",
@@ -121,13 +121,13 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         {mobile && (
           <span
             aria-hidden="true"
-            className="mt-2 mb-1 h-1 w-10 self-center rounded-mark bg-border-strong"
+            className="mt-2 mb-1 h-1 w-10 self-center rounded-mark bg-control-border"
           />
         )}
-        <header className="flex items-center gap-2.5 border-b border-border-subtle px-4 py-3.5">
+        <header className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
           <span className="flex min-w-0 flex-col gap-0.5">
             <MonoLabel size="micro">{review.kicker}</MonoLabel>
-            <span className="truncate text-meta text-secondary-foreground">
+            <span className="truncate text-body text-secondary-foreground">
               {changeCountLabel(review.changes.length)}
             </span>
           </span>
@@ -153,11 +153,11 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         </header>
         <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 pt-5 pb-6 sm:px-5.5">
           <div className="flex flex-col gap-2">
-            <SheetTitle className="text-headline font-semibold">
+            <SheetTitle className="text-verdict font-semibold">
               {review.title}
             </SheetTitle>
             {review.summary && (
-              <p className="text-sm leading-normal text-secondary-foreground">
+              <p className="text-body leading-normal text-secondary-foreground">
                 {review.summary}
               </p>
             )}
@@ -185,7 +185,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
             ))}
           </ol>
           {review.changes.length === 0 && (
-            <p className="text-meta text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               Cette proposition ne change rien à ton plan actuel.
             </p>
           )}
@@ -193,7 +193,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
         {decidable && (
           <footer
             className={cn(
-              "flex gap-2 border-t border-border-subtle bg-surface-inset px-4 py-3.5",
+              "flex gap-2 border-t border-border bg-background px-4 py-3.5",
               mobile
                 ? "flex-col pb-[max(0.875rem,env(safe-area-inset-bottom))]"
                 : "flex-row items-center",
@@ -220,7 +220,7 @@ export function RaceProposalSheet({ review }: { review: RaceProposalReview }) {
             </Button>
             <span
               className={cn(
-                "text-xs text-muted-foreground",
+                "text-label text-muted-foreground",
                 mobile ? "text-center" : "ml-auto max-w-55 text-right",
               )}
             >

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { HealthKpi, Tone } from "../health-view";
 
 const toneDot: Record<Tone, string> = {
-  success: "bg-success",
+  success: "bg-primary",
   warning: "bg-warning",
   danger: "bg-destructive",
   muted: "bg-muted-foreground",
@@ -21,14 +21,16 @@ export function KpiStrip({ kpis }: { kpis: HealthKpi[] }) {
             <MonoLabel size="nano">{kpi.label}</MonoLabel>
           </dt>
           <dd className="flex items-baseline gap-1.5">
-            <span className="font-metric text-[28px] leading-none font-semibold tabular-nums">
+            <span className="text-[28px] leading-none font-semibold tabular-nums">
               {kpi.value}
             </span>
             {kpi.unit && (
-              <span className="text-xs text-muted-foreground">{kpi.unit}</span>
+              <span className="text-label text-muted-foreground">
+                {kpi.unit}
+              </span>
             )}
           </dd>
-          <dd className="flex items-center gap-1.5 text-xs text-secondary-foreground">
+          <dd className="flex items-center gap-1.5 text-label text-secondary-foreground">
             <span
               aria-hidden="true"
               className={cn(

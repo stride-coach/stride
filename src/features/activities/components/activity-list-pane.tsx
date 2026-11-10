@@ -87,7 +87,7 @@ export function ActivityListPane({
                 shown={activities.length}
                 total={total}
               />
-              <p className="flex items-center gap-1.75 px-5 pb-4 text-xs text-muted-foreground lg:px-3.5">
+              <p className="flex items-center gap-1.75 px-5 pb-4 text-label text-muted-foreground lg:px-3.5">
                 <SourceMark source="provider" />
                 Tout vient de Garmin
               </p>

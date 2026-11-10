@@ -11,7 +11,7 @@ const displays: Record<LapColumnDisplay, string> = {
 function Missing() {
   return (
     <>
-      <span aria-hidden="true" className="text-dim">
+      <span aria-hidden="true" className="text-muted-foreground">
         —
       </span>
       <span className="sr-only">non disponible</span>
@@ -22,7 +22,10 @@ function Missing() {
 export function LapTableSection({ table }: { table: LapTable }) {
   return (
     <section aria-labelledby="activity-laps" className="flex flex-col gap-2.5">
-      <h2 id="activity-laps" className="text-lg font-semibold sm:text-xl">
+      <h2
+        id="activity-laps"
+        className="text-title font-semibold sm:text-verdict"
+      >
         {table.title}
       </h2>
       <LapTableView table={table} />
@@ -35,7 +38,7 @@ export function LapTableView({ table }: { table: LapTable }) {
     <table className="w-full border-collapse text-left">
       <caption className="sr-only">{table.title}</caption>
       <thead>
-        <tr className="border-b border-border-strong">
+        <tr className="border-b border-control-border">
           <th scope="col" className="pb-2 font-normal">
             <MonoLabel size="nano" className="text-[9.5px]">
               {table.title === "Tours" ? "Tour" : "Segment"}
@@ -69,7 +72,7 @@ export function LapTableView({ table }: { table: LapTable }) {
           <tr key={row.key} className="border-b border-border">
             <th
               scope="row"
-              className="py-2.5 text-left font-metric text-[17px] font-semibold tabular-nums"
+              className="py-2.5 text-left text-[17px] font-semibold tabular-nums"
             >
               {row.label}
             </th>
@@ -77,7 +80,7 @@ export function LapTableView({ table }: { table: LapTable }) {
               <td
                 key={column.key}
                 className={cn(
-                  "py-2.5 pl-2 text-right font-metric text-[17px] font-semibold whitespace-nowrap text-foreground tabular-nums",
+                  "py-2.5 pl-2 text-right text-[17px] font-semibold whitespace-nowrap text-foreground tabular-nums",
                   displays[column.display],
                 )}
               >

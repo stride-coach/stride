@@ -8,10 +8,10 @@ import {
 } from "../model";
 
 const toneText: Record<GarminTone, string> = {
-  success: "text-success",
+  success: "text-primary",
   warning: "text-warning",
   danger: "text-destructive",
-  provider: "text-provider",
+  provider: "text-primary",
 };
 
 export function GarminConnectionLabel({
@@ -29,7 +29,7 @@ export function GarminConnectionLabel({
   return (
     <span
       className={cn(
-        "flex items-center gap-2 text-sm",
+        "flex items-center gap-2 text-body",
         toneText[tone],
         className,
       )}

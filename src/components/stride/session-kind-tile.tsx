@@ -113,14 +113,14 @@ const tones: Record<SessionTileKind, Tone> = {
 };
 
 const toneClasses: Record<Tone, string> = {
-  provider: "border border-provider/30 bg-provider/14 text-provider",
-  quality: "border border-intensity-4/30 bg-intensity-4/14 text-intensity-4",
-  terrain: "border border-intensity-3/30 bg-intensity-3/14 text-intensity-3",
+  provider: "border border-foreground/30 bg-foreground/14 text-foreground",
+  quality: "border border-intensity-4/30 bg-intensity-4/14 text-foreground",
+  terrain: "border border-intensity-3/30 bg-intensity-3/14 text-foreground",
   support:
     "border border-secondary-foreground/30 bg-secondary-foreground/14 text-secondary-foreground",
-  cross: "border border-night/30 bg-night/14 text-night",
+  cross: "border border-data-2/30 bg-data-2/14 text-muted-foreground",
   race: "bg-primary text-primary-foreground",
-  rest: "border border-dashed border-border-strong text-dim",
+  rest: "border border-dashed border-control-border text-muted-foreground",
 };
 
 const sizes = {

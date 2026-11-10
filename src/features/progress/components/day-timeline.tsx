@@ -18,13 +18,13 @@ const stageLabels: Record<SleepStage, string> = {
   awake: "Éveil",
 };
 const stageFill: Record<SleepStage, string> = {
-  deep: "fill-provider",
-  light: "fill-dim",
+  deep: "fill-data-3",
+  light: "fill-data-1",
   rem: "fill-intensity-3",
   awake: "fill-destructive",
 };
 const stressFill = {
-  rest: "fill-provider",
+  rest: "fill-data-3",
   low: "fill-muted-foreground",
   high: "fill-warning",
 } as const;
@@ -43,9 +43,9 @@ function Track({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-stretch border-b border-border-subtle last:border-b-0 max-sm:grid-cols-[5rem_minmax(0,1fr)]">
+    <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-stretch border-b border-border last:border-b-0 max-sm:grid-cols-[5rem_minmax(0,1fr)]">
       <div className="flex flex-col justify-center gap-0.5 pr-3">
-        <span className="text-meta">{label}</span>
+        <span className="text-body">{label}</span>
         <MonoLabel size="nano">{unit}</MonoLabel>
       </div>
       <svg
@@ -175,7 +175,7 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
             Ta journée heure par heure · de 22:00 à 22:00
           </MonoLabel>
         </h2>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-label text-muted-foreground">
           Survole les courbes pour lire chaque moment
           {future !== null ? " · la zone hachurée est à venir" : ""}
         </p>
@@ -274,14 +274,14 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
                   <g key={index}>
                     <path
                       d={`${linePath(part)} L${part.at(-1)![0]},90 L${part[0][0]},90 Z`}
-                      className="fill-success/15"
+                      className="fill-primary/15"
                     />
                     <path
                       d={linePath(part)}
                       fill="none"
                       strokeWidth={1.6}
                       vectorEffect="non-scaling-stroke"
-                      className="stroke-success"
+                      className="stroke-primary"
                     />
                   </g>
                 ))}
@@ -302,7 +302,7 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
               </Track>
             </div>
           </div>
-          <div className="relative mt-2 ml-28 h-4 font-mono text-nano text-muted-foreground max-sm:ml-20">
+          <div className="relative mt-2 ml-28 h-4 text-micro text-muted-foreground tabular-nums max-sm:ml-20">
             {ticks.map((tick, index) => (
               <span
                 key={tick}
@@ -324,8 +324,8 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
       </div>
       <Legend
         items={[
-          { label: "Profond", swatch: "size-2.5 rounded-mark bg-provider" },
-          { label: "Léger", swatch: "size-2.5 rounded-mark bg-dim" },
+          { label: "Profond", swatch: "size-2.5 rounded-mark bg-data-3" },
+          { label: "Léger", swatch: "size-2.5 rounded-mark bg-data-1" },
           {
             label: "Paradoxal",
             swatch: "size-2.5 rounded-mark bg-intensity-3",
@@ -343,17 +343,17 @@ export function DayTimeline({ model }: { model: HealthDayModel }) {
             : []),
           {
             label: "Stress repos",
-            swatch: "size-2.5 rounded-mark bg-provider",
+            swatch: "size-2.5 rounded-mark bg-data-3",
           },
           {
             label: "Stress faible",
             swatch: "size-2.5 rounded-mark bg-muted-foreground",
           },
           { label: "Stress élevé", swatch: "size-2.5 rounded-mark bg-warning" },
-          { label: "Body Battery", swatch: "h-0.5 w-3.5 bg-success" },
+          { label: "Body Battery", swatch: "h-0.5 w-3.5 bg-primary" },
           {
             label: "Nuit",
-            swatch: "size-2.5 rounded-mark bg-muted ring-1 ring-border-strong",
+            swatch: "size-2.5 rounded-mark bg-muted ring-1 ring-control-border",
           },
         ]}
       />

@@ -23,7 +23,7 @@ export function RacesTitle({
           Courses
         </h1>
         {subtitle && (
-          <div className="pb-1.5 text-sm text-muted-foreground max-md:hidden">
+          <div className="pb-1.5 text-body text-muted-foreground max-md:hidden">
             {subtitle}
           </div>
         )}
@@ -39,7 +39,7 @@ export function RacesTitle({
             aria-current={item === view ? "page" : undefined}
             scroll={false}
             className={cn(
-              "flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-meta text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+              "flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-body text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
               item === view && "bg-border font-semibold text-foreground",
             )}
           >

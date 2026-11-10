@@ -36,8 +36,8 @@ function DayState({
       return (
         <span
           className={cn(
-            "flex items-center gap-1.25 text-xs",
-            state === "done" ? "text-success" : "text-warning",
+            "flex items-center gap-1.25 text-label",
+            state === "done" ? "text-primary" : "text-warning",
           )}
         >
           <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
@@ -46,15 +46,15 @@ function DayState({
       );
     case "proposed":
       return (
-        <span className="flex items-center gap-1.5 text-xs text-warning">
+        <span className="flex items-center gap-1.5 text-label text-warning">
           <PulseDot tone="warning" breathing={false} />
           Proposé
         </span>
       );
     case "substituted":
-      return <span className="text-xs text-muted-foreground">Remplacé</span>;
+      return <span className="text-label text-muted-foreground">Remplacé</span>;
     case "missed":
-      return <span className="text-xs text-muted-foreground">Non fait</span>;
+      return <span className="text-label text-muted-foreground">Non fait</span>;
     default:
       return null;
   }
@@ -65,7 +65,7 @@ function WatchTag({ tag }: { tag: WatchDayTag | undefined }) {
   return (
     <span
       className={cn(
-        "flex items-center gap-1.25 text-xs",
+        "flex items-center gap-1.25 text-label",
         tag === "on" ? "text-muted-foreground" : "text-destructive",
       )}
     >
@@ -118,7 +118,7 @@ function DayDate({ day, size }: { day: ProgramDay; size: "micro" | "nano" }) {
       <MonoLabel size={size} tone={day.isToday ? "accent" : "muted"}>
         {day.weekday}
       </MonoLabel>
-      <span className="font-metric text-lg leading-none font-semibold tabular-nums">
+      <span className="text-title leading-none font-semibold tabular-nums">
         {day.dayNumber}
       </span>
     </>
@@ -158,10 +158,10 @@ function DayCard({
     "flex min-w-0 flex-col rounded-xl border p-3",
     rest
       ? "border-dashed border-border"
-      : "border-border bg-card hover:border-border-strong",
-    day.isPast && !rest && "bg-surface-panel",
+      : "border-border bg-card hover:border-control-border",
+    day.isPast && !rest && "bg-background",
     day.isPast && "opacity-70",
-    day.isToday && "border-foreground bg-surface-current opacity-100",
+    day.isToday && "border-foreground bg-muted opacity-100",
   );
   if (day.sessions.length > 1)
     return (
@@ -202,13 +202,13 @@ function DayCard({
                   className="size-5.5"
                 />
                 {session.summary && (
-                  <span className="font-metric text-base leading-tight font-semibold tabular-nums">
+                  <span className="text-body-lg leading-tight font-semibold tabular-nums">
                     {session.summary}
                   </span>
                 )}
               </span>
               {session.elevation && (
-                <span className="-mt-1 text-xs text-muted-foreground">
+                <span className="-mt-1 text-label text-muted-foreground">
                   {session.elevation}
                 </span>
               )}
@@ -250,12 +250,12 @@ function DayCard({
         </span>
       </span>
       {day.summary && (
-        <span className="font-metric text-base leading-tight font-semibold tabular-nums">
+        <span className="text-body-lg leading-tight font-semibold tabular-nums">
           {day.summary}
         </span>
       )}
       {day.elevation && (
-        <span className="-mt-2 text-xs text-muted-foreground">
+        <span className="-mt-2 text-label text-muted-foreground">
           {day.elevation}
         </span>
       )}
@@ -310,14 +310,14 @@ function DayRow({
         <span className="flex min-w-0 flex-col gap-0.5">
           <span
             className={cn(
-              "text-sm",
+              "text-body",
               rest ? "text-muted-foreground" : "font-semibold",
             )}
           >
             {session.title}
           </span>
           {details && (
-            <span className="text-xs text-muted-foreground">{details}</span>
+            <span className="text-label text-muted-foreground">{details}</span>
           )}
           {session.state !== "proposed" && <WatchTag tag={watch} />}
         </span>
@@ -329,7 +329,7 @@ function DayRow({
     "border-t border-border",
     day.isPast && "opacity-65",
     day.isToday &&
-      "my-0.5 rounded-xl border border-border-strong bg-surface-current px-3",
+      "my-0.5 rounded-xl border border-control-border bg-muted px-3",
   );
   if (day.sessions.length > 1)
     return (
@@ -351,7 +351,7 @@ function DayRow({
               sessionHref={sessionHref}
               className={cn(
                 "grid min-h-11 grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-2.5 py-2.5",
-                index > 0 && "border-t border-dashed border-border-strong",
+                index > 0 && "border-t border-dashed border-control-border",
               )}
             >
               {sessionBody(session, watchTags[session.sessionKey])}
@@ -406,7 +406,7 @@ function WeekProposals({
   return (
     <section
       aria-label="Changements proposés cette semaine"
-      className="flex flex-col divide-y divide-warning-border rounded-xl border border-warning-border bg-warning/4"
+      className="flex flex-col divide-y divide-border rounded-xl border border-border bg-warning/4"
     >
       {proposals.map((proposal) => (
         <div
@@ -414,11 +414,11 @@ function WeekProposals({
           className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3.5 py-3"
         >
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-center gap-2 text-xs text-warning">
+            <span className="flex items-center gap-2 text-label text-warning">
               <PulseDot tone="warning" breathing={false} />
               Changement proposé
             </span>
-            <span className="text-sm font-semibold">{proposal.title}</span>
+            <span className="text-body font-semibold">{proposal.title}</span>
             {proposal.summary && (
               <span className="text-[13px] leading-normal text-secondary-foreground">
                 {proposal.summary}
@@ -443,20 +443,20 @@ function WeekProposals({
 function WeekStatus({ week }: { week: ProgramWeek }) {
   if (week.status === "current")
     return (
-      <span className="flex items-center gap-1.5 text-xs">
+      <span className="flex items-center gap-1.5 text-label">
         <PulseDot breathing={false} />
         En cours
       </span>
     );
   if (week.status === "future")
     return (
-      <span className="text-xs text-muted-foreground">
+      <span className="text-label text-muted-foreground">
         dans {week.daysUntil} j
       </span>
     );
   if (week.completionPct !== null)
     return (
-      <span className="flex items-center gap-1.25 text-xs text-success">
+      <span className="flex items-center gap-1.25 text-label text-primary">
         <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
         {week.completionPct} %
         <span className="sr-only"> des séances réalisées</span>
@@ -478,7 +478,7 @@ function SplitBar({ split }: { split: Split }) {
       className="relative flex h-1.5 gap-0.5"
     >
       <span
-        className="rounded-l-mark bg-provider"
+        className="rounded-l-mark bg-foreground"
         style={{ width: `${split.easyPct}%` }}
       />
       {split.qualitySeconds > 0 && (
@@ -498,7 +498,7 @@ function SplitState({ split, long }: { split: Split; long: boolean }) {
     <span
       className={cn(
         "inline-flex items-center gap-1 whitespace-nowrap",
-        split.met ? "text-success" : "text-warning",
+        split.met ? "text-primary" : "text-warning",
       )}
     >
       {split.met && (
@@ -521,10 +521,10 @@ function WeekSplitCell({ split }: { split: Split }) {
       title={splitTitle}
       className="grid w-37.5 grid-cols-[auto_auto_1fr] items-baseline gap-x-1.5 gap-y-1.5 border-l border-border pl-4.5 max-sm:hidden"
     >
-      <dt className="col-start-2 row-start-1 text-xs text-secondary-foreground">
+      <dt className="col-start-2 row-start-1 text-label text-secondary-foreground">
         facile
       </dt>
-      <dd className="col-start-1 row-start-1 font-metric text-[26px] leading-none font-semibold whitespace-nowrap tabular-nums">
+      <dd className="col-start-1 row-start-1 text-[26px] leading-none font-semibold whitespace-nowrap tabular-nums">
         {split.easyPct} %
       </dd>
       <dd className="col-start-3 row-start-1 justify-self-end text-[11px]">
@@ -545,14 +545,14 @@ function WeekSplitCard({ split }: { split: Split }) {
   return (
     <div
       title={splitTitle}
-      className="flex flex-col gap-2 rounded-xl border border-border bg-surface-panel px-3.5 py-3 sm:hidden"
+      className="flex flex-col gap-2 rounded-xl border border-border bg-background px-3.5 py-3 sm:hidden"
     >
       <div className="flex items-baseline gap-2">
-        <span className="font-metric text-[22px] leading-none font-semibold tabular-nums">
+        <span className="text-[22px] leading-none font-semibold tabular-nums">
           {split.easyPct} %
         </span>
         <span className="text-[13px] text-secondary-foreground">en facile</span>
-        <span className="ml-auto text-xs">
+        <span className="ml-auto text-label">
           <SplitState split={split} long />
         </span>
       </div>
@@ -561,7 +561,7 @@ function WeekSplitCard({ split }: { split: Split }) {
         <span className="inline-flex items-center gap-1.25">
           <span
             aria-hidden="true"
-            className="size-1.5 rounded-full bg-provider"
+            className="size-1.5 rounded-full bg-foreground"
           />
           Facile {formatDuration(split.easySeconds)}
         </span>
@@ -655,14 +655,14 @@ export function ProgramWeekPanel({
             id="program-week-title"
             className="flex flex-wrap items-baseline gap-2.5"
           >
-            <span className="font-metric text-[22px] leading-none font-semibold tabular-nums sm:text-2xl">
+            <span className="text-[22px] leading-none font-semibold tabular-nums sm:text-metric">
               S{week.number}
             </span>
             <span className="text-[15px] font-semibold sm:text-[17px]">
               {week.range}
             </span>
           </h2>
-          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
+          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label text-muted-foreground">
             <WeekStatus week={week} />
             {subtitle}
           </span>
@@ -677,7 +677,7 @@ export function ProgramWeekPanel({
                 <dt className="order-2 text-[11px] text-muted-foreground">
                   {metric.note}
                 </dt>
-                <dd className="order-1 font-metric text-[22px] leading-none font-semibold whitespace-nowrap tabular-nums sm:text-[26px]">
+                <dd className="order-1 text-[22px] leading-none font-semibold whitespace-nowrap tabular-nums sm:text-[26px]">
                   {metric.value}
                 </dd>
               </div>
@@ -690,7 +690,7 @@ export function ProgramWeekPanel({
               className="h-1 overflow-hidden rounded-mark bg-border"
             >
               <span
-                className="block h-full bg-success"
+                className="block h-full bg-primary"
                 style={{ width: `${progress(week)}%` }}
               />
             </span>

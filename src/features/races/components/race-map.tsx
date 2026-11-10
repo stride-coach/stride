@@ -69,7 +69,7 @@ function markerElement(marker: MapMarker, active: boolean) {
   const { mark } = marker;
   const root = "group focus-visible:outline-2 focus-visible:outline-ring";
   const base =
-    "grid size-full place-items-center font-metric text-xs leading-none font-bold transition-transform duration-150 ease-stride group-hover:scale-110";
+    "grid size-full place-items-center tabular-nums text-label leading-none font-bold transition-transform duration-150 ease-stride group-hover:scale-110";
   if (mark.shape === "circle") {
     const filled = mark.tone !== "station" || active;
     element.className = cn(root, "size-5.5 rounded-full");
@@ -91,7 +91,7 @@ function markerElement(marker: MapMarker, active: boolean) {
       "rounded-sm",
       active
         ? "bg-primary text-primary-foreground"
-        : "border-[1.6px] border-provider bg-background text-foreground",
+        : "border-[1.6px] border-data-2 bg-background text-foreground",
     );
     visual.textContent = mark.label;
   } else {
@@ -103,7 +103,7 @@ function markerElement(marker: MapMarker, active: boolean) {
         ? "border-secondary-foreground"
         : mark.tone === "caution"
           ? "border-warning"
-          : "border-night",
+          : "border-data-2",
     );
   }
   element.append(visual);
@@ -245,8 +245,8 @@ function RaceMapView({
             string,
             number,
           ][] = [
-            ["rain", initial.rain, token(container, "--provider"), 6],
-            ["night", initial.night, token(container, "--night"), 2.8],
+            ["rain", initial.rain, token(container, "--data-1"), 6],
+            ["night", initial.night, token(container, "--data-2"), 2.8],
             ["walk", initial.walk, token(container, "--primary"), 5],
           ];
           for (const [id, ranges, color, width] of overlays) {
@@ -383,7 +383,7 @@ function RaceMapView({
   return (
     <div
       ref={frame}
-      className={cn("relative overflow-hidden bg-surface-inset", className)}
+      className={cn("relative overflow-hidden bg-background", className)}
     >
       <div
         ref={canvas}
@@ -478,7 +478,7 @@ function RaceMapView({
               ref={closeRef}
               aria-label="Quitter le plein écran"
               onClick={onClose}
-              className="size-10 bg-surface-inset md:size-9"
+              className="size-10 bg-background md:size-9"
             >
               <XIcon className="size-4" />
             </Button>
@@ -490,7 +490,7 @@ function RaceMapView({
               ref={fullscreenRef}
               aria-label="Plein écran"
               onClick={onFullscreen}
-              className="size-9 bg-surface-inset max-md:size-11"
+              className="size-9 bg-background max-md:size-11"
             >
               <ExpandIcon className="size-3.5" />
             </Button>
@@ -503,7 +503,7 @@ function RaceMapView({
                 type="button"
                 aria-label="Zoom avant"
                 onClick={() => mapRef.current?.zoomIn()}
-                className="size-9 bg-surface-inset max-md:hidden"
+                className="size-9 bg-background max-md:hidden"
               >
                 <PlusIcon className="size-3.5" />
               </Button>
@@ -513,7 +513,7 @@ function RaceMapView({
                 type="button"
                 aria-label="Zoom arrière"
                 onClick={() => mapRef.current?.zoomOut()}
-                className="size-9 bg-surface-inset max-md:hidden"
+                className="size-9 bg-background max-md:hidden"
               >
                 <MinusIcon className="size-3.5" />
               </Button>
@@ -523,7 +523,7 @@ function RaceMapView({
       )}
       {tooltip && tooltipPoint && (
         <div
-          className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-lg border border-border-strong bg-card/95 px-3 py-2"
+          className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-lg border border-control-border bg-card/95 px-3 py-2"
           style={{
             left: Math.min(tooltipPoint.x + 14, tooltipPoint.width - 190),
             top: Math.max(8, tooltipPoint.y - 64),
@@ -534,11 +534,11 @@ function RaceMapView({
           </MonoLabel>
           <span className="flex items-baseline justify-between gap-4">
             {tooltip.clock ? (
-              <span className="font-metric text-lg leading-none font-semibold">
+              <span className="text-title leading-none font-semibold tabular-nums">
                 Passage {tooltip.clock}
               </span>
             ) : (
-              <span className="text-sm text-secondary-foreground">
+              <span className="text-body text-secondary-foreground">
                 Pas de simulation
               </span>
             )}
@@ -554,7 +554,7 @@ function RaceMapView({
         <span
           role="status"
           className={cn(
-            "absolute left-3 rounded-md bg-card px-2 py-1 text-xs text-secondary-foreground",
+            "absolute left-3 rounded-md bg-card px-2 py-1 text-label text-secondary-foreground",
             framed ? "bottom-7" : "top-3",
           )}
         >
@@ -563,7 +563,7 @@ function RaceMapView({
       )}
       <span
         className={cn(
-          "absolute bottom-2 font-mono text-nano text-muted-foreground uppercase",
+          "absolute bottom-2 text-label text-muted-foreground tabular-nums",
           framed ? "left-3" : "right-2.5",
         )}
       >

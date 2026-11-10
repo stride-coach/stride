@@ -37,14 +37,14 @@ export default async function NotificationsPage({
               <h1 className="text-[28px] leading-[1.1] font-semibold tracking-[-0.02em]">
                 Notifications
               </h1>
-              <p className="text-meta text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Ce que le staff, Garmin et ton plan ont fait pendant que tu
                 courais. 30 derniers jours.
               </p>
             </div>
             {unread > 0 && (
               <>
-                <span className="text-xs text-muted-foreground md:hidden">
+                <span className="text-label text-muted-foreground md:hidden">
                   {unreadLabel(unread)}
                 </span>
                 <MarkAllRead
@@ -65,7 +65,7 @@ export default async function NotificationsPage({
             className="px-4 md:px-0"
           />
           {notifications.length ? (
-            <div className="overflow-hidden border-border md:rounded-xl md:border md:bg-surface-panel">
+            <div className="overflow-hidden border-border md:rounded-xl md:border md:bg-background">
               <NotificationList
                 notifications={notifications}
                 now={now.toISOString()}

@@ -55,7 +55,7 @@ export function GarminConnected({
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-5">
         <span
           aria-hidden="true"
-          className="grid size-13 place-items-center rounded-full border border-success-border bg-success-surface text-success"
+          className="grid size-13 place-items-center rounded-full border border-border bg-card text-primary"
         >
           <CheckIcon className="size-6" />
         </span>
@@ -69,10 +69,10 @@ export function GarminConnected({
             key={title}
             className="grid grid-cols-[1rem_1fr] gap-x-4 border-b border-border py-4"
           >
-            <Icon aria-hidden="true" className="mt-1 size-4 text-success" />
+            <Icon aria-hidden="true" className="mt-1 size-4 text-primary" />
             <span className="flex flex-col gap-1">
               <span className="text-body font-semibold">{title}</span>
-              <span className="text-meta text-secondary-foreground">
+              <span className="text-body text-secondary-foreground">
                 {body}
               </span>
             </span>
@@ -86,7 +86,7 @@ export function GarminConnected({
             <span className="text-body font-semibold">
               Préparation de ton historique…
             </span>
-            <span className="text-meta text-secondary-foreground">
+            <span className="text-body text-secondary-foreground">
               Je commence par tes dernières semaines, puis je remonte les
               années.
             </span>
@@ -107,11 +107,11 @@ export function GarminConnected({
         </Button>
         {counting && (
           <p
-            className="text-center text-meta text-muted-foreground"
+            className="text-center text-body text-muted-foreground"
             aria-live="off"
           >
             Passage automatique dans{" "}
-            <span className="font-metric font-semibold text-foreground">
+            <span className="font-semibold text-foreground tabular-nums">
               {remaining}
             </span>{" "}
             s

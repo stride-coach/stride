@@ -145,7 +145,7 @@ function ZoneTime({ panel }: { panel: ActivityPanelView }) {
               }}
             />
           </span>
-          <span className="text-right font-metric text-[15px] font-semibold tabular-nums">
+          <span className="text-right text-[15px] font-semibold tabular-nums">
             {formatClock(seconds)}
           </span>
         </div>
@@ -173,10 +173,10 @@ function Effort({ panel }: { panel: ActivityPanelView }) {
       <dl className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border">
         {stats.map((stat) => (
           <div key={stat.key} className="contents">
-            <dt className="border-b border-border py-2.75 text-sm">
+            <dt className="border-b border-border py-2.75 text-body">
               {stat.label}
             </dt>
-            <dd className="border-b border-border py-2.75 text-right font-metric text-lg font-semibold tabular-nums">
+            <dd className="border-b border-border py-2.75 text-right text-title font-semibold tabular-nums">
               {stat.value}
               {stat.unit && ` ${stat.unit}`}
             </dd>
@@ -199,7 +199,7 @@ function StrengthHeartRate({ curve }: { curve: HeartRateCurve }) {
         </MonoLabel>
         <MonoLabel>bpm · Garmin</MonoLabel>
       </div>
-      <div className="rounded-xl border border-border bg-surface-panel p-3">
+      <div className="rounded-xl border border-border bg-background p-3">
         <svg
           role="img"
           aria-label={`Fréquence cardiaque au fil de la séance, moyenne ${curve.average}, pic à ${curve.peak}`}
@@ -212,7 +212,7 @@ function StrengthHeartRate({ curve }: { curve: HeartRateCurve }) {
             x2={curveWidth}
             y1={curve.averageY}
             y2={curve.averageY}
-            className="stroke-border-strong"
+            className="stroke-control-border"
             strokeDasharray="4 4"
             vectorEffect="non-scaling-stroke"
           />
@@ -224,7 +224,7 @@ function StrengthHeartRate({ curve }: { curve: HeartRateCurve }) {
             vectorEffect="non-scaling-stroke"
           />
         </svg>
-        <div className="flex justify-between pt-1 font-mono text-micro text-muted-foreground uppercase">
+        <div className="flex justify-between pt-1 text-label text-muted-foreground tabular-nums">
           <span>0:00</span>
           <span>moy. {curve.average}</span>
           <span>{curve.duration}</span>
@@ -254,10 +254,10 @@ function StrengthEffort({ panel }: { panel: ActivityPanelView }) {
       <dl className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] sm:gap-x-7">
         {stats.map((stat) => (
           <div key={stat.key} className="contents">
-            <dt className="border-b border-border py-2.75 text-sm">
+            <dt className="border-b border-border py-2.75 text-body">
               {stat.label}
             </dt>
-            <dd className="border-b border-border py-2.75 text-right font-metric text-lg font-semibold tabular-nums">
+            <dd className="border-b border-border py-2.75 text-right text-title font-semibold tabular-nums">
               {stat.value}
               {stat.unit && ` ${stat.unit}`}
             </dd>

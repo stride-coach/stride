@@ -100,7 +100,7 @@ export default async function RacesPage({
       )}
       {past.length > 0 && (
         <section className={cn("flex flex-col gap-2", pastClass)}>
-          <h2 className="text-[17px] font-semibold md:text-lg">
+          <h2 className="text-[17px] font-semibold md:text-title">
             Courses passées
           </h2>
           <PastRaces races={past} results={results} />

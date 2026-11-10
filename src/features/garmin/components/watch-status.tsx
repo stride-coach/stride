@@ -14,8 +14,8 @@ import {
 const toneClasses: Record<WatchCopy["tone"], string> = {
   muted: "border-border bg-background",
   success: "border-border bg-background",
-  warning: "border-warning-border bg-background",
-  danger: "border-danger-border bg-danger-surface",
+  warning: "border-border bg-background",
+  danger: "border-border bg-card",
 };
 const iconTones: Record<WatchCopy["tone"], string> = {
   muted: "text-secondary-foreground",

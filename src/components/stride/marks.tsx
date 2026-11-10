@@ -25,7 +25,7 @@ export function TrendMark({
       className={cn("size-2.25 shrink-0", className)}
     >
       {trend === "improving" && (
-        <path d="M6 2 10 8H2Z" className="fill-success" />
+        <path d="M6 2 10 8H2Z" className="fill-primary" />
       )}
       {trend === "stable" && (
         <rect
@@ -62,7 +62,7 @@ export function TrendLabel({
   return (
     <span
       data-slot="trend-label"
-      className={cn("inline-flex items-center gap-1.5 text-xs", className)}
+      className={cn("inline-flex items-center gap-1.5 text-label", className)}
     >
       <TrendMark trend={trend} />
       <span>{children ?? trendLabels[trend]}</span>
@@ -83,7 +83,7 @@ export function DirectionMark({
 }) {
   const fill = {
     warning: "fill-warning",
-    success: "fill-success",
+    success: "fill-primary",
     muted: "fill-secondary-foreground",
   }[tone];
   return (
@@ -115,7 +115,7 @@ export function SourceMark({
       className={cn(
         "inline-block shrink-0",
         source === "manual" && "size-1.5 rounded-full bg-foreground",
-        source === "provider" && "size-1.5 rounded-full bg-provider",
+        source === "provider" && "size-1.5 rounded-full bg-data-2",
         source === "estimate" &&
           "size-1.5 rotate-45 border-[1.5px] border-primary",
         className,
@@ -147,9 +147,10 @@ export function DecisionMark({
       className={cn(
         "inline-block size-2.5 shrink-0 rounded-full",
         status === "open" && "border-[1.5px] border-warning",
-        status === "accepted" && "bg-success",
-        status === "declined" && "bg-dim",
-        status === "automatic" && "border border-dashed border-dim",
+        status === "accepted" && "bg-primary",
+        status === "declined" && "bg-data-1",
+        status === "automatic" &&
+          "border border-dashed border-muted-foreground",
         className,
       )}
     />
@@ -161,7 +162,7 @@ export function DoneMark({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn(
-        "grid size-6.5 shrink-0 place-items-center rounded-full bg-success-surface text-success",
+        "grid size-6.5 shrink-0 place-items-center rounded-full bg-accent text-primary",
         className,
       )}
     >
@@ -194,10 +195,10 @@ export function PulseDot({
         {
           accent: "bg-primary",
           warning: "bg-warning",
-          success: "bg-success",
-          provider: "bg-provider",
+          success: "bg-primary",
+          provider: "bg-data-2",
           danger: "bg-destructive",
-          night: "bg-night",
+          night: "bg-data-2",
           foreground: "bg-foreground",
         }[tone],
         breathing && "motion-safe:animate-breathe",

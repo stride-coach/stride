@@ -36,7 +36,7 @@ function RowAvatar({ row }: { row: ConversationRow }) {
   return (
     <span className="relative block size-10">
       <StaffPortrait agent="coach" size={30} />
-      <span className="absolute -right-0.5 -bottom-0.5 rounded-[9px] ring-2 ring-surface-inset">
+      <span className="absolute -right-0.5 -bottom-0.5 rounded-[9px] ring-2 ring-background">
         <StaffPortrait agent={specialist} size={22} decorative />
       </span>
     </span>
@@ -50,7 +50,7 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
       aria-current={current ? "page" : undefined}
       className={cn(
         "grid min-h-11 grid-cols-[40px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[10px] px-3.5 py-3 text-foreground hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring",
-        current && "bg-surface-current ring-1 ring-border ring-inset",
+        current && "bg-muted ring-1 ring-border ring-inset",
       )}
     >
       <RowAvatar row={row} />
@@ -58,7 +58,7 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
         <span className="flex items-baseline gap-2">
           <span
             className={cn(
-              "flex-1 truncate text-sm",
+              "flex-1 truncate text-body",
               row.unread ? "font-semibold" : "font-medium",
             )}
           >
@@ -74,7 +74,7 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
           )}
         </span>
         {row.preview && (
-          <span className="line-clamp-2 text-meta leading-snug text-muted-foreground">
+          <span className="line-clamp-2 text-body leading-snug text-muted-foreground">
             {row.preview}
           </span>
         )}
@@ -129,7 +129,7 @@ export function ConversationList({
             mobileHeader && "max-[979px]:hidden",
           )}
         >
-          <h2 className="text-lead font-semibold">Conversations</h2>
+          <h2 className="text-body-lg font-semibold">Conversations</h2>
           <Button
             asChild
             variant="outline"
@@ -154,7 +154,7 @@ export function ConversationList({
                 placeholder="Rechercher"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="text-meta"
+                className="text-body"
               />
             </InputGroup>
             <div
@@ -167,7 +167,7 @@ export function ConversationList({
                   key={item.value}
                   pressed={filter === item.value}
                   onPressedChange={() => setFilter(item.value)}
-                  className="min-h-7.5 rounded-md border-border bg-transparent px-2.5 text-xs font-normal text-muted-foreground hover:border-border-strong data-[state=on]:border-border-strong data-[state=on]:bg-muted data-[state=on]:font-normal data-[state=on]:text-foreground"
+                  className="min-h-7.5 rounded-md border-border bg-transparent px-2.5 text-label font-normal text-muted-foreground hover:border-control-border data-[state=on]:border-control-border data-[state=on]:bg-muted data-[state=on]:font-normal data-[state=on]:text-foreground"
                 >
                   {item.value === "mine"
                     ? `${item.label} · ${waiting}`
@@ -180,12 +180,12 @@ export function ConversationList({
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-1.5 pb-3">
         {empty && (
-          <p className="px-3.5 py-6 text-sm text-muted-foreground">
+          <p className="px-3.5 py-6 text-body text-muted-foreground">
             Aucune conversation pour l’instant. Écris à Claire pour commencer.
           </p>
         )}
         {!empty && visible.length === 0 && (
-          <p className="px-3.5 py-6 text-sm text-muted-foreground">
+          <p className="px-3.5 py-6 text-body text-muted-foreground">
             Aucune conversation ne correspond.
           </p>
         )}

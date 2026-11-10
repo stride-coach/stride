@@ -41,7 +41,7 @@ const statusLabels: Record<StepStatus, string> = {
 };
 const toneClasses: Record<LineTone | "accent", string> = {
   muted: "text-muted-foreground",
-  success: "text-success",
+  success: "text-primary",
   warning: "text-warning",
   accent: "text-primary",
 };
@@ -92,14 +92,14 @@ export function StepNavigation({
         aria-label="Configuration de ton coach"
         className="sticky top-0 hidden h-svh w-66 shrink-0 flex-col gap-8 overflow-y-auto px-4.5 py-5 lg:flex"
       >
-        <span className="flex items-center gap-2.5 font-metric text-title font-semibold uppercase">
+        <span className="flex items-center gap-2.5 text-title font-semibold uppercase tabular-nums">
           <StrideMark /> Stride
         </span>
         <p className="-mt-1 flex flex-col gap-1.5">
-          <span className="font-mono text-micro tracking-wide text-muted-foreground uppercase">
+          <span className="text-label tracking-wide text-muted-foreground tabular-nums">
             Configuration de ton coach
           </span>
-          <span className="text-meta text-muted-foreground">
+          <span className="text-body text-muted-foreground">
             {remainingTime(shell)}
           </span>
         </p>
@@ -141,17 +141,17 @@ export function StepNavigation({
         ) : (
           email && (
             <p className="mt-auto flex flex-col gap-1 px-0.5">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 Connecté en tant que
               </span>
-              <span className="text-meta break-all">{email}</span>
+              <span className="text-body break-all">{email}</span>
             </p>
           )
         )}
       </aside>
       <main
         id="onboarding-content"
-        className="relative isolate flex min-w-0 flex-1 flex-col overflow-clip bg-surface-inset lg:my-2 lg:mr-2 lg:rounded-2xl lg:border lg:border-border"
+        className="relative isolate flex min-w-0 flex-1 flex-col overflow-clip bg-background lg:my-2 lg:mr-2 lg:rounded-2xl lg:border lg:border-border"
       >
         <header className="flex flex-col gap-5 px-5 pt-8 pb-5 lg:flex-row lg:items-center lg:gap-3 lg:border-b lg:border-border lg:px-6 lg:py-5">
           {previous && step === "profile" && (
@@ -168,12 +168,12 @@ export function StepNavigation({
             </Button>
           )}
           <div className="flex items-center justify-between gap-3">
-            <span className="font-mono text-label tracking-wide text-muted-foreground uppercase">
+            <span className="text-label tracking-wide text-muted-foreground tabular-nums">
               Étape {position + 1} sur 6
             </span>
             <span
               className={cn(
-                "flex items-center gap-1.5 text-meta lg:hidden",
+                "flex items-center gap-1.5 text-body lg:hidden",
                 toneClasses[status.tone],
               )}
             >
@@ -197,7 +197,7 @@ export function StepNavigation({
             className="w-full lg:max-w-60"
           />
           {showsConnectedBadge(shell) && (
-            <span className="ml-auto hidden items-center gap-2 text-meta leading-none text-success lg:flex">
+            <span className="ml-auto hidden items-center gap-2 text-body leading-none text-primary lg:flex">
               <CheckIcon aria-hidden="true" className="size-3.5" />
               Garmin connecté
             </span>
@@ -213,7 +213,7 @@ export function StepNavigation({
               onChange={(event) =>
                 navigate(event.target.value as OnboardingStep)
               }
-              className="w-full rounded-md border border-border-strong bg-card px-3 py-2 text-sm"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-body"
             >
               {onboardingSteps.map((target) => (
                 <option
