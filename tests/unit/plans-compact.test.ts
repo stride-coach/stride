@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   compactPlanSchema,
+  raceStepsMessage,
   compactToPlanState,
   compactWeeksToRows,
   parseTarget,
@@ -169,6 +170,37 @@ describe("compactToPlanState", () => {
       level: "low",
       reasons: ["Historique court"],
     });
+  });
+});
+
+describe("race sessions", () => {
+  const withKind = (kind: "race" | "intervals") => {
+    const compact = compactPlan();
+    compact.weeks[1].sessions[0].kind = kind;
+    return compact;
+  };
+
+  it("refuses warm-up and cool-down steps in a race session", () => {
+    const parsed = compactPlanSchema.safeParse(withKind("race"));
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]).toMatchObject({
+      message: raceStepsMessage,
+      path: ["weeks", 1, "sessions", 0, "steps"],
+    });
+  });
+
+  it("accepts a race session made of work steps only", () => {
+    const compact = withKind("race");
+    compact.weeks[1].sessions[0].steps = [
+      {
+        type: "work",
+        minutes: 22,
+        intensity: "threshold",
+        target: "pace 4:18-4:22",
+      },
+      { type: "work", minutes: 21, intensity: "threshold", target: "rpe 7-8" },
+    ];
+    expect(compactPlanSchema.safeParse(compact).success).toBe(true);
   });
 });
 

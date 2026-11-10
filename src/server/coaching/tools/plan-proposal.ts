@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { specialistAgents } from "@/features/coach/staff";
 import { localToday } from "@/features/plans/constraints";
+import { raceStepsMessage } from "@/features/plans/compact/compact";
 import { raceRoles } from "@/features/plans/model/plan";
 import { applyOperations } from "@/features/plans/operations/apply";
 import {
@@ -166,6 +167,21 @@ export const createPlanProposalTool = defineTool({
           message: issue.message,
         })),
       );
+    const raceIssues = operations.data.flatMap((operation, index) => {
+      const content =
+        operation.op === "replace_session"
+          ? operation.content
+          : operation.op === "add_session"
+            ? operation.session.content
+            : null;
+      return content?.kind === "race" &&
+        content.structure
+          .flatMap((step) => (step.type === "repeat" ? step.steps : [step]))
+          .some((step) => step.type === "warmup" || step.type === "cooldown")
+        ? [{ path: `operations.${index}`, message: raceStepsMessage }]
+        : [];
+    });
+    if (raceIssues.length) throw toolError("invalid_input", raceIssues);
     const stored = await requireActivePlan(context);
     const roles = operations.data.filter(
       (operation) => operation.op === "set_race_role",

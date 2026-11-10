@@ -704,6 +704,45 @@ describe("create_plan_proposal", () => {
     expect(outcome.content).toMatchObject({ code: "invalid_input" });
   });
 
+  it("refuses a race session with warm-up or cool-down steps", async () => {
+    const { client } = fakeClient({});
+    const race = easyRun(43);
+    const outcome = await runCustomTool(
+      contextWith(client),
+      "create_plan_proposal",
+      {
+        ...proposal,
+        operations: [
+          {
+            op: "add_session",
+            session: {
+              scheduledOn: "2026-10-22",
+              content: {
+                ...race,
+                kind: "race",
+                targets: { ...race.targets, durationSeconds: 58 * 60 },
+                structure: [
+                  {
+                    type: "warmup",
+                    end: { kind: "time", seconds: 900 },
+                    target: { kind: "none" },
+                    intensity: "easy",
+                  },
+                  ...race.structure,
+                ],
+              },
+            },
+          },
+        ],
+      },
+    );
+    expect(outcome.content).toMatchObject({
+      code: "invalid_input",
+      details: [{ path: "operations.0" }],
+    });
+    expect(client.rpc).not.toHaveBeenCalled();
+  });
+
   it("adds a session on a busy day and targets the new key", async () => {
     const { client } = fakeClient(
       {},
