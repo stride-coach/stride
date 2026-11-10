@@ -52,7 +52,7 @@ function PriorityBadge({
     <span
       className={cn(
         "grid size-8 shrink-0 place-items-center rounded-md text-body-lg font-bold tabular-nums",
-        priority === "A" && !dashed && "bg-primary text-background",
+        priority === "A" && !dashed && "bg-primary text-primary-foreground",
         priority !== "A" &&
           !dashed &&
           "border-[1.5px] border-control-border text-secondary-foreground",

@@ -15,9 +15,9 @@ import { PairSheet } from "./session-shoes";
 const stateDots: Record<PairCheckState, string> = {
   same: "bg-primary",
   different: "bg-warning",
-  missing: "bg-primary",
+  missing: "bg-data-1",
   corrected: "bg-foreground",
-  unplanned: "bg-foreground",
+  unplanned: "bg-data-2",
 };
 
 function useActivityPair(activityId: string) {

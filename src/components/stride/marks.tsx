@@ -115,7 +115,7 @@ export function SourceMark({
       className={cn(
         "inline-block shrink-0",
         source === "manual" && "size-1.5 rounded-full bg-foreground",
-        source === "provider" && "size-1.5 rounded-full bg-foreground",
+        source === "provider" && "size-1.5 rounded-full bg-data-2",
         source === "estimate" &&
           "size-1.5 rotate-45 border-[1.5px] border-primary",
         className,
@@ -149,7 +149,8 @@ export function DecisionMark({
         status === "open" && "border-[1.5px] border-warning",
         status === "accepted" && "bg-primary",
         status === "declined" && "bg-data-1",
-        status === "automatic" && "border border-dashed border-control-border",
+        status === "automatic" &&
+          "border border-dashed border-muted-foreground",
         className,
       )}
     />
@@ -161,7 +162,7 @@ export function DoneMark({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn(
-        "grid size-6.5 shrink-0 place-items-center rounded-full bg-card text-primary",
+        "grid size-6.5 shrink-0 place-items-center rounded-full bg-accent text-primary",
         className,
       )}
     >
@@ -195,7 +196,7 @@ export function PulseDot({
           accent: "bg-primary",
           warning: "bg-warning",
           success: "bg-primary",
-          provider: "bg-foreground",
+          provider: "bg-data-2",
           danger: "bg-destructive",
           night: "bg-data-2",
           foreground: "bg-foreground",

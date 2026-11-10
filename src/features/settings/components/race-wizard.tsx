@@ -537,7 +537,7 @@ export function RaceWizard({
                             className={cn(
                               "grid size-7.5 shrink-0 place-items-center rounded-md text-body-lg font-bold tabular-nums",
                               option.value === "A" &&
-                                "bg-primary text-background",
+                                "bg-primary text-primary-foreground",
                               option.value === "B" &&
                                 "border-[1.5px] border-foreground text-foreground",
                               option.value === "C" &&

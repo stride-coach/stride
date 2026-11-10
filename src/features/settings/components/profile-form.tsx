@@ -37,7 +37,7 @@ import { HeartRateEditor } from "./heart-rate-editor";
 
 type Draft = ReturnType<typeof profileDraft>;
 const rowClass =
-  "flex flex-col gap-1.5 border-b border-subtle px-4 py-3 min-[1100px]:grid min-[1100px]:grid-cols-[180px_320px_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-5 min-[1100px]:border-border min-[1100px]:px-0 min-[1100px]:py-3.5";
+  "flex flex-col gap-1.5 border-b border-border px-4 py-3 min-[1100px]:grid min-[1100px]:grid-cols-[180px_320px_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-5 min-[1100px]:border-border min-[1100px]:px-0 min-[1100px]:py-3.5";
 const labels: Partial<Record<keyof Draft, string>> = {
   first_name: "Prénom",
   birth_date: "Date de naissance",

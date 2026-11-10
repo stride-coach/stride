@@ -89,7 +89,7 @@ Stride's UI has three layers:
 Installed primitives: Alert, AlertDialog, Badge, Button, Checkbox, Collapsible, DropdownMenu, Field, Input, InputGroup, Kbd, Label, Popover (the desktop notification panel: 14px radius, strong hairline), Progress, Separator, Sheet, Sidebar, Skeleton, Sonner (`Toaster`), Tabs, Textarea, Toggle, ToggleGroup, and Tooltip. Current specifics, restyled in #390:
 
 - `Button` variants are `default` (`primary`), `outline`, `secondary`, `neutral` (foreground fill for draft application), `ghost`, `destructive`, and `link`; size `default`/`lg` is the full-size form action, `md` the compact 38px action used in cards, and `sm`/`xs` the inline actions.
-- `Badge` is the mono status tag (`outline`, `accent`, `success`, `warning`, `danger`). Counts and readiness values in navigation use `NavBadge`.
+- `Badge` is the status tag (`outline`, `accent`, `success`, `warning`, `danger`); its tinted variants predate Dense and follow the Chip and Status pages after #390. Counts and readiness values in navigation use `NavBadge`.
 - `ToggleGroup` variants are `choice` (foreground fill when selected), `day` (round, `primary` ring), and `segment` (connected range control). `Tabs` are underline tabs with a `primary` indicator.
 - `Sidebar` is configured for 264px expanded, a 56px icon rail with tooltips, and an off-canvas sheet below 768px. Use `variant="inset"` and `collapsible="icon"`.
 - Primitives do not use `dark:` variants: the theme comes from `data-theme`, not directly from the operating system.

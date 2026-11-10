@@ -401,8 +401,7 @@ export function DataCategoryScope({
       data-stale={stale ? "true" : undefined}
       className={cn(
         "relative min-h-0 min-w-0",
-        stale &&
-          "[&_.tabular-nums]:opacity-50 [&_[data-slot=metric]]:opacity-50",
+        stale && "[&_[data-slot=metric]]:opacity-50",
         className,
       )}
     >

@@ -140,7 +140,7 @@ function Plot({
         strokeLinejoin="round"
         className="stroke-destructive"
       />
-      <g className="tabular-nums" fontSize={frame.font} letterSpacing="0.06em">
+      <g className="tabular-nums" fontSize={frame.font}>
         {chart.markers.map((marker, index) => {
           const markerX = x(marker.day);
           const labelY = frame.top - 12 + (index % 2) * (frame.font + 6);

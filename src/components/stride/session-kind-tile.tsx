@@ -114,8 +114,8 @@ const tones: Record<SessionTileKind, Tone> = {
 
 const toneClasses: Record<Tone, string> = {
   provider: "border border-foreground/30 bg-foreground/14 text-foreground",
-  quality: "border border-intensity-4/30 bg-intensity-4/14 text-intensity-4",
-  terrain: "border border-intensity-3/30 bg-intensity-3/14 text-intensity-3",
+  quality: "border border-intensity-4/30 bg-intensity-4/14 text-foreground",
+  terrain: "border border-intensity-3/30 bg-intensity-3/14 text-foreground",
   support:
     "border border-secondary-foreground/30 bg-secondary-foreground/14 text-secondary-foreground",
   cross: "border border-data-2/30 bg-data-2/14 text-muted-foreground",

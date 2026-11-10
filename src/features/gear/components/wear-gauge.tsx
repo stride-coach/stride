@@ -27,7 +27,7 @@ export function WearGauge({
       {split ? (
         <>
           <span
-            className="absolute inset-y-0 left-0 bg-foreground"
+            className="absolute inset-y-0 left-0 bg-data-2"
             style={{ width: `${starting}%` }}
           />
           <span

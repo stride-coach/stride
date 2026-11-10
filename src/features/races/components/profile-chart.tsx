@@ -412,7 +412,6 @@ export function ProfileChart({
                 y={box.plotTop + 14}
                 className="fill-data-2 tabular-nums"
                 fontSize={variant === "mobile" ? 7 : 9}
-                letterSpacing=".08em"
               >
                 {range.label}
               </text>
@@ -435,7 +434,6 @@ export function ProfileChart({
                 y={box.plotTop + 14}
                 className="fill-data-2 tabular-nums"
                 fontSize={9}
-                letterSpacing=".08em"
               >
                 Averses
               </text>

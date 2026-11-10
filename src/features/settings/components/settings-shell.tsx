@@ -126,7 +126,7 @@ export function SettingsShell({
         </div>
       </aside>
       <main className="min-w-0 p-0 md:h-svh md:min-h-0 md:overflow-hidden md:p-2">
-        <div className="border-subtle min-h-svh rounded-2xl border-0 bg-background md:flex md:h-full md:min-h-0 md:flex-col md:border">
+        <div className="min-h-svh rounded-2xl border-0 bg-background md:flex md:h-full md:min-h-0 md:flex-col md:border">
           <header className="flex min-h-14 items-center gap-3 border-b border-border px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:border-0 max-md:bg-background md:shrink-0 md:px-6">
             <Link
               href={
@@ -185,7 +185,7 @@ export function SettingsShell({
               <Link
                 href="/settings/goals?course=nouvelle"
                 aria-label="Ajouter une course"
-                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-verdict font-semibold text-background hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-md md:px-3.5 md:text-body"
+                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-verdict font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-md md:px-3.5 md:text-body"
               >
                 <span className="md:hidden" aria-hidden="true">
                   +

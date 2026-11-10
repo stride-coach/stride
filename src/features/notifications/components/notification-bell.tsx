@@ -34,7 +34,7 @@ function Badge({ count }: { count: number }) {
   return (
     <span
       aria-hidden="true"
-      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-background ring-2 ring-background"
+      className="absolute -top-1.5 -right-1.75 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1.25 text-[11px] font-semibold text-primary-foreground ring-2 ring-background"
     >
       {badgeValue(count)}
     </span>
