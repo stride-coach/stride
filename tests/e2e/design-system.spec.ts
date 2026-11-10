@@ -88,7 +88,7 @@ test("status patterns announce state without relying on colour", async ({
     "About you",
   );
   await expect(
-    page.getByRole("img", { name: /Session shape: .*1 block removed/ }),
+    page.getByRole("img", { name: /Structure de la séance : .*1 bloc retiré/ }),
   ).toBeVisible();
   await expect(page.getByText("Change from").first()).toBeAttached();
 });

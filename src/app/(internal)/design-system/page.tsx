@@ -98,6 +98,12 @@ import {
 import { StrideMark } from "@/components/stride/stride-mark";
 import { SyncStatus } from "@/components/stride/sync-status";
 import { VerdictList, VerdictRow } from "@/components/stride/verdict-row";
+import { Chip } from "@/components/stride/chip";
+import { EmptyState, FeedbackBanner } from "@/components/stride/feedback";
+import { Plage } from "@/components/stride/plage";
+import { SessionList, SessionRow } from "@/components/stride/session-row";
+import { Status } from "@/components/stride/status";
+import { Widget } from "@/components/stride/widget";
 import { ContextChipsExample } from "./_components/context-chips";
 import { SuggestedRepliesExample } from "./_components/suggested-replies";
 import { GallerySection, Specimen } from "./_components/specimen";
@@ -224,7 +230,8 @@ export default function DesignSystemPage() {
             ["#type", "Typography"],
             ["#controls", "Controls"],
             ["#overlays", "Overlays"],
-            ["#patterns", "Patterns"],
+            ["#dense-patterns", "Data patterns"],
+            ["#patterns", "Night Track patterns"],
             ["#states", "States"],
           ].map(([href, label]) => (
             <a
@@ -735,10 +742,147 @@ export default function DesignSystemPage() {
       </GallerySection>
 
       <GallerySection
+        id="dense-patterns"
+        index="05 · Dense patterns"
+        title="Data patterns"
+        description="Lists for what you browse, banded blocks for what you must understand. A state always carries its word."
+      >
+        <div className="grid gap-12 lg:grid-cols-2">
+          <Specimen title="Status and chips" meta="Status · Chip">
+            <div className="flex flex-wrap items-center gap-6">
+              <Status level="ok">Dans ta plage</Status>
+              <Status level="watch">Sous ta plage</Status>
+              <Status level="alert">Risque élevé</Status>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Chip>Route · plat</Chip>
+              <Chip proposal>Proposition</Chip>
+              <Chip intensity={1}>Récup</Chip>
+              <Chip intensity={2}>Facile</Chip>
+              <Chip intensity={3}>Tempo</Chip>
+              <Chip intensity={4}>Seuil</Chip>
+              <Chip intensity={5}>Fractionné</Chip>
+            </div>
+            <div className="flex flex-col gap-2">
+              <ProvenanceLabel source="provider">
+                Garmin · mis à jour aujourd’hui
+              </ProvenanceLabel>
+              <ProvenanceLabel source="manual">
+                Toi · saisi à l’inscription
+              </ProvenanceLabel>
+              <ProvenanceLabel source="estimate">
+                Estimation de Stride · confiance moyenne
+              </ProvenanceLabel>
+            </div>
+          </Specimen>
+
+          <Specimen title="Banded block and range" meta="Widget · Plage">
+            <Widget
+              headingLevel={4}
+              title="Ton corps ce matin"
+              verdict={<Status level="watch">2 signaux sur 3</Status>}
+            >
+              <div className="divide-y divide-border">
+                <Plage
+                  name="Sommeil"
+                  range="7h00–7h45"
+                  value="5h52"
+                  level="watch"
+                  verdict="Sous ta plage"
+                  scale={{
+                    min: 300,
+                    max: 540,
+                    low: 420,
+                    high: 465,
+                    value: 352,
+                  }}
+                />
+                <Plage
+                  name="Charge 7 j"
+                  range="0,8–1,3"
+                  value="1,24"
+                  level="ok"
+                  verdict="Dans ta plage"
+                  scale={{
+                    min: 0.4,
+                    max: 1.8,
+                    low: 0.8,
+                    high: 1.3,
+                    value: 1.24,
+                  }}
+                />
+                <Plage
+                  name="VFC"
+                  range="52–64 ms"
+                  value="38 ms"
+                  level="alert"
+                  verdict="Hors plage depuis 3 jours"
+                  scale={{ min: 34, max: 72, low: 52, high: 64, value: 38 }}
+                />
+              </div>
+            </Widget>
+          </Specimen>
+
+          <Specimen title="Session rows" meta="SessionRow · SessionList">
+            <SessionList>
+              <SessionRow state="rest" past day="Lun 5" title="Repos" />
+              <SessionRow
+                state="done"
+                past
+                day="Mar 6"
+                title="Footing"
+                intensity={{ level: 2, label: "Facile" }}
+                duration="50 min"
+                distance="8,3 km"
+              />
+              <SessionRow
+                state="today"
+                day="Mer 7"
+                title="Seuil 4 × 6’"
+                intensity={{ level: 4, label: "Seuil" }}
+                duration="52 min"
+                distance="9,6 km"
+              />
+              <SessionRow
+                state="upcoming"
+                day="Sam 10"
+                title="Côtes 8 × 3’"
+                intensity={{ level: 5, label: "Fractionné" }}
+                duration="60 min"
+                distance="9,0 km"
+              />
+            </SessionList>
+          </Specimen>
+
+          <Specimen title="Feedback" meta="FeedbackBanner · EmptyState">
+            <FeedbackBanner
+              level="alert"
+              verdict="Synchro interrompue"
+              action={
+                <Button size="sm" variant="outline">
+                  Relancer
+                </Button>
+              }
+            >
+              Garmin n’a pas répondu depuis 06:12. Vérifie ta connexion, puis
+              relance.
+            </FeedbackBanner>
+            <EmptyState
+              title="Aucune course à venir"
+              action={<Button size="sm">Ajouter une course</Button>}
+            >
+              Ajoute ta prochaine course : Stride construira le plan autour
+              d’elle.
+            </EmptyState>
+          </Specimen>
+        </div>
+      </GallerySection>
+
+      <GallerySection
         id="patterns"
-        index="05 · Patterns"
-        title="Stride patterns"
-        description="Product-level compositions built on the primitives. Screens compose these instead of recreating local variants."
+        index="06 · Patterns"
+        title="Night Track patterns"
+        description="Patterns still used by screens that have not moved to Dense. Each one is replaced or removed with its screen lot."
       >
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
           <Specimen title="Verdict row" meta="replaces the tile">
@@ -753,7 +897,8 @@ export default function DesignSystemPage() {
             </VerdictList>
             <SessionShape blocks={session} className="mt-2" />
             <p className="text-label text-muted-foreground">
-              Session shape: intensity × time, removed rep dashed.
+              Session structure: width is time, colour is intensity, warm-up and
+              recoveries lower and faded, a removed rep dashed.
             </p>
           </Specimen>
           <Specimen title="Session kind tile" meta="SessionKindTile">
@@ -948,7 +1093,7 @@ export default function DesignSystemPage() {
 
       <GallerySection
         id="states"
-        index="06 · States"
+        index="07 · States"
         title="Sync, onboarding progress and messages"
         description="One component per state machine. Every state carries a shape or label so colour is never the only cue."
       >

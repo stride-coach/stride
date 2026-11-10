@@ -114,10 +114,11 @@ export function SourceMark({
       data-source={source}
       className={cn(
         "inline-block shrink-0",
-        source === "manual" && "size-1.5 rounded-full bg-foreground",
-        source === "provider" && "size-1.5 rounded-full bg-data-2",
+        source === "provider" && "size-1.5 rounded-full bg-muted-foreground",
+        source === "manual" &&
+          "size-1.5 rounded-full border-[1.5px] border-muted-foreground",
         source === "estimate" &&
-          "size-1.5 rotate-45 border-[1.5px] border-primary",
+          "size-1.5 rotate-45 border-[1.5px] border-muted-foreground",
         className,
       )}
     />
