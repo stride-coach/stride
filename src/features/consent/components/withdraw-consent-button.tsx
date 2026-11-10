@@ -99,7 +99,7 @@ export function WithdrawConsentButton({ contact }: { contact: string }) {
             >
               Retirer mon consentement
             </AlertDialogAction>
-            <AlertDialogCancel variant="neutral" disabled={pending}>
+            <AlertDialogCancel variant="outline" disabled={pending}>
               Garder mon accord
             </AlertDialogCancel>
           </AlertDialogFooter>
