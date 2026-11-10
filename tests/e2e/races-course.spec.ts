@@ -149,11 +149,7 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     const sections = page.getByRole("navigation", {
       name: "Sections de la course",
     });
-    for (const label of [
-      "Plan de course",
-      "Nutrition",
-      "Équipement et check-lists",
-    ]) {
+    for (const label of ["Stratégie", "Alimentation", "Équipement"]) {
       await sections.getByRole("link", { name: label }).click();
       await expect(
         page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
@@ -455,7 +451,7 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
     name: "Sections de la course",
   });
   await expect(sections.getByRole("link")).toHaveText([
-    "Course",
+    "Parcours",
     "Check-lists",
   ]);
   await expect(page.getByText("Simulation par tronçon")).toHaveCount(0);
@@ -500,6 +496,8 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
     sections.getByRole("link", { name: "Check-lists" }),
   ).toHaveAttribute("aria-current", "page");
   for (const list of ["J-7", "J-1", "Jour J"])
-    await expect(page.getByText(list, { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByText(list, { exact: true }).filter({ visible: true }).first(),
+    ).toBeVisible();
   await expect(page.getByText("Obligatoire", { exact: true })).toHaveCount(0);
 });

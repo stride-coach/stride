@@ -49,16 +49,12 @@ for (const viewport of [
       name: "Sections de la course",
     });
     await expect(sections.getByRole("link")).toHaveText([
-      "Course",
-      "Plan de course",
-      "Nutrition",
-      "Équipement et check-lists",
+      "Parcours",
+      "Stratégie",
+      "Alimentation",
+      "Équipement",
     ]);
-    for (const label of [
-      "Plan de course",
-      "Nutrition",
-      "Équipement et check-lists",
-    ]) {
+    for (const label of ["Stratégie", "Alimentation", "Équipement"]) {
       await sections.getByRole("link", { name: label }).click();
       await expect(
         page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
@@ -69,7 +65,7 @@ for (const viewport of [
       /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb\/gear$/,
     );
     await expect(
-      sections.getByRole("link", { name: "Équipement et check-lists" }),
+      sections.getByRole("link", { name: "Équipement" }),
     ).toHaveAttribute("aria-current", "page");
     for (const list of ["J-7", "J-1", "Jour J"])
       await expect(page.getByText(list, { exact: true }).first()).toBeVisible();

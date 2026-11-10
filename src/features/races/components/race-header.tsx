@@ -2,8 +2,8 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 import { UploadIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { PulseDot } from "@/components/stride/marks";
+import { Chip } from "@/components/stride/chip";
+import { Status } from "@/components/stride/status";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { coachRequestHref } from "@/features/coach/request";
 import {
@@ -25,6 +25,7 @@ import {
 import { stopTotalSeconds, targetPace } from "../simulation";
 import type { Waypoint } from "../waypoints";
 import { RaceSettingsDialog } from "./race-settings-dialog";
+import { PriorityBadge } from "./races-overview";
 
 function Countdown({
   race,
@@ -57,26 +58,24 @@ function Countdown({
       ? "Heure de départ à définir"
       : `Départ ${start}${plan.startConfirmed ? "" : " · à confirmer"}`);
   return (
-    <div className="flex items-end gap-2.5 md:gap-3">
+    <p className="flex flex-wrap items-baseline gap-x-2">
       <span
         className={cn(
-          "text-[52px] leading-[0.8] font-semibold tabular-nums md:text-[56px]",
+          "text-verdict font-semibold tabular-nums",
           days <= 7 && "text-primary",
         )}
       >
-        {days === 0 ? "Jour J" : days}
+        {days === 0 ? "Jour J" : `J-${days}`}
+        {days > 0 && (
+          <span className="sr-only">
+            {days === 1 ? " jour restant" : " jours restants"}
+          </span>
+        )}
       </span>
-      {days > 0 && (
-        <span className="flex flex-col gap-0.5">
-          <span className="text-body md:text-body">
-            {days === 1 ? "jour restant" : "jours restants"}
-          </span>
-          <span className="text-label text-muted-foreground md:text-body">
-            {detail}
-          </span>
-        </span>
-      )}
-    </div>
+      <span className="text-label text-muted-foreground">
+        {formatRaceDate(race.date)} · {detail}
+      </span>
+    </p>
   );
 }
 
@@ -152,7 +151,7 @@ function stats(
     {
       key: "pace",
       value: pace ? `${formatPace(pace.overall)} /km` : "—",
-      label: "Allure moy.",
+      label: "Allure moyenne",
     },
     ...(margin !== null && margin > 0
       ? [
@@ -197,132 +196,109 @@ export function RaceHeader({
     </RaceSettingsDialog>
   );
   const items = stats(race, plan, course, waypoints);
-  const mobileCount = items.length;
-  const actionClass = "rounded-lg text-body max-md:min-h-11 max-md:flex-1";
+  const actionClass = "max-md:flex-1";
   return (
-    <section className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-6">
-      <div className="flex min-w-0 flex-col gap-3 md:gap-2.5">
-        <MonoLabel size="nano" className="md:text-label">
-          Course {race.priority}
-          {race.date ? ` · ${formatRaceDate(race.date)}` : ""}
-          {plan.labels.length > 0 && (
-            <span className="max-md:hidden"> · {plan.labels.join(" · ")}</span>
-          )}
-        </MonoLabel>
-        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.03em] text-balance md:text-[40px]">
+    <section className="flex flex-col gap-3.5 border-b border-border px-4 py-4.5 md:px-5">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <PriorityBadge priority={race.priority} />
+        <span className="sr-only">Course {race.priority}</span>
+        <h1 className="min-w-0 text-verdict font-semibold text-balance">
           {race.name}
         </h1>
-        <Countdown race={race} plan={plan} today={today} phase={phase} />
+        {plan.labels.map((label) => (
+          <Chip key={label} className="max-md:hidden">
+            {label}
+          </Chip>
+        ))}
+        <div className="max-sm:basis-full sm:ml-auto">
+          <Countdown race={race} plan={plan} today={today} phase={phase} />
+        </div>
       </div>
-      <div className="flex flex-col gap-5 md:items-end md:gap-3.5">
-        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-border bg-border md:flex md:gap-7 md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
-          {items.map((stat) => (
-            <div
-              key={stat.key}
-              className={cn(
-                "flex min-w-0 flex-col gap-1 bg-card px-3 py-2.5 md:gap-0.75 md:bg-transparent md:p-0",
-                stat.mobileOnly && "md:hidden",
-              )}
-            >
-              <dd className="order-1 text-verdict leading-none font-semibold tabular-nums md:text-metric">
-                {stat.edit
-                  ? editTrigger(
-                      <button
-                        type="button"
-                        className="rounded-sm text-left decoration-muted-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-                      >
-                        {stat.value}
-                        <span className="sr-only">
-                          , modifier le départ et l’objectif
-                        </span>
-                      </button>,
-                    )
-                  : stat.value}
-              </dd>
-              <MonoLabel size="nano" asChild className="order-2 md:text-label">
-                <dt>{stat.label}</dt>
-              </MonoLabel>
-            </div>
-          ))}
-          {mobileCount % 3 !== 0 &&
-            Array.from({ length: 3 - (mobileCount % 3) }, (_, index) => (
-              <span
-                key={index}
-                aria-hidden="true"
-                className="bg-card md:hidden"
-              />
-            ))}
-        </dl>
-        {course ? (
-          <div className="flex gap-2">
-            {trail && (
-              <Button
-                asChild
-                variant="outline"
-                size="md"
-                className={actionClass}
-              >
-                <Link href={`${base}/waypoints`}>
-                  <PulseDot tone="success" breathing={false} />
-                  <span>
-                    {waypointCount} {waypointCount > 1 ? "points" : "point"}
-                    <span className="max-md:hidden"> de passage</span>
-                  </span>
-                </Link>
-              </Button>
+      <dl
+        className="grid grid-cols-3 gap-x-4 gap-y-3 border-y border-border py-3.5 sm:grid-cols-[repeat(var(--stat-count),minmax(0,1fr))]"
+        style={{ "--stat-count": items.length } as React.CSSProperties}
+      >
+        {items.map((stat) => (
+          <div
+            key={stat.key}
+            className={cn(
+              "flex min-w-0 flex-col-reverse gap-0.5",
+              stat.mobileOnly && "md:hidden",
             )}
-            {trail && (
-              <Button
-                asChild
-                variant="outline"
-                size="md"
-                className={actionClass}
-              >
-                <Link href={`${base}/waypoints#montre`}>
-                  Envoyer à la montre
-                </Link>
-              </Button>
-            )}
-            <Button
-              asChild
-              variant="outline"
-              size="md"
-              className="rounded-lg text-body max-md:hidden"
+          >
+            <dt className="text-label text-secondary-foreground">
+              {stat.label}
+            </dt>
+            <dd
+              data-slot="metric"
+              className="text-title font-semibold whitespace-nowrap tabular-nums"
             >
+              {stat.edit
+                ? editTrigger(
+                    <button
+                      type="button"
+                      className="rounded-sm text-left decoration-muted-foreground underline-offset-4 hover:underline"
+                    >
+                      {stat.value}
+                      <span className="sr-only">
+                        , modifier le départ et l’objectif
+                      </span>
+                    </button>,
+                  )
+                : stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {course ? (
+        <div className="flex flex-wrap gap-2">
+          {trail && (
+            <Button asChild variant="outline" className={actionClass}>
+              <Link href={`${base}/waypoints`}>
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-primary"
+                />
+                <span>
+                  {waypointCount} {waypointCount > 1 ? "points" : "point"}
+                  <span className="max-md:hidden"> de passage</span>
+                </span>
+              </Link>
+            </Button>
+          )}
+          {trail && (
+            <Button asChild variant="outline" className={actionClass}>
+              <Link href={`${base}/waypoints#montre`}>Envoyer à la montre</Link>
+            </Button>
+          )}
+          <Button asChild variant="ghost" className="max-md:hidden">
+            <Link href={coachRequestHref(null, null, race.id)}>
+              <StrideMark className="size-3.5" />
+              Poser une question
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <Status level="watch" className="text-body font-normal">
+            Aucun GPX pour cette course
+          </Status>
+          <div className="flex gap-2 max-md:w-full md:ml-auto">
+            <Button asChild variant="ghost" className="max-md:hidden">
               <Link href={coachRequestHref(null, null, race.id)}>
                 <StrideMark className="size-3.5" />
                 Poser une question
               </Link>
             </Button>
+            <Button asChild className={actionClass}>
+              <Link href={`${base}/course`}>
+                <UploadIcon className="size-3.5" />
+                Ajouter le GPX
+              </Link>
+            </Button>
           </div>
-        ) : (
-          <div className="flex flex-col gap-2.5 md:items-end">
-            <span className="inline-flex items-center gap-2 text-body text-warning">
-              <PulseDot tone="warning" breathing={false} />
-              Aucun GPX pour cette course
-            </span>
-            <div className="flex gap-2">
-              <Button
-                asChild
-                variant="outline"
-                size="md"
-                className="rounded-lg text-body max-md:hidden"
-              >
-                <Link href={coachRequestHref(null, null, race.id)}>
-                  <StrideMark className="size-3.5" />
-                  Poser une question
-                </Link>
-              </Button>
-              <Button asChild size="md" className={actionClass}>
-                <Link href={`${base}/course`}>
-                  <UploadIcon className="size-3.5" />
-                  Ajouter le GPX
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
