@@ -42,6 +42,7 @@ export function ActivitySearch({
       }}
       role="search"
       aria-label="Rechercher une activité par nom"
+      className="md:w-56"
     >
       {filter !== "all" && <input type="hidden" name="filter" value={filter} />}
       <FieldGroup>
@@ -49,7 +50,7 @@ export function ActivitySearch({
           <FieldLabel htmlFor="activity-search" className="sr-only">
             Rechercher par nom
           </FieldLabel>
-          <InputGroup className="h-11 lg:h-8">
+          <InputGroup className="h-control-auto">
             <InputGroupInput
               key={search}
               id="activity-search"
@@ -63,7 +64,7 @@ export function ActivitySearch({
               <InputGroupButton
                 type="submit"
                 size="icon-sm"
-                className="size-11 lg:size-8"
+                className="size-control-auto"
                 aria-label="Rechercher"
               >
                 <Search />

@@ -16,29 +16,23 @@ export async function ActivityPanel({
   context,
   id,
   now,
-  current,
 }: {
   context: OnboardingContext;
   id: string;
   now: Date;
-  current: boolean;
 }) {
   const [panel, checks] = await Promise.all([
     loadActivityPanel(context, id, now),
     loadPairChecks(context, id),
   ]);
-  if (!panel) {
-    if (current) notFound();
-    return null;
-  }
-  if (current) reconcileGearNotificationsAfterResponse(context, checks);
+  if (!panel) notFound();
+  reconcileGearNotificationsAfterResponse(context, checks);
   const running = activityKind(panel.activity.type) !== "other";
   const check = running ? (checks?.checks.get(id) ?? null) : null;
   const question = check && checks ? pairQuestion(check, checks.shoes) : null;
   return (
     <ActivityDetail
       panel={panel}
-      current={current}
       today={localToday(now)}
       pair={
         check &&

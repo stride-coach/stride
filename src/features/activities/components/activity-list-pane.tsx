@@ -22,12 +22,9 @@ export function ActivityListPane({
   counts,
   weeks,
   pills,
-  selectedId,
-  current,
+  plans,
   registerSnapshot = true,
 }: ActivityListSnapshot & {
-  selectedId: string | null;
-  current: boolean;
   registerSnapshot?: boolean;
 }) {
   const register = useRegisterActivityListSnapshot();
@@ -42,8 +39,20 @@ export function ActivityListPane({
       counts,
       weeks,
       pills,
+      plans,
     }),
-    [activities, total, filter, limit, search, today, counts, weeks, pills],
+    [
+      activities,
+      total,
+      filter,
+      limit,
+      search,
+      today,
+      counts,
+      weeks,
+      pills,
+      plans,
+    ],
   );
 
   useEffect(() => {
@@ -52,12 +61,7 @@ export function ActivityListPane({
 
   return (
     <>
-      <ActivityListHeader
-        current={current}
-        filter={filter}
-        search={search}
-        counts={counts}
-      />
+      <ActivityListHeader filter={filter} search={search} counts={counts} />
       <DataCategoryScope
         categories={["activities"]}
         className="flex min-h-0 flex-1 flex-col"
@@ -65,18 +69,16 @@ export function ActivityListPane({
         <ListScrollRegion
           storageKey={`stride:activities:list:${filter}:${search}`}
           label="Liste des activités"
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:[scrollbar-gutter:stable]"
+          className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pb-18 md:pb-0"
         >
           <ActivityList
             groups={groupActivities(activities, today)}
             filter={filter}
             limit={limit}
             search={search}
-            selectedId={selectedId}
-            current={current}
-            today={today}
             weeks={weeks}
             pills={pills}
+            plans={plans}
           />
           {activities.length > 0 && (
             <>
@@ -87,7 +89,7 @@ export function ActivityListPane({
                 shown={activities.length}
                 total={total}
               />
-              <p className="flex items-center gap-1.75 px-5 pb-4 text-label text-muted-foreground lg:px-3.5">
+              <p className="flex items-center gap-1.75 px-4 pb-4 text-label text-muted-foreground md:px-5">
                 <SourceMark source="provider" />
                 Tout vient de Garmin
               </p>

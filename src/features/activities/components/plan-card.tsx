@@ -5,10 +5,9 @@ import { ProvenanceLabel } from "@/components/stride/provenance";
 import { cn } from "@/lib/utils";
 import type { Comparison } from "../compare";
 import type { PlanCardView } from "../panel";
-import { unplannedPill, type ProgrammeItem } from "../plan-status";
-import { MonoLabel } from "@/components/stride/mono-label";
+import type { ProgrammeItem } from "../plan-status";
 import { CardFeeling } from "./feeling-prompt";
-import { PlanPill } from "./plan-pill";
+import { Status } from "@/components/stride/status";
 
 const tones: Record<Comparison["tone"], string> = {
   better: "text-primary",
@@ -19,7 +18,7 @@ const tones: Record<Comparison["tone"], string> = {
 function ComparisonDetails({ comparison }: { comparison: Comparison }) {
   return (
     <details className="group border-t border-border pt-2.5">
-      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-[13.5px] text-secondary-foreground [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-label text-secondary-foreground [&::-webkit-details-marker]:hidden">
         <span className="flex-1">
           {comparison.lead}
           <strong className={cn("font-semibold", tones[comparison.tone])}>
@@ -27,7 +26,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
           </strong>
           {comparison.tail}
         </span>
-        <span className="text-[12.5px] whitespace-nowrap text-muted-foreground">
+        <span className="text-label whitespace-nowrap text-muted-foreground">
           Détail{" "}
           <span
             aria-hidden="true"
@@ -43,7 +42,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
             <tr className="border-b border-control-border">
               <th
                 scope="col"
-                className="pb-2 text-left text-[9.5px] font-normal text-muted-foreground tabular-nums"
+                className="pb-2 text-left text-label font-normal text-muted-foreground tabular-nums"
               >
                 {comparison.firstColumn}
               </th>
@@ -51,7 +50,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                 <th
                   key={column.key}
                   scope="col"
-                  className="pb-2 text-right text-[9.5px] font-normal whitespace-nowrap text-muted-foreground tabular-nums"
+                  className="pb-2 text-right text-label font-normal whitespace-nowrap text-muted-foreground tabular-nums"
                 >
                   {column.label}
                 </th>
@@ -80,7 +79,7 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
                   <td
                     key={column.key}
                     className={cn(
-                      "py-2.5 text-right text-[17px] font-semibold whitespace-nowrap tabular-nums",
+                      "py-2.5 text-right font-semibold whitespace-nowrap tabular-nums",
                       row.current
                         ? "text-foreground"
                         : "text-secondary-foreground",
@@ -113,9 +112,9 @@ function ComparisonDetails({ comparison }: { comparison: Comparison }) {
 function Programme({ items }: { items: ProgrammeItem[] }) {
   return (
     <div className="flex flex-col">
-      <MonoLabel size="nano" className="pb-1">
+      <span className="pb-1 text-label font-medium text-muted-foreground">
         Programme prévu
-      </MonoLabel>
+      </span>
       <ul>
         {items.map((item, index) => (
           <li
@@ -123,7 +122,7 @@ function Programme({ items }: { items: ProgrammeItem[] }) {
             className="flex justify-between gap-3 border-t border-border py-2.25 text-body"
           >
             <span>{item.label}</span>
-            <span className="text-body-lg font-semibold whitespace-nowrap text-secondary-foreground tabular-nums">
+            <span className="font-semibold whitespace-nowrap text-secondary-foreground tabular-nums">
               {item.value}
             </span>
           </li>
@@ -135,15 +134,12 @@ function Programme({ items }: { items: ProgrammeItem[] }) {
 
 export function PlanCard({ card }: { card: PlanCardView }) {
   const planned = card.kind === "planned";
-  const pill = planned ? card.pill : card.inPlan ? unplannedPill : null;
+  const pill = planned ? card.pill : null;
   const coach = (
     <Button
       asChild
       size="md"
-      className={cn(
-        "max-sm:min-h-11 sm:ml-auto sm:min-h-9",
-        card.strength && "max-sm:w-full",
-      )}
+      className={cn("sm:ml-auto", card.strength && "max-sm:w-full")}
     >
       <Link href={card.coachHref}>En parler au coach</Link>
     </Button>
@@ -158,7 +154,11 @@ export function PlanCard({ card }: { card: PlanCardView }) {
   const header =
     pill || planned || (card.kind === "unplanned" && card.load) ? (
       <div className="flex flex-wrap items-center gap-2">
-        {pill && <PlanPill pill={pill} />}
+        {pill && (
+          <Status level={pill.tone === "warning" ? "watch" : "ok"}>
+            {pill.label}
+          </Status>
+        )}
         {planned ? (
           <>
             <span className="text-body text-muted-foreground">
@@ -168,7 +168,7 @@ export function PlanCard({ card }: { card: PlanCardView }) {
             </span>
             <Link
               href={card.planHref}
-              className="ml-auto inline-flex min-h-8 items-center gap-1 text-[12.5px] text-secondary-foreground hover:text-foreground"
+              className="ml-auto inline-flex min-h-control-auto items-center gap-1 text-label text-secondary-foreground hover:text-foreground"
             >
               Voir dans le plan
               <ChevronRightIcon aria-hidden="true" className="size-3.5" />
@@ -185,14 +185,12 @@ export function PlanCard({ card }: { card: PlanCardView }) {
     <section
       aria-label={planned ? "Séance du plan" : "Hors plan"}
       className={cn(
-        "flex flex-col rounded-2xl border border-border bg-card px-4 py-3.5 sm:px-5 sm:py-4",
+        "flex flex-col rounded-xl border border-border bg-card px-4 py-3.5",
         card.strength ? "gap-3" : "gap-2.5",
       )}
     >
       {header}
-      {planned && card.body && (
-        <p className="text-[15px] leading-[1.45]">{card.body}</p>
-      )}
+      {planned && card.body && <p className="text-body-lg">{card.body}</p>}
       {planned && card.programme && <Programme items={card.programme} />}
       {card.strength ? (
         <>

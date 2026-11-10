@@ -5,6 +5,7 @@ import { sessionVerdict } from "../../src/features/plans/debrief/debrief";
 import { buildDebriefView } from "../../src/features/plans/debrief/view";
 import type { PlanSession } from "../../src/features/plans/model/plan";
 import {
+  activityPlanCell,
   feelingPill,
   isPlannedMatch,
   needsFeeling,
@@ -36,6 +37,30 @@ const match = (
   duration: number | null = 1,
   intensity: number | null = null,
 ) => ({ status, compliance: { duration, intensity } });
+
+describe("activity plan cells", () => {
+  it("gives the planned intensity and the duration compliance", () => {
+    expect(
+      activityPlanCell(session(thresholdSession()), match("partial", 0.734)),
+    ).toEqual({ intensity: { level: 4, label: "Seuil" }, compliance: 73 });
+    expect(
+      activityPlanCell(session(easyRun(45)), match("completed", 0.98)),
+    ).toEqual({ intensity: { level: 2, label: "Facile" }, compliance: 98 });
+  });
+
+  it("has no compliance for a substituted or unmeasured session", () => {
+    expect(
+      activityPlanCell(session(easyRun(45)), match("substituted", 0.5))
+        .compliance,
+    ).toBeNull();
+    expect(
+      activityPlanCell(
+        session(supportSession("strength", 50)),
+        match("completed", null),
+      ),
+    ).toEqual({ intensity: { level: null, label: "Renfo" }, compliance: null });
+  });
+});
 
 describe("activity plan pills", () => {
   it("names the session family with a short verdict", () => {

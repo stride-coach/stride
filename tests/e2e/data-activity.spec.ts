@@ -92,13 +92,17 @@ test("background data stays in place until the athlete applies it", async ({
       .filter({ visible: true })
       .first(),
   ).toContainText("synchronisé");
-  const before = await page.getByRole("article").boundingBox();
+  const before = await page
+    .getByRole("region", { name: "Liste des activités" })
+    .boundingBox();
   value = observation("complete", 21);
   value.sync.categories.activities.lastSuccessAt = "2026-10-13T06:15:00Z";
   await pollNow(page);
   const apply = page.getByRole("button", { name: "Afficher", exact: true });
   await expect(apply).toBeVisible();
-  const after = await page.getByRole("article").boundingBox();
+  const after = await page
+    .getByRole("region", { name: "Liste des activités" })
+    .boundingBox();
   expect(after).toEqual(before);
   await apply.click();
   await expect(apply).not.toBeVisible();
@@ -147,7 +151,7 @@ test("offline and malformed responses retain athlete content", async ({
   );
   await signIn(page);
   await page.goto("/activities");
-  const article = page.getByRole("article");
+  const article = page.getByRole("region", { name: "Liste des activités" });
   await expect(article).toBeVisible();
   await expect(
     page
@@ -272,7 +276,7 @@ test("a failed activities category stays readable while recovery imports", async
     route.fulfill({ json: value }),
   );
   await signIn(page);
-  await page.goto("/activities");
+  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
   const article = page.getByRole("article");
   await expect(article).toBeVisible();
   const status = page
@@ -473,22 +477,17 @@ for (const width of [1440, 390]) {
     await expect(heading).toBeVisible();
     expect(await heading.locator('[data-slot="skeleton"]').count()).toBe(0);
     await expectNoThreadWhile(page, loading);
-    const list = loading.locator(":scope > div > div").first();
-    if (width === 1440) {
-      expect(
-        await list.evaluate((element) => element.getBoundingClientRect().width),
-      ).toBe(340);
-      await expect(
-        loading.getByRole("navigation", { name: "Fil d’Ariane" }),
-      ).toBeVisible();
-    } else {
-      expect(
-        await list.evaluate((element) => element.getBoundingClientRect().width),
-      ).toBe(width);
-      await expect(
-        loading.getByRole("navigation", { name: "Fil d’Ariane" }),
-      ).toBeHidden();
-    }
+    await expect(
+      loading.getByRole("navigation", { name: "Fil d’Ariane" }),
+    ).toHaveCount(0);
+    await expect(
+      loading.getByRole("navigation", { name: "Filtrer par sport" }),
+    ).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
     await page.screenshot({
       path: `test-results/activity-loading-${width}.png`,
     });
@@ -501,7 +500,7 @@ for (const width of [1440, 390]) {
 }
 
 for (const width of [1440, 390]) {
-  test(`activity selection retains the loaded list during preview loading at ${width}px`, async ({
+  test(`activity selection loads the detail and returns to the same list place at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -513,7 +512,6 @@ for (const width of [1440, 390]) {
     const target = list.locator('a[href*="000000000168"]');
     await target.scrollIntoViewIfNeeded();
     const before = await list.evaluate((element) => element.scrollTop);
-    const rows = await list.getByRole("link").count();
     await target.click();
     const loading = page.getByRole("status", {
       name: "Chargement de l’activité",
@@ -521,56 +519,39 @@ for (const width of [1440, 390]) {
     });
     await expect(loading).toBeVisible();
     await expectNoThreadWhile(page, loading, 800);
-    const retainedList = loading.getByRole("region", {
-      name: "Liste des activités",
-      includeHidden: true,
-    });
-    await expect(retainedList).toContainText("69 sur 69 activités");
-    expect(await retainedList.locator("a").count()).toBe(rows);
-    expect(await retainedList.locator('[data-slot="skeleton"]').count()).toBe(
-      0,
-    );
-    await expect(
-      loading.getByRole("searchbox", {
-        name: "Rechercher par nom",
-        includeHidden: true,
-      }),
-    ).toHaveValue("Course");
-    await expect(retainedList.locator('[aria-current="true"]')).toHaveAttribute(
-      "href",
-      /000000000168\?filter=road&limit=100&q=Course$/,
-    );
-    if (width === 1440) {
-      await expect(retainedList).toBeVisible();
-      expect(await retainedList.evaluate((element) => element.scrollTop)).toBe(
-        before,
-      );
-    } else {
-      await expect(retainedList).toBeHidden();
-    }
     await expect(
       loading.locator('[data-slot="skeleton"]').first(),
     ).toBeVisible();
     await page.screenshot({
-      path: `test-results/activity-retained-list-${width}.png`,
+      path: `test-results/activity-detail-loading-${width}.png`,
     });
     await expect(loading).not.toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("article")).toBeVisible();
     await expect(page).toHaveURL(
       /000000000168\?filter=road&limit=100&q=Course$/,
     );
-    if (width === 1440) {
-      const resolvedList = page
-        .getByRole("region", { name: "Liste des activités" })
-        .filter({ visible: true });
-      expect(await resolvedList.evaluate((element) => element.scrollTop)).toBe(
-        before,
-      );
-    }
+    const back =
+      width === 1440
+        ? page
+            .getByRole("navigation", { name: "Fil d’Ariane" })
+            .getByRole("link", { name: "Activités", exact: true })
+        : page.getByRole("link", { name: "Retour aux activités" });
+    await expect(back).toHaveAttribute(
+      "href",
+      "/activities?filter=road&limit=100&q=Course",
+    );
+    await back.click();
+    await expect(list).toContainText("69 sur 69 activités");
+    await expect(
+      page.getByRole("searchbox", { name: "Rechercher par nom" }),
+    ).toHaveValue("Course");
+    await expect
+      .poll(() => list.evaluate((element) => element.scrollTop))
+      .toBe(before);
   });
 }
 
-test("direct activity loading still shows list placeholders without a snapshot", async ({
+test("direct activity loading shows detail placeholders without the list", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -596,21 +577,22 @@ test("a blocked server navigation starts the header thread before its response",
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   await page.goto("/activities");
-  await expect(page.getByRole("article")).toBeVisible();
+  const list = page.getByRole("region", { name: "Liste des activités" });
+  await expect(list).toBeVisible();
   await expect(
     page
       .getByRole("button", { name: /État des données/ })
       .filter({ visible: true })
       .first(),
   ).toContainText("Reconnecter");
-  const before = await page.getByRole("article").boundingBox();
+  const before = await list.boundingBox();
   const gate = await holdNavigation(page, "/progress");
   try {
     await page.getByRole("link", { name: "Santé", exact: true }).click();
     await gate.requested;
     await expectHeaderThread(page);
     expect(new URL(page.url()).pathname).toBe("/activities");
-    expect(await page.getByRole("article").boundingBox()).toEqual(before);
+    expect(await list.boundingBox()).toEqual(before);
     await expect(
       page
         .getByRole("button", { name: /État des données/ })
@@ -634,7 +616,9 @@ test("a superseding navigation cleans up its pending header thread", async ({
 }) => {
   await signIn(page);
   await page.goto("/activities");
-  await expect(page.getByRole("article")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Liste des activités" }),
+  ).toBeVisible();
   const gate = await holdNavigation(page, "/progress");
   try {
     await page.getByRole("link", { name: "Santé", exact: true }).click();
@@ -660,7 +644,9 @@ test("opening a navigation link in another tab leaves the current thread idle", 
 }) => {
   await signIn(page);
   await page.goto("/activities");
-  await expect(page.getByRole("article")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Liste des activités" }),
+  ).toBeVisible();
   const [popup] = await Promise.all([
     context.waitForEvent("page"),
     page
@@ -679,7 +665,9 @@ test("activity search shares pending server navigation feedback", async ({
 }) => {
   await signIn(page);
   await page.goto("/activities");
-  await expect(page.getByRole("article")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Liste des activités" }),
+  ).toBeVisible();
   const gate = await holdNavigation(page, "/activities");
   try {
     await page
@@ -688,7 +676,9 @@ test("activity search shares pending server navigation feedback", async ({
     await page.getByRole("button", { name: "Rechercher", exact: true }).click();
     await gate.requested;
     await expectHeaderThread(page);
-    await expect(page.getByRole("article")).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Liste des activités" }),
+    ).toBeVisible();
   } finally {
     gate.release();
   }

@@ -12,7 +12,7 @@ import type {
   ActivityFilter,
   ActivityWeekSummary,
 } from "../activities";
-import type { ActivityPill } from "../plan-status";
+import type { ActivityPill, ActivityPlanCell } from "../plan-status";
 
 export type ActivityListQuery = {
   filter: ActivityFilter;
@@ -27,6 +27,7 @@ export type ActivityListSnapshot = ActivityListQuery & {
   counts: Record<ActivityFilter, number> | null;
   weeks: Record<string, ActivityWeekSummary>;
   pills: Record<string, ActivityPill[]>;
+  plans: Record<string, ActivityPlanCell>;
 };
 
 const ActivityListSnapshotContext = createContext<{

@@ -27,7 +27,7 @@ test("signed-out athletes are sent to sign-in", async ({ page }) => {
   await expect(page).toHaveURL(/\/sign-in$/);
 });
 
-test("activities are grouped by week, filtered by sport through the URL and opened in place", async ({
+test("activities are grouped by week, filtered by sport through the URL and opened on their own page", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -51,9 +51,7 @@ test("activities are grouped by week, filtered by sport through the URL and open
   await expect(thisWeek).toContainText(/\d+ activités?/);
   await expect(thisWeek).toContainText("km");
   await expect(thisWeek).not.toContainText("Plan :");
-  await expect(
-    page.getByRole("heading", { level: 2, name: "Course à pied" }),
-  ).toBeVisible();
+  await expect(page.getByRole("article")).toHaveCount(0);
   await expect(page.getByText("Tout vient de Garmin")).toBeVisible();
   await expect(list.getByText("Trail · Fontainebleau")).toBeVisible();
   await expect(list.getByText("Renforcement")).toBeVisible();
@@ -67,10 +65,10 @@ test("activities are grouped by week, filtered by sport through the URL and open
 
   const filters = page.getByRole("navigation", { name: "Filtrer par sport" });
   await expect(filters.getByRole("link")).toHaveText([
-    "Tout75",
-    "Course72",
-    "Trail2",
-    "Renfo1",
+    "Tout",
+    "Course",
+    "Trail",
+    "Renfo",
   ]);
   await filters.getByRole("link", { name: /^Trail/ }).click();
   await expect(page).toHaveURL(/\/activities\?filter=trail$/);
@@ -93,8 +91,13 @@ test("activities are grouped by week, filtered by sport through the URL and open
   await expect(detail.getByText("1 620")).toBeVisible();
   await expect(detail.getByText("FC moy.")).toHaveCount(0);
   await expect(
-    page.getByRole("link", { name: /Trail · Trail 80K/ }),
-  ).toHaveAttribute("aria-current", "true");
+    page.getByRole("region", { name: "Liste des activités" }),
+  ).toHaveCount(0);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Fil d’Ariane" })
+      .getByRole("link", { name: "Activités", exact: true }),
+  ).toHaveAttribute("href", "/activities?filter=trail");
 
   await page.goto("/activities?filter=cycling");
   await expect(filters.getByRole("link", { name: /^Vélo/ })).toHaveAttribute(
@@ -106,50 +109,7 @@ test("activities are grouped by week, filtered by sport through the URL and open
   );
 });
 
-test("the selected preview expands and stays centered on a wide desktop", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  await page.goto("/activities");
-  const article = page.getByRole("article");
-  await expect(
-    article.getByRole("heading", { level: 2, name: "Course à pied" }),
-  ).toBeVisible();
-
-  const referenceWidth = await article.evaluate((element) => {
-    const parent = element.parentElement!;
-    return Math.min(parent.clientWidth, 960);
-  });
-  await expect(article).toHaveJSProperty("offsetWidth", referenceWidth);
-  await page.screenshot({
-    path: "test-results/activity-preview-reference-desktop.png",
-  });
-
-  await page.setViewportSize({ width: 2560, height: 1440 });
-
-  const geometry = await article.evaluate((element) => {
-    const article = element.getBoundingClientRect();
-    const pane = element.parentElement!.getBoundingClientRect();
-    return {
-      articleWidth: article.width,
-      articleLeft: article.left,
-      expectedLeft: pane.left + (pane.width - article.width) / 2,
-    };
-  });
-  expect(geometry.articleWidth).toBe(1440);
-  expect(Math.abs(geometry.articleLeft - geometry.expectedLeft)).toBeLessThan(
-    1,
-  );
-  expect(
-    await page.evaluate(() => document.documentElement.scrollWidth),
-  ).toBeLessThanOrEqual(2560);
-  await page.screenshot({
-    path: "test-results/activity-preview-wide-desktop.png",
-  });
-});
-
-test("the list and the detail scroll independently inside a fixed-height shell", async ({
+test("the list scrolls inside a fixed-height shell and keeps its place after an activity", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 800 });
@@ -164,9 +124,6 @@ test("the list and the detail scroll independently inside a fixed-height shell",
         document.documentElement.scrollTop === 0,
     );
   expect(await fits()).toBe(true);
-  const breadcrumb = page.getByRole("navigation", { name: "Fil d’Ariane" });
-  await expect(breadcrumb).toBeInViewport();
-  const detail = page.getByRole("article").locator("xpath=..");
   const scrollable = await list.evaluate(
     (element) => element.scrollHeight - element.clientHeight,
   );
@@ -178,9 +135,7 @@ test("the list and the detail scroll independently inside a fixed-height shell",
   await expect
     .poll(() => list.evaluate((element) => element.scrollTop))
     .toBeGreaterThan(1400);
-  expect(await detail.evaluate((element) => element.scrollTop)).toBe(0);
   expect(await fits()).toBe(true);
-  await expect(breadcrumb).toBeInViewport();
   const stuck = await list.evaluate((element) => {
     const top = element.getBoundingClientRect().top;
     return Array.from(element.querySelectorAll("h2")).some(
@@ -206,13 +161,14 @@ test("the list and the detail scroll independently inside a fixed-height shell",
     /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-[0-9a-f]{12}\?limit=100$/,
   );
   await expect(page.getByRole("article")).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/activities\?limit=100$/);
   await expect
     .poll(() => list.evaluate((element) => element.scrollTop))
     .toBeGreaterThan(before - 5);
   expect(await list.evaluate((element) => element.scrollTop)).toBeLessThan(
     before + 5,
   );
-  await expect(list.locator('[aria-current="true"]')).toBeInViewport();
 });
 
 test("the activity panel shows laps, effort and provenance, and the old detail URL redirects", async ({
@@ -455,37 +411,6 @@ test("the chart shows any set of series and moves the map point with its cursor"
   await page.screenshot({ path: "test-results/activity-data-desktop.png" });
 });
 
-test("an activity already shown in the detail pane is not loaded again", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  const requests: string[] = [];
-  page.on("request", (request) => {
-    const headers = request.headers();
-    if (headers.rsc === "1" && !headers["next-router-prefetch"])
-      requests.push(request.url());
-  });
-
-  await page.goto("/activities");
-  const preview = page.locator('ul a[href^="/activities/"]').first();
-  await expect(preview).toBeVisible();
-  await preview.click();
-  await expect(page).toHaveURL("/activities");
-
-  await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000005");
-  const selected = page.getByRole("link", { name: /Trail · Trail 80K/ });
-  await expect(selected).toHaveAttribute("aria-current", "true");
-  await selected.click();
-  await expect(
-    page
-      .getByRole("article")
-      .getByRole("heading", { level: 1, name: "Trail · Trail 80K" }),
-  ).toBeVisible();
-  await page.waitForTimeout(500);
-  expect(requests).toEqual([]);
-});
-
 test("an unknown or foreign activity is not found", async ({ page }) => {
   await signIn(page);
   for (const id of ["not-an-id", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"]) {
@@ -705,13 +630,14 @@ test("name search filters before pagination and keeps context through drill-down
     .getByRole("region", { name: "Liste des activités" })
     .getByRole("link", { name: /Threshold/ })
     .click();
-  await expect(page).toHaveURL(/\/activities\?filter=road&q=THRESHOLD$/);
-  await expect(
-    page.getByRole("article").getByRole("heading", { name: /Threshold/ }),
-  ).toBeVisible();
-  await page.goto(
-    "/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004?filter=road&q=THRESHOLD",
+  await expect(page).toHaveURL(
+    /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000000004\?filter=road&q=THRESHOLD$/,
   );
+  await expect(
+    page
+      .getByRole("article")
+      .getByRole("heading", { level: 1, name: /Threshold/ }),
+  ).toBeVisible();
   const breadcrumb = page.getByRole("navigation", { name: "Fil d’Ariane" });
   await expect(
     breadcrumb.getByRole("link", { name: "Activités", exact: true }),
@@ -720,7 +646,7 @@ test("name search filters before pagination and keeps context through drill-down
     .getByRole("link", { name: "Activités", exact: true })
     .click();
   const filters = page.getByRole("navigation", { name: "Filtrer par sport" });
-  await expect(filters.getByRole("link")).toHaveText(["Tout1", "Course1"]);
+  await expect(filters.getByRole("link")).toHaveText(["Tout", "Course"]);
   await filters.getByRole("link", { name: /^Tout/ }).click();
   await expect(page).toHaveURL(/\/activities\?q=THRESHOLD$/);
   await page.goto("/activities?filter=trail&q=THRESHOLD");

@@ -1,7 +1,6 @@
-import type { ReactNode } from "react";
 import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
 import { AppHeader } from "@/features/app-shell/components/app-header";
-import { DataActivityLink } from "@/features/data-activity/components/navigation";
+import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import {
   DataActivityStatus,
   DataActivityThread,
@@ -14,99 +13,95 @@ import {
   type ActivityFilter,
 } from "../activities";
 import { ActivitySearch } from "./activity-search";
-import { ActivityFilters, filterChipClass } from "./activity-list";
+import { ActivityFilters, filterItemClass } from "./activity-list";
 
-export function ActivitySplitFrame({
-  current,
-  list,
-  children,
-}: {
-  current: boolean;
-  list: ReactNode;
-  children: ReactNode;
-}) {
+const tabClass =
+  "inline-flex min-h-control-touch items-center rounded-full border px-3 whitespace-nowrap transition-colors duration-150 ease-stride md:min-h-header md:rounded-none md:border-0 md:border-b-2 md:px-0.5";
+
+function ActivityTabs() {
   return (
-    <div className="flex min-h-0 flex-1">
-      <div
+    <nav
+      aria-label="Activités et matériel"
+      className="flex gap-1.5 md:gap-5 md:self-stretch"
+    >
+      <span
+        aria-current="page"
         className={cn(
-          "min-h-0 w-full flex-col bg-background lg:flex lg:w-85 lg:shrink-0 lg:border-r lg:border-border",
-          current ? "hidden" : "flex",
+          tabClass,
+          "border-control-border bg-muted font-medium text-foreground md:border-foreground md:bg-transparent",
         )}
       >
-        {list}
-      </div>
-      <div
+        Sorties
+      </span>
+      <Link
+        href="/gear"
         className={cn(
-          "min-h-0 min-w-0 flex-1 flex-col lg:flex",
-          current ? "flex" : "hidden",
+          tabClass,
+          "border-border text-muted-foreground hover:text-foreground md:border-transparent",
         )}
       >
-        {children}
-      </div>
-    </div>
+        Matériel
+      </Link>
+    </nav>
   );
 }
 
 export function ActivityListHeader({
-  current,
   filter = "all",
   search = "",
   counts = null,
   loading = false,
 }: {
-  current: boolean;
   filter?: ActivityFilter;
   search?: string;
   counts?: Record<ActivityFilter, number> | null;
   loading?: boolean;
 }) {
-  const Heading = current ? "h2" : "h1";
   return (
-    <div className="relative flex shrink-0 flex-col gap-3 border-b border-border px-5 pt-5 pb-3 lg:px-3.5 lg:pt-3.5 lg:pb-2.5">
-      <div className="flex items-center gap-2">
-        <Heading className="flex-1 text-verdict font-semibold lg:text-body-lg">
+    <div className="relative flex shrink-0 flex-col gap-3 border-b border-border px-4 py-3 md:flex-row md:flex-wrap md:items-center md:gap-x-5 md:gap-y-2 md:px-5 md:py-0">
+      <div className="flex items-center gap-2 md:self-stretch">
+        <h1 className="flex-1 text-body-lg font-semibold md:flex md:items-center md:text-body">
           Activités
-        </Heading>
-        <DataActivityStatus />
+        </h1>
+        <DataActivityStatus compact className="shrink-0 md:hidden" />
         <MobileHeaderActions />
       </div>
-      {loading ? (
-        <>
-          <Skeleton className="h-11 w-full rounded-lg lg:h-8" />
-          <div
-            aria-hidden="true"
-            className="-mx-5 flex gap-1.25 overflow-hidden px-5 lg:mx-0 lg:flex-wrap lg:px-0"
-          >
-            {activityFilters.map((item) => (
-              <span
-                key={item}
-                className={cn(
-                  filterChipClass,
-                  "border-border text-muted-foreground",
-                )}
-              >
-                {activityFilterLabels[item]}
-              </span>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <ActivitySearch filter={filter} search={search} />
-          <ActivityFilters filter={filter} search={search} counts={counts} />
-        </>
-      )}
-      <DataActivityThread className="lg:hidden" />
+      <ActivityTabs />
+      <div className="flex flex-col gap-2 md:ml-auto md:flex-row md:items-center md:py-2">
+        {loading ? (
+          <>
+            <Skeleton className="h-control-auto w-full rounded-lg md:w-56" />
+            <div aria-hidden="true" className="flex">
+              <div className="inline-flex gap-0.5 rounded-lg border border-border bg-card p-0.5">
+                {activityFilters.slice(0, 4).map((item) => (
+                  <span
+                    key={item}
+                    className={cn(filterItemClass, "text-muted-foreground")}
+                  >
+                    {activityFilterLabels[item]}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <ActivitySearch filter={filter} search={search} />
+            <ActivityFilters filter={filter} search={search} counts={counts} />
+          </>
+        )}
+      </div>
+      <DataActivityThread />
     </div>
   );
 }
 
 export function ActivityToolbar({
   href = "/activities",
-  children,
+  title,
 }: {
   href?: string;
-  children?: ReactNode;
+  title?: string;
 }) {
   return (
     <AppHeader
@@ -117,13 +112,22 @@ export function ActivityToolbar({
           aria-label="Fil d’Ariane"
           className="flex min-w-0 items-center gap-2 text-body"
         >
-          <DataActivityLink
+          <Link
             href={href}
             className="text-muted-foreground hover:text-foreground"
           >
             Activités
-          </DataActivityLink>
-          {children}
+          </Link>
+          {title && (
+            <>
+              <span aria-hidden="true" className="text-muted-foreground">
+                ›
+              </span>
+              <span aria-current="page" className="truncate font-medium">
+                {title}
+              </span>
+            </>
+          )}
         </nav>
       }
     />

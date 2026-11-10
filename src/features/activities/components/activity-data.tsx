@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import {
@@ -161,7 +160,9 @@ function DataChart({
               left: `calc(${(x / chartWidth) * 100}% ${x > chartWidth * 0.6 ? "- 0.75rem" : "+ 0.75rem"})`,
             }}
           >
-            <MonoLabel size="nano">{view.positions[cursor]}</MonoLabel>
+            <span className="text-label font-medium text-muted-foreground">
+              {view.positions[cursor]}
+            </span>
             {shown.map((series) => (
               <span key={series.key} className="flex items-baseline gap-1">
                 <span aria-hidden="true" className={texts[series.key]}>
@@ -249,13 +250,13 @@ export function ActivityData({
       className="flex min-w-0 flex-col gap-3"
     >
       <div className="flex flex-wrap items-center gap-2.5">
-        <MonoLabel asChild>
-          <h2 id="activity-data">Parcours et données</h2>
-        </MonoLabel>
+        <h2 id="activity-data" className="text-body font-medium">
+          Parcours et données
+        </h2>
         {route && (
-          <MonoLabel className="max-sm:w-full">
+          <span className="text-label text-muted-foreground max-sm:w-full">
             {kilometers.format(route.distanceKm)} km · tracé Garmin
-          </MonoLabel>
+          </span>
         )}
         {charts && available.length > 0 && (
           <ToggleGroup
@@ -269,13 +270,13 @@ export function ActivityData({
               );
               if (next.length > 0) setActive(next);
             }}
-            className="max-w-full gap-0.5 overflow-x-auto rounded-[9px] border border-border bg-card p-0.75 sm:ml-auto sm:flex-wrap"
+            className="max-w-full overflow-x-auto bg-card sm:ml-auto sm:flex-wrap"
           >
             {available.map((key) => (
               <ToggleGroupItem
                 key={key}
                 value={key}
-                className="min-h-7.5 gap-1.5 rounded-md border-l-0 px-2.75 text-[12.5px] data-[state=on]:bg-border data-[state=on]:font-semibold"
+                className="gap-1.5 max-md:min-h-control-touch"
               >
                 <span
                   aria-hidden="true"
@@ -287,7 +288,7 @@ export function ActivityData({
           </ToggleGroup>
         )}
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-background">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         {route ? (
           <div
             role={fullscreen ? "dialog" : undefined}
@@ -315,7 +316,9 @@ export function ActivityData({
           </div>
         ) : (
           <div aria-label="Parcours" role="region" className="px-4 py-5">
-            <MonoLabel>Parcours</MonoLabel>
+            <span className="text-label font-medium text-muted-foreground">
+              Parcours
+            </span>
             <p className="mt-2 text-body text-secondary-foreground">
               Aucun tracé GPS n’est disponible pour cette activité.
             </p>

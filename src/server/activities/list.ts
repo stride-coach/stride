@@ -24,6 +24,7 @@ import {
   type ActivityWeekSummary,
 } from "@/features/activities/activities";
 import {
+  activityPlanCell,
   feelingPill,
   isPlannedMatch,
   needsFeeling,
@@ -32,6 +33,7 @@ import {
   unplannedPill,
   withinPlan,
   type ActivityPill,
+  type ActivityPlanCell,
 } from "@/features/activities/plan-status";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import type { PlanOverview } from "@/server/plans/overview";
@@ -245,10 +247,12 @@ export const loadActivityList = cache(async function loadActivityList(
   );
   const awaiting = recent.filter((activity) => !planned.has(activity.id));
   const pills: Record<string, ActivityPill[]> = {};
+  const plans: Record<string, ActivityPlanCell> = {};
   for (const activity of activities) {
     const match = planned.get(activity.id);
     const session = match ? sessions.get(match.sessionKey) : undefined;
     const list: ActivityPill[] = [];
+    if (match && session) plans[activity.id] = activityPlanCell(session, match);
     if (match && session)
       list.push(
         plannedPill({
@@ -293,5 +297,6 @@ export const loadActivityList = cache(async function loadActivityList(
     counts: await counts,
     weeks,
     pills,
+    plans,
   };
 });

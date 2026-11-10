@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ActivityPill } from "./plan-status";
+import type { ActivityPill, ActivityPlanCell } from "./plan-status";
 
 export const activityFilters = [
   "all",
@@ -141,11 +141,6 @@ const metricLabels: Record<ActivityMetricKey, string> = {
   elevation: "D+",
   heartRate: "FC moy.",
 };
-const listMetricOrder: Record<ActivityKind, ActivityMetricKey[]> = {
-  road: ["distance", "pace"],
-  trail: ["distance", "elevation", "duration"],
-  other: ["duration", "distance"],
-};
 const detailMetricOrder: ActivityMetricKey[] = [
   "distance",
   "duration",
@@ -276,14 +271,6 @@ function present(keys: ActivityMetricKey[], activity: ActivityMeasures) {
   return keys
     .map((key) => metric(activity, key))
     .filter((item): item is ActivityMetric => item !== null);
-}
-
-export function listMetrics(activity: ActivityMeasures) {
-  const metrics = present(
-    listMetricOrder[activityKind(activity.type)],
-    activity,
-  );
-  return metrics.length > 0 ? metrics : present(["duration"], activity);
 }
 
 export function detailMetrics(activity: ActivityMeasures) {
@@ -423,6 +410,7 @@ export type ActivityListView = {
   counts: Record<ActivityFilter, number> | null;
   weeks: Record<string, ActivityWeekSummary>;
   pills: Record<string, ActivityPill[]>;
+  plans: Record<string, ActivityPlanCell>;
 };
 
 export type PlanWeekCounts = { planned: number; done: number };
