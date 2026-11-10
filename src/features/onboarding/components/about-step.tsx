@@ -207,7 +207,7 @@ export function AboutStep({
     <div className="flex flex-1 flex-col gap-7 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-12">
       <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise lg:gap-8">
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-micro text-muted-foreground uppercase lg:hidden">
+          <p className="text-label text-muted-foreground tabular-nums lg:hidden">
             À propos de toi · {group + 1}/{groups.length}
           </p>
           <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
@@ -216,7 +216,7 @@ export function AboutStep({
               Quelques infos que Garmin ne me donne pas.
             </span>
           </h1>
-          <p className="hidden text-lead text-pretty text-secondary-foreground lg:block">
+          <p className="hidden text-body-lg text-pretty text-secondary-foreground lg:block">
             Le reste, je le déduis de ton historique. Tu pourras tout modifier
             plus tard.
           </p>
@@ -224,15 +224,15 @@ export function AboutStep({
         {state.conflicts.length > 0 && (
           <div
             role="alert"
-            className="flex flex-col gap-3 rounded-lg border border-warning-border bg-card p-4"
+            className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"
           >
-            <p className="text-sm font-semibold">
+            <p className="text-body font-semibold">
               Tes réponses ont changé sur un autre appareil.
             </p>
             {state.conflicts.map((field) => (
               <div
                 key={field}
-                className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                className="flex flex-wrap items-center justify-between gap-2 text-body"
               >
                 <span>{labels[field as ProfileField]}</span>
                 <span className="flex gap-2">
@@ -290,7 +290,7 @@ export function AboutStep({
                 ]}
                 onChange={(value) => set("sex", value)}
                 description={
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-label text-muted-foreground">
                     Sert uniquement à estimer ta FC max et tes besoins
                     énergétiques.
                   </p>
@@ -394,7 +394,7 @@ export function AboutStep({
         </div>
         <OnboardingActions className="lg:border-t lg:border-border lg:pt-8">
           {notice && (
-            <p role="alert" className="text-sm text-warning lg:basis-full">
+            <p role="alert" className="text-body text-warning lg:basis-full">
               {notice}
             </p>
           )}
@@ -426,7 +426,7 @@ export function AboutStep({
             </Button>
           </div>
           <div className="flex items-center justify-between gap-3 lg:justify-start">
-            <span className="hidden text-meta text-muted-foreground lg:inline">
+            <span className="hidden text-body text-muted-foreground lg:inline">
               {answered}/{profileFields.length} réponses · environ une minute
             </span>
             <SaveIndicator

@@ -75,8 +75,7 @@ const unavailableStatuses = new Set<GarminConnectionStatus>([
   "provider_unavailable",
 ]);
 
-const monoLabel =
-  "font-mono text-micro tracking-wider text-muted-foreground uppercase";
+const monoLabel = "tabular-nums text-label text-muted-foreground ";
 
 function WatchIcon({ className }: { className?: string }) {
   return (
@@ -116,9 +115,9 @@ function Timeline({ cells, label }: { cells: YearCell[]; label: string }) {
           key={index}
           className={cn(
             "h-2.5 rounded-xs",
-            cell === "full" && "bg-provider",
-            cell === "partial" && "bg-provider/40",
-            cell === "none" && "border border-dashed border-border-strong",
+            cell === "full" && "bg-foreground",
+            cell === "partial" && "bg-foreground/40",
+            cell === "none" && "border border-dashed border-control-border",
           )}
         />
       ))}
@@ -139,18 +138,18 @@ function Banner({
     <div
       role="status"
       className={cn(
-        "flex flex-wrap items-center gap-3 rounded-lg border px-3.5 py-3 text-sm",
+        "flex flex-wrap items-center gap-3 rounded-lg border px-3.5 py-3 text-body",
         tone === "info" && "border-border",
-        tone === "success" && "border-success/30",
+        tone === "success" && "border-primary/30",
         tone === "warning" && "border-warning/30",
-        tone === "danger" && "border-danger-border bg-danger-surface",
+        tone === "danger" && "border-border bg-card",
       )}
     >
       {tone === "info" && (
         <span className="size-2 shrink-0 animate-pulse rounded-full bg-primary motion-reduce:animate-none" />
       )}
       {tone === "success" && (
-        <CheckIcon className="size-3 shrink-0 text-success" />
+        <CheckIcon className="size-3 shrink-0 text-primary" />
       )}
       {tone === "warning" && (
         <TriangleAlertIcon className="size-3 shrink-0 text-warning" />
@@ -245,11 +244,11 @@ export default async function GarminSettingsPage() {
     <div className="flex flex-col gap-6 md:gap-10">
       <section className="flex flex-wrap items-center justify-between gap-5">
         <div className="flex items-center gap-4">
-          <span className="grid size-13 place-items-center rounded-lg border border-border-strong bg-muted">
+          <span className="grid size-13 place-items-center rounded-lg border border-control-border bg-muted">
             <WatchIcon />
           </span>
           <div className="flex flex-col gap-1">
-            <h1 className="text-3xl leading-tight font-semibold tracking-tight">
+            <h1 className="text-display leading-tight font-semibold tracking-tight">
               Garmin
             </h1>
             <GarminConnectionLabel
@@ -276,7 +275,7 @@ export default async function GarminSettingsPage() {
             Déconnecter…
           </Button>
         </div>
-        <SyncRequestMessage className="basis-full text-sm md:text-right" />
+        <SyncRequestMessage className="basis-full text-body md:text-right" />
       </section>
 
       {reconnect && (
@@ -332,8 +331,8 @@ export default async function GarminSettingsPage() {
           <div key={item.label} className="flex flex-col gap-0.75 py-4">
             <span
               className={cn(
-                "truncate font-metric text-[1.75rem] leading-none font-semibold tabular-nums",
-                item.tone === "success" && "text-success",
+                "truncate text-[1.75rem] leading-none font-semibold tabular-nums",
+                item.tone === "success" && "text-primary",
               )}
             >
               {item.value}
@@ -344,11 +343,11 @@ export default async function GarminSettingsPage() {
       </section>
 
       <section className="flex flex-col">
-        <div className="grid items-end gap-5 border-b border-border-strong pb-2.5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="grid items-end gap-5 border-b border-control-border pb-2.5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.6fr)_minmax(0,1fr)]">
           <h2 className={monoLabel}>Données Garmin</h2>
           <div
             aria-hidden="true"
-            className="hidden grid-cols-9 gap-0.5 font-mono text-nano text-muted-foreground md:grid"
+            className="hidden grid-cols-9 gap-0.5 text-label text-muted-foreground tabular-nums md:grid"
           >
             {timelineCells(null, currentYear).years.map((year) => (
               <span key={year}>{String(year).slice(2)}</span>
@@ -380,7 +379,7 @@ export default async function GarminSettingsPage() {
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="text-body font-semibold">{label.title}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     {label.detail}
                   </span>
                 </div>
@@ -391,15 +390,15 @@ export default async function GarminSettingsPage() {
                   }
                 />
                 <span className="flex flex-col gap-0.5">
-                  <span className="font-metric text-xl leading-tight font-semibold tabular-nums">
+                  <span className="text-verdict leading-tight font-semibold tabular-nums">
                     {value}
                   </span>
                   <span
                     className={cn(
-                      "flex items-center gap-1.5 text-xs",
+                      "flex items-center gap-1.5 text-label",
                       item.state === "complete" &&
                         item.activityCount !== null &&
-                        "text-success",
+                        "text-primary",
                       item.state === "partial" && "text-warning",
                       item.state === "failed" && "text-destructive",
                       (item.state === "pending" || item.state === "running") &&
@@ -428,11 +427,11 @@ export default async function GarminSettingsPage() {
             );
           })
         ) : (
-          <p className="py-4 text-sm text-secondary-foreground">
+          <p className="py-4 text-body text-secondary-foreground">
             L’état de la synchronisation est momentanément indisponible.
           </p>
         )}
-        <p className="pt-3 text-sm leading-relaxed text-muted-foreground">
+        <p className="pt-3 text-body leading-relaxed text-muted-foreground">
           Années en pointillés : Garmin n’a aucune donnée sur la période,
           souvent parce qu’une ancienne montre ne la mesurait pas. Stride
           s’adapte aux trous, inutile de les combler.
@@ -442,13 +441,13 @@ export default async function GarminSettingsPage() {
       <div className="grid gap-10 md:grid-cols-2">
         <section className="flex flex-col gap-3">
           <h2 className={monoLabel}>Ce que Stride peut faire</h2>
-          <div className="flex flex-col border-t border-border text-sm">
+          <div className="flex flex-col border-t border-border text-body">
             <div className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 border-b border-border py-3.25">
               <span>Lire tes activités et données de santé</span>
-              <span className="font-mono text-nano tracking-wider text-success uppercase">
+              <span className="text-label text-primary tabular-nums">
                 Obligatoire
               </span>
-              <span className="col-span-full text-xs text-muted-foreground">
+              <span className="col-span-full text-label text-muted-foreground">
                 Sans ça, rien à analyser pour te coacher.
               </span>
             </div>
@@ -457,7 +456,7 @@ export default async function GarminSettingsPage() {
         </section>
         <section className="flex flex-col gap-3">
           <h2 className={monoLabel}>Synchros récentes</h2>
-          <div className="flex flex-col border-t border-border text-sm">
+          <div className="flex flex-col border-t border-border text-body">
             {history.length === 0 ? (
               <p className="py-3 text-secondary-foreground">
                 Les synchronisations apparaîtront ici après le premier import.
@@ -468,7 +467,7 @@ export default async function GarminSettingsPage() {
                   key={item.key}
                   className="grid grid-cols-[5.75rem_1fr] gap-3 border-b border-border py-2.75"
                 >
-                  <span className="font-metric text-base font-semibold text-secondary-foreground tabular-nums">
+                  <span className="text-body-lg font-semibold text-secondary-foreground tabular-nums">
                     {item.when}
                   </span>
                   <span>{item.text}</span>
@@ -484,14 +483,14 @@ export default async function GarminSettingsPage() {
           <div className="flex flex-wrap items-baseline gap-3">
             <h2 className={monoLabel}>Sur ta montre · 7 prochains jours</h2>
             {lastWatchSend && (
-              <span className="ml-auto text-xs text-muted-foreground">
+              <span className="ml-auto text-label text-muted-foreground">
                 Dernier envoi {lastWatchSend}
               </span>
             )}
           </div>
           <div className="flex flex-col border-t border-border">
             {upcoming.length === 0 ? (
-              <p className="py-3 text-sm text-secondary-foreground">
+              <p className="py-3 text-body text-secondary-foreground">
                 Aucune séance prévue dans les 7 prochains jours.
               </p>
             ) : (
@@ -507,17 +506,19 @@ export default async function GarminSettingsPage() {
                 return (
                   <div
                     key={item.sessionKey}
-                    className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border-subtle py-3 md:grid-cols-[5.625rem_minmax(0,1fr)_auto]"
+                    className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border py-3 md:grid-cols-[5.625rem_minmax(0,1fr)_auto]"
                   >
-                    <span className="font-metric text-[17px] font-semibold text-secondary-foreground tabular-nums">
+                    <span className="text-[17px] font-semibold text-secondary-foreground tabular-nums">
                       {item.day}
                     </span>
-                    <span className="text-sm font-semibold">{item.title}</span>
+                    <span className="text-body font-semibold">
+                      {item.title}
+                    </span>
                     <span className="flex flex-wrap items-center justify-start gap-2.5 max-md:col-start-2 md:justify-end">
                       <span
                         className={cn(
                           "flex items-center gap-1.5 text-[13px]",
-                          status.tone === "success" && "text-success",
+                          status.tone === "success" && "text-primary",
                           status.tone === "warning" && "text-warning",
                           status.tone === "danger" && "text-destructive",
                           status.tone === "muted" && "text-muted-foreground",
@@ -541,7 +542,7 @@ export default async function GarminSettingsPage() {
               })
             )}
           </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="text-body leading-relaxed text-muted-foreground">
             Les séances arrivent dans ton calendrier Garmin sous le nom « Stride
             · … » et se lancent depuis la montre comme un entraînement guidé.
             Quand ton plan change, je remplace ou retire la séance. Je ne touche
@@ -594,7 +595,7 @@ export default async function GarminSettingsPage() {
       <>
         <div className="flex flex-col gap-4.5 md:hidden">
           <div className="flex items-center gap-3.5">
-            <span className="grid size-13 place-items-center rounded-lg border border-border-strong bg-muted">
+            <span className="grid size-13 place-items-center rounded-lg border border-control-border bg-muted">
               <WatchIcon />
             </span>
             <div className="flex flex-col gap-0.5">
@@ -604,7 +605,7 @@ export default async function GarminSettingsPage() {
               <GarminConnectionLabel status={status} />
             </div>
           </div>
-          <div className="flex flex-col gap-2.5 rounded-xl border border-danger-border bg-danger-surface p-4">
+          <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-4">
             <p className="text-body leading-snug">
               La connexion Garmin a expiré
               {reconnectedLabel && (
@@ -615,7 +616,7 @@ export default async function GarminSettingsPage() {
               )}
               . Rien de nouveau n’est arrivé depuis.
             </p>
-            <p className="text-sm leading-relaxed text-secondary-foreground">
+            <p className="text-body leading-relaxed text-secondary-foreground">
               Ton historique est en sécurité. Je te coache avec les données
               jusque-là : le suivi de récupération est moins fiable tant que tu
               ne te reconnectes pas.
@@ -638,7 +639,7 @@ export default async function GarminSettingsPage() {
                 className="flex items-center justify-between gap-3 border-b border-border py-3.5 first:border-t"
               >
                 <dt className="text-body">{item.label}</dt>
-                <dd className="font-metric text-lg font-semibold tabular-nums">
+                <dd className="text-title font-semibold tabular-nums">
                   {item.value}
                 </dd>
               </div>
@@ -653,7 +654,7 @@ export default async function GarminSettingsPage() {
             >
               Reconnecter Garmin
             </Button>
-            <p className="text-center text-xs leading-snug text-muted-foreground">
+            <p className="text-center text-label leading-snug text-muted-foreground">
               Une seule connexion sur Garmin. Les données manquées s’importent
               automatiquement.
             </p>

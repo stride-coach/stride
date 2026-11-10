@@ -31,7 +31,7 @@ const familyIcons: Record<
   },
   activity: {
     icon: NavActivitiesIcon,
-    className: "border-provider/30 bg-provider/14 text-provider",
+    className: "border-foreground/30 bg-foreground/14 text-foreground",
   },
   sync: {
     icon: RefreshCwIcon,
@@ -72,9 +72,9 @@ function StatusMark({ status }: { status: NotificationStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs",
+        "inline-flex items-center gap-1.5 text-label",
         status.tone === "warning" && "text-warning",
-        status.tone === "success" && "text-success",
+        status.tone === "success" && "text-primary",
         status.tone === "muted" && "text-muted-foreground",
       )}
     >
@@ -85,7 +85,7 @@ function StatusMark({ status }: { status: NotificationStatus }) {
           aria-hidden="true"
           className={cn(
             "size-1.5 shrink-0 rounded-full",
-            status.tone === "warning" ? "bg-warning" : "bg-dim",
+            status.tone === "warning" ? "bg-warning" : "bg-data-1",
           )}
         />
       )}
@@ -98,7 +98,7 @@ function NotificationRow({ view }: { view: NotificationView }) {
   return (
     <li
       className={cn(
-        "border-t border-border-subtle first:border-t-0",
+        "border-t border-border first:border-t-0",
         view.unread && "bg-card",
       )}
     >
@@ -114,7 +114,7 @@ function NotificationRow({ view }: { view: NotificationView }) {
         >
           <span
             className={cn(
-              "text-sm leading-[1.35]",
+              "text-body leading-[1.35]",
               view.unread
                 ? "font-semibold text-foreground"
                 : "font-medium text-secondary-foreground",
@@ -144,7 +144,7 @@ function NotificationRow({ view }: { view: NotificationView }) {
             {view.action && (
               <button
                 type="submit"
-                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border-strong px-3 text-[12.5px] whitespace-nowrap text-foreground hover:border-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:min-h-8"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-control-border px-3 text-[12.5px] whitespace-nowrap text-foreground hover:border-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:min-h-8"
               >
                 {view.action}
               </button>
@@ -176,10 +176,10 @@ export function NotificationList({
     <div>
       {days.map((day) => (
         <section key={day.key} aria-label={day.label}>
-          <h3 className="px-3.5 pt-3.5 pb-2 font-mono text-micro font-normal text-muted-foreground uppercase">
+          <h3 className="px-3.5 pt-3.5 pb-2 text-label font-normal text-muted-foreground tabular-nums">
             {day.label}
           </h3>
-          <ul className="border-t border-border-subtle">
+          <ul className="border-t border-border">
             {day.items.map((view) => (
               <NotificationRow key={view.id} view={view} />
             ))}

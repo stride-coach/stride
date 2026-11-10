@@ -49,11 +49,11 @@ export function HealthConsentGate({
     <div className="flex min-h-svh flex-col bg-background">
       <header className="flex min-h-14 items-center gap-2.5 px-5 pt-4 pb-1.5 md:px-6 md:py-4.5">
         <StrideMark className="size-4.5 md:size-5" />
-        <span className="font-metric text-lg font-bold tracking-wider italic md:text-xl">
+        <span className="text-title font-bold tracking-wider italic tabular-nums md:text-verdict">
           STRIDE
         </span>
         {email && (
-          <span className="ml-auto hidden text-meta text-muted-foreground md:inline">
+          <span className="ml-auto hidden text-body text-muted-foreground md:inline">
             {email}
           </span>
         )}
@@ -65,7 +65,7 @@ export function HealthConsentGate({
         >
           <div className="flex flex-col gap-4.5 px-5 pt-5 md:gap-7 md:px-0 md:pt-0">
             {withdrawnOn && (
-              <span className="inline-flex min-h-7 w-fit items-center gap-2 rounded-full border border-warning-border px-2.5 text-xs text-warning">
+              <span className="inline-flex min-h-7 w-fit items-center gap-2 rounded-full border border-border px-2.5 text-label text-warning">
                 <span
                   aria-hidden="true"
                   className="size-1.5 rounded-full bg-warning"
@@ -83,7 +83,7 @@ export function HealthConsentGate({
               >
                 Ton accord pour continuer
               </h1>
-              <p className="text-body text-secondary-foreground md:text-lead">
+              <p className="text-body text-secondary-foreground md:text-body-lg">
                 Pour te coacher, je lis ton sommeil, ta VFC, ta fréquence
                 cardiaque et les douleurs que tu signales.{" "}
                 <span className="hidden md:inline">
@@ -97,11 +97,11 @@ export function HealthConsentGate({
               {commitments.map((item) => (
                 <li
                   key={item.short}
-                  className="grid grid-cols-[1.125rem_1fr] gap-2.5 border-b border-border py-2.5 text-sm last:border-b-0 md:grid-cols-[1.375rem_1fr] md:gap-3 md:py-3 md:text-body"
+                  className="grid grid-cols-[1.125rem_1fr] gap-2.5 border-b border-border py-2.5 text-body last:border-b-0 md:grid-cols-[1.375rem_1fr] md:gap-3 md:py-3 md:text-body"
                 >
                   <CheckIcon
                     aria-hidden="true"
-                    className="mt-0.5 size-3.5 text-success md:mt-1 md:size-4"
+                    className="mt-0.5 size-3.5 text-primary md:mt-1 md:size-4"
                   />
                   <span>
                     <span className="hidden md:inline">{item.long}</span>
@@ -111,7 +111,7 @@ export function HealthConsentGate({
               ))}
             </ul>
           </div>
-          <div className="mt-auto flex flex-col gap-3 border-t border-border-subtle px-5 pt-4 pb-7.5 md:mt-0 md:gap-7 md:border-0 md:p-0">
+          <div className="mt-auto flex flex-col gap-3 border-t border-border px-5 pt-4 pb-7.5 md:mt-0 md:gap-7 md:border-0 md:p-0">
             <HealthConsentField checked={consent} onCheckedChange={setConsent}>
               <span className="hidden md:inline">
                 Consentement explicite au sens de l’article 9 du RGPD.
@@ -126,13 +126,13 @@ export function HealthConsentGate({
               >
                 Donner mon accord
               </Button>
-              <p className="hidden text-meta text-muted-foreground md:block">
+              <p className="hidden text-body text-muted-foreground md:block">
                 Ton plan et tes séances reprennent aussitôt.
               </p>
             </div>
             <nav
               aria-label="Autres options"
-              className="flex justify-center gap-5 text-sm md:justify-start md:pt-2"
+              className="flex justify-center gap-5 text-body md:justify-start md:pt-2"
             >
               <Link
                 href="/settings/privacy"

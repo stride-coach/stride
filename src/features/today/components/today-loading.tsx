@@ -57,7 +57,7 @@ export function TodayLoading() {
                       {[0, 1, 2, 3].map((row) => (
                         <div
                           key={row}
-                          className="flex flex-col gap-2 border-t border-border-subtle py-2.75"
+                          className="flex flex-col gap-2 border-t border-border py-2.75"
                         >
                           <Skeleton className="h-4 w-1/2" />
                           <Skeleton className="h-1.5 w-full" />

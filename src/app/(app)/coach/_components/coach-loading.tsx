@@ -54,7 +54,7 @@ function ConversationListLoading() {
               {staffAgents.map((agent) => (
                 <span
                   key={agent}
-                  className="flex w-15.5 flex-col items-center gap-1.5 text-xs text-secondary-foreground"
+                  className="flex w-15.5 flex-col items-center gap-1.5 text-label text-secondary-foreground"
                 >
                   <StaffPortrait agent={agent} size={56} decorative />
                   <span aria-hidden="true">{staff[agent].name}</span>
@@ -64,7 +64,7 @@ function ConversationListLoading() {
           </section>
         </div>
         <div className="flex items-center gap-2 max-[979px]:hidden">
-          <h2 className="text-lead font-semibold">Conversations</h2>
+          <h2 className="text-body-lg font-semibold">Conversations</h2>
           <Button
             asChild
             variant="outline"
@@ -116,7 +116,7 @@ function ConversationListLoading() {
 function ThreadHeader({ title }: { title: string | null }) {
   const staff = useStaff();
   return (
-    <div className="flex min-h-14 shrink-0 items-center gap-2.5 border-b border-border-subtle py-2 pr-2.5 pl-1.5 min-[980px]:gap-3 min-[980px]:px-6 min-[980px]:py-3">
+    <div className="flex min-h-14 shrink-0 items-center gap-2.5 border-b border-border py-2 pr-2.5 pl-1.5 min-[980px]:gap-3 min-[980px]:px-6 min-[980px]:py-3">
       <Button
         asChild
         variant="ghost"
@@ -132,7 +132,7 @@ function ThreadHeader({ title }: { title: string | null }) {
           <StaffStack agents={["coach"]} size={30} />
           <span className="flex min-w-0 flex-1 flex-col">
             <h1 className="truncate text-body font-semibold">{title}</h1>
-            <span className="truncate text-xs text-muted-foreground">
+            <span className="truncate text-label text-muted-foreground">
               {participantsLine(staff, ["coach"])}
             </span>
           </span>
@@ -158,7 +158,7 @@ function EmptyThread({ plan }: { plan: boolean }) {
   return (
     <div className="mx-auto flex w-full max-w-205 flex-col gap-4 px-4 pt-8 sm:px-[clamp(20px,3vw,44px)] sm:pt-12">
       <StaffPortrait agent="coach" size={56} />
-      <h2 className="text-headline font-semibold">
+      <h2 className="text-verdict font-semibold">
         {plan ? `Demande ton plan à ${staff.coach.name}` : "Écris à ton staff"}
       </h2>
       <p className="max-w-140 text-body leading-normal text-secondary-foreground">
@@ -202,9 +202,9 @@ function ThreadLogLoading() {
 function ComposerLoading() {
   const staff = useStaff();
   return (
-    <div className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border-subtle bg-surface-inset px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5">
+    <div className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5">
       <Skeleton aria-hidden="true" className="h-13 w-full rounded-xl" />
-      <p className="text-xs text-muted-foreground max-sm:hidden">
+      <p className="text-label text-muted-foreground max-sm:hidden">
         {staff.coach.name} lit chaque message et passe la main au bon
         spécialiste, deux au plus par demande. Les questions d’un spécialiste
         lui reviennent directement. Rien ne change sans ton accord.
@@ -237,7 +237,7 @@ export function CoachLoading({
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(
-            "min-h-0 w-full flex-col bg-surface-inset min-[980px]:flex min-[980px]:w-80 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border-subtle",
+            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-80 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border",
             current ? "hidden" : "flex",
           )}
         >
@@ -295,11 +295,11 @@ export function TeamLoading() {
                 Une équipe autour de toi, dans une seule conversation.
               </span>
             </h1>
-            <p className="text-sm leading-normal text-secondary-foreground md:hidden">
+            <p className="text-body leading-normal text-secondary-foreground md:hidden">
               {coach.name} mène. Les spécialistes te parlent directement quand
               ta demande touche leur domaine, et tu valides chaque changement.
             </p>
-            <p className="max-w-170 text-base leading-[1.55] text-secondary-foreground max-md:hidden">
+            <p className="max-w-170 text-body-lg leading-[1.55] text-secondary-foreground max-md:hidden">
               Comme le staff d’un athlète pro : {coach.name} mène, et chaque
               spécialiste apporte son regard quand ta demande touche son
               domaine. Choisis le visage de chacun, leur expertise reste la
@@ -312,10 +312,10 @@ export function TeamLoading() {
           />
           <section className="flex flex-col gap-3.5">
             <div className="flex items-baseline gap-2.5 pt-1.5 md:gap-3 md:pt-0">
-              <h2 className="text-[17px] font-semibold md:text-lg">
+              <h2 className="text-[17px] font-semibold md:text-title">
                 Les spécialistes
               </h2>
-              <span className="text-xs text-muted-foreground md:text-meta">
+              <span className="text-label text-muted-foreground md:text-body">
                 Consultés par {coach.name}
                 <span className="max-md:hidden">, jamais en direct</span>
               </span>

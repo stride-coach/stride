@@ -86,7 +86,7 @@ const suggestionMessages: Record<
 function SourceTag({ source }: { source: "stride" | "life" | null }) {
   if (!source) return null;
   return (
-    <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-nano text-muted-foreground uppercase">
+    <span className="ml-auto inline-flex items-center gap-1.5 text-label text-muted-foreground tabular-nums">
       <SourceMark source="estimate" />
       {source === "stride" ? "Suggestion Stride" : "Réglage Stride"}
     </span>
@@ -118,7 +118,7 @@ function Chips<T extends string>({
     >
       <legend
         className={cn(
-          "flex w-full items-center pb-2 text-meta text-secondary-foreground",
+          "flex w-full items-center pb-2 text-body text-secondary-foreground",
           invalid && "text-destructive",
         )}
       >
@@ -135,7 +135,7 @@ function Chips<T extends string>({
               checked={value === option}
               onChange={() => onChange(option)}
             />
-            <span className="inline-flex min-h-10 items-center rounded-md border border-border-strong px-3 text-sm text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:font-semibold peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+            <span className="inline-flex min-h-10 items-center rounded-md border border-control-border px-3 text-body text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:font-semibold peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
               {labels[option]}
             </span>
           </label>
@@ -186,7 +186,7 @@ function TextField({
           onChange={(event) => onChange(event.target.value)}
         />
         {suffix && (
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-body text-muted-foreground">
             {suffix}
           </span>
         )}
@@ -370,7 +370,7 @@ export function ShoeForm({
       <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
         {mode === "create" && (
           <div className="flex flex-col gap-3">
-            <label htmlFor="shoe-name" className="text-sm font-semibold">
+            <label htmlFor="shoe-name" className="text-body font-semibold">
               Nom de la paire
             </label>
             <div className="flex flex-wrap gap-2">
@@ -403,7 +403,7 @@ export function ShoeForm({
               </Button>
             </div>
             {suggestion && (
-              <p role="status" className="text-meta text-secondary-foreground">
+              <p role="status" className="text-body text-secondary-foreground">
                 {suggestion}
               </p>
             )}
@@ -442,7 +442,7 @@ export function ShoeForm({
       </section>
 
       <section className="flex flex-col gap-4.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-lead font-semibold">La paire</h2>
+        <h2 className="text-body-lg font-semibold">La paire</h2>
         <Chips
           legend="Type"
           options={shoeCategories}
@@ -513,7 +513,7 @@ export function ShoeForm({
 
       {mode === "create" && (
         <section className="flex flex-col gap-4.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <h2 className="text-lead font-semibold">Kilomètres</h2>
+          <h2 className="text-body-lg font-semibold">Kilomètres</h2>
           <Chips
             legend="Cette paire a-t-elle déjà couru ?"
             options={["new", "worn"] as const}
@@ -563,11 +563,11 @@ export function ShoeForm({
 
       {mode === "create" && (
         <section className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <h2 className="flex items-center gap-2.5 text-lead font-semibold">
+          <h2 className="flex items-center gap-2.5 text-body-lg font-semibold">
             <SourceMark source="provider" />
             Dans Garmin
           </h2>
-          <p className="text-sm leading-normal text-secondary-foreground">
+          <p className="text-body leading-normal text-secondary-foreground">
             Stride crée la paire dans Garmin Connect. Garmin comptera ensuite
             chaque sortie et te préviendra quand elle atteindra sa durée de vie.
           </p>
@@ -585,7 +585,7 @@ export function ShoeForm({
       )}
 
       {message && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-body text-destructive">
           {message}
         </p>
       )}

@@ -12,7 +12,7 @@ export function MobileTabBar({
       aria-label={label}
       data-slot="mobile-tab-bar"
       className={cn(
-        "grid grid-cols-5 items-center border-t border-border bg-surface-inset px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] text-label tracking-normal",
+        "grid grid-cols-5 items-center border-t border-border bg-background px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] text-label tracking-normal",
         className,
       )}
       {...props}

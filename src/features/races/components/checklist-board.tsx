@@ -48,12 +48,12 @@ const errors = {
 } as const;
 
 const chipTones: Record<ChipStatus, string> = {
-  ready: "text-success border-success/35",
+  ready: "text-primary border-primary/35",
   check: "text-warning border-warning/35",
   buy: "text-destructive border-destructive/35",
-  test: "text-provider border-provider/35",
+  test: "text-data-2 border-data-2/35",
   todo: "text-muted-foreground border-muted-foreground/35",
-  weather: "text-provider border-provider/35",
+  weather: "text-data-2 border-data-2/35",
 };
 
 export function GroupCard({
@@ -75,9 +75,11 @@ export function GroupCard({
       {...props}
     >
       <div className="flex items-baseline gap-3 pb-1.5">
-        <h2 className="text-[15px] font-semibold md:text-base">{title}</h2>
+        <h2 className="text-[15px] font-semibold md:text-body-lg">{title}</h2>
         {aside && (
-          <div className="ml-auto text-xs text-muted-foreground">{aside}</div>
+          <div className="ml-auto text-label text-muted-foreground">
+            {aside}
+          </div>
         )}
       </div>
       {children}
@@ -108,7 +110,7 @@ function StatusChip({
         disabled={disabled}
         aria-label={`Statut de ${name} : ${chipLabels[chip]}`}
         className={cn(
-          "inline-flex min-h-6 items-center rounded-full border px-2.25 py-0.5 text-[11px] whitespace-nowrap hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-70 md:text-xs",
+          "inline-flex min-h-6 items-center rounded-full border px-2.25 py-0.5 text-[11px] whitespace-nowrap hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-70 md:text-label",
           chipTones[chip],
         )}
       >
@@ -160,7 +162,7 @@ function AddForm({
         type="button"
         aria-label={`Ajouter un élément à ${label}`}
         onClick={() => setOpen(true)}
-        className="mt-1 flex min-h-8 items-center gap-1.5 self-start rounded-md text-meta text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+        className="mt-1 flex min-h-8 items-center gap-1.5 self-start rounded-md text-body text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
       >
         <PlusIcon aria-hidden="true" className="size-3.5" />
         Ajouter
@@ -344,7 +346,7 @@ export function ChecklistGroup({
         </Button>
       )}
       {items.length === 0 && !hasTemplate && empty && (
-        <p className="border-t border-border py-2.5 text-sm text-muted-foreground">
+        <p className="border-t border-border py-2.5 text-body text-muted-foreground">
           {empty}
         </p>
       )}
@@ -353,7 +355,7 @@ export function ChecklistGroup({
           return (
             <div
               key={item.id}
-              className="flex items-center gap-2.5 border-t border-border py-1.5 text-sm"
+              className="flex items-center gap-2.5 border-t border-border py-1.5 text-body"
             >
               <span aria-hidden="true" className="text-destructive">
                 ✕
@@ -361,7 +363,7 @@ export function ChecklistGroup({
               <span className="min-w-0 flex-1">
                 {item.label}
                 {item.detail && (
-                  <span className="block text-xs text-muted-foreground">
+                  <span className="block text-label text-muted-foreground">
                     {item.detail}
                   </span>
                 )}
@@ -393,9 +395,11 @@ export function ChecklistGroup({
               className="size-4.5"
             />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-sm">{name}</span>
+              <span className="text-body">{name}</span>
               {detail && (
-                <span className="text-xs text-muted-foreground">{detail}</span>
+                <span className="text-label text-muted-foreground">
+                  {detail}
+                </span>
               )}
               {list === "gear_kit" && pairs.length > 0 && (
                 <select
@@ -411,7 +415,7 @@ export function ChecklistGroup({
                         : "Paire retirée de la ligne.",
                     )
                   }
-                  className="mt-1 max-w-full self-start rounded-md border border-border bg-muted px-1.5 py-1 text-xs text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+                  className="mt-1 max-w-full self-start rounded-md border border-border bg-muted px-1.5 py-1 text-label text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
                 >
                   <option value="">Aucune paire liée</option>
                   {pairs.map((option) => (
@@ -481,7 +485,7 @@ export function DropBagCard({
       }
     >
       {nutrition && (
-        <div className="flex justify-between gap-2.5 border-t border-border py-2 text-meta md:text-sm">
+        <div className="flex justify-between gap-2.5 border-t border-border py-2 text-body md:text-body">
           <span>{nutrition}</span>
           <span className="shrink-0 text-muted-foreground">
             <span className="max-md:hidden">depuis le </span>plan nutrition
@@ -491,7 +495,7 @@ export function DropBagCard({
       {extras.map((extra, index) => (
         <div
           key={`${extra}-${index}`}
-          className="flex items-center justify-between gap-2.5 border-t border-border py-1 text-meta md:text-sm"
+          className="flex items-center justify-between gap-2.5 border-t border-border py-1 text-body md:text-body"
         >
           <span>{extra}</span>
           <button
@@ -511,7 +515,7 @@ export function DropBagCard({
         </div>
       ))}
       {!nutrition && extras.length === 0 && (
-        <p className="border-t border-border py-2.5 text-sm text-muted-foreground">
+        <p className="border-t border-border py-2.5 text-body text-muted-foreground">
           Rien dans le sac pour le moment.
         </p>
       )}

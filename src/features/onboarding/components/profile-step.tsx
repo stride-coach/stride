@@ -72,14 +72,14 @@ export function ProfileStep({
     <div className="flex flex-1 flex-col gap-8 motion-safe:animate-rise lg:gap-10">
       <header className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-x-10">
         <div className="contents">
-          <p className="font-mono text-label text-muted-foreground uppercase lg:col-span-2">
+          <p className="text-label text-muted-foreground tabular-nums lg:col-span-2">
             Profil d’athlète · première version
           </p>
           <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:col-span-2 lg:text-[2.75rem]">
             Voici ce que je sais de toi
             {profile.firstName ? `, ${profile.firstName}` : ""}.
           </h1>
-          <p className="max-w-176 text-body text-pretty text-secondary-foreground lg:text-lead">
+          <p className="max-w-176 text-body text-pretty text-secondary-foreground lg:text-body-lg">
             Construit à partir de {integer.format(profile.activityCount)}{" "}
             activités
             {profile.history ? ` sur ${profile.history}` : ""}
@@ -127,26 +127,26 @@ export function ProfileStep({
                       )}
                     />
                     <dt className="sr-only">Zone {zone.zone}</dt>
-                    <dd className="font-metric text-sm font-semibold lg:text-metric-sm">
+                    <dd className="text-body font-semibold tabular-nums lg:text-metric">
                       {zone.lower}–{zone.upper}
                       <span className="sr-only"> bpm</span>
                     </dd>
                   </div>
                 ))}
               </dl>
-              <p className="text-sm text-secondary-foreground">
+              <p className="text-body text-secondary-foreground">
                 {profile.heartRateZones.method === "karvonen"
                   ? `Estimation Stride · Karvonen (réserve cardiaque). FC max observée : ${profile.heartRateZones.maximum} bpm. FC au repos : ${profile.heartRateZones.resting} bpm, médiane de ${profile.heartRateZones.restingSamples} observations Garmin du ${formatFrenchDate(profile.heartRateZones.windowStart)} au ${formatFrenchDate(profile.heartRateZones.windowEnd)}.`
                   : `Estimation Stride · Pourcentage de la FC max observée (${profile.heartRateZones.maximum} bpm). Karvonen nécessite au moins sept observations récentes de FC au repos ; cette base n’est pas encore disponible.`}
               </p>
-              <p className="text-meta text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Activités Garmin · 12 derniers mois. Bornes : 50/60/70/80/90/100
                 %. La FC max observée n’est pas un maximum physiologique mesuré.
                 Ces zones estimées ne proviennent pas des réglages Garmin.
               </p>
             </>
           ) : (
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               Les zones ne sont pas disponibles sans FC max observée valide.
             </p>
           )}
@@ -174,7 +174,7 @@ export function ProfileStep({
             <h2 id="next-title" className="text-body font-semibold">
               Ensuite : ton premier plan
             </h2>
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               Je préparerai tes premières semaines à partir de ce profil. Tu
               valides avant que quoi que ce soit soit planifié.
             </p>
@@ -247,8 +247,8 @@ function ProfileActions({
 function Total({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 lg:items-end">
-      <dd className="font-metric text-metric-lg font-semibold">{value}</dd>
-      <dt className="order-last font-mono text-nano text-muted-foreground uppercase">
+      <dd className="text-metric font-semibold tabular-nums">{value}</dd>
+      <dt className="order-last text-label text-muted-foreground tabular-nums">
         {label}
       </dt>
     </div>
@@ -259,7 +259,7 @@ function Legend() {
   return (
     <ul
       aria-label="Sources"
-      className="flex flex-wrap gap-x-4 gap-y-2 font-mono text-nano text-muted-foreground uppercase"
+      className="flex flex-wrap gap-x-4 gap-y-2 text-label text-muted-foreground tabular-nums"
     >
       <li className="flex items-center gap-1.5">
         <SourceMark source="provider" />
@@ -286,7 +286,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-4 border-t border-border pt-5">
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-verdict font-semibold">{title}</h2>
       {children}
     </section>
   );
@@ -300,18 +300,18 @@ function Facts({ facts }: { facts: ProfileFact[] }) {
           key={fact.key}
           className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-1 border-b border-border py-3"
         >
-          <dt className="text-sm">{fact.label}</dt>
+          <dt className="text-body">{fact.label}</dt>
           <dd
             className={cn(
               "text-right",
               fact.value
-                ? "font-metric text-metric-sm font-semibold"
-                : "text-sm text-muted-foreground",
+                ? "text-metric font-semibold tabular-nums"
+                : "text-body text-muted-foreground",
             )}
           >
             {fact.value ?? "Pas encore disponible"}
           </dd>
-          <dd className="col-span-2 flex items-center gap-1.5 font-mono text-nano text-muted-foreground uppercase">
+          <dd className="col-span-2 flex items-center gap-1.5 text-label text-muted-foreground tabular-nums">
             <SourceMark
               source={fact.source === "garmin" ? "provider" : "manual"}
             />
@@ -346,14 +346,14 @@ function WeeklyBars({ weeks }: { weeks: WeekBar[] }) {
             >
               <span
                 aria-hidden="true"
-                className="w-full rounded-t-[4px] bg-provider/80 transition-colors group-hover/bar:bg-provider group-focus-visible/bar:bg-provider"
+                className="w-full rounded-t-[4px] bg-foreground/80 transition-colors group-hover/bar:bg-foreground group-focus-visible/bar:bg-foreground"
                 style={{
                   height: `${Math.max(week.hours > 0 ? 6 : 0, (week.hours / max) * 100)}%`,
                 }}
               />
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded-md border border-border bg-muted px-2 py-1 text-xs whitespace-nowrap group-hover/bar:block group-focus-visible/bar:block"
+                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded-md border border-border bg-muted px-2 py-1 text-label whitespace-nowrap group-hover/bar:block group-focus-visible/bar:block"
               >
                 {label}
               </span>
@@ -361,7 +361,7 @@ function WeeklyBars({ weeks }: { weeks: WeekBar[] }) {
           );
         })}
       </ol>
-      <figcaption className="flex justify-between font-mono text-nano text-muted-foreground uppercase">
+      <figcaption className="flex justify-between text-label text-muted-foreground tabular-nums">
         <span>Il y a 16 semaines</span>
         <span>Cette semaine</span>
       </figcaption>

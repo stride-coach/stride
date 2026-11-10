@@ -241,7 +241,7 @@ export function PushSettings({
               />
             ))}
           </PreferenceGroup>
-          <p className="px-1.5 text-xs leading-snug text-muted-foreground md:px-0 md:pt-3">
+          <p className="px-1.5 text-label leading-snug text-muted-foreground md:px-0 md:pt-3">
             {categoriesEnabled
               ? "Tout reste dans ta cloche, même quand une notification est coupée ici."
               : "Active cet appareil pour choisir ce que tu reçois."}
@@ -318,12 +318,12 @@ function DeviceRow({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-2.5 max-md:last:border-b-0 md:grid-cols-[13.75rem_minmax(0,1fr)] md:gap-x-6 md:px-0 md:py-4">
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span id="push-device-label" className="text-body md:text-sm">
+        <span id="push-device-label" className="text-body md:text-body">
           {label}
         </span>
         <span
           id="push-device-hint"
-          className="text-xs leading-snug text-muted-foreground"
+          className="text-label leading-snug text-muted-foreground"
           aria-live="polite"
         >
           {status ? (
@@ -350,7 +350,7 @@ function DeviceRow({
           {status && (
             <span
               aria-hidden="true"
-              className="text-sm text-secondary-foreground max-md:hidden"
+              className="text-body text-secondary-foreground max-md:hidden"
             >
               {checked ? "Activées" : "Désactivées"}
             </span>
@@ -376,7 +376,7 @@ function CategoryRow({
   const id = `push-${category}`;
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-0.5 border-b border-border px-4 py-2.5 last:border-b-0 md:px-0 md:py-3.5">
-      <span id={`${id}-label`} className="text-body md:text-sm">
+      <span id={`${id}-label`} className="text-body md:text-body">
         {label}
       </span>
       <Switch
@@ -389,7 +389,7 @@ function CategoryRow({
       />
       <span
         id={`${id}-hint`}
-        className="text-xs leading-snug text-muted-foreground"
+        className="text-label leading-snug text-muted-foreground"
       >
         {hint}
       </span>
@@ -409,7 +409,7 @@ function InstallSteps({ label }: { label: DeviceLabel | null }) {
           <span className="text-body font-semibold">
             Installe Stride sur ton {device}
           </span>
-          <span className="text-xs leading-snug text-muted-foreground">
+          <span className="text-label leading-snug text-muted-foreground">
             Sur {device}, les notifications passent uniquement par l’app
             installée.
           </span>
@@ -436,11 +436,11 @@ function InstallSteps({ label }: { label: DeviceLabel | null }) {
         ].map((step, index) => (
           <li
             key={index}
-            className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 text-sm"
+            className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 text-body"
           >
             <span
               aria-hidden="true"
-              className="grid size-7 place-items-center rounded-full border border-border-strong font-metric text-[15px] font-semibold"
+              className="grid size-7 place-items-center rounded-full border border-control-border text-[15px] font-semibold tabular-nums"
             >
               {index + 1}
             </span>

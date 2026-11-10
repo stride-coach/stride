@@ -46,7 +46,7 @@ export function WelcomeStep({
           <h1 className="text-[2.125rem] leading-none font-semibold tracking-[-0.035em] lg:text-display">
             Configurons ton coach.
           </h1>
-          <p className="text-body text-pretty text-secondary-foreground lg:text-lg lg:leading-relaxed">
+          <p className="text-body text-pretty text-secondary-foreground lg:text-title lg:leading-relaxed">
             Un bon coach commence par comprendre comment tu t’entraînes.
             Connecte Garmin et je lis ton historique — des années de sorties, de
             sommeil et de récupération — pour que ton premier plan te
@@ -61,7 +61,7 @@ export function WelcomeStep({
             >
               <span
                 className={cn(
-                  "font-metric text-metric font-semibold tabular-nums",
+                  "text-metric font-semibold tabular-nums",
                   index === 0 ? "text-primary" : "text-muted-foreground",
                 )}
               >
@@ -69,7 +69,7 @@ export function WelcomeStep({
               </span>
               <span className="flex flex-col gap-0.75 lg:gap-1.5">
                 <span className="text-body font-semibold">{stage.title}</span>
-                <span className="text-meta text-muted-foreground">
+                <span className="text-body text-muted-foreground">
                   {stage.description}
                 </span>
               </span>
@@ -85,7 +85,7 @@ export function WelcomeStep({
           >
             {failed ? "Réessayer" : "C’est parti"}
           </Button>
-          <span className="text-center text-xs text-muted-foreground lg:text-left lg:text-meta">
+          <span className="text-center text-label text-muted-foreground lg:text-left lg:text-body">
             Je ne modifie jamais ton plan sans te demander.
           </span>
         </OnboardingActions>

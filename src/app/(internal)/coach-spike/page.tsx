@@ -41,7 +41,7 @@ export default async function CoachSpikePage() {
   ]);
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <h1 className="font-metric text-3xl uppercase">
+      <h1 className="text-display uppercase tabular-nums">
         Coach — test Managed Agents
       </h1>
       <CoachSpike

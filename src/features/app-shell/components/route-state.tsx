@@ -31,7 +31,7 @@ function BrokenTrail() {
       />
       <path
         d="M250 100S300 72 340 60 440 36 520 30"
-        className="stroke-border-strong"
+        className="stroke-control-border"
         strokeDasharray="4 6"
         strokeWidth="2"
       />
@@ -90,7 +90,7 @@ export function RouteError({
         <MonoLabel size="micro">Erreur de chargement</MonoLabel>
         <h1
           id="route-error-title"
-          className="text-headline font-semibold tracking-tight"
+          className="text-verdict font-semibold tracking-tight"
         >
           Cette page n’a pas pu se charger.
         </h1>
@@ -122,7 +122,7 @@ export function RouteNotFound({ item }: { item: MissingItem }) {
         <MonoLabel size="micro">Erreur 404</MonoLabel>
         <p
           aria-hidden="true"
-          className="font-metric text-[5.5rem] leading-[0.9] font-bold tracking-[-0.02em] text-primary italic md:text-[6rem]"
+          className="text-[5.5rem] leading-[0.9] font-bold tracking-[-0.02em] text-primary italic tabular-nums md:text-[6rem]"
         >
           404
         </p>
@@ -130,7 +130,7 @@ export function RouteNotFound({ item }: { item: MissingItem }) {
       <div className="flex flex-col gap-3">
         <h1
           id="route-not-found-title"
-          className="text-headline font-semibold tracking-tight"
+          className="text-verdict font-semibold tracking-tight"
         >
           {title}
         </h1>

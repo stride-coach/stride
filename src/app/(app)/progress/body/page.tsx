@@ -106,7 +106,7 @@ export default async function ProgressBodyPage({
               today={today}
             />
           </Suspense>
-          <p className="text-xs leading-normal text-muted-foreground">
+          <p className="text-label leading-normal text-muted-foreground">
             Vue jour : courbes détaillées chargées depuis Garmin quand tu ouvres
             une journée (FC toutes les 2 min, stress toutes les 3 min, Body
             Battery, phases de sommeil, pas par heure). Les vues 14 et 30 jours
@@ -128,7 +128,7 @@ export default async function ProgressBodyPage({
           <div className="flex flex-col gap-2.5 sm:gap-3.5">
             <h1 className={titleClass}>{reading.headline}</h1>
             {reading.summary && (
-              <p className="max-w-150 text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
+              <p className="max-w-150 text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
                 {reading.summary}
               </p>
             )}

@@ -21,7 +21,7 @@ export function PublicWordmark({ className }: { className?: string }) {
       )}
     >
       <StrideMark className="size-5 md:size-5.5" strokeWidth="2.2" />
-      <span className="font-metric text-xl font-bold tracking-wider italic md:text-[22px]">
+      <span className="text-verdict font-bold tracking-wider italic tabular-nums md:text-[22px]">
         STRIDE
       </span>
     </Link>
@@ -30,11 +30,14 @@ export function PublicWordmark({ className }: { className?: string }) {
 
 export function PublicHeader({ withSections = false }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border-subtle bg-background">
+    <header className="sticky top-0 z-20 border-b border-border bg-background">
       <div className="mx-auto flex h-15 max-w-300 items-center gap-8 pr-2 pl-4 md:h-17 md:px-10">
         <PublicWordmark />
         {withSections && (
-          <nav aria-label="Sections" className="hidden gap-6.5 text-sm lg:flex">
+          <nav
+            aria-label="Sections"
+            className="hidden gap-6.5 text-body lg:flex"
+          >
             {sections.map((section) => (
               <a
                 key={section.href}
@@ -49,7 +52,7 @@ export function PublicHeader({ withSections = false }) {
         <div className="ml-auto flex items-center gap-2.5">
           <Link
             href="/sign-in"
-            className="rounded-md p-3 text-[15px] text-foreground hover:text-primary md:px-2.5 md:text-sm"
+            className="rounded-md p-3 text-[15px] text-foreground hover:text-primary md:px-2.5 md:text-body"
           >
             Se connecter
           </Link>

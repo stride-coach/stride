@@ -143,14 +143,14 @@ export function PasswordGuidance({
                 "h-1 flex-1 rounded-full",
                 segment <= policy.score
                   ? policy.score === 4
-                    ? "bg-success"
+                    ? "bg-primary"
                     : "bg-foreground"
                   : "bg-border",
               )}
             />
           ))}
         </div>
-        <span className="text-xs text-secondary-foreground">
+        <span className="text-label text-secondary-foreground">
           {policy.strength}
         </span>
       </div>
@@ -163,7 +163,7 @@ export function PasswordGuidance({
             <span
               className={cn(
                 "mr-2",
-                rule.met ? "text-success" : "text-muted-foreground",
+                rule.met ? "text-primary" : "text-muted-foreground",
               )}
               aria-hidden="true"
             >

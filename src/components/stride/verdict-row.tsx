@@ -48,9 +48,9 @@ export function VerdictRow({
       {...props}
     >
       <span className="flex min-w-0 flex-col">
-        <span className="text-sm">{label}</span>
+        <span className="text-body">{label}</span>
         {detail && (
-          <span className="text-xs text-muted-foreground">{detail}</span>
+          <span className="text-label text-muted-foreground">{detail}</span>
         )}
       </span>
       <Metric
@@ -79,7 +79,7 @@ export function VerdictRow({
       ) : (
         <span
           className={cn(
-            "text-xs text-pretty text-muted-foreground",
+            "text-label text-pretty text-muted-foreground",
             children
               ? "col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto"
               : "col-span-2 sm:col-span-1",

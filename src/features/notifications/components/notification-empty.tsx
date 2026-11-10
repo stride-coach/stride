@@ -15,13 +15,13 @@ export function NotificationEmpty({
         className,
       )}
     >
-      <span className="grid size-14 place-items-center rounded-2xl border border-dashed border-border-strong text-muted-foreground">
+      <span className="grid size-14 place-items-center rounded-2xl border border-dashed border-control-border text-muted-foreground">
         <BellIcon className="size-5.5" />
       </span>
-      <h2 className="text-lg font-semibold">
+      <h2 className="text-title font-semibold">
         {filtered ? "Rien dans ce filtre" : "Tu es à jour"}
       </h2>
-      <p className="max-w-80 text-sm leading-normal text-muted-foreground">
+      <p className="max-w-80 text-body leading-normal text-muted-foreground">
         {filtered
           ? "Aucune notification de ce type sur les 30 derniers jours."
           : "Les messages du staff, les imports Garmin et les changements de ton plan arriveront ici."}

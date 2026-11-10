@@ -107,8 +107,8 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
   if (gear.length === 0)
     return (
       <section className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lead font-semibold">Aucune paire à importer</h2>
-        <p className="max-w-150 text-sm leading-normal text-secondary-foreground">
+        <h2 className="text-body-lg font-semibold">Aucune paire à importer</h2>
+        <p className="max-w-150 text-body leading-normal text-secondary-foreground">
           Ton compte Garmin n’a pas de chaussures qui ne soient pas déjà dans
           Stride. Ajoute tes paires dans Stride : elles seront créées dans
           Garmin.
@@ -155,10 +155,10 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                   htmlFor={`import-${item.gearUuid}`}
                   className="flex flex-col gap-0.5"
                 >
-                  <span className="truncate text-sm font-medium">
+                  <span className="truncate text-body font-medium">
                     {item.name}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     {item.retired
                       ? "retirée dans Garmin"
                       : "active dans Garmin"}
@@ -173,7 +173,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                         category: event.target.value as ShoeCategory,
                       })
                     }
-                    className="h-9 w-fit rounded-md border border-border-strong bg-surface-panel px-2.5 text-meta text-foreground"
+                    className="h-9 w-fit rounded-md border border-input bg-background px-2.5 text-body text-foreground"
                   >
                     {shoeCategories.map((category) => (
                       <option key={category} value={category}>
@@ -189,7 +189,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                         terrain: event.target.value as ShoeTerrain,
                       })
                     }
-                    className="h-9 w-fit rounded-md border border-border-strong bg-surface-panel px-2.5 text-meta text-foreground"
+                    className="h-9 w-fit rounded-md border border-input bg-background px-2.5 text-body text-foreground"
                   >
                     {shoeTerrains.map((terrain) => (
                       <option key={terrain} value={terrain}>
@@ -200,7 +200,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                 </span>
               </div>
               <span className="col-start-2 flex items-center gap-2 sm:col-start-auto sm:flex-col sm:items-end sm:gap-0.5">
-                <span className="font-metric text-[19px] font-semibold tabular-nums">
+                <span className="text-[19px] font-semibold tabular-nums">
                   {kmFormat.format(item.garminKm)} km
                 </span>
                 <MonoLabel
@@ -220,14 +220,14 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                     value={row.currentKm}
                     aria-invalid={wrong || undefined}
                     className={cn(
-                      "text-right font-metric text-lg font-semibold tabular-nums",
+                      "text-right text-title font-semibold tabular-nums",
                       extra > 0.5 && "border-foreground",
                     )}
                     onChange={(event) =>
                       update(item.gearUuid, { currentKm: event.target.value })
                     }
                   />
-                  <span className="text-meta text-muted-foreground">km</span>
+                  <span className="text-body text-muted-foreground">km</span>
                 </span>
                 <span
                   className={cn(
@@ -244,13 +244,13 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
           );
         })}
       </section>
-      <p className="text-meta leading-normal text-secondary-foreground">
+      <p className="text-body leading-normal text-secondary-foreground">
         Les anciennes activités restent sans paire : leurs kilomètres sont déjà
         dans le total que tu saisis. Tu pourras compléter la fiche de chaque
         paire ensuite.
       </p>
       {message && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-body text-destructive">
           {message}
         </p>
       )}

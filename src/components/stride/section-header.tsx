@@ -20,7 +20,7 @@ export function SectionHeader({
       className={cn("flex items-baseline justify-between gap-3", className)}
       {...props}
     >
-      <Heading className="text-xl font-semibold tracking-tight text-balance">
+      <Heading className="text-verdict font-semibold tracking-tight text-balance">
         {title}
       </Heading>
       {meta && (

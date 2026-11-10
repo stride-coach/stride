@@ -23,7 +23,7 @@ export function NotificationsLoading() {
                 <h1 className="text-[28px] leading-[1.1] font-semibold tracking-[-0.02em]">
                   Notifications
                 </h1>
-                <p className="text-meta text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Ce que le staff, Garmin et ton plan ont fait pendant que tu
                   courais. 30 derniers jours.
                 </p>
@@ -36,12 +36,12 @@ export function NotificationsLoading() {
             />
             <div
               aria-hidden="true"
-              className="overflow-hidden border-border md:rounded-xl md:border md:bg-surface-panel"
+              className="overflow-hidden border-border md:rounded-xl md:border md:bg-background"
             >
               {Array.from({ length: 6 }, (_, item) => (
                 <div
                   key={item}
-                  className="flex gap-3 border-b border-border-subtle px-4 py-3.5 last:border-b-0"
+                  className="flex gap-3 border-b border-border px-4 py-3.5 last:border-b-0"
                 >
                   <Skeleton className="size-8 shrink-0 rounded-full" />
                   <div className="flex min-w-0 flex-1 flex-col gap-2">

@@ -161,7 +161,7 @@ export function AppShell({
                 >
                   <DropdownMenuContent className="w-60" align="start">
                     <DropdownMenuLabel>Objectif</DropdownMenuLabel>
-                    <p className="px-2 pb-2 text-sm text-foreground">
+                    <p className="px-2 pb-2 text-body text-foreground">
                       {goal
                         ? `${goal.name} · ${goal.detail}`
                         : "Aucun objectif"}
@@ -221,7 +221,7 @@ export function AppShell({
                       <SidebarMenuButton
                         asChild
                         size="sm"
-                        className="min-h-7.5 gap-2 text-meta text-muted-foreground"
+                        className="min-h-7.5 gap-2 text-body text-muted-foreground"
                       >
                         <Link href="/settings/goals">
                           <PlusIcon className="size-3.5" />
@@ -258,41 +258,41 @@ export function AppShell({
                   syncDot={false}
                 >
                   <DropdownMenuContent
-                    className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-lg border border-border-strong bg-popover p-1.5"
+                    className="w-(--radix-dropdown-menu-trigger-width) min-w-60 gap-px rounded-lg border border-control-border bg-popover p-1.5"
                     side="top"
                     align="start"
                   >
-                    <div className="mb-1 flex items-center gap-2.5 border-b border-border-strong px-2.5 pt-2 pb-2.5">
+                    <div className="mb-1 flex items-center gap-2.5 border-b border-control-border px-2.5 pt-2 pb-2.5">
                       <span
                         aria-hidden="true"
-                        className="grid size-8 shrink-0 place-items-center rounded-md bg-border-strong text-xs font-semibold"
+                        className="grid size-8 shrink-0 place-items-center rounded-md bg-control-border text-label font-semibold"
                       >
                         {athlete.initials}
                       </span>
                       <span className="flex min-w-0 flex-col">
-                        <span className="truncate text-sm font-semibold">
+                        <span className="truncate text-body font-semibold">
                           {athlete.name}
                         </span>
-                        <span className="truncate text-xs text-muted-foreground">
+                        <span className="truncate text-label text-muted-foreground">
                           {athlete.detail}
                         </span>
                       </span>
                     </div>
                     <DropdownMenuItem
                       asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-sm [&_svg]:text-muted-foreground"
+                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
                     >
                       <Link href="/settings/profile">
                         <AccountMenuProfileIcon />
                         Profil
-                        <span className="ml-auto text-xs text-muted-foreground">
+                        <span className="ml-auto text-label text-muted-foreground">
                           {account.profilePercent}%
                         </span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-sm [&_svg]:text-muted-foreground"
+                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
                     >
                       <Link href="/settings">
                         <AccountMenuSettingsIcon />
@@ -304,7 +304,7 @@ export function AppShell({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-sm [&_svg]:text-muted-foreground"
+                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
                     >
                       <Link href="/settings/connections">
                         <AccountMenuConnectionsIcon />
@@ -314,14 +314,14 @@ export function AppShell({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="min-h-9 gap-2.5 px-2.5 text-sm [&_svg]:text-muted-foreground"
+                      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
                     >
                       <Link href="/settings/privacy">
                         <AccountMenuPrivacyIcon />
                         Données et confidentialité
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="my-1 bg-border-strong" />
+                    <DropdownMenuSeparator className="my-1 bg-control-border" />
                     <ShortcutHelpMenuItem />
                     <SignOutMenuItem />
                   </DropdownMenuContent>

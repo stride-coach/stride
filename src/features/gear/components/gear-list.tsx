@@ -11,37 +11,37 @@ function PairCard({ pair }: { pair: PairCardView }) {
   return (
     <Link
       href={`/gear/${pair.id}`}
-      className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-foreground transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring"
+      className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-foreground transition-colors hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring"
     >
       <div className="flex flex-wrap items-center gap-2">
         <MonoLabel
           size="nano"
           tone="secondary"
-          className="rounded-sm border border-border-strong px-1.5 py-0.5"
+          className="rounded-sm border border-control-border px-1.5 py-0.5"
         >
           {pair.category}
         </MonoLabel>
         {!pair.garminLinked && (
-          <span className="text-xs text-muted-foreground">Hors Garmin</span>
+          <span className="text-label text-muted-foreground">Hors Garmin</span>
         )}
       </div>
       <div className="flex flex-col gap-0.5">
-        <span className="text-meta text-muted-foreground">{pair.brand}</span>
-        <h2 className="text-lead font-semibold tracking-[-0.015em]">
+        <span className="text-body text-muted-foreground">{pair.brand}</span>
+        <h2 className="text-body-lg font-semibold tracking-[-0.015em]">
           {pair.model}
         </h2>
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline gap-1.5">
-          <span className="font-metric text-[40px] leading-[0.9] font-semibold tabular-nums">
+          <span className="text-[40px] leading-[0.9] font-semibold tabular-nums">
             {pair.totalKm}
           </span>
-          <span className="text-meta text-muted-foreground">
+          <span className="text-body text-muted-foreground">
             / {pair.lifespanKm} km
           </span>
           <span
             className={cn(
-              "ml-auto font-metric text-lg font-semibold tabular-nums",
+              "ml-auto text-title font-semibold tabular-nums",
               pair.high ? "text-warning" : "text-muted-foreground",
             )}
           >
@@ -51,7 +51,7 @@ function PairCard({ pair }: { pair: PairCardView }) {
         <WearGauge wear={pair.wear} />
         <span
           className={cn(
-            "text-xs",
+            "text-label",
             pair.high ? "text-warning" : "text-muted-foreground",
           )}
         >
@@ -59,7 +59,7 @@ function PairCard({ pair }: { pair: PairCardView }) {
         </span>
       </div>
       {(pair.specs || pair.lastRun) && (
-        <div className="flex flex-col gap-1 border-t border-border pt-3 text-xs text-muted-foreground">
+        <div className="flex flex-col gap-1 border-t border-border pt-3 text-label text-muted-foreground">
           {pair.specs && <span>{pair.specs}</span>}
           {pair.lastRun && <span>Dernière sortie : {pair.lastRun}</span>}
         </div>
@@ -70,7 +70,7 @@ function PairCard({ pair }: { pair: PairCardView }) {
 
 function Legend() {
   return (
-    <div className="flex flex-wrap gap-x-4.5 gap-y-2 text-xs text-muted-foreground">
+    <div className="flex flex-wrap gap-x-4.5 gap-y-2 text-label text-muted-foreground">
       <span className="inline-flex items-center gap-1.5">
         <SourceMark source="provider" />
         km comptés par Garmin
@@ -102,7 +102,7 @@ export function GearList({
           <h1 className="text-[clamp(32px,3.5vw,44px)] leading-none font-semibold tracking-[-0.03em]">
             Matériel
           </h1>
-          <p className="text-sm text-secondary-foreground">
+          <p className="text-body text-secondary-foreground">
             {empty
               ? "Ajoute tes chaussures : Garmin comptera leurs kilomètres."
               : `${view.active.length > 1 ? `${view.active.length} paires actives` : `${view.active.length} paire active`} · ${view.totalKm} km cumulés · les kilomètres viennent de Garmin`}
@@ -127,10 +127,10 @@ export function GearList({
 
       {empty ? (
         <section className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6">
-          <h2 className="text-lead font-semibold">
+          <h2 className="text-body-lg font-semibold">
             Aucune paire pour l’instant
           </h2>
-          <p className="max-w-150 text-sm leading-normal text-secondary-foreground">
+          <p className="max-w-150 text-body leading-normal text-secondary-foreground">
             Stride crée chaque paire dans Garmin Connect. Garmin compte ensuite
             chaque sortie et te prévient quand la paire est usée.
           </p>
@@ -150,7 +150,7 @@ export function GearList({
 
       {view.retired.length > 0 && (
         <details className="group border-t border-border pt-3.5">
-          <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm text-secondary-foreground [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-body text-secondary-foreground [&::-webkit-details-marker]:hidden">
             Paires retirées · {view.retired.length}
           </summary>
           <ul className="mt-2">
@@ -158,10 +158,10 @@ export function GearList({
               <li key={pair.id} className="border-t border-border">
                 <Link
                   href={`/gear/${pair.id}`}
-                  className="grid grid-cols-[minmax(0,1fr)_90px_120px] gap-3 py-2.5 text-meta text-secondary-foreground hover:text-foreground"
+                  className="grid grid-cols-[minmax(0,1fr)_90px_120px] gap-3 py-2.5 text-body text-secondary-foreground hover:text-foreground"
                 >
                   <span className="truncate">{pair.name}</span>
-                  <span className="text-right font-metric text-base text-foreground tabular-nums">
+                  <span className="text-right text-body-lg text-foreground tabular-nums">
                     {pair.km}
                   </span>
                   <span className="text-right text-muted-foreground">

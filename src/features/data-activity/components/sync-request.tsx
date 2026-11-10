@@ -71,7 +71,7 @@ export function SyncRequestMessage({ className }: { className?: string }) {
       id="garmin-sync-message"
       role="status"
       className={cn(
-        "text-xs leading-relaxed text-muted-foreground empty:hidden",
+        "text-label leading-relaxed text-muted-foreground empty:hidden",
         sync.failure && "text-warning",
         className,
       )}

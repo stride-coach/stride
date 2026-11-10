@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const segment =
-  "inline-flex min-h-11 items-center rounded-md border border-border-strong bg-muted px-3 text-sm text-secondary-foreground md:min-h-9.5 md:bg-card";
+  "inline-flex min-h-11 items-center rounded-md border border-control-border bg-muted px-3 text-body text-secondary-foreground md:min-h-9.5 md:bg-card";
 
 export function PreferenceGroup({
   className,
@@ -35,8 +35,8 @@ export function PreferenceSection({
 }) {
   return (
     <section id={id} className="flex flex-col gap-2 md:gap-0">
-      <div className="px-1.5 md:border-b md:border-border-strong md:px-0 md:pb-2.5">
-        <h2 className="font-mono text-micro tracking-wider text-secondary-foreground uppercase md:text-label">
+      <div className="px-1.5 md:border-b md:border-control-border md:px-0 md:pb-2.5">
+        <h2 className="text-label text-secondary-foreground tabular-nums md:text-label">
           {title}
         </h2>
       </div>
@@ -59,11 +59,11 @@ export function PreferenceRow({
   return (
     <div className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0 md:grid md:grid-cols-[13.75rem_minmax(0,1fr)] md:items-center md:gap-x-6 md:gap-y-2.5 md:px-0 md:py-4">
       <div className="flex flex-col gap-0.5">
-        <span id={labelId} className="text-body md:text-sm">
+        <span id={labelId} className="text-body md:text-body">
           {label}
         </span>
         {hint && (
-          <span className="text-xs leading-snug text-muted-foreground">
+          <span className="text-label leading-snug text-muted-foreground">
             {hint}
           </span>
         )}
@@ -150,7 +150,7 @@ export function WeekdayField({
           />
           <span
             aria-hidden="true"
-            className="grid size-11 place-items-center rounded-full border border-border-strong bg-muted text-xs font-semibold text-muted-foreground peer-checked:border-primary peer-checked:text-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-ring md:size-10 md:bg-card"
+            className="grid size-11 place-items-center rounded-full border border-control-border bg-muted text-label font-semibold text-muted-foreground peer-checked:border-primary peer-checked:text-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-ring md:size-10 md:bg-card"
           >
             {day.short}
           </span>

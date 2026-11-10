@@ -29,7 +29,7 @@ export function WeatherGlyph({ glyph }: { glyph: Glyph }) {
       return (
         <path
           d="M12.2 10.4A5.2 5.2 0 0 1 5.6 3.8A5.2 5.2 0 1 0 12.2 10.4Z"
-          className="text-night"
+          className="text-muted-foreground"
           fill="currentColor"
           fillOpacity={0.3}
           {...outline}
@@ -65,7 +65,7 @@ export function WeatherGlyph({ glyph }: { glyph: Glyph }) {
           <Cloud d="M4.6 9.6H11.6A2.8 2.8 0 0 0 11.4 4A3.9 3.9 0 0 0 4 5A2.3 2.3 0 0 0 4.6 9.6Z" />
           <path
             d="M5.6 11.6L4.8 14 M8.6 11.6L7.8 14 M11.4 11.6L10.6 14"
-            className="text-provider"
+            className="text-data-2"
             {...outline}
             strokeWidth={1.8}
           />

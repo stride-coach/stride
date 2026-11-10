@@ -40,10 +40,10 @@ export function NavGoalSwitcher({
                 <StrideMark className="stroke-primary-foreground" />
               </span>
               <span className="flex min-w-0 flex-1 flex-col text-left">
-                <span className="truncate text-meta leading-tight font-semibold text-foreground">
+                <span className="truncate text-body leading-tight font-semibold text-foreground">
                   {name}
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-label text-muted-foreground">
                   {detail}
                 </span>
               </span>
@@ -59,7 +59,7 @@ export function NavGoalSwitcher({
 
 const valueTones = {
   muted: "text-muted-foreground",
-  success: "text-success",
+  success: "text-primary",
   warning: "text-warning",
   danger: "text-destructive",
 } as const;
@@ -79,7 +79,7 @@ export function NavBadge({
     <SidebarMenuBadge
       data-kind={kind}
       className={cn(
-        kind === "value" && "font-metric text-body font-semibold tabular-nums",
+        kind === "value" && "text-body font-semibold tabular-nums",
         kind === "value" && valueTones[tone],
         kind === "count" &&
           "right-2 h-4.5 min-w-4.5 rounded-full bg-warning px-1 text-label font-semibold tracking-normal text-background",
@@ -155,7 +155,7 @@ export function NavDayRow({
         asChild
         size="sm"
         isActive={isToday}
-        className="grid min-h-7 grid-cols-[3px_2.625rem_minmax(0,1fr)_0.75rem] gap-2 text-xs data-[active=true]:bg-card"
+        className="grid min-h-7 grid-cols-[3px_2.625rem_minmax(0,1fr)_0.75rem] gap-2 text-label data-[active=true]:bg-card"
       >
         <Link href={href} aria-current={isToday ? "date" : undefined}>
           <span
@@ -206,7 +206,7 @@ export function NavUser({
   return (
     <SidebarMenu>
       {sync && (
-        <li className="flex items-center gap-2 px-2.5 pb-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+        <li className="flex items-center gap-2 px-2.5 pb-1 text-label text-muted-foreground group-data-[collapsible=icon]:hidden">
           {syncDot && <PulseDot tone="success" breathing={false} />}
           {sync}
         </li>
@@ -221,15 +221,15 @@ export function NavUser({
             >
               <span
                 aria-hidden="true"
-                className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-xs font-semibold text-foreground"
+                className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-label font-semibold text-foreground"
               >
                 {initials}
               </span>
               <span className="flex min-w-0 flex-1 flex-col text-left">
-                <span className="truncate text-meta leading-tight font-semibold text-foreground">
+                <span className="truncate text-body leading-tight font-semibold text-foreground">
                   {name}
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-label text-muted-foreground">
                   {detail}
                 </span>
               </span>

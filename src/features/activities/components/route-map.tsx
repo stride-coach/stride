@@ -295,11 +295,11 @@ function RouteMapView({
             const dot = document.createElement("span");
             dot.className = cn(
               "absolute top-0 left-0 block size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background",
-              start ? "bg-success" : "bg-foreground",
+              start ? "bg-primary" : "bg-foreground",
             );
             const text = document.createElement("span");
             text.className =
-              "absolute top-1.5 left-2.5 font-mono text-nano whitespace-nowrap text-secondary-foreground uppercase";
+              "absolute top-1.5 left-2.5 tabular-nums text-label whitespace-nowrap text-secondary-foreground ";
             text.textContent = label;
             element.append(dot, text);
             markers.push(
@@ -421,7 +421,7 @@ function RouteMapView({
     <div
       ref={frame}
       data-marker={point ?? undefined}
-      className="absolute inset-0 overflow-hidden bg-surface-inset"
+      className="absolute inset-0 overflow-hidden bg-background"
     >
       <svg
         className={cn(
@@ -470,7 +470,7 @@ function RouteMapView({
           cx={fallback.points[0].x}
           cy={fallback.points[0].y}
           r={5}
-          className="fill-success stroke-background"
+          className="fill-primary stroke-background"
           strokeWidth={2}
         />
         <circle
@@ -516,7 +516,7 @@ function RouteMapView({
                 <ToggleGroupItem
                   key={item.mode}
                   value={item.mode}
-                  className="min-h-6.5 rounded-md border-0 px-2.5 py-0 text-xs data-[state=on]:bg-muted"
+                  className="min-h-6.5 rounded-md border-0 px-2.5 py-0 text-label data-[state=on]:bg-muted"
                 >
                   {item.label}
                 </ToggleGroupItem>
@@ -526,7 +526,7 @@ function RouteMapView({
         {engine === "fallback" && (
           <span
             role="status"
-            className="rounded-md bg-card px-2 py-1 text-xs text-secondary-foreground"
+            className="rounded-md bg-card px-2 py-1 text-label text-secondary-foreground"
           >
             Carte indisponible · tracé GPS affiché
           </span>
@@ -621,7 +621,7 @@ function RouteMapView({
       </div>
       {tooltipPoint && hover !== null && (
         <div
-          className="pointer-events-none absolute z-10 flex flex-col gap-0.5 rounded-lg border border-border-strong bg-card/95 px-2.5 py-2"
+          className="pointer-events-none absolute z-10 flex flex-col gap-0.5 rounded-lg border border-control-border bg-card/95 px-2.5 py-2"
           style={{
             left: showFlipped ? undefined : tooltipPoint.x + 14,
             right: showFlipped ? size.width - tooltipPoint.x + 14 : undefined,
@@ -632,14 +632,14 @@ function RouteMapView({
             km {kilometers.format(view.km[hover])}
             {band ? ` · ${band.label}` : ""}
           </MonoLabel>
-          <span className="flex items-baseline gap-2.5 font-metric font-semibold tabular-nums">
+          <span className="flex items-baseline gap-2.5 font-semibold tabular-nums">
             {view.pace[hover] !== null && (
-              <span className="text-lead">
+              <span className="text-body-lg">
                 {formatClock(view.pace[hover]!)} /km
               </span>
             )}
             {view.heartRate[hover] !== null && (
-              <span className="text-lead text-destructive">
+              <span className="text-body-lg text-destructive">
                 {view.heartRate[hover]} bpm
               </span>
             )}
@@ -682,7 +682,7 @@ function RouteMapView({
           <MonoLabel size="nano">{bar.label}</MonoLabel>
         </div>
       </div>
-      <span className="absolute right-2.5 bottom-2 font-mono text-nano text-muted-foreground uppercase">
+      <span className="absolute right-2.5 bottom-2 text-label text-muted-foreground tabular-nums">
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"

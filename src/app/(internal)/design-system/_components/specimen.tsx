@@ -23,7 +23,7 @@ export function GallerySection({
     >
       <header className="flex max-w-3xl flex-col gap-2">
         <MonoLabel tone="accent">{index}</MonoLabel>
-        <h2 id={`${id}-title`} className="text-headline font-semibold">
+        <h2 id={`${id}-title`} className="text-verdict font-semibold">
           {title}
         </h2>
         {description && (

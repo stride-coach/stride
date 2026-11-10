@@ -50,7 +50,7 @@ export function Sparkline({
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
           className={cn(
-            tone === "success" && "stroke-success",
+            tone === "success" && "stroke-primary",
             tone === "muted" && "stroke-secondary-foreground",
             tone === "warning" && "stroke-warning",
             tone === "danger" && "stroke-destructive",
@@ -63,7 +63,7 @@ export function Sparkline({
           y1={height / 2}
           y2={height / 2}
           strokeDasharray="2 4"
-          className="stroke-border-strong"
+          className="stroke-control-border"
         />
       )}
     </svg>

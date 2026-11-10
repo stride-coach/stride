@@ -52,13 +52,13 @@ export function GarminIntro({
             aria-label="Comment tout s’articule"
             className="flex flex-col gap-6 rounded-xl border border-border p-7"
           >
-            <h2 className="font-mono text-label text-muted-foreground uppercase">
+            <h2 className="text-label text-muted-foreground tabular-nums">
               Comment tout s’articule
             </h2>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <div className="flex flex-col gap-1.5 rounded-lg border border-border-strong p-4">
-                <span className="text-sm font-semibold">Garmin</span>
-                <span className="text-xs text-muted-foreground">
+              <div className="flex flex-col gap-1.5 rounded-lg border border-control-border p-4">
+                <span className="text-body font-semibold">Garmin</span>
+                <span className="text-label text-muted-foreground">
                   Envoie les signaux : sorties, sommeil, VFC, FC
                 </span>
               </div>
@@ -67,16 +67,16 @@ export function GarminIntro({
                 className="size-5 text-primary"
               />
               <div className="flex flex-col gap-1.5 rounded-lg border border-primary p-4">
-                <span className="text-sm font-semibold">
+                <span className="text-body font-semibold">
                   Ton modèle d’athlète
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   Construit par Stride à partir des signaux, de tes réponses, de
                   tes objectifs et de ta réaction à l’entraînement
                 </span>
               </div>
             </div>
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               Garmin fournit les signaux. Stride construit le modèle d’athlète —
               et l’affine chaque jour.
             </p>
@@ -94,7 +94,7 @@ export function GarminIntro({
               { body: "Connecté — je commence à lire ton historique" },
             ]}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-label text-muted-foreground">
             Ton mot de passe Garmin sert uniquement à te connecter. Stride garde
             la connexion, pas le mot de passe.
           </p>
@@ -121,7 +121,7 @@ export function GarminIntro({
                 <span className="hidden lg:inline">{signal.title}</span>
                 <span className="lg:hidden">{signal.short}</span>
               </span>
-              <span className="text-meta text-muted-foreground lg:text-sm">
+              <span className="text-body text-muted-foreground lg:text-body">
                 <span className="hidden lg:inline">{signal.body}</span>
                 <span className="lg:hidden">{signal.shortBody}</span>
               </span>
@@ -151,7 +151,7 @@ export function GarminIntro({
         </Button>
         <p
           id="garmin-consent-required"
-          className="text-center text-xs text-muted-foreground lg:text-left lg:text-meta"
+          className="text-center text-label text-muted-foreground lg:text-left lg:text-body"
         >
           {!consent && "Coche la case pour continuer. "}
           Ensuite : connecte-toi à ton compte Garmin Connect

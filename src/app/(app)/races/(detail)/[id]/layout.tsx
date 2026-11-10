@@ -51,7 +51,7 @@ export default async function RaceLayout({
               asChild
               variant="outline"
               size="md"
-              className="shrink-0 rounded-lg text-meta max-md:hidden"
+              className="shrink-0 rounded-lg text-body max-md:hidden"
             >
               <Link href={`${base}/course`}>
                 <UploadIcon aria-hidden="true" className="size-3.5" />
@@ -61,7 +61,7 @@ export default async function RaceLayout({
             <Button
               asChild
               size="md"
-              className="shrink-0 rounded-lg text-meta max-md:hidden"
+              className="shrink-0 rounded-lg text-body max-md:hidden"
             >
               <Link href="/settings/goals">
                 <span aria-hidden="true">+</span>

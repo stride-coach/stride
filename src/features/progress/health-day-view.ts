@@ -210,13 +210,13 @@ export function healthDayView(
             key: "deep",
             label: "Profond",
             seconds: sleep.deepSeconds,
-            swatch: "bg-provider",
+            swatch: "bg-foreground",
           },
           {
             key: "light",
             label: "Léger",
             seconds: sleep.lightSeconds,
-            swatch: "bg-dim",
+            swatch: "bg-data-1",
           },
           {
             key: "rem",

@@ -31,7 +31,7 @@ export function WearGauge({
             style={{ width: `${starting}%` }}
           />
           <span
-            className="absolute inset-y-0 bg-provider"
+            className="absolute inset-y-0 bg-foreground"
             style={{ left: `${starting}%`, width: `${total - starting}%` }}
           />
         </>

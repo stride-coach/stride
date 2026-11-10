@@ -48,22 +48,22 @@ function OptionRow({
       aria-pressed={selected}
       disabled={disabled}
       onClick={onToggle}
-      className="group/row grid min-h-14 w-full grid-cols-[34px_minmax(0,1fr)_22px] items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-left transition-colors duration-150 ease-stride outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default disabled:opacity-45 disabled:hover:bg-transparent aria-pressed:border-border-strong aria-pressed:bg-muted"
+      className="group/row grid min-h-14 w-full grid-cols-[34px_minmax(0,1fr)_22px] items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-left transition-colors duration-150 ease-stride outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default disabled:opacity-45 disabled:hover:bg-transparent aria-pressed:border-control-border aria-pressed:bg-muted"
     >
       <span className="flex size-8.5 items-center justify-center rounded-lg bg-muted text-secondary-foreground group-aria-pressed/row:bg-border group-aria-pressed/row:text-primary">
         <AttachmentIcon kind={option.kind} className="size-3.75" />
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-sm font-medium text-foreground">
+        <span className="truncate text-body font-medium text-foreground">
           {option.title}
         </span>
-        <span className="truncate text-xs text-muted-foreground">
+        <span className="truncate text-label text-muted-foreground">
           {attachmentMeta(option, today)}
         </span>
       </span>
       <span
         aria-hidden="true"
-        className="flex size-5.5 items-center justify-center rounded-md border border-border-strong text-transparent group-aria-pressed/row:border-primary group-aria-pressed/row:bg-primary group-aria-pressed/row:text-primary-foreground"
+        className="flex size-5.5 items-center justify-center rounded-md border border-control-border text-transparent group-aria-pressed/row:border-primary group-aria-pressed/row:bg-primary group-aria-pressed/row:text-primary-foreground"
       >
         <CheckIcon className="size-3" strokeWidth={3} />
       </span>
@@ -104,7 +104,7 @@ export function ContextPicker({
           returnFocus.current?.focus();
         }}
         className={cn(
-          "gap-0 border-border bg-surface-panel",
+          "gap-0 border-border bg-background",
           mobile
             ? "max-h-[85svh] rounded-t-[18px]"
             : "data-[side=right]:w-110 data-[side=right]:sm:max-w-110",
@@ -113,7 +113,7 @@ export function ContextPicker({
         {mobile && (
           <span
             aria-hidden="true"
-            className="mt-2 h-1 w-9 shrink-0 self-center rounded-full bg-border-strong"
+            className="mt-2 h-1 w-9 shrink-0 self-center rounded-full bg-control-border"
           />
         )}
         <Tabs
@@ -124,10 +124,10 @@ export function ContextPicker({
           <div className="flex flex-col gap-3.5 px-4 pt-3 pb-2.5 md:gap-4 md:px-5.5 md:pt-5.5 md:pb-3.5">
             <div className="flex items-start gap-3">
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <SheetTitle className="text-lg font-semibold">
+                <SheetTitle className="text-title font-semibold">
                   Ajouter du contexte
                 </SheetTitle>
-                <SheetDescription className="text-meta leading-[1.45] text-muted-foreground">
+                <SheetDescription className="text-body leading-[1.45] text-muted-foreground">
                   Le staff reçoit la fiche complète de chaque élément joint.
                   Trois au plus par message.
                 </SheetDescription>
@@ -151,7 +151,7 @@ export function ContextPicker({
                 <TabsTrigger
                   key={kind}
                   value={kind}
-                  className="min-h-9 flex-1 justify-center rounded-md border-b-0 py-0 text-meta outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=active]:bg-border data-[state=active]:font-semibold"
+                  className="min-h-9 flex-1 justify-center rounded-md border-b-0 py-0 text-body outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=active]:bg-border data-[state=active]:font-semibold"
                 >
                   {attachmentTabLabels[kind]}
                 </TabsTrigger>
@@ -167,7 +167,7 @@ export function ContextPicker({
                 className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2 md:px-3 md:pb-3"
               >
                 {groups.length === 0 ? (
-                  <p className="px-2.5 py-6 text-sm text-secondary-foreground">
+                  <p className="px-2.5 py-6 text-body text-secondary-foreground">
                     {attachmentEmptyLabels[kind]}
                   </p>
                 ) : (
@@ -208,7 +208,7 @@ export function ContextPicker({
         <div className="flex items-center gap-3 border-t border-border px-4 pt-3 pb-[max(1.75rem,env(safe-area-inset-bottom))] md:px-5.5 md:py-3.5">
           <p
             role="status"
-            className="flex-1 text-meta text-secondary-foreground"
+            className="flex-1 text-body text-secondary-foreground"
           >
             {attachmentCountLabel(selected.length)}
           </p>

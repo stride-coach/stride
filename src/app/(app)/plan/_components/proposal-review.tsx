@@ -20,7 +20,7 @@ import type {
 
 export const toneText: Record<ReviewTone, string> = {
   warning: "text-warning",
-  success: "text-success",
+  success: "text-primary",
   muted: "text-secondary-foreground",
   danger: "text-destructive",
 };
@@ -46,8 +46,8 @@ export function StaffMonogram({
     <span
       aria-hidden="true"
       className={cn(
-        "grid shrink-0 place-items-center rounded-sm bg-muted font-semibold text-foreground ring-2 ring-surface-panel",
-        size === "sm" ? "size-6 text-label" : "size-9 text-sm",
+        "grid shrink-0 place-items-center rounded-sm bg-muted font-semibold text-foreground ring-2 ring-background",
+        size === "sm" ? "size-6 text-label" : "size-9 text-body",
       )}
     >
       {member.monogram}
@@ -66,10 +66,10 @@ export function StaffStack({ staff }: { staff: StaffMember[] }) {
 }
 
 const bannerStyles: Record<ReviewTone, string> = {
-  success: "border-success-border bg-success-surface",
-  danger: "border-danger-border bg-danger-surface",
-  warning: "border-warning-border bg-warning/4",
-  muted: "border-border-strong bg-card",
+  success: "border-border bg-card",
+  danger: "border-border bg-card",
+  warning: "border-border bg-warning/4",
+  muted: "border-control-border bg-card",
 };
 
 function Banner({ banner }: { banner: ReviewBanner }) {
@@ -83,14 +83,14 @@ function Banner({ banner }: { banner: ReviewBanner }) {
     >
       <span
         className={cn(
-          "flex items-center gap-2 text-sm font-semibold",
+          "flex items-center gap-2 text-body font-semibold",
           toneText[banner.tone],
         )}
       >
         <ToneDot tone={banner.tone} />
         {banner.title}
       </span>
-      <span className="text-meta leading-normal text-secondary-foreground">
+      <span className="text-body leading-normal text-secondary-foreground">
         {banner.body}
       </span>
     </div>
@@ -104,14 +104,15 @@ function Side({
   side: ReviewOperation["before"];
   struck: boolean;
 }) {
-  if (!side) return <span className="text-sm text-muted-foreground">Rien</span>;
+  if (!side)
+    return <span className="text-body text-muted-foreground">Rien</span>;
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <span
         className={cn(
-          "text-sm",
+          "text-body",
           struck
-            ? "text-muted-foreground line-through decoration-dim"
+            ? "text-muted-foreground line-through decoration-muted-foreground"
             : "font-semibold",
         )}
       >
@@ -120,7 +121,7 @@ function Side({
       {side.meta && (
         <span
           className={cn(
-            "text-xs",
+            "text-label",
             struck ? "text-muted-foreground" : "text-secondary-foreground",
           )}
         >
@@ -137,7 +138,7 @@ function RaceBadge({ letter }: { letter: string }) {
       <span
         aria-hidden="true"
         className={cn(
-          "grid size-5.5 shrink-0 place-items-center rounded-md font-metric text-meta font-bold",
+          "grid size-5.5 shrink-0 place-items-center rounded-md text-body font-bold tabular-nums",
           letter === "A"
             ? "bg-primary text-primary-foreground"
             : "border-[1.5px] border-secondary-foreground text-secondary-foreground",
@@ -174,7 +175,7 @@ function Operations({ review }: { review: ProposalReview }) {
               <MonoLabel size="micro" tone="foreground">
                 {operation.label}
               </MonoLabel>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {operation.context}
               </span>
             </span>
@@ -199,39 +200,39 @@ function Operations({ review }: { review: ProposalReview }) {
       {review.weekTotals.map((week) => (
         <div
           key={week.label}
-          className="flex flex-wrap items-baseline gap-x-5.5 gap-y-2 rounded-lg border border-border bg-surface-inset px-3.5 py-3"
+          className="flex flex-wrap items-baseline gap-x-5.5 gap-y-2 rounded-lg border border-border bg-background px-3.5 py-3"
         >
           <MonoLabel size="micro">{week.label}</MonoLabel>
           <span className="flex items-baseline gap-2">
-            <span className="font-metric text-xl font-semibold text-muted-foreground tabular-nums">
+            <span className="text-verdict font-semibold text-muted-foreground tabular-nums">
               {week.duration.before}
             </span>
             <ArrowRightIcon
               aria-label="devient"
               className="size-3.5 self-center text-muted-foreground"
             />
-            <span className="font-metric text-xl font-semibold tabular-nums">
+            <span className="text-verdict font-semibold tabular-nums">
               {week.duration.after}
             </span>
             {week.duration.delta && (
-              <span className="text-xs text-secondary-foreground">
+              <span className="text-label text-secondary-foreground">
                 {week.duration.delta}
               </span>
             )}
           </span>
           {week.elevation && (
             <span className="flex items-baseline gap-2">
-              <span className="font-metric text-xl font-semibold text-muted-foreground tabular-nums">
+              <span className="text-verdict font-semibold text-muted-foreground tabular-nums">
                 {week.elevation.before}
               </span>
               <ArrowRightIcon
                 aria-label="devient"
                 className="size-3.5 self-center text-muted-foreground"
               />
-              <span className="font-metric text-xl font-semibold tabular-nums">
+              <span className="text-verdict font-semibold tabular-nums">
                 {week.elevation.after}
               </span>
-              <span className="text-xs text-secondary-foreground">D+</span>
+              <span className="text-label text-secondary-foreground">D+</span>
             </span>
           )}
         </div>
@@ -241,25 +242,25 @@ function Operations({ review }: { review: ProposalReview }) {
 }
 
 const phaseTones: Record<string, string> = {
-  lead_in: "bg-dim",
-  base: "bg-provider",
-  build: "bg-success",
+  lead_in: "bg-data-1",
+  base: "bg-foreground",
+  build: "bg-primary",
   specific: "bg-intensity-4",
-  taper: "bg-border-strong",
+  taper: "bg-control-border",
   race: "bg-primary",
-  recovery: "bg-provider-muted",
-  transition: "bg-dim",
+  recovery: "bg-data-1",
+  transition: "bg-data-1",
 };
 
 function Metrics({ metrics }: { metrics: { label: string; value: string }[] }) {
   return (
-    <dl className="grid grid-cols-4 gap-3 rounded-xl border border-border bg-surface-inset p-3.5 max-sm:grid-cols-2">
+    <dl className="grid grid-cols-4 gap-3 rounded-xl border border-border bg-background p-3.5 max-sm:grid-cols-2">
       {metrics.map((metric) => (
         <div key={metric.label} className="flex flex-col gap-0.75">
           <dt className="order-2">
             <MonoLabel size="micro">{metric.label}</MonoLabel>
           </dt>
-          <dd className="order-1 font-metric text-2xl leading-none font-semibold tabular-nums">
+          <dd className="order-1 text-metric leading-none font-semibold tabular-nums">
             {metric.value}
           </dd>
         </div>
@@ -289,7 +290,7 @@ function Extension({
           <span aria-hidden="true" className="flex h-2.5 gap-0.5">
             {extension.keptWeeks > 0 && (
               <span
-                className="rounded-mark bg-border-strong"
+                className="rounded-mark bg-control-border"
                 style={{ flex: extension.keptWeeks }}
               />
             )}
@@ -298,13 +299,13 @@ function Extension({
                 key={phase.key}
                 className={cn(
                   "rounded-mark",
-                  phaseTones[phase.kind] ?? "bg-dim",
+                  phaseTones[phase.kind] ?? "bg-data-1",
                 )}
                 style={{ flex: phase.weeks }}
               />
             ))}
           </span>
-          <ul className="flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-secondary-foreground">
+          <ul className="flex flex-wrap gap-x-3.5 gap-y-1 text-label text-secondary-foreground">
             {extension.keptWeeks > 0 && (
               <li className="text-muted-foreground">
                 Plan actuel · {extension.keptWeeks} sem., inchangé
@@ -320,12 +321,12 @@ function Extension({
       )}
       <Link
         href={`/plan?race=${extension.raceId}`}
-        className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border-strong text-sm text-foreground hover:bg-muted"
+        className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-control-border text-body text-foreground hover:bg-muted"
       >
         <ExternalLinkIcon aria-hidden="true" className="size-3" />
         Voir le programme prolongé
       </Link>
-      <p className="text-meta leading-normal text-muted-foreground">
+      <p className="text-body leading-normal text-muted-foreground">
         Les semaines déjà prévues ne changent pas. Tes séances passées et déjà
         faites restent intactes.
       </p>
@@ -353,13 +354,13 @@ function NewPlan({ plan }: { plan: NonNullable<ProposalReview["newPlan"]> }) {
                 key={phase.key}
                 className={cn(
                   "rounded-mark",
-                  phaseTones[phase.kind] ?? "bg-dim",
+                  phaseTones[phase.kind] ?? "bg-data-1",
                 )}
                 style={{ flex: phase.weeks }}
               />
             ))}
           </span>
-          <ul className="flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-secondary-foreground">
+          <ul className="flex flex-wrap gap-x-3.5 gap-y-1 text-label text-secondary-foreground">
             {plan.phases.map((phase) => (
               <li key={phase.key}>
                 {phase.name} · {phase.weeks} sem.
@@ -375,7 +376,7 @@ function NewPlan({ plan }: { plan: NonNullable<ProposalReview["newPlan"]> }) {
             {plan.races.map((race) => (
               <li
                 key={race.id}
-                className="flex flex-wrap items-center gap-2.5 text-sm"
+                className="flex flex-wrap items-center gap-2.5 text-body"
               >
                 <RaceBadge letter={race.letter} />
                 <span className="font-semibold">{race.name}</span>
@@ -385,7 +386,7 @@ function NewPlan({ plan }: { plan: NonNullable<ProposalReview["newPlan"]> }) {
           </ul>
         </div>
       )}
-      <p className="text-meta leading-normal text-muted-foreground">
+      <p className="text-body leading-normal text-muted-foreground">
         {plan.replacesActive
           ? "Si tu l’actives, ton plan actuel est archivé et reste lisible dans l’historique."
           : "Si tu l’actives, il devient ton plan d’entraînement."}
@@ -407,18 +408,18 @@ function Opinions({ review }: { review: ProposalReview }) {
           className={cn(
             "grid grid-cols-[36px_minmax(0,1fr)] gap-3",
             !opinion.lead &&
-              "rounded-xl border border-border bg-surface-inset p-3.5",
+              "rounded-xl border border-border bg-background p-3.5",
           )}
         >
           <StaffMonogram member={opinion} size="md" />
           <div className="flex min-w-0 flex-col gap-1.5">
-            <span className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+            <span className="flex flex-wrap items-center gap-2 text-body font-semibold">
               {opinion.name}
               <MonoLabel size="micro" className="font-normal">
                 {opinion.label}
               </MonoLabel>
               {opinion.verdict && (
-                <span className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border-strong px-2 py-0.5 text-xs font-normal">
+                <span className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-control-border px-2 py-0.5 text-label font-normal">
                   <ToneDot tone={opinion.verdict.tone} />
                   {opinion.verdict.label}
                 </span>
@@ -426,7 +427,7 @@ function Opinions({ review }: { review: ProposalReview }) {
             </span>
             <p
               className={cn(
-                "text-sm leading-[1.55]",
+                "text-body leading-[1.55]",
                 opinion.lead ? "text-foreground" : "text-secondary-foreground",
               )}
             >
@@ -444,7 +445,7 @@ function CheckIconFor({ tone }: { tone: ReviewCheck["tone"] }) {
     return (
       <CheckIcon
         aria-hidden="true"
-        className="mt-0.5 size-3 text-success"
+        className="mt-0.5 size-3 text-primary"
         strokeWidth={3}
       />
     );
@@ -471,7 +472,7 @@ function Checks({ checks }: { checks: ReviewCheck[] }) {
       <MonoLabel asChild size="micro">
         <h3 id="review-checks">Contrôles de Stride</h3>
       </MonoLabel>
-      <ul className="flex flex-col gap-2 text-meta leading-[1.45] text-secondary-foreground">
+      <ul className="flex flex-col gap-2 text-body leading-[1.45] text-secondary-foreground">
         {checks.map((check) => (
           <li
             key={check.text}
@@ -507,11 +508,11 @@ export function ProposalReviewBody({
           </p>
         )}
       </div>
-      <div className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-meta text-secondary-foreground">
+      <div className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-body text-secondary-foreground">
         <StaffStack staff={review.origin.staff} />
         <span className="flex min-w-0 flex-1 flex-col gap-px">
           <span className="text-foreground">{review.origin.line}</span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             {review.origin.detail}
           </span>
         </span>

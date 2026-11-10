@@ -47,13 +47,13 @@ function ActivityRowsLoading() {
       aria-hidden="true"
       className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:[scrollbar-gutter:stable]"
     >
-      <div className="border-b border-border-subtle px-5 pt-2.5 pb-1 lg:px-3.5">
+      <div className="border-b border-border px-5 pt-2.5 pb-1 lg:px-3.5">
         <Skeleton className="h-3 w-20" />
       </div>
       {Array.from({ length: 12 }, (_, item) => (
         <div
           key={item}
-          className="flex flex-col gap-1.5 border-b border-border-subtle px-5 py-3 lg:px-3.5"
+          className="flex flex-col gap-1.5 border-b border-border px-5 py-3 lg:px-3.5"
         >
           <div className="flex items-center justify-between gap-3">
             <Skeleton className="h-5 w-36 lg:h-4" />
@@ -95,7 +95,7 @@ function ActivityContentLoading() {
         <Skeleton className="h-36 w-full rounded-2xl" />
         <section className="flex flex-col gap-3">
           <MonoLabel>Parcours et données</MonoLabel>
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel">
+          <div className="overflow-hidden rounded-2xl border border-border bg-background">
             <Skeleton className="h-60 w-full rounded-none lg:h-85" />
             <div className="border-t border-border p-3">
               <Skeleton className="h-42.5 w-full lg:h-55" />

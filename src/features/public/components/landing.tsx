@@ -96,7 +96,7 @@ function Section({
   return (
     <section
       id={id}
-      className="scroll-mt-17 border-b border-border-subtle py-14 md:py-28"
+      className="scroll-mt-17 border-b border-border py-14 md:py-28"
     >
       <div
         className={cn(
@@ -143,7 +143,7 @@ function Lead({
   return (
     <p
       className={cn(
-        "text-base leading-relaxed text-secondary-foreground md:text-lead md:leading-relaxed",
+        "text-body-lg leading-relaxed text-secondary-foreground md:text-body-lg md:leading-relaxed",
         className,
       )}
     >
@@ -168,7 +168,7 @@ function Terrain() {
       preserveAspectRatio="xMidYMid slice"
       className="absolute inset-0 h-full w-full fill-none"
     >
-      <g className="stroke-surface-current" strokeWidth="1.2">
+      <g className="stroke-muted" strokeWidth="1.2">
         {Array.from({ length: 6 }, (_, index) => (
           <path
             key={index}
@@ -187,7 +187,7 @@ function Terrain() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-border-subtle">
+    <section className="relative overflow-hidden border-b border-border">
       <Terrain />
       <div className="relative mx-auto grid max-w-300 gap-14 px-4 pt-12 pb-14 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-center md:px-10 md:pt-24 md:pb-26">
         <div className="flex flex-col gap-5.5 md:gap-6.5">
@@ -220,7 +220,7 @@ function Hero() {
               <a href="#prevention">Voir l’approche prévention</a>
             </Button>
           </div>
-          <p className="text-meta text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             Garmin aujourd’hui. Coros et Suunto à l’étude.
           </p>
         </div>
@@ -255,12 +255,12 @@ export function Landing() {
           {pillars.map((pillar, index) => (
             <li
               key={pillar.title}
-              className="flex flex-col gap-2 bg-surface-inset p-5 md:gap-3.5 md:p-7.5"
+              className="flex flex-col gap-2 bg-background p-5 md:gap-3.5 md:p-7.5"
             >
-              <span className="font-metric text-[30px] leading-none font-semibold text-primary md:text-[44px]">
+              <span className="text-[30px] leading-none font-semibold text-primary tabular-nums md:text-[44px]">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <h3 className="text-lg font-semibold md:text-[21px] md:tracking-[-0.015em]">
+              <h3 className="text-title font-semibold md:text-[21px] md:tracking-[-0.015em]">
                 {pillar.title}
               </h3>
               <p className="text-body leading-normal text-secondary-foreground md:leading-relaxed">
@@ -316,10 +316,10 @@ export function Landing() {
           {staff.map(([role, text]) => (
             <li
               key={role}
-              className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2.5 md:rounded-xl md:border md:bg-surface-inset md:p-5.5"
+              className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2.5 md:rounded-xl md:border md:bg-background md:p-5.5"
             >
               <MonoLabel tone="accent">{role}</MonoLabel>
-              <p className="text-body text-secondary-foreground md:text-sm md:leading-normal">
+              <p className="text-body text-secondary-foreground md:text-body md:leading-normal">
                 {text}
               </p>
             </li>
@@ -337,7 +337,7 @@ export function Landing() {
               key={title}
               className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2 md:py-5.5"
             >
-              <h3 className="text-base font-semibold md:text-[17px]">
+              <h3 className="text-body-lg font-semibold md:text-[17px]">
                 {title}
               </h3>
               <p className="text-body leading-normal text-secondary-foreground">
@@ -359,11 +359,11 @@ export function Landing() {
               key={title}
               className="grid grid-cols-[36px_1fr] gap-2 border-t border-border py-3.5 md:grid-cols-[56px_1fr] md:gap-3 md:py-5"
             >
-              <span className="font-metric text-2xl leading-none font-semibold text-primary md:text-[30px]">
+              <span className="text-metric leading-none font-semibold text-primary tabular-nums md:text-[30px]">
                 {index + 1}
               </span>
               <div className="flex flex-col md:gap-1.5">
-                <h3 className="text-base font-semibold md:text-[17px]">
+                <h3 className="text-body-lg font-semibold md:text-[17px]">
                   {title}
                 </h3>
                 <p className="text-body text-secondary-foreground">{text}</p>

@@ -57,7 +57,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
   return (
     <div className="grid flex-1 content-start md:grid-cols-3 md:content-stretch">
       <RecoveryStage number={1} title="Demande un lien" active={!sent}>
-        <p className="text-sm leading-relaxed text-secondary-foreground">
+        <p className="text-body leading-relaxed text-secondary-foreground">
           Saisis l’e-mail de ton inscription. On t’envoie un lien à utiliser
           avant qu’il n’expire.
         </p>
@@ -99,7 +99,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
                 </strong>
                 , tu vas recevoir un lien de réinitialisation.
               </p>
-              <p className="text-meta text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Rien après quelques minutes ? Regarde dans les spams, ou renvoie
                 le lien.
               </p>
@@ -118,7 +118,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
                 ) : remaining > 0 ? (
                   <>
                     Renvoyer dans{" "}
-                    <span className="font-metric text-[17px] font-semibold tabular-nums">
+                    <span className="text-[17px] font-semibold tabular-nums">
                       0:{String(remaining).padStart(2, "0")}
                     </span>
                   </>
@@ -131,7 +131,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
               type="button"
               variant="link"
               disabled={pending}
-              className="h-auto min-h-11 justify-start self-start p-0 text-sm md:min-h-0"
+              className="h-auto min-h-11 justify-start self-start p-0 text-body md:min-h-0"
               onClick={() => {
                 setInbox(undefined);
                 setHideFeedback(true);
@@ -143,7 +143,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
             </Button>
           </>
         ) : (
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="text-body leading-relaxed text-muted-foreground">
             Après ta demande, regarde dans ta boîte mail et tes spams. Cette
             étape s’active quand la demande est acceptée.
           </p>
@@ -154,7 +154,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
         title="Choisis un nouveau mot de passe"
         active={false}
       >
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="text-body leading-relaxed text-muted-foreground">
           Ouvre le lien reçu pour vérifier ton compte et choisir un nouveau mot
           de passe.
         </p>

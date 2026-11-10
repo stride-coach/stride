@@ -40,13 +40,13 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
       className={cn(
         "grid gap-x-4.5 gap-y-2 rounded-xl border px-3.5 py-3.5 sm:grid-cols-[132px_minmax(0,1fr)_auto] sm:px-4.5 sm:py-4",
         entry.highlighted
-          ? "border-warning-border bg-card"
+          ? "border-border bg-card"
           : entry.status.tone === "success"
             ? "border-border bg-card"
             : "border-border",
       )}
     >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs sm:flex-col sm:items-start sm:text-meta">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-label sm:flex-col sm:items-start sm:text-body">
         <span
           className={cn(
             "inline-flex items-center gap-1.5",
@@ -56,7 +56,7 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
           <ToneDot tone={entry.status.tone} />
           {entry.status.label}
         </span>
-        <span className="text-xs text-muted-foreground">{entry.when}</span>
+        <span className="text-label text-muted-foreground">{entry.when}</span>
         {entry.version && (
           <MonoLabel size="micro" className="max-sm:ml-auto">
             {entry.version}
@@ -66,16 +66,16 @@ export function HistoryEntry({ entry }: { entry: PlanHistoryEntry }) {
       <div className="flex min-w-0 flex-col gap-2">
         <h3
           id={`history-${entry.id}`}
-          className="text-base leading-[1.3] font-semibold"
+          className="text-body-lg leading-[1.3] font-semibold"
         >
           {entry.title}
         </h3>
-        <span className="inline-flex items-center gap-2 text-meta text-secondary-foreground">
+        <span className="inline-flex items-center gap-2 text-body text-secondary-foreground">
           <StaffStack staff={entry.origin.staff} />
           {entry.origin.line}
         </span>
         {entry.note && (
-          <p className="text-meta leading-normal text-muted-foreground">
+          <p className="text-body leading-normal text-muted-foreground">
             {entry.note}
           </p>
         )}

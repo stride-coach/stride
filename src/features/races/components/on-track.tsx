@@ -28,7 +28,7 @@ function Cell({
         <span
           className={cn(
             "text-[11px] text-muted-foreground",
-            detailTone === "success" && "text-success",
+            detailTone === "success" && "text-primary",
           )}
         >
           {detail}
@@ -39,7 +39,7 @@ function Cell({
 }
 
 const metricClass =
-  "text-[24px] leading-none sm:text-[30px] [&>span]:text-meta [&>span]:font-normal [&>span]:text-muted-foreground";
+  "text-[24px] leading-none sm:text-[30px] [&>span]:text-body [&>span]:font-normal [&>span]:text-muted-foreground";
 
 function PhaseBar({ phase }: { phase: GoalPhase }) {
   return (
@@ -55,12 +55,12 @@ function PhaseBar({ phase }: { phase: GoalPhase }) {
       {phase.segments.map((segment) => (
         <span
           key={segment.key}
-          className="overflow-hidden rounded-mark bg-border-strong"
+          className="overflow-hidden rounded-mark bg-control-border"
         >
           <span
             className={cn(
               "block h-full",
-              segment.state === "past" ? "bg-provider" : "bg-primary",
+              segment.state === "past" ? "bg-foreground" : "bg-primary",
             )}
             style={{ width: `${segment.progress * 100}%` }}
           />
@@ -73,7 +73,9 @@ function PhaseBar({ phase }: { phase: GoalPhase }) {
 function PlanCell({ goal }: { goal: GoalCard }) {
   return (
     <Cell label="Plan" detail={goal.phase ? null : goal.planNote}>
-      <span className="text-base font-semibold">{goal.phaseShort ?? "—"}</span>
+      <span className="text-body-lg font-semibold">
+        {goal.phaseShort ?? "—"}
+      </span>
       {goal.phase && <PhaseBar phase={goal.phase} />}
     </Cell>
   );
@@ -133,7 +135,7 @@ export function OnTrack({
                 value={goal.gap?.label ?? "—"}
                 className={cn(
                   metricClass,
-                  goal.gap?.tone === "success" && "text-success",
+                  goal.gap?.tone === "success" && "text-primary",
                   goal.gap?.tone === "warning" && "text-warning",
                 )}
               />
@@ -175,7 +177,7 @@ export function OnTrack({
         <div className="grid items-center gap-3 lg:grid-cols-2 lg:gap-6">
           {preparation && (
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-baseline justify-between gap-3 text-meta text-secondary-foreground">
+              <div className="flex items-baseline justify-between gap-3 text-body text-secondary-foreground">
                 <span>
                   Préparation de la course · {preparation.done} sur{" "}
                   {preparation.total}
@@ -183,7 +185,7 @@ export function OnTrack({
                 {percent !== null && (
                   <Metric
                     value={`${percent} %`}
-                    className="text-base text-foreground"
+                    className="text-body-lg text-foreground"
                   />
                 )}
               </div>
@@ -208,7 +210,7 @@ export function OnTrack({
               className="flex min-w-0 flex-col gap-0.5 rounded-md hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:border-l lg:border-border lg:pl-6"
             >
               <MonoLabel size="nano">Prochaine séance clé</MonoLabel>
-              <span className="flex items-center gap-1 text-sm">
+              <span className="flex items-center gap-1 text-body">
                 <span className="truncate">{nextKey.title}</span>
                 <span className="shrink-0 text-muted-foreground">
                   · {nextKey.date}

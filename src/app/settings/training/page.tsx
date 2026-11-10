@@ -60,10 +60,10 @@ export default async function TrainingSettingsPage({
   return (
     <div className="flex flex-col gap-6 md:gap-10">
       <div className="flex flex-col gap-2 px-1 md:px-0">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
+        <h1 className="text-metric font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
           Entraînement et coach
         </h1>
-        <p className="text-sm leading-normal text-secondary-foreground md:text-body">
+        <p className="text-body leading-normal text-secondary-foreground md:text-body">
           Ça guide mes plans. Changer tes disponibilités déclenchera une
           proposition de mise à jour, sans réécrire ta semaine en douce.
         </p>

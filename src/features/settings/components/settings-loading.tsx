@@ -5,10 +5,9 @@ import { LoadingScope } from "@/features/data-activity/components/loading";
 import { cn } from "@/lib/utils";
 
 const sectionTitle =
-  "px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:px-0 md:text-label";
+  "px-1.5 tabular-nums text-label text-secondary-foreground md:px-0 md:text-label";
 
-const columnTitle =
-  "font-mono text-micro tracking-wider text-muted-foreground uppercase";
+const columnTitle = "tabular-nums text-label text-muted-foreground ";
 
 function PageTitle({
   title,
@@ -19,10 +18,10 @@ function PageTitle({
 }) {
   return (
     <div className="flex flex-col gap-2 px-1 md:px-0">
-      <h1 className="text-2xl font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
+      <h1 className="text-metric font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
         {title}
       </h1>
-      <p className="text-sm leading-normal text-secondary-foreground md:text-body">
+      <p className="text-body leading-normal text-secondary-foreground md:text-body">
         {description}
       </p>
     </div>
@@ -38,10 +37,10 @@ function Heading({
 }) {
   return (
     <div className="mb-9">
-      <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+      <h1 className="text-display font-semibold tracking-tight md:text-display">
         {title}
       </h1>
-      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-secondary-foreground md:text-base">
+      <p className="mt-2 max-w-3xl text-body leading-relaxed text-secondary-foreground md:text-body-lg">
         {description}
       </p>
     </div>
@@ -59,7 +58,7 @@ function Group({
 }) {
   return (
     <section className={cn("mb-9", className)}>
-      <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
+      <h2 className="mb-3 text-label text-secondary-foreground tabular-nums">
         {title}
       </h2>
       <div
@@ -84,8 +83,8 @@ function Group({
 function PreferenceRows({ title, rows }: { title: string; rows: number }) {
   return (
     <section className="flex flex-col gap-2 md:gap-0">
-      <div className="flex items-center justify-between gap-2.5 px-1.5 md:border-b md:border-border-strong md:px-0 md:pb-2.5">
-        <h2 className="font-mono text-micro tracking-wider text-secondary-foreground uppercase md:text-label">
+      <div className="flex items-center justify-between gap-2.5 px-1.5 md:border-b md:border-control-border md:px-0 md:pb-2.5">
+        <h2 className="text-label text-secondary-foreground tabular-nums md:text-label">
           {title}
         </h2>
       </div>
@@ -121,12 +120,12 @@ export function SettingsOverviewLoading() {
       <div className="mb-6 flex flex-col gap-2 rounded-lg border border-border bg-card p-4 md:mb-10 md:gap-4 md:px-6 md:py-5.5">
         <div className="flex items-center gap-2.5">
           <StrideMark className="hidden md:block" />
-          <h2 className="text-sm font-semibold md:text-lg">
+          <h2 className="text-body font-semibold md:text-title">
             <span className="md:hidden">Modèle d’athlète</span>
             <span className="hidden md:inline">Ton modèle d’athlète</span>
           </h2>
         </div>
-        <p className="hidden max-w-160 text-sm leading-normal text-secondary-foreground md:block">
+        <p className="hidden max-w-160 text-body leading-normal text-secondary-foreground md:block">
           Garmin fournit les signaux. Stride en tire ton modèle, avec tes
           réponses, tes objectifs et ta façon de réagir à l’entraînement.
         </p>
@@ -146,10 +145,10 @@ export function SettingsProfileLoading() {
       className="flex flex-col gap-5.5 min-[1100px]:gap-9"
     >
       <section className="flex flex-col gap-2 px-1 min-[1100px]:px-0">
-        <h1 className="text-2xl font-semibold tracking-tight min-[1100px]:text-[32px]">
+        <h1 className="text-metric font-semibold tracking-tight min-[1100px]:text-[32px]">
           Profil
         </h1>
-        <p className="text-sm leading-relaxed text-secondary-foreground min-[1100px]:text-body">
+        <p className="text-body leading-relaxed text-secondary-foreground min-[1100px]:text-body">
           Corrige ce que Garmin a mal relevé. Une valeur modifiée devient la
           tienne et n’est plus écrasée.
         </p>
@@ -164,7 +163,7 @@ export function SettingsProfileLoading() {
         { title: "Issu de ton entraînement", rows: 4 },
       ].map((section) => (
         <section key={section.title} className="min-w-0">
-          <h2 className="mb-2 w-full px-1.5 font-mono text-micro font-normal tracking-wider text-muted-foreground uppercase min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-border-strong min-[1100px]:px-0 min-[1100px]:pb-2.5 min-[1100px]:text-label">
+          <h2 className="mb-2 w-full px-1.5 text-label font-normal text-muted-foreground tabular-nums min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-control-border min-[1100px]:px-0 min-[1100px]:pb-2.5 min-[1100px]:text-label">
             {section.title}
           </h2>
           <div
@@ -223,7 +222,7 @@ export function SettingsGoalsLoading() {
         />
       </section>
       <section className="flex flex-col gap-2 md:gap-0">
-        <div className="hidden gap-4 border-b border-border-strong pb-2.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:grid md:grid-cols-[2.75rem_minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem_4.375rem]">
+        <div className="hidden gap-4 border-b border-control-border pb-2.5 text-label text-secondary-foreground tabular-nums md:grid md:grid-cols-[2.75rem_minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem_4.375rem]">
           <span>Prio</span>
           <span>À venir</span>
           <span>Date</span>
@@ -231,7 +230,7 @@ export function SettingsGoalsLoading() {
           <span>Cible</span>
           <span />
         </div>
-        <h2 className="px-1.5 font-mono text-micro tracking-wider text-secondary-foreground uppercase md:hidden">
+        <h2 className="px-1.5 text-label text-secondary-foreground tabular-nums md:hidden">
           À venir
         </h2>
         <div
@@ -266,11 +265,11 @@ export function SettingsConnectionsLoading() {
       />
       <div className="mb-9 overflow-hidden rounded-lg border border-border bg-card">
         <div className="flex flex-wrap items-center gap-4 p-5">
-          <span className="grid size-12 place-items-center rounded-md border border-border-strong font-semibold">
+          <span className="grid size-12 place-items-center rounded-md border border-control-border font-semibold">
             G
           </span>
           <div className="flex flex-1 flex-col gap-1.5">
-            <h2 className="text-lg font-semibold">Garmin</h2>
+            <h2 className="text-title font-semibold">Garmin</h2>
             <Skeleton aria-hidden="true" className="h-4 w-32" />
           </div>
           <Skeleton aria-hidden="true" className="h-11 w-20 rounded-lg" />
@@ -287,7 +286,7 @@ export function SettingsConnectionsLoading() {
           ].map((item) => (
             <div key={item.label} className={cn("p-5", item.className)}>
               <Skeleton aria-hidden="true" className="mb-1 h-7 w-16" />
-              <span className="font-mono text-label text-secondary-foreground uppercase">
+              <span className="text-label text-secondary-foreground tabular-nums">
                 {item.label}
               </span>
             </div>
@@ -295,19 +294,21 @@ export function SettingsConnectionsLoading() {
         </div>
       </div>
       <section className="mb-9">
-        <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
+        <h2 className="mb-3 text-label text-secondary-foreground tabular-nums">
           Autres sources
         </h2>
         <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
           <div className="border-b border-border p-4 md:px-0">
-            <strong className="text-sm">Autres montres et applications</strong>
-            <p className="mt-1 text-sm text-secondary-foreground">
+            <strong className="text-body">
+              Autres montres et applications
+            </strong>
+            <p className="mt-1 text-body text-secondary-foreground">
               Les autres fournisseurs ne sont pas encore pris en charge.
             </p>
           </div>
           <div className="p-4 md:px-0">
-            <strong className="text-sm">Saisie manuelle</strong>
-            <p className="mt-1 text-sm text-secondary-foreground">
+            <strong className="text-body">Saisie manuelle</strong>
+            <p className="mt-1 text-body text-secondary-foreground">
               L’ajout de séances sans montre n’est pas encore disponible.
             </p>
           </div>
@@ -327,7 +328,7 @@ export function SettingsGarminLoading() {
         <div className="flex items-center gap-4">
           <Skeleton aria-hidden="true" className="size-13 rounded-lg" />
           <div className="flex flex-col gap-1">
-            <h1 className="text-3xl leading-tight font-semibold tracking-tight">
+            <h1 className="text-display leading-tight font-semibold tracking-tight">
               Garmin
             </h1>
             <Skeleton aria-hidden="true" className="h-4 w-56 max-w-full" />
@@ -351,7 +352,7 @@ export function SettingsGarminLoading() {
         ))}
       </section>
       <section className="flex flex-col">
-        <div className="border-b border-border-strong pb-2.5">
+        <div className="border-b border-control-border pb-2.5">
           <h2 className={columnTitle}>Données Garmin</h2>
         </div>
         <div aria-hidden="true" className="flex flex-col">
@@ -391,22 +392,22 @@ export function SettingsPrivacyLoading() {
         description="Consulte les données enregistrées dans ton compte et télécharge une copie de tes réglages."
       />
       <section className="mb-9">
-        <h2 className="mb-3 font-mono text-label tracking-wider text-secondary-foreground uppercase">
+        <h2 className="mb-3 text-label text-secondary-foreground tabular-nums">
           Enregistré dans Stride
         </h2>
         <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
           <div className="border-b border-border p-4 md:px-0">
-            <strong className="text-sm">Activités et mesures Garmin</strong>
+            <strong className="text-body">Activités et mesures Garmin</strong>
             <Skeleton
               aria-hidden="true"
               className="mt-1.5 h-4 w-80 max-w-full"
             />
           </div>
           <div className="p-4 md:px-0">
-            <strong className="text-sm">
+            <strong className="text-body">
               Profil, entraînement, objectifs et courses
             </strong>
-            <p className="mt-1 text-sm text-secondary-foreground">
+            <p className="mt-1 text-body text-secondary-foreground">
               Tes réponses restent disponibles dans ton compte après connexion.
             </p>
           </div>

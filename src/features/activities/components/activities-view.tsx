@@ -48,7 +48,7 @@ export function ActivitiesView({
       >
         {selected && (
           <>
-            <span aria-hidden="true" className="text-dim">
+            <span aria-hidden="true" className="text-muted-foreground">
               /
             </span>
             <span

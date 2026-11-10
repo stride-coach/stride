@@ -125,7 +125,7 @@ export function RaceSettingsDialog({
               id="race-kind"
               name="race-kind"
               defaultValue={kind}
-              className="h-10 w-full rounded-md border border-border-strong bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+              className="h-10 w-full rounded-md border border-input bg-card px-3 text-body focus-visible:outline-2 focus-visible:outline-ring"
             >
               <option value="road">Route</option>
               <option value="trail">Trail</option>
@@ -156,7 +156,7 @@ export function RaceSettingsDialog({
               />
             </Field>
           </div>
-          <label className="flex items-center gap-2.5 text-sm">
+          <label className="flex items-center gap-2.5 text-body">
             <Checkbox name="confirmed" defaultChecked={plan.startConfirmed} />
             Heure de départ confirmée par l’organisation
           </label>
@@ -214,7 +214,7 @@ export function RaceSettingsDialog({
             </FieldDescription>
           </Field>
           {error && (
-            <p role="alert" className="text-sm text-warning">
+            <p role="alert" className="text-body text-warning">
               {error}
             </p>
           )}

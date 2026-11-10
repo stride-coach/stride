@@ -75,7 +75,7 @@ function CategoryMark({ state }: { state: GarminSyncState }) {
     return (
       <CheckIcon
         aria-hidden="true"
-        className="size-3.5 shrink-0 text-success"
+        className="size-3.5 shrink-0 text-primary"
         strokeWidth={3}
       />
     );
@@ -86,7 +86,7 @@ function CategoryMark({ state }: { state: GarminSyncState }) {
       className={cn(
         "size-1.5 shrink-0 rounded-full",
         state === "running"
-          ? "bg-provider motion-safe:animate-breathe"
+          ? "bg-primary motion-safe:animate-breathe"
           : state === "pending"
             ? "border-[1.5px] border-muted-foreground"
             : "bg-warning",
@@ -122,7 +122,7 @@ export function DataActivityStatus({
         )}
         <span
           aria-hidden="true"
-          className="size-1.5 shrink-0 rounded-full bg-border-strong"
+          className="size-1.5 shrink-0 rounded-full bg-control-border"
         />
         {!compact && (
           <Skeleton className={cn("h-3", short ? "w-16" : "w-32")} />
@@ -148,7 +148,7 @@ export function DataActivityStatus({
       <SheetTrigger asChild>
         <button
           className={cn(
-            "flex min-h-8 min-w-0 items-center gap-2 rounded-md text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
+            "flex min-h-8 min-w-0 items-center gap-2 rounded-md text-label text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
             className,
           )}
           aria-label="État des données Garmin"
@@ -176,15 +176,15 @@ export function DataActivityStatus({
       <SheetContent
         side={isMobile ? "bottom" : "right"}
         showCloseButton={false}
-        className="max-h-[85svh] gap-0 border-border-strong bg-muted md:max-h-none md:w-110 md:max-w-110"
+        className="max-h-[85svh] gap-0 border-control-border bg-muted md:max-h-none md:w-110 md:max-w-110"
       >
         <div
           aria-hidden="true"
-          className="mx-auto mt-2 h-1 w-9 rounded-full bg-border-strong md:hidden"
+          className="mx-auto mt-2 h-1 w-9 rounded-full bg-control-border md:hidden"
         />
         <SheetHeader className="flex-row items-center justify-between gap-3 px-5 pt-5 pb-4 md:pt-12">
-          <SheetTitle className="text-lead">État des données</SheetTitle>
-          <SheetDescription className="shrink-0 font-mono text-nano uppercase">
+          <SheetTitle className="text-body-lg">État des données</SheetTitle>
+          <SheetDescription className="shrink-0 text-label tabular-nums">
             Lecture seule
           </SheetDescription>
         </SheetHeader>
@@ -206,7 +206,7 @@ export function DataActivityStatus({
                 Garmin
               </span>
               {observation && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {completed} sur 4 à jour
                 </span>
               )}
@@ -214,15 +214,15 @@ export function DataActivityStatus({
             <div aria-hidden="true" className="h-0.5 overflow-hidden bg-border">
               {progress ? (
                 <div
-                  className="h-full bg-provider motion-safe:transition-[width] motion-safe:duration-500"
+                  className="h-full bg-primary motion-safe:transition-[width] motion-safe:duration-500"
                   style={{ width: `${requestedSyncShare(progress) * 100}%` }}
                 />
               ) : (
                 <div
                   className={cn(
-                    "h-full bg-provider/60",
+                    "h-full bg-primary/60",
                     state === "syncing"
-                      ? "motion-safe:w-[28%] motion-safe:animate-trace motion-safe:bg-linear-to-r motion-safe:from-transparent motion-safe:via-provider motion-safe:to-transparent"
+                      ? "motion-safe:w-[28%] motion-safe:animate-trace motion-safe:bg-linear-to-r motion-safe:from-transparent motion-safe:via-primary motion-safe:to-transparent"
                       : "w-full",
                   )}
                 />
@@ -242,12 +242,12 @@ export function DataActivityStatus({
                       <span className="flex w-3.5 shrink-0 justify-center">
                         <CategoryMark state={category.state} />
                       </span>
-                      <span className="min-w-0 flex-1 text-sm">
+                      <span className="min-w-0 flex-1 text-body">
                         {categoryLabels[key]}
                       </span>
                       <span
                         className={cn(
-                          "max-w-28 text-right text-xs text-muted-foreground",
+                          "max-w-28 text-right text-label text-muted-foreground",
                           (category.state === "failed" ||
                             category.state === "partial") &&
                             "text-warning",
@@ -264,7 +264,7 @@ export function DataActivityStatus({
           {(state === "offline" ||
             state === "unavailable" ||
             state === "attention") && (
-            <p role="status" className="text-xs text-muted-foreground">
+            <p role="status" className="text-label text-muted-foreground">
               {activityLabels[state]}
             </p>
           )}
@@ -279,7 +279,7 @@ export function DataActivityStatus({
             </Alert>
           )}
           {observation && (
-            <dl className="flex flex-col gap-2 text-xs text-muted-foreground">
+            <dl className="flex flex-col gap-2 text-label text-muted-foreground">
               {garminSyncCategories.map((key) => {
                 const category = observation.sync.categories[key];
                 return category.lastSuccessAt ? (
@@ -305,7 +305,7 @@ export function DataActivityStatus({
           <div className="flex flex-col gap-3">
             <SyncNowButton variant="outline" className="w-full" />
             <SyncRequestMessage />
-            <p className="text-xs leading-relaxed text-muted-foreground">
+            <p className="text-label leading-relaxed text-muted-foreground">
               Stride lit Garmin. Il ne publie jamais sur Garmin.
             </p>
           </div>
@@ -325,17 +325,17 @@ export function DataActivityThread({ className }: { className?: string }) {
       role="status"
       aria-label="Chargement des données en cours"
       className={cn(
-        "pointer-events-none absolute inset-x-0 -bottom-px z-10 h-0.5 overflow-hidden bg-border-subtle",
+        "pointer-events-none absolute inset-x-0 -bottom-px z-10 h-0.5 overflow-hidden bg-border",
         className,
       )}
     >
       {progress ? (
         <div
-          className="h-full bg-provider motion-safe:transition-[width] motion-safe:duration-500"
+          className="h-full bg-primary motion-safe:transition-[width] motion-safe:duration-500"
           style={{ width: `${requestedSyncShare(progress) * 100}%` }}
         />
       ) : (
-        <div className="h-full w-full bg-provider/60 motion-safe:w-[28%] motion-safe:animate-trace motion-safe:bg-linear-to-r motion-safe:from-transparent motion-safe:via-provider motion-safe:to-transparent" />
+        <div className="h-full w-full bg-primary/60 motion-safe:w-[28%] motion-safe:animate-trace motion-safe:bg-linear-to-r motion-safe:from-transparent motion-safe:via-primary motion-safe:to-transparent" />
       )}
     </div>
   );
@@ -349,7 +349,7 @@ export function DataActivityFeedback() {
       {activity.fresh.length > 0 && (
         <div
           role="status"
-          className="absolute right-4 bottom-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-border-strong bg-muted py-1 pr-1 pl-3 text-xs max-md:group-has-[[data-slot=mobile-tab-bar]]/inset:bottom-[calc(5rem+env(safe-area-inset-bottom))] md:top-2 md:right-5 md:bottom-auto"
+          className="absolute right-4 bottom-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-control-border bg-muted py-1 pr-1 pl-3 text-label max-md:group-has-[[data-slot=mobile-tab-bar]]/inset:bottom-[calc(5rem+env(safe-area-inset-bottom))] md:top-2 md:right-5 md:bottom-auto"
         >
           <PulseDot tone="provider" breathing={false} />
           <span className="min-w-0 truncate">Nouvelles données Garmin</span>
@@ -402,14 +402,14 @@ export function DataCategoryScope({
       className={cn(
         "relative min-h-0 min-w-0",
         stale &&
-          "[&_.font-metric]:opacity-50 [&_[data-slot=metric]]:opacity-50",
+          "[&_.tabular-nums]:opacity-50 [&_[data-slot=metric]]:opacity-50",
         className,
       )}
     >
       {stale && (
         <p
           role="status"
-          className="absolute -top-4 right-0 flex items-center gap-2 text-xs text-muted-foreground"
+          className="absolute -top-4 right-0 flex items-center gap-2 text-label text-muted-foreground"
         >
           <PulseDot tone="provider" />
           Mise à jour…

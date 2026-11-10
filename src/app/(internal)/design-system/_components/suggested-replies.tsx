@@ -14,7 +14,7 @@ export function SuggestedRepliesExample() {
   return (
     <div className="flex flex-col gap-3">
       <SuggestedReplies replies={replies} onSelect={setChosen} />
-      <p aria-live="polite" className="text-xs text-muted-foreground">
+      <p aria-live="polite" className="text-label text-muted-foreground">
         {chosen ? `Envoyé : ${chosen}` : "Aucune réponse envoyée"}
       </p>
     </div>

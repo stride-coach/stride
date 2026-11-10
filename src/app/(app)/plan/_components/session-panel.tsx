@@ -29,7 +29,7 @@ import {
 } from "@/features/plans/view/session-panel";
 
 const toneDots: Record<PanelTone, string> = {
-  success: "bg-success",
+  success: "bg-primary",
   warning: "bg-warning",
   danger: "bg-destructive",
   muted: "bg-muted-foreground",
@@ -47,7 +47,7 @@ function Status({ status }: { status: Exclude<PanelStatus, null> }) {
   const label = panelStatusLabel(status);
   if (status === "today")
     return (
-      <span className="flex items-center gap-1.5 text-xs text-primary">
+      <span className="flex items-center gap-1.5 text-label text-primary">
         <PulseDot breathing={false} />
         {label}
       </span>
@@ -56,15 +56,15 @@ function Status({ status }: { status: Exclude<PanelStatus, null> }) {
     return (
       <span
         className={cn(
-          "flex items-center gap-1.5 text-xs",
-          status === "done" ? "text-success" : "text-warning",
+          "flex items-center gap-1.5 text-label",
+          status === "done" ? "text-primary" : "text-warning",
         )}
       >
         <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
         {label}
       </span>
     );
-  return <span className="text-xs text-muted-foreground">{label}</span>;
+  return <span className="text-label text-muted-foreground">{label}</span>;
 }
 
 function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
@@ -83,7 +83,7 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
         >
           {panel.title}
         </SheetTitle>
-        <p className="text-sm leading-normal text-secondary-foreground max-sm:hidden">
+        <p className="text-body leading-normal text-secondary-foreground max-sm:hidden">
           {panel.purpose}
         </p>
       </div>
@@ -110,13 +110,13 @@ function Proposal({
   return (
     <section
       aria-label="Changement proposé"
-      className="flex flex-col gap-2.5 rounded-xl border border-warning-border bg-warning/4 p-3.5"
+      className="flex flex-col gap-2.5 rounded-xl border border-border bg-warning/4 p-3.5"
     >
       <span className="flex items-center gap-2 text-[13px] text-warning">
         <PulseDot tone="warning" breathing={false} />
         Changement proposé {proposal.when}
       </span>
-      <p className="text-sm leading-normal">{proposal.text}</p>
+      <p className="text-body leading-normal">{proposal.text}</p>
       <Button
         asChild
         size="md"
@@ -141,7 +141,7 @@ function Stats({ panel }: { panel: SessionPanel }) {
           <dt className="order-2">
             <Dk>{stat.label}</Dk>
           </dt>
-          <dd className="order-1 truncate font-metric text-[22px] leading-none font-semibold tabular-nums sm:text-2xl">
+          <dd className="order-1 truncate text-[22px] leading-none font-semibold tabular-nums sm:text-metric">
             {stat.value}
           </dd>
         </div>
@@ -183,7 +183,7 @@ function Structure({ panel }: { panel: SessionPanel }) {
             </span>
             <span
               aria-hidden="true"
-              className="h-3 text-center font-metric text-[11px] leading-none font-semibold text-muted-foreground"
+              className="h-3 text-center text-[11px] leading-none font-semibold text-muted-foreground tabular-nums"
             >
               {segment.label}
             </span>
@@ -210,11 +210,11 @@ function Steps({ panel }: { panel: SessionPanel }) {
               aria-hidden="true"
               className={cn(
                 "self-stretch rounded-[2px]",
-                step.zone === 1 ? "bg-dim" : zoneFills[step.zone],
+                step.zone === 1 ? "bg-data-1" : zoneFills[step.zone],
               )}
             />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-sm font-semibold">{step.name}</span>
+              <span className="text-body font-semibold">{step.name}</span>
               {step.cue && (
                 <span className="text-[12.5px] leading-[1.45] text-muted-foreground">
                   {step.cue}
@@ -222,7 +222,7 @@ function Steps({ panel }: { panel: SessionPanel }) {
               )}
             </span>
             <span className="flex flex-col items-end gap-0.5">
-              <span className="font-metric text-[17px] leading-[1.1] font-semibold tabular-nums">
+              <span className="text-[17px] leading-[1.1] font-semibold tabular-nums">
                 {step.duration}
               </span>
               <span className="text-[11.5px] whitespace-nowrap text-secondary-foreground">
@@ -254,8 +254,8 @@ function Contents({ panel }: { panel: SessionPanel }) {
             key={step.key}
             className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-t border-border py-2.75"
           >
-            <span className="text-sm leading-normal">{step.cue}</span>
-            <span className="font-metric text-[17px] leading-[1.1] font-semibold tabular-nums">
+            <span className="text-body leading-normal">{step.cue}</span>
+            <span className="text-[17px] leading-[1.1] font-semibold tabular-nums">
               {step.duration}
             </span>
           </li>
@@ -277,15 +277,15 @@ function Untracked() {
 
 function CheckedIn({ day }: { day: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-success-border bg-success-surface p-3.5">
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3.5">
       <CheckIcon
         aria-hidden="true"
-        className="size-4.5 shrink-0 text-success"
+        className="size-4.5 shrink-0 text-primary"
         strokeWidth={2.5}
       />
       <span className="flex flex-1 flex-col gap-0.5">
         <span className="text-[15px] font-semibold">Fait · noté par toi</span>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-label text-muted-foreground">
           {day} · séance libre, sans suivi Garmin
         </span>
       </span>
@@ -297,7 +297,7 @@ function Contingencies({ items }: { items: string[] }) {
   return (
     <section
       aria-labelledby="panel-contingencies"
-      className="flex flex-col gap-2 rounded-[10px] border border-border bg-surface-panel px-3.5 py-3"
+      className="flex flex-col gap-2 rounded-[10px] border border-border bg-background px-3.5 py-3"
     >
       <Dk id="panel-contingencies">Si ça se passe mal</Dk>
       <p className="text-[13px] leading-normal text-secondary-foreground">
@@ -311,7 +311,7 @@ function SurgeIdeas({ items }: { items: string[] }) {
   return (
     <section
       aria-labelledby="panel-surges"
-      className="flex flex-col gap-2 rounded-[10px] border border-border bg-surface-panel px-3.5 py-3"
+      className="flex flex-col gap-2 rounded-[10px] border border-border bg-background px-3.5 py-3"
     >
       <Dk id="panel-surges">Idées de relances, sans obligation</Dk>
       <ul className="flex flex-col gap-1.5">
@@ -373,10 +373,10 @@ function Completion({ completion }: { completion: PanelCompletion }) {
             >
               {row.label}
             </th>
-            <td className="py-2.5 pl-2.5 font-metric text-base font-semibold text-muted-foreground tabular-nums">
+            <td className="py-2.5 pl-2.5 text-body-lg font-semibold text-muted-foreground tabular-nums">
               {row.planned}
             </td>
-            <td className="py-2.5 pl-2.5 font-metric text-base font-semibold tabular-nums">
+            <td className="py-2.5 pl-2.5 text-body-lg font-semibold tabular-nums">
               {row.actual}
             </td>
             <td className="py-2.5 text-right">
@@ -415,24 +415,24 @@ function Completion({ completion }: { completion: PanelCompletion }) {
           {debrief.aligned && <DebriefSteps steps={debrief.steps} />}
         </>
       ) : (
-        <div className="flex items-center gap-3 rounded-xl border border-success-border bg-success-surface p-3.5">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3.5">
           <CheckIcon
             aria-hidden="true"
-            className="size-4.5 shrink-0 text-success"
+            className="size-4.5 shrink-0 text-primary"
             strokeWidth={2.5}
           />
           <span className="flex flex-1 flex-col gap-0.5">
             <span className="text-[15px] font-semibold">
               {completion.headline}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-label text-muted-foreground">
               {completion.detail}
             </span>
           </span>
           {completion.pct !== null && (
             <span
               aria-hidden="true"
-              className="font-metric text-[30px] leading-none font-semibold text-success tabular-nums"
+              className="text-[30px] leading-none font-semibold text-primary tabular-nums"
             >
               {completion.pct}
             </span>
@@ -448,7 +448,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
                 <h3>Sur l’ensemble</h3>
               </Dk>
               {completion.totalsLabel && (
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="ml-auto text-label text-muted-foreground">
                   {completion.totalsLabel}
                 </span>
               )}
@@ -469,7 +469,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
             {completion.pace.map((secondsPerKm, index) => (
               <span
                 key={index}
-                className="min-w-0 flex-1 rounded-[1px] bg-provider/85"
+                className="min-w-0 flex-1 rounded-[1px] bg-foreground/85"
                 style={{
                   height: `${
                     maximum === minimum
@@ -495,18 +495,18 @@ function Completion({ completion }: { completion: PanelCompletion }) {
                   href={activity.href}
                   className="grid min-h-13 grid-cols-[44px_minmax(0,1fr)_auto_12px] items-center gap-2.5 py-1.5 sm:grid-cols-[48px_minmax(0,1fr)_auto_12px] sm:gap-3"
                 >
-                  <span className="font-metric text-base font-semibold tabular-nums">
+                  <span className="text-body-lg font-semibold tabular-nums">
                     {activity.time}
                   </span>
                   <span className="flex min-w-0 flex-col gap-px">
                     <span className="truncate text-[13px] font-semibold">
                       {activity.title}
                     </span>
-                    <span className="truncate text-xs text-muted-foreground">
+                    <span className="truncate text-label text-muted-foreground">
                       {activity.detail}
                     </span>
                   </span>
-                  <span className="font-metric text-base font-semibold tabular-nums">
+                  <span className="text-body-lg font-semibold tabular-nums">
                     {activity.duration}
                   </span>
                   <ChevronRightIcon
@@ -557,7 +557,7 @@ export function SessionPanelBody({
         <>
           {panel.proposal && <Proposal proposal={panel.proposal} />}
           {panel.summary ? (
-            <p className="font-metric text-2xl leading-none font-semibold tabular-nums">
+            <p className="text-metric leading-none font-semibold tabular-nums">
               {panel.summary}
             </p>
           ) : (

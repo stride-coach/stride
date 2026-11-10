@@ -5,7 +5,7 @@ import { statusLabels, type ThreadStatus } from "../conversations";
 const toneText = {
   accent: "text-primary",
   warning: "text-warning",
-  success: "text-success",
+  success: "text-primary",
   muted: "text-muted-foreground",
 } as const;
 
@@ -21,7 +21,7 @@ export function ThreadStatusLabel({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs",
+        "inline-flex items-center gap-1.5 text-label",
         toneText[tone],
         className,
       )}
@@ -29,7 +29,7 @@ export function ThreadStatusLabel({
       <PulseDot
         tone={tone === "muted" ? "foreground" : tone}
         breathing={status === "working"}
-        className={cn(tone === "muted" && "bg-dim")}
+        className={cn(tone === "muted" && "bg-data-1")}
       />
       {label}
     </span>

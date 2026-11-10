@@ -68,7 +68,7 @@ export function DayNavigator({
           <ChevronLeftIcon className="size-4" />
         </Link>
         <div className="flex min-w-0 flex-col">
-          <span className="text-lg font-semibold">
+          <span className="text-title font-semibold">
             {formatDayTitle(day, today)}
           </span>
           {day === today && <GarminSyncLabel />}
@@ -103,8 +103,10 @@ export function DayNavigator({
               item.date === day && "bg-muted text-foreground",
             )}
           >
-            <span className="text-xs">{weekday.format(date(item.date))}</span>
-            <span className="font-metric text-xl leading-none font-semibold">
+            <span className="text-label">
+              {weekday.format(date(item.date))}
+            </span>
+            <span className="text-verdict leading-none font-semibold tabular-nums">
               {date(item.date).getUTCDate()}
             </span>
             <span
@@ -112,7 +114,7 @@ export function DayNavigator({
               className={cn(
                 "size-1.5 rounded-full",
                 item.tone === "warning" && "bg-warning",
-                item.tone === "success" && "bg-success",
+                item.tone === "success" && "bg-primary",
                 item.tone === null && "bg-transparent",
               )}
             />
@@ -146,7 +148,7 @@ export function DayReading({
         {view.headline}
       </h2>
       {view.paragraph && (
-        <p className="text-sm leading-[1.6] text-pretty text-secondary-foreground sm:text-[15px]">
+        <p className="text-body leading-[1.6] text-pretty text-secondary-foreground sm:text-[15px]">
           {view.paragraph}
         </p>
       )}
@@ -166,7 +168,7 @@ export function NightCard({
       className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="health-day-night" className="text-lg font-semibold">
+        <h2 id="health-day-night" className="text-title font-semibold">
           {night.title}
         </h2>
         <MonoLabel size="nano">Garmin · sommeil</MonoLabel>
@@ -185,7 +187,7 @@ export function NightCard({
               />
             ))}
           </div>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-secondary-foreground">
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-label text-secondary-foreground">
             {night.stages.map((stage) => (
               <li key={stage.key} className="flex items-center gap-1.5">
                 <span
@@ -193,7 +195,7 @@ export function NightCard({
                   className={cn("size-2 rounded-full", stage.swatch)}
                 />
                 {stage.label}
-                <b className="font-metric text-sm font-semibold text-foreground">
+                <b className="text-body font-semibold text-foreground tabular-nums">
                   {formatStage(stage.seconds)}
                 </b>
               </li>
@@ -207,15 +209,17 @@ export function NightCard({
             <dt>
               <MonoLabel size="nano">{figure.label}</MonoLabel>
             </dt>
-            <dd className="font-metric text-2xl leading-none font-semibold">
+            <dd className="text-metric leading-none font-semibold tabular-nums">
               {figure.value}
             </dd>
-            <dd className="text-xs text-muted-foreground">{figure.detail}</dd>
+            <dd className="text-label text-muted-foreground">
+              {figure.detail}
+            </dd>
           </div>
         ))}
       </dl>
       {night.note && (
-        <p className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-inset px-4 py-3 text-meta leading-normal text-pretty">
+        <p className="flex items-start gap-2.5 rounded-lg border border-border bg-background px-4 py-3 text-body leading-normal text-pretty">
           <StrideMark className="mt-0.5 size-3.5 shrink-0" />
           <span>{night.note}</span>
         </p>
@@ -226,7 +230,7 @@ export function NightCard({
 
 const momentDot = {
   warning: "bg-warning",
-  success: "bg-success",
+  success: "bg-primary",
   muted: "bg-muted-foreground",
   accent: "bg-primary",
 } as const;
@@ -240,7 +244,7 @@ export function DayMoments({ model }: { model: HealthDayModel }) {
       <div className="flex items-baseline justify-between gap-3">
         <h2
           id="health-day-moments"
-          className="text-lg font-semibold sm:text-xl"
+          className="text-title font-semibold sm:text-verdict"
         >
           Moments de la journée
         </h2>
@@ -253,7 +257,7 @@ export function DayMoments({ model }: { model: HealthDayModel }) {
               key={`${moment.at}-${moment.title}`}
               className="grid grid-cols-[3.5rem_0.75rem_minmax(0,1fr)] items-start gap-3 border-b border-border py-3.5"
             >
-              <span className="font-metric text-lg leading-tight font-semibold tabular-nums">
+              <span className="text-title leading-tight font-semibold tabular-nums">
                 {formatClock(moment.at)}
               </span>
               <span
@@ -264,8 +268,8 @@ export function DayMoments({ model }: { model: HealthDayModel }) {
                 )}
               />
               <span className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold">{moment.title}</span>
-                <span className="text-meta text-secondary-foreground">
+                <span className="text-body font-semibold">{moment.title}</span>
+                <span className="text-body text-secondary-foreground">
                   {moment.detail}
                 </span>
               </span>
@@ -273,7 +277,7 @@ export function DayMoments({ model }: { model: HealthDayModel }) {
           ))}
         </ol>
       ) : (
-        <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+        <p className="border-t border-border pt-3 text-body text-muted-foreground">
           Aucun moment marquant détecté pour l’instant.
         </p>
       )}
@@ -288,10 +292,10 @@ export function DayUnavailable({
 }) {
   return (
     <section className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-5 sm:p-6">
-      <h2 className="text-lg font-semibold">
+      <h2 className="text-title font-semibold">
         Courbes de la journée indisponibles
       </h2>
-      <p className="text-sm text-secondary-foreground">
+      <p className="text-body text-secondary-foreground">
         {failure === "reconnect"
           ? "Ta connexion Garmin doit être renouvelée pour charger le détail de la journée."
           : failure === "rate-limited"
@@ -301,7 +305,7 @@ export function DayUnavailable({
       {failure === "reconnect" && (
         <Link
           href="/settings/connections"
-          className="text-sm text-primary hover:underline"
+          className="text-body text-primary hover:underline"
         >
           Ouvrir les connexions
         </Link>

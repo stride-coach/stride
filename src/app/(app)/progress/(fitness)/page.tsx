@@ -126,7 +126,7 @@ export default async function ProgressFitnessPage({
           <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[1.08] sm:tracking-[-0.03em]">
             {view.headline}
           </h1>
-          <p className="max-w-155 text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
+          <p className="max-w-155 text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
             {view.summary}
           </p>
           <div className="mt-1.5">
@@ -145,12 +145,12 @@ export default async function ProgressFitnessPage({
           <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-4.5">
             <h2
               id="progress-load"
-              className="text-base font-semibold sm:text-lg"
+              className="text-body-lg font-semibold sm:text-title"
             >
               Condition et fatigue
             </h2>
             {view.load && (
-              <LoadLegend className="flex flex-wrap gap-3.5 text-[11px] text-secondary-foreground sm:gap-4 sm:text-xs" />
+              <LoadLegend className="flex flex-wrap gap-3.5 text-[11px] text-secondary-foreground sm:gap-4 sm:text-label" />
             )}
           </div>
           {view.load ? (
@@ -159,7 +159,7 @@ export default async function ProgressFitnessPage({
               {advice && <LoadAdviceCard advice={advice} />}
             </>
           ) : (
-            <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+            <p className="border-t border-border pt-3 text-body text-muted-foreground">
               Garmin n’a pas encore fourni assez de charges d’entraînement sur
               cette période pour tracer ta condition.
             </p>

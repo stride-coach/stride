@@ -8,7 +8,7 @@ const stationStroke: Record<PlanProfileStation["tone"], string> = {
   start: "stroke-foreground",
   finish: "stroke-foreground",
   aid: "stroke-primary",
-  water: "stroke-provider",
+  water: "stroke-data-2",
   base: "stroke-warning",
 };
 
@@ -96,7 +96,7 @@ export function PlanProfile({
             {...band(range)}
             y={0}
             height={bottom}
-            className="fill-night opacity-10"
+            className="fill-data-2 opacity-10"
           />
         ))}
         {data.rain.map((range) => (
@@ -105,7 +105,7 @@ export function PlanProfile({
             {...band(range)}
             y={0}
             height={bottom}
-            className="fill-provider opacity-10"
+            className="fill-data-2 opacity-10"
           />
         ))}
         {segment && (
@@ -146,7 +146,7 @@ export function PlanProfile({
         ))}
       </svg>
       {variant === "card" ? (
-        <span className="text-meta">{route}</span>
+        <span className="text-body">{route}</span>
       ) : (
         <MonoLabel size="nano" className="truncate">
           {[route, caption].filter(Boolean).join(" · ")}

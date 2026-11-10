@@ -177,7 +177,7 @@ export function GoalsStep({
         <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
           Pour quoi t’entraînes-tu ?
         </h1>
-        <p className="text-body text-pretty text-secondary-foreground lg:text-lead">
+        <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
           Choisis ce qui compte le plus en ce moment. La course est facultative
           — ne pas avoir de course est un très bon objectif.
         </p>
@@ -200,7 +200,7 @@ export function GoalsStep({
                 goal.change("focus", focus.value, "now");
               }}
               className={cn(
-                "flex min-h-19 flex-col items-start gap-1 rounded-lg border border-border bg-card p-3.5 text-left transition-colors duration-150 ease-stride hover:border-border-strong",
+                "flex min-h-19 flex-col items-start gap-1 rounded-lg border border-border bg-card p-3.5 text-left transition-colors duration-150 ease-stride hover:border-control-border",
                 checked && "border-primary hover:border-primary",
               )}
             >
@@ -213,7 +213,7 @@ export function GoalsStep({
                   />
                 )}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {focus.detail}
               </span>
             </button>
@@ -264,7 +264,7 @@ export function GoalsStep({
           )}
         </div>
         {races.length === 0 && (
-          <p className="text-sm text-secondary-foreground">
+          <p className="text-body text-secondary-foreground">
             Pas de course pour l’instant. Ajoute-en une si tu prépares un
             objectif précis.
           </p>
@@ -296,7 +296,7 @@ export function GoalsStep({
       </section>
       <OnboardingActions className="lg:border-t lg:border-border lg:pt-8">
         {notice && (
-          <p role="alert" className="text-sm text-warning lg:basis-full">
+          <p role="alert" className="text-body text-warning lg:basis-full">
             {notice}
           </p>
         )}

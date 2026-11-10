@@ -194,7 +194,7 @@ export function SessionSheet({
           else if (start - end > 60) go(panel.nextKey);
         }}
         className={cn(
-          "gap-0 overflow-hidden border-border-strong bg-surface-panel text-foreground",
+          "gap-0 overflow-hidden border-control-border bg-background text-foreground",
           mobile
             ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
             : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-125 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-125",
@@ -203,12 +203,12 @@ export function SessionSheet({
         {mobile && (
           <span
             aria-hidden="true"
-            className="mt-2 mb-1 h-1 w-10 self-center rounded-mark bg-border-strong"
+            className="mt-2 mb-1 h-1 w-10 self-center rounded-mark bg-control-border"
           />
         )}
         <header
           className={cn(
-            "flex items-center gap-2 border-b border-border-subtle",
+            "flex items-center gap-2 border-b border-border",
             mobile ? "px-4 pt-1.5 pb-3" : "px-4 py-3.5",
           )}
         >
@@ -216,7 +216,7 @@ export function SessionSheet({
           {mobile ? (
             <>
               <span className="flex flex-1 flex-col text-center">
-                <span className="text-sm">{panel.day}</span>
+                <span className="text-body">{panel.day}</span>
                 <MonoLabel size="nano" className="text-[9px]">
                   {position} · glisse ← →
                 </MonoLabel>

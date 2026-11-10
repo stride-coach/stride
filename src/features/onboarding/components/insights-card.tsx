@@ -78,7 +78,7 @@ export function InsightsCard({
         id={headingId}
         className={cn(
           "flex items-center gap-3 font-semibold",
-          variant === "card" ? "text-body" : "text-xl",
+          variant === "card" ? "text-body" : "text-verdict",
         )}
       >
         {variant === "card" && <StrideMark className="size-4" />}
@@ -109,12 +109,12 @@ export function InsightsCard({
               <span
                 className={cn(
                   "text-pretty",
-                  variant === "card" ? "text-body" : "text-sm",
+                  variant === "card" ? "text-body" : "text-body",
                 )}
               >
                 {item.text}
               </span>
-              <span className="font-mono text-micro text-muted-foreground uppercase">
+              <span className="text-label text-muted-foreground tabular-nums">
                 {item.source}
               </span>
             </span>
@@ -130,7 +130,7 @@ export function InsightsCard({
               <span className="text-body text-muted-foreground">
                 J’analyse encore ton historique…
               </span>
-              <span className="font-mono text-micro text-muted-foreground uppercase">
+              <span className="text-label text-muted-foreground tabular-nums">
                 Habitudes d’entraînement
               </span>
             </span>
@@ -138,9 +138,9 @@ export function InsightsCard({
         )}
       </ul>
       <div className="flex flex-col gap-1.5">
-        <p className="text-meta text-muted-foreground">{footer}</p>
+        <p className="text-body text-muted-foreground">{footer}</p>
         {items.some((item) => item.origin === "ai") && (
-          <p className="font-mono text-nano text-muted-foreground uppercase">
+          <p className="text-label text-muted-foreground tabular-nums">
             Formulé par IA à partir de tes données
           </p>
         )}

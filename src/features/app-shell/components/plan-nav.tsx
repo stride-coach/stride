@@ -52,7 +52,7 @@ function BlockItem({
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((value) => !value)}
-        className={cn("min-h-7.5 gap-2 text-meta", open && "text-foreground")}
+        className={cn("min-h-7.5 gap-2 text-body", open && "text-foreground")}
       >
         <ChevronRightIcon
           aria-hidden="true"
@@ -68,8 +68,8 @@ function BlockItem({
             block.status === "current"
               ? "bg-primary"
               : block.status === "past"
-                ? "bg-success"
-                : "bg-border-strong",
+                ? "bg-primary"
+                : "bg-control-border",
           )}
         />
         <span className="truncate">{block.name}</span>
@@ -86,7 +86,7 @@ function BlockItem({
                 asChild
                 size="sm"
                 isActive={active}
-                className="h-7.5 gap-2 text-meta"
+                className="h-7.5 gap-2 text-body"
               >
                 <Link
                   href={weekHref(week.weekStart)}
@@ -95,7 +95,7 @@ function BlockItem({
                   <span className="min-w-0 flex-1 truncate">{week.label}</span>
                   <span
                     className={cn(
-                      "font-metric text-sm font-semibold tabular-nums",
+                      "text-body font-semibold tabular-nums",
                       week.status === "current"
                         ? "text-foreground"
                         : "text-muted-foreground",
@@ -118,7 +118,7 @@ function BlockItem({
                       <>
                         <CheckIcon
                           aria-hidden="true"
-                          className="size-3 text-success"
+                          className="size-3 text-primary"
                           strokeWidth={2.5}
                         />
                         <span className="sr-only">Semaine passée</span>
@@ -159,12 +159,12 @@ export function PlanSidebarGroup({
             asChild
             size="sm"
             isActive={overview}
-            className="min-h-7.5 gap-2 text-meta data-[active=true]:font-semibold"
+            className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
           >
             <Link href="/plan" aria-current={overview ? "page" : undefined}>
               <ListIcon aria-hidden="true" className="size-3.5" />
               <span className="flex-1">Programme complet</span>
-              <span className="font-metric text-sm font-normal text-muted-foreground tabular-nums">
+              <span className="text-body font-normal text-muted-foreground tabular-nums">
                 {nav.weekCount}
                 <span className="sr-only"> semaines</span>
               </span>
@@ -179,7 +179,7 @@ export function PlanSidebarGroup({
             asChild
             size="sm"
             isActive={history}
-            className="min-h-7.5 gap-2 text-meta data-[active=true]:font-semibold"
+            className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
           >
             <Link
               href="/plan/history"
@@ -188,7 +188,7 @@ export function PlanSidebarGroup({
               <HistoryIcon aria-hidden="true" className="size-3.5" />
               <span className="flex-1">Historique</span>
               {historyCount !== null && historyCount > 0 && (
-                <span className="font-metric text-sm font-normal text-muted-foreground tabular-nums">
+                <span className="text-body font-normal text-muted-foreground tabular-nums">
                   {historyCount}
                   <span className="sr-only"> propositions</span>
                 </span>

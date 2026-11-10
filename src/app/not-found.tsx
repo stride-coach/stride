@@ -25,7 +25,7 @@ export default async function NotFound() {
       </Button>
       <HistoryBackButton />
       {!authenticated && (
-        <p className="pt-3 text-center text-sm text-muted-foreground">
+        <p className="pt-3 text-center text-body text-muted-foreground">
           Pas connecté ?{" "}
           <Link
             className="font-medium text-primary hover:underline"

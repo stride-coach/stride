@@ -12,9 +12,9 @@ import type {
 } from "@/features/plans/debrief/view";
 
 const chipTones: Record<DebriefStatusTone, string> = {
-  success: "border-success-border bg-success-surface text-success",
-  warning: "border-warning-border bg-warning/4 text-warning",
-  danger: "border-danger-border bg-danger-surface text-destructive",
+  success: "border-border bg-card text-primary",
+  warning: "border-border bg-warning/4 text-warning",
+  danger: "border-border bg-card text-destructive",
 };
 
 const actualTones: Record<DebriefStepView["actualTone"], string> = {
@@ -38,9 +38,7 @@ export function DebriefVerdict({
       aria-labelledby="debrief-verdict"
       className={cn(
         "flex flex-col gap-2 rounded-xl border p-3.5 sm:gap-2.5 sm:px-4",
-        warning
-          ? "border-warning-border bg-warning/4"
-          : "border-success-border bg-success-surface",
+        warning ? "border-border bg-warning/4" : "border-border bg-card",
       )}
     >
       <div className="flex items-start gap-3">
@@ -49,7 +47,7 @@ export function DebriefVerdict({
             size="nano"
             className={cn(
               "text-[9.5px]",
-              warning ? "text-warning" : "text-success",
+              warning ? "text-warning" : "text-primary",
             )}
           >
             Débrief
@@ -68,8 +66,8 @@ export function DebriefVerdict({
           <span className="flex shrink-0 flex-col items-end">
             <span
               className={cn(
-                "font-metric text-[28px] leading-none font-semibold tabular-nums sm:text-[30px]",
-                warning ? "text-warning" : "text-success",
+                "text-[28px] leading-none font-semibold tabular-nums sm:text-[30px]",
+                warning ? "text-warning" : "text-primary",
               )}
             >
               {pct} %
@@ -79,7 +77,7 @@ export function DebriefVerdict({
         )}
       </div>
       {detail && (
-        <span className="text-xs text-muted-foreground">{detail}</span>
+        <span className="text-label text-muted-foreground">{detail}</span>
       )}
     </section>
   );
@@ -101,10 +99,10 @@ function StepStatus({ step }: { step: DebriefStepView }) {
   if (!step.status) return <span />;
   if (!step.status.chip)
     return (
-      <span className="inline-flex items-center gap-1.5 justify-self-end text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-1.5 justify-self-end text-label text-muted-foreground">
         <span
           aria-hidden="true"
-          className="inline-block size-1.5 rounded-full bg-success"
+          className="inline-block size-1.5 rounded-full bg-primary"
         />
         {step.status.label}
       </span>
@@ -112,7 +110,7 @@ function StepStatus({ step }: { step: DebriefStepView }) {
   return (
     <span
       className={cn(
-        "inline-flex min-h-6 items-center justify-self-end rounded-full border px-2 text-[11.5px] whitespace-nowrap sm:px-2.25 sm:text-xs",
+        "inline-flex min-h-6 items-center justify-self-end rounded-full border px-2 text-[11.5px] whitespace-nowrap sm:px-2.25 sm:text-label",
         chipTones[step.status.tone],
       )}
     >
@@ -155,7 +153,7 @@ export function DebriefSteps({
               grid,
               "border-t border-border",
               step.compact
-                ? "py-1.5 text-xs text-muted-foreground"
+                ? "py-1.5 text-label text-muted-foreground"
                 : "py-2.25 text-[13px]",
             )}
           >
@@ -163,7 +161,7 @@ export function DebriefSteps({
               aria-hidden="true"
               className={cn(
                 "self-stretch rounded-mark",
-                step.zone === 1 ? "bg-dim" : zoneFills[step.zone],
+                step.zone === 1 ? "bg-data-1" : zoneFills[step.zone],
               )}
             />
             <span className="flex min-w-0 flex-col gap-px">
@@ -178,17 +176,17 @@ export function DebriefSteps({
                 </span>
               )}
             </span>
-            <span className="font-metric text-[15px] font-semibold text-muted-foreground tabular-nums max-sm:hidden">
+            <span className="text-[15px] font-semibold text-muted-foreground tabular-nums max-sm:hidden">
               <span className="sr-only">Cible : </span>
               {step.target}
             </span>
             <span className="flex flex-col items-end sm:items-start">
               <span
                 className={cn(
-                  "font-metric font-semibold tabular-nums",
+                  "font-semibold tabular-nums",
                   step.compact
-                    ? "text-sm text-secondary-foreground"
-                    : "text-base leading-[1.1] sm:text-[15px]",
+                    ? "text-body text-secondary-foreground"
+                    : "text-body-lg leading-[1.1] sm:text-[15px]",
                   actualTones[step.actualTone],
                 )}
               >
@@ -198,7 +196,7 @@ export function DebriefSteps({
               {!step.compact && (
                 <span
                   aria-hidden="true"
-                  className="font-metric text-xs font-semibold text-muted-foreground tabular-nums sm:hidden"
+                  className="text-label font-semibold text-muted-foreground tabular-nums sm:hidden"
                 >
                   {step.target}
                 </span>

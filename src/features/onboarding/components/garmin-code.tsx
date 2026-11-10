@@ -81,17 +81,17 @@ export function GarminCode({
             aria-label="Connexion en cours"
             className="flex flex-col gap-3"
           >
-            <h2 className="font-mono text-label text-muted-foreground uppercase">
+            <h2 className="text-label text-muted-foreground tabular-nums">
               Connexion en cours
             </h2>
             <div className="flex flex-col gap-1 rounded-xl border border-border p-4">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 Compte Garmin Connect
               </span>
               <span className="text-body break-all">{email}</span>
               <button
                 type="button"
-                className="mt-1 self-start rounded-md text-sm text-primary hover:underline"
+                className="mt-1 self-start rounded-md text-body text-primary hover:underline"
                 onClick={onUseAnotherAccount}
               >
                 Utiliser un autre compte
@@ -99,7 +99,7 @@ export function GarminCode({
             </div>
           </section>
           {notice ? (
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               Les codes expirent au bout de quelques minutes. Si tu en as reçu
               plusieurs, utilise le plus récent.
             </p>
@@ -130,7 +130,7 @@ export function GarminCode({
         }}
       >
         <div className="flex flex-col gap-2.5">
-          <label htmlFor="garmin-code" className="text-sm font-medium">
+          <label htmlFor="garmin-code" className="text-body font-medium">
             Code de vérification
           </label>
           <div className="relative grid w-full max-w-94 grid-cols-6 gap-2">
@@ -142,10 +142,10 @@ export function GarminCode({
                   key={index}
                   aria-hidden="true"
                   className={cn(
-                    "grid h-14 place-items-center rounded-lg border border-border-strong bg-card font-metric text-metric-lg font-semibold lg:h-16",
+                    "grid h-14 place-items-center rounded-lg border border-input bg-card text-metric font-semibold tabular-nums lg:h-16",
                     active && "border-primary ring-3 ring-primary/20",
-                    selected && "border-warning-border bg-warning/5",
-                    verified && "border-success-border text-success",
+                    selected && "border-border bg-warning/5",
+                    verified && "border-border text-primary",
                     submitting && "text-secondary-foreground",
                   )}
                 >
@@ -175,7 +175,7 @@ export function GarminCode({
               className="absolute inset-0 size-full cursor-text rounded-lg text-transparent caret-transparent opacity-0 outline-none selection:bg-transparent"
             />
           </div>
-          <p id="garmin-code-hint" className="text-xs text-muted-foreground">
+          <p id="garmin-code-hint" className="text-label text-muted-foreground">
             Envoyé par Garmin à l’e-mail ou au téléphone de ton compte. Tu peux
             aussi le coller.
           </p>
@@ -183,7 +183,7 @@ export function GarminCode({
         {verified && (
           <p
             role="status"
-            className="flex items-center gap-2 text-sm text-success"
+            className="flex items-center gap-2 text-body text-primary"
           >
             <CheckIcon aria-hidden="true" className="size-4" />
             Vérifié
@@ -191,15 +191,15 @@ export function GarminCode({
         )}
         {message && (
           <div role="alert" className="flex flex-col gap-1.5">
-            <p className="text-sm font-semibold text-warning">
+            <p className="text-body font-semibold text-warning">
               {message.title}
             </p>
-            <p className="text-xs text-muted-foreground">{message.body}</p>
+            <p className="text-label text-muted-foreground">{message.body}</p>
           </div>
         )}
         <div className="mt-auto flex flex-col gap-1 border-t border-border pt-5 lg:order-last lg:mt-0">
-          <p className="text-sm font-medium">Tu n’as pas reçu de code ?</p>
-          <p className="text-meta text-muted-foreground">
+          <p className="text-body font-medium">Tu n’as pas reçu de code ?</p>
+          <p className="text-body text-muted-foreground">
             Regarde tes spams, puis{" "}
             <button
               type="button"
@@ -244,12 +244,12 @@ export function GarminCode({
             </Button>
           </div>
           {slow && (
-            <p role="status" className="text-sm text-secondary-foreground">
+            <p role="status" className="text-body text-secondary-foreground">
               Toujours en contact avec Garmin…
             </p>
           )}
           {!signInAgain && code.length < 6 && !slow && (
-            <p className="hidden text-meta text-muted-foreground lg:block">
+            <p className="hidden text-body text-muted-foreground lg:block">
               Le bouton s’active à 6 chiffres.
             </p>
           )}

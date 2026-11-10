@@ -12,7 +12,7 @@ export function SignOutMenuItem() {
   const [pending, startTransition] = useTransition();
   return (
     <DropdownMenuItem
-      className="min-h-9 gap-2.5 px-2.5 text-sm [&_svg]:text-muted-foreground"
+      className="min-h-9 gap-2.5 px-2.5 text-body [&_svg]:text-muted-foreground"
       disabled={pending}
       onSelect={(event) => {
         event.preventDefault();

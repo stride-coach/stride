@@ -16,8 +16,8 @@ import { useStaff } from "@/features/coach/components/staff-context";
 
 const cardTone = {
   accent: "border-border bg-card",
-  warning: "border-warning-border bg-card",
-  success: "border-success-border bg-success-surface",
+  warning: "border-border bg-card",
+  success: "border-border bg-card",
   muted: "border-border bg-card",
 } as const;
 
@@ -65,31 +65,33 @@ export function SuiviPanel({
           <PulseDot
             tone={dotTone[card.tone]}
             breathing={status === "working"}
-            className={cn("size-2", card.tone === "muted" && "bg-dim")}
+            className={cn("size-2", card.tone === "muted" && "bg-data-1")}
           />
           <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-semibold">{card.title}</span>
-            <span className="text-xs text-muted-foreground">{card.detail}</span>
+            <span className="text-body font-semibold">{card.title}</span>
+            <span className="text-label text-muted-foreground">
+              {card.detail}
+            </span>
           </span>
         </div>
       </section>
       <section className="flex flex-col gap-1">
-        <h2 className="pb-1.5 text-sm font-semibold">Participants</h2>
+        <h2 className="pb-1.5 text-body font-semibold">Participants</h2>
         {suiviParticipants(staff, items).map((participant) => (
           <div
             key={participant.agent}
-            className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-border-subtle py-2"
+            className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-border py-2"
           >
             <StaffPortrait agent={participant.agent} size={36} decorative />
             <span className="flex min-w-0 flex-col gap-px">
-              <span className="text-sm font-semibold">
+              <span className="text-body font-semibold">
                 {staff[participant.agent].name}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {participant.role}
               </span>
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-label text-muted-foreground">
               {messagesLabel(participant.messages)}
             </span>
           </div>
@@ -97,7 +99,7 @@ export function SuiviPanel({
       </section>
       {steps.length > 0 && (
         <section className="flex flex-col gap-1">
-          <h2 className="pb-1.5 text-sm font-semibold">Déroulé</h2>
+          <h2 className="pb-1.5 text-body font-semibold">Déroulé</h2>
           <ol className="flex flex-col">
             {steps.map((step, index) => (
               <li
@@ -126,12 +128,12 @@ export function SuiviPanel({
                 ) : step.state === "upcoming" ? (
                   <span
                     aria-hidden="true"
-                    className="relative z-1 mt-0.5 size-3.25 rounded-full border border-dashed border-dim bg-surface-inset"
+                    className="relative z-1 mt-0.5 size-3.25 rounded-full border border-dashed border-control-border bg-background"
                   />
                 ) : (
                   <span
                     aria-hidden="true"
-                    className="relative z-1 mt-0.5 grid size-3.25 place-items-center rounded-full border border-dim bg-muted"
+                    className="relative z-1 mt-0.5 grid size-3.25 place-items-center rounded-full border border-muted-foreground bg-muted"
                   >
                     <CheckIcon
                       className="size-2 text-secondary-foreground"
@@ -142,7 +144,7 @@ export function SuiviPanel({
                 <span className="flex min-w-0 flex-col gap-px">
                   <span
                     className={cn(
-                      "text-meta",
+                      "text-body",
                       step.state === "current"
                         ? "font-semibold text-foreground"
                         : step.state === "upcoming"
@@ -164,7 +166,7 @@ export function SuiviPanel({
                     </MonoLabel>
                   )}
                   {step.detail && (
-                    <span className="line-clamp-2 text-xs text-muted-foreground">
+                    <span className="line-clamp-2 text-label text-muted-foreground">
                       {step.detail}
                     </span>
                   )}
@@ -176,24 +178,24 @@ export function SuiviPanel({
         </section>
       )}
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-sm font-semibold">Ce que le staff a lu</h2>
+        <h2 className="text-body font-semibold">Ce que le staff a lu</h2>
         {reads.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {reads.map((read) => (
               <span
                 key={read}
-                className="inline-flex items-center rounded-md border border-border-strong px-2 py-0.75 text-xs text-secondary-foreground"
+                className="inline-flex items-center rounded-md border border-control-border px-2 py-0.75 text-label text-secondary-foreground"
               >
                 {read}
               </span>
             ))}
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             Aucune donnée lue pour l’instant.
           </span>
         )}
-        <span className="text-xs leading-normal text-muted-foreground">
+        <span className="text-label leading-normal text-muted-foreground">
           Lecture seule. Le staff ne modifie rien sans ton accord.
         </span>
       </section>

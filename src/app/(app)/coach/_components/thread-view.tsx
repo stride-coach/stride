@@ -33,7 +33,7 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 function StaffName({ agent }: { agent: StaffAgent }) {
   const staff = useStaff();
   return (
-    <span className="inline-flex items-center gap-1.5 text-meta font-semibold text-foreground">
+    <span className="inline-flex items-center gap-1.5 text-body font-semibold text-foreground">
       {staff[agent].name}
       <MonoLabel size="nano" className="font-normal">
         {staff[agent].role}
@@ -63,11 +63,11 @@ function QuestionCard({
       role="group"
       aria-labelledby={titleId}
       className={cn(
-        "flex flex-col gap-2.5 rounded-2xl border bg-surface-panel px-3.5 py-3 sm:px-4 sm:py-3.5",
-        pending ? "border-warning-border" : "border-border",
+        "flex flex-col gap-2.5 rounded-2xl border bg-background px-3.5 py-3 sm:px-4 sm:py-3.5",
+        pending ? "border-border" : "border-border",
       )}
     >
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-2 text-label text-muted-foreground">
         {pending ? (
           <span className="inline-flex items-center gap-1.5 text-warning">
             <PulseDot tone="warning" breathing={false} />
@@ -81,7 +81,7 @@ function QuestionCard({
         <span className="ml-auto inline-flex items-center gap-1.5">
           {block.state === "answered" ? (
             <>
-              <CheckIcon aria-hidden="true" className="size-3 text-success" />
+              <CheckIcon aria-hidden="true" className="size-3 text-primary" />
               Répondue
               {block.answeredAt &&
                 ` · ${timeLabel(block.answeredAt, timeZone)}`}
@@ -108,9 +108,9 @@ function QuestionCard({
                 disabled={!pending || disabled}
                 onClick={() => onAnswer(option)}
                 className={cn(
-                  "h-auto min-h-9 rounded-full px-3 py-1.5 text-left text-meta font-normal whitespace-normal text-secondary-foreground",
+                  "h-auto min-h-9 rounded-full px-3 py-1.5 text-left text-body font-normal whitespace-normal text-secondary-foreground",
                   chosen &&
-                    "border-staff-medical bg-muted text-foreground disabled:opacity-100",
+                    "border-foreground bg-muted text-foreground disabled:opacity-100",
                 )}
               >
                 {chosen && <CheckIcon aria-hidden="true" className="size-3" />}
@@ -125,7 +125,7 @@ function QuestionCard({
               size="sm"
               disabled={disabled}
               onClick={onOther}
-              className="min-h-9 rounded-full px-3 text-meta font-normal text-secondary-foreground"
+              className="min-h-9 rounded-full px-3 text-body font-normal text-secondary-foreground"
             >
               Autre…
             </Button>
@@ -172,16 +172,16 @@ function ProposalCard({
           tone={status.tone}
           className={cn(
             "ml-auto",
-            block.status === "applied" && "text-success",
+            block.status === "applied" && "text-primary",
           )}
         >
           {status.label}
         </MonoLabel>
       </div>
       <div className="flex flex-col gap-1">
-        <p className="text-lead font-semibold">{block.title}</p>
+        <p className="text-body-lg font-semibold">{block.title}</p>
         {block.summary && (
-          <p className="text-sm leading-normal text-secondary-foreground">
+          <p className="text-body leading-normal text-secondary-foreground">
             {block.summary}
           </p>
         )}
@@ -191,7 +191,7 @@ function ProposalCard({
           {block.opinions.map((opinion, index) => (
             <div
               key={index}
-              className="grid grid-cols-[20px_minmax(0,1fr)] gap-2.5 border-b border-border py-2.5 text-meta leading-snug text-secondary-foreground"
+              className="grid grid-cols-[20px_minmax(0,1fr)] gap-2.5 border-b border-border py-2.5 text-body leading-snug text-secondary-foreground"
             >
               <StaffPortrait agent={opinion.agent} size={20} decorative />
               <span>
@@ -285,7 +285,7 @@ function StaffMessage({
             return <ProposalCard key={index} block={block} />;
           return (
             <div key={index} className="flex flex-col items-start gap-2">
-              <p className="text-sm text-destructive">{block.text}</p>
+              <p className="text-body text-destructive">{block.text}</p>
               {onRetry && index === entry.blocks.length - 1 && (
                 <Button
                   type="button"
@@ -307,7 +307,7 @@ function StaffMessage({
             {entry.reads.map((read) => (
               <span
                 key={read}
-                className="inline-flex items-center rounded-md border border-border-strong px-1.75 py-0.5 text-[11px] text-secondary-foreground"
+                className="inline-flex items-center rounded-md border border-control-border px-1.75 py-0.5 text-[11px] text-secondary-foreground"
               >
                 {read}
               </span>
@@ -341,12 +341,12 @@ function TypingMessage({
           </span>
           <StaffName agent={entry.agent} />
         </div>
-        <span className="inline-flex items-center gap-2.5 self-start rounded-[4px_16px_16px_16px] border border-border bg-card px-3.5 py-2.5 text-meta text-secondary-foreground">
+        <span className="inline-flex items-center gap-2.5 self-start rounded-[4px_16px_16px_16px] border border-border bg-card px-3.5 py-2.5 text-body text-secondary-foreground">
           <span aria-hidden="true" className="inline-flex gap-1">
             {[0, 1, 2].map((dot) => (
               <span
                 key={dot}
-                className="size-1.25 rounded-full bg-staff-medical motion-safe:animate-pulse"
+                className="size-1.25 rounded-full bg-foreground motion-safe:animate-pulse"
                 style={{ animationDelay: `${dot * 300}ms` }}
               />
             ))}
@@ -394,7 +394,7 @@ function AthleteMessage({
   return (
     <div className="flex max-w-[84%] flex-col items-end gap-1 self-end sm:max-w-[72%]">
       {target && (
-        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5 text-label text-muted-foreground">
           <StaffPortrait agent={target} size={16} decorative />
           {entry.replyTo
             ? replyToLabel(staff[target])
@@ -445,11 +445,11 @@ export function ThreadLog({
           <div key={entry.key} className="flex flex-col gap-5.5">
             {separator && (
               <div className="flex items-center gap-3" aria-hidden="true">
-                <span className="h-px flex-1 bg-border-subtle" />
+                <span className="h-px flex-1 bg-border" />
                 <MonoLabel size="nano">
                   {dayLabel(entry.at, now, timeZone)}
                 </MonoLabel>
-                <span className="h-px flex-1 bg-border-subtle" />
+                <span className="h-px flex-1 bg-border" />
               </div>
             )}
             {entry.type === "athlete" ? (
@@ -507,7 +507,7 @@ export function StaffWorking({
           </span>
           <StaffName agent="coach" />
         </div>
-        <span className="inline-flex flex-wrap items-center gap-2.5 self-start rounded-[4px_16px_16px_16px] border border-border bg-card px-3.5 py-2.5 text-meta text-secondary-foreground">
+        <span className="inline-flex flex-wrap items-center gap-2.5 self-start rounded-[4px_16px_16px_16px] border border-border bg-card px-3.5 py-2.5 text-body text-secondary-foreground">
           <span aria-hidden="true" className="inline-flex gap-1">
             {[0, 1, 2].map((dot) => (
               <span
@@ -528,7 +528,7 @@ export function StaffWorking({
             >
               <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-primary to-transparent motion-safe:animate-trace motion-reduce:hidden" />
             </span>
-            <p className="max-w-115 text-meta leading-normal text-muted-foreground">
+            <p className="max-w-115 text-body leading-normal text-muted-foreground">
               {longWriteNote}
             </p>
           </>

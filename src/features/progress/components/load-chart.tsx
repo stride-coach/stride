@@ -93,7 +93,7 @@ function Plot({
       role="img"
       aria-label={`Condition ${formatInteger(chart.current.condition)}, fatigue ${formatInteger(chart.current.fatigue)} au ${formatDayMonth(chart.end)}. Pic de condition ${formatInteger(chart.peak.condition)} le ${formatDayMonth(chart.peak.day)}.`}
     >
-      <g className="stroke-border-subtle">
+      <g className="stroke-border">
         {[0.25, 0.5, 0.75].map((ratio) => {
           const lineY = frame.top + ratio * (frame.baseline - frame.top);
           return (
@@ -121,7 +121,7 @@ function Plot({
         x2={frame.width}
         y1={frame.baseline}
         y2={frame.baseline}
-        className="stroke-border-strong"
+        className="stroke-control-border"
       />
       <path
         d={path(
@@ -140,11 +140,7 @@ function Plot({
         strokeLinejoin="round"
         className="stroke-destructive"
       />
-      <g
-        className="font-mono uppercase"
-        fontSize={frame.font}
-        letterSpacing="0.06em"
-      >
+      <g className="tabular-nums" fontSize={frame.font} letterSpacing="0.06em">
         {chart.markers.map((marker, index) => {
           const markerX = x(marker.day);
           const labelY = frame.top - 12 + (index % 2) * (frame.font + 6);
@@ -157,7 +153,7 @@ function Plot({
                 y1={labelY + 2}
                 y2={frame.baseline}
                 strokeDasharray="2 3"
-                className="stroke-dim"
+                className="stroke-data-1"
               />
               <text
                 x={end ? markerX - 6 : markerX + 6}
@@ -249,7 +245,7 @@ export function LoadChart({ chart }: { chart: LoadChartModel }) {
       >
         <Plot chart={chart} frame={mobile} className="h-auto w-full" />
       </ChartInspector>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         Condition : charge chronique Garmin (moyenne sur 28 jours). Fatigue :
         charge aiguë Garmin (7 derniers jours). La zone colorée marque les jours
         où la fatigue dépasse la condition.

@@ -25,10 +25,10 @@ function StepMark({ status, index }: { status: StepStatus; index: number }) {
     <span
       aria-hidden="true"
       className={cn(
-        "grid size-6.5 shrink-0 place-items-center rounded-full border-[1.5px] font-metric text-sm font-semibold",
+        "grid size-6.5 shrink-0 place-items-center rounded-full border-[1.5px] text-body font-semibold tabular-nums",
         status === "background" && "border-dashed border-primary",
         status === "current" && "border-primary text-primary",
-        status === "upcoming" && "border-border-strong text-muted-foreground",
+        status === "upcoming" && "border-control-border text-muted-foreground",
       )}
     >
       {status === "background" ? (
@@ -70,7 +70,7 @@ export function StepperItem({
       <span className="flex min-w-0 flex-col gap-0.5 pt-0.75">
         <span
           className={cn(
-            "text-sm",
+            "text-body",
             status === "current"
               ? "font-semibold text-foreground"
               : "text-secondary-foreground",
@@ -80,7 +80,7 @@ export function StepperItem({
           <span className="sr-only">, {statusLabels[status]}</span>
         </span>
         {detail && (
-          <span className="text-xs text-muted-foreground">{detail}</span>
+          <span className="text-label text-muted-foreground">{detail}</span>
         )}
       </span>
     </li>
@@ -116,8 +116,8 @@ export function StepperSegments({
           data-status={status}
           className={cn(
             "relative h-0.75 overflow-hidden rounded-mark",
-            status === "done" && "bg-success",
-            status === "background" && "bg-dim",
+            status === "done" && "bg-primary",
+            status === "background" && "bg-data-1",
             status === "current" && "bg-border",
             status === "upcoming" && "bg-border",
           )}

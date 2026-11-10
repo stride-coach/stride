@@ -91,7 +91,7 @@ export function SessionShape({
             className={cn(
               "min-w-0.5 rounded-mark",
               block.removed
-                ? "border border-dashed border-dim"
+                ? "border border-dashed border-control-border"
                 : zoneFills[block.zone],
             )}
             style={{

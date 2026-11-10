@@ -23,8 +23,8 @@ export type InspectorPoint = {
 const dots: Record<InspectorTone, string> = {
   foreground: "bg-foreground",
   danger: "bg-destructive",
-  provider: "bg-provider",
-  success: "bg-success",
+  provider: "bg-foreground",
+  success: "bg-primary",
   warning: "bg-warning",
   accent: "bg-primary",
   "zone-3": "bg-intensity-3",
@@ -63,7 +63,7 @@ export function ChartInspector({
       aria-label={`${label} · survole ou utilise les flèches pour lire chaque valeur`}
       tabIndex={points.length ? 0 : -1}
       className={cn(
-        "relative touch-pan-y rounded-md outline-none focus-visible:ring-2 focus-visible:ring-focus",
+        "relative touch-pan-y rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
       onFocus={() => setSelected((current) => current ?? last)}
@@ -107,20 +107,20 @@ export function ChartInspector({
           <div
             role="status"
             className={cn(
-              "pointer-events-none absolute top-0 z-10 flex w-max max-w-64 min-w-40 flex-col gap-1.5 rounded-lg border border-border-strong bg-card px-3 py-2.5 shadow-lg",
+              "pointer-events-none absolute top-0 z-10 flex w-max max-w-64 min-w-40 flex-col gap-1.5 rounded-lg border border-control-border bg-card px-3 py-2.5 shadow-lg",
               point.x > 0.6 ? "-translate-x-full" : "",
             )}
             style={{
               left: `calc(${point.x * 100}% ${point.x > 0.6 ? "- 10px" : "+ 10px"})`,
             }}
           >
-            <p className="font-mono text-micro text-foreground uppercase">
+            <p className="text-micro text-foreground tabular-nums">
               {point.title}
             </p>
             {point.rows.map((row, index) => (
               <p
                 key={`${row.label}-${index}`}
-                className="flex items-baseline justify-between gap-4 text-xs"
+                className="flex items-baseline justify-between gap-4 text-label"
               >
                 <span className="flex items-center gap-1.5 text-secondary-foreground">
                   {row.tone && (
@@ -131,13 +131,13 @@ export function ChartInspector({
                   )}
                   {row.label}
                 </span>
-                <span className="font-metric text-sm font-semibold tabular-nums">
+                <span className="text-body font-semibold tabular-nums">
                   {row.value}
                 </span>
               </p>
             ))}
             {point.note && (
-              <p className="text-xs text-pretty text-muted-foreground">
+              <p className="text-label text-pretty text-muted-foreground">
                 {point.note}
               </p>
             )}

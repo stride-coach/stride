@@ -37,7 +37,7 @@ const categories = {
 const toneClasses = {
   muted: "text-muted-foreground",
   accent: "text-foreground",
-  success: "text-success",
+  success: "text-primary",
   warning: "text-warning",
 };
 
@@ -68,7 +68,7 @@ export function HistoryStep({
           <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
             Création de ton profil d’athlète
           </h1>
-          <p className="text-body text-pretty text-secondary-foreground lg:text-lead">
+          <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
             <span className="hidden lg:inline">
               Je lis tout ce que Garmin a gardé, du plus récent au plus ancien,
               pour pouvoir te coacher avant l’arrivée des plus vieilles années.
@@ -150,7 +150,7 @@ export function HistoryStep({
           >
             {running ? "Continuer — je continue la lecture" : "Continuer"}
           </Button>
-          <p className="text-center text-xs text-muted-foreground lg:text-left lg:text-meta">
+          <p className="text-center text-label text-muted-foreground lg:text-left lg:text-body">
             {running
               ? "La lecture continue en arrière-plan pendant que tu avances."
               : "Tout l’historique disponible est lu."}
@@ -179,13 +179,13 @@ function HistoryTimeline({
   return (
     <section aria-label="Historique lu" className="flex flex-col gap-2.5">
       <div className="hidden items-baseline justify-between lg:flex">
-        <h2 className="font-mono text-label text-muted-foreground uppercase">
+        <h2 className="text-label text-muted-foreground tabular-nums">
           Historique lu
         </h2>
         {reading && (
-          <p className="text-sm text-secondary-foreground">
+          <p className="text-body text-secondary-foreground">
             Actuellement :{" "}
-            <span className="font-metric font-semibold text-foreground">
+            <span className="font-semibold text-foreground tabular-nums">
               {reading}
             </span>
           </p>
@@ -199,7 +199,7 @@ function HistoryTimeline({
               className={cn(
                 "relative h-3 overflow-hidden rounded-mark lg:h-5.5",
                 fill === 0
-                  ? "border border-dashed border-border-strong"
+                  ? "border border-dashed border-control-border"
                   : "bg-muted",
               )}
             >
@@ -212,7 +212,7 @@ function HistoryTimeline({
             </span>
             <span
               className={cn(
-                "hidden font-mono text-micro text-muted-foreground lg:block",
+                "hidden text-label text-muted-foreground tabular-nums lg:block",
                 fill > 0 && fill < 1 && "font-semibold text-foreground",
               )}
             >
@@ -226,7 +226,7 @@ function HistoryTimeline({
           </li>
         ))}
       </ol>
-      <div className="flex items-center justify-between font-mono text-micro text-muted-foreground uppercase lg:hidden">
+      <div className="flex items-center justify-between text-label text-muted-foreground tabular-nums lg:hidden">
         <span>{first}</span>
         {reading && (
           <span className="font-semibold text-foreground">
@@ -251,8 +251,8 @@ function CategoryRow({
   return (
     <li className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2.5 border-b border-border py-4 lg:grid-cols-[13.5rem_1fr_6.5rem] lg:gap-x-6 lg:py-5">
       <span className="flex flex-col gap-0.5 lg:col-start-1 lg:row-start-1">
-        <span className="text-body font-semibold lg:text-lead">{title}</span>
-        <span className="hidden text-xs text-muted-foreground lg:block">
+        <span className="text-body font-semibold lg:text-body-lg">{title}</span>
+        <span className="hidden text-label text-muted-foreground lg:block">
           {subtitle}
         </span>
       </span>
@@ -274,7 +274,7 @@ function CategoryRow({
             <span className="absolute inset-0 bg-warning/60" />
           )}
         </span>
-        <span className="hidden text-sm text-secondary-foreground lg:block">
+        <span className="hidden text-body text-secondary-foreground lg:block">
           {view?.detail ?? "Lecture du statut Garmin…"}
         </span>
       </span>
@@ -283,8 +283,8 @@ function CategoryRow({
           "flex items-center justify-end gap-1.5 text-right lg:col-start-3 lg:row-start-1",
           view && view.tone !== "accent" && toneClasses[view.tone],
           view?.value.match(/^\d/)
-            ? "font-metric text-metric font-semibold text-foreground"
-            : "text-sm",
+            ? "text-metric font-semibold text-foreground tabular-nums"
+            : "text-body",
         )}
       >
         {view?.tone === "success" && (

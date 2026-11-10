@@ -21,14 +21,12 @@ export default async function EmailConfirmedPage() {
     <AuthShell signup>
       <div className="flex flex-1 flex-col gap-6 md:flex-none">
         <div
-          className="grid size-14 place-items-center rounded-full border border-success/30 bg-success/10 text-2xl text-success"
+          className="grid size-14 place-items-center rounded-full border border-primary/30 bg-primary/10 text-metric text-primary"
           aria-hidden="true"
         >
           ✓
         </div>
-        <p className="font-mono text-xs tracking-widest text-success uppercase">
-          E-mail confirmé
-        </p>
+        <p className="text-label text-primary tabular-nums">E-mail confirmé</p>
         <h1 className="text-[32px] leading-tight font-semibold tracking-tight">
           C’est validé{name ? `, ${name}` : ""}.
         </h1>
@@ -39,7 +37,7 @@ export default async function EmailConfirmedPage() {
         <Button asChild className="mt-auto w-full md:mt-0">
           <Link href="/">Continuer la configuration</Link>
         </Button>
-        <p className="text-center text-sm text-secondary-foreground">
+        <p className="text-center text-body text-secondary-foreground">
           Connecté en tant que {data.user.email}
         </p>
       </div>

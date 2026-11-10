@@ -110,17 +110,17 @@ export function NutritionTargetTile({
         <button
           type="button"
           className={cn(
-            "flex min-w-0 flex-col gap-0.5 rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-ring sm:gap-1 sm:p-4",
+            "flex min-w-0 flex-col gap-0.5 rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring sm:gap-1 sm:p-4",
             className,
           )}
         >
-          <MonoLabel size="nano" className="sm:text-micro">
+          <MonoLabel size="nano" className="sm:text-label">
             {label}
           </MonoLabel>
-          <span className="font-metric text-[1.375rem] leading-none font-semibold tabular-nums sm:text-[1.875rem]">
+          <span className="text-[1.375rem] leading-none font-semibold tabular-nums sm:text-[1.875rem]">
             {value}
           </span>
-          <span className="text-[0.6875rem] text-muted-foreground sm:text-xs">
+          <span className="text-[0.6875rem] text-muted-foreground sm:text-label">
             <span className={cn(mobileDetail && "max-sm:hidden")}>
               {detail}
             </span>
@@ -155,7 +155,7 @@ export function NutritionTargetTile({
             ))}
           </div>
           {nightCaffeine !== undefined && (
-            <Label className="flex items-center gap-2.5 text-meta">
+            <Label className="flex items-center gap-2.5 text-body">
               <Checkbox
                 checked={night}
                 onCheckedChange={(checked) => setNight(checked === true)}
@@ -164,7 +164,7 @@ export function NutritionTargetTile({
             </Label>
           )}
           {!valid && (
-            <p className="text-xs text-destructive">
+            <p className="text-label text-destructive">
               {fields
                 .map(
                   (field) =>
@@ -176,7 +176,7 @@ export function NutritionTargetTile({
           <Button
             type="submit"
             size="md"
-            className="self-start rounded-lg text-meta"
+            className="self-start rounded-lg text-body"
             disabled={!valid || pending}
             aria-busy={pending}
           >

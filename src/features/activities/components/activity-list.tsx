@@ -28,7 +28,7 @@ const emptyFilterMessages: Record<ActivityFilter, string> = {
 };
 
 export const filterChipClass =
-  "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md border px-2.75 text-xs whitespace-nowrap transition-colors duration-150 ease-stride lg:min-h-7.5";
+  "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md border px-2.75 text-label whitespace-nowrap transition-colors duration-150 ease-stride lg:min-h-7.5";
 
 export function ActivityFilters({
   filter,
@@ -60,7 +60,7 @@ export function ActivityFilters({
             className={cn(
               filterChipClass,
               item === filter
-                ? "border-border-strong bg-muted text-foreground"
+                ? "border-control-border bg-muted text-foreground"
                 : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
@@ -84,7 +84,7 @@ function WeekHeader({
   summary: ActivityWeekSummary | undefined;
 }) {
   return (
-    <h2 className="sticky top-0 z-1 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 border-y border-border-subtle bg-surface-panel px-5 pt-3 pb-2.5 font-normal lg:px-3.5 lg:pt-2.5 lg:pb-2.25">
+    <h2 className="sticky top-0 z-1 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 border-y border-border bg-background px-5 pt-3 pb-2.5 font-normal lg:px-3.5 lg:pt-2.5 lg:pb-2.25">
       <MonoLabel
         size="nano"
         tone="muted"
@@ -98,7 +98,7 @@ function WeekHeader({
             <Metric
               key={item.key}
               size="sm"
-              className="text-sm"
+              className="text-body"
               value={item.value}
               unit={
                 item.unit && (
@@ -143,7 +143,7 @@ export function ActivityList({
 }) {
   if (groups.length === 0)
     return (
-      <p className="px-5 py-6 text-meta text-secondary-foreground lg:px-3.5">
+      <p className="px-5 py-6 text-body text-secondary-foreground lg:px-3.5">
         {search
           ? "Aucune activité ne correspond à ce nom."
           : filter === "all"
@@ -185,7 +185,7 @@ export function ActivityList({
                         : undefined
                     }
                     className={cn(
-                      "flex flex-col gap-1.75 border-b border-border-subtle px-5 py-3.5 transition-colors duration-150 ease-stride hover:bg-card lg:px-3.5",
+                      "flex flex-col gap-1.75 border-b border-border px-5 py-3.5 transition-colors duration-150 ease-stride hover:bg-card lg:px-3.5",
                       selected &&
                         (current
                           ? "bg-muted shadow-[inset_2px_0_0_var(--color-primary)]"
@@ -195,7 +195,7 @@ export function ActivityList({
                     <span className="flex items-baseline justify-between gap-3">
                       <span
                         className={cn(
-                          "min-w-0 truncate text-base text-foreground lg:text-sm",
+                          "min-w-0 truncate text-body-lg text-foreground lg:text-body",
                           selected ? "font-semibold" : "font-medium",
                         )}
                       >
@@ -263,7 +263,7 @@ export function ActivityListFooter({
         <Link
           href={`/activities${activitiesQuery(filter, next, search)}`}
           scroll={false}
-          className="inline-flex min-h-11 items-center rounded-md border border-border-strong px-3.5 text-sm text-foreground transition-colors duration-150 ease-stride hover:bg-muted lg:min-h-8 lg:text-xs"
+          className="inline-flex min-h-11 items-center rounded-md border border-control-border px-3.5 text-body text-foreground transition-colors duration-150 ease-stride hover:bg-muted lg:min-h-8 lg:text-label"
         >
           Charger les suivantes
         </Link>

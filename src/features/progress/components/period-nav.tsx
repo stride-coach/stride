@@ -22,7 +22,7 @@ export function PeriodNav({ period }: { period: ProgressPeriod }) {
           aria-current={item === period ? "page" : undefined}
           scroll={false}
           className={cn(
-            "flex min-h-9 items-center justify-center rounded-md px-3.5 text-meta whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-sm:min-h-10 max-sm:flex-1",
+            "flex min-h-9 items-center justify-center rounded-md px-3.5 text-body whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring max-sm:min-h-10 max-sm:flex-1",
             item === period && "bg-muted font-semibold text-foreground",
           )}
         >

@@ -92,7 +92,7 @@ function ScenarioChips({
           scroll={false}
           aria-current={scenario.key === current ? "true" : undefined}
           className={cn(
-            "inline-flex min-h-8.5 shrink-0 items-center rounded-full border border-border-strong px-3 text-meta whitespace-nowrap text-secondary-foreground transition-colors hover:text-foreground",
+            "inline-flex min-h-8.5 shrink-0 items-center rounded-full border border-control-border px-3 text-body whitespace-nowrap text-secondary-foreground transition-colors hover:text-foreground",
             scenario.key === current &&
               "border-foreground bg-foreground font-semibold text-background hover:text-background",
           )}
@@ -152,19 +152,19 @@ function StrategistCard({
           <h2 id="consignes-strategiste">Consignes du stratège</h2>
         </MonoLabel>
         {proposal && (
-          <span className="ml-auto inline-flex items-center rounded-full border border-warning/30 px-2.25 py-0.5 text-xs whitespace-nowrap text-warning max-md:hidden">
+          <span className="ml-auto inline-flex items-center rounded-full border border-warning/30 px-2.25 py-0.5 text-label whitespace-nowrap text-warning max-md:hidden">
             {changeCountLabel(changes)}
           </span>
         )}
       </div>
       {consignes.length > 0 ? (
-        <ol className="flex list-decimal flex-col gap-1.5 pl-4.5 text-meta leading-normal md:text-sm">
+        <ol className="flex list-decimal flex-col gap-1.5 pl-4.5 text-body leading-normal md:text-body">
           {consignes.map((consigne, index) => (
             <li key={index}>{consigne}</li>
           ))}
         </ol>
       ) : (
-        <p className="text-meta text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Fixe ton objectif pour que le stratège prépare tes consignes.
         </p>
       )}
@@ -173,7 +173,7 @@ function StrategistCard({
           <Button
             asChild
             size="md"
-            className="rounded-lg text-meta max-md:min-h-11"
+            className="rounded-lg text-body max-md:min-h-11"
           >
             <Link
               href={`${base}?proposal=${proposal.id}`}
@@ -191,7 +191,7 @@ function StrategistCard({
           asChild
           variant="outline"
           size="md"
-          className="rounded-lg text-meta max-md:min-h-11"
+          className="rounded-lg text-body max-md:min-h-11"
         >
           <Link
             href={coachRequestHref(
@@ -248,26 +248,26 @@ function Aside({
         <MonoLabel asChild size="micro">
           <h2>Arrivée prévue</h2>
         </MonoLabel>
-        <span className="font-metric text-[2.25rem] leading-none font-semibold tabular-nums">
+        <span className="text-[2.25rem] leading-none font-semibold tabular-nums">
           {formatClock(totals.finishClockMinutes)}
         </span>
         {totals.finishCutoffMinutes !== null &&
           totals.finishMarginSeconds !== null && (
             <span
               className={cn(
-                "text-meta",
-                late ? "text-destructive" : "text-success",
+                "text-body",
+                late ? "text-destructive" : "text-primary",
               )}
             >
               barrière {formatClock(totals.finishCutoffMinutes)} · marge{" "}
               {marginText(totals.finishMarginSeconds)}
             </span>
           )}
-        <dl className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-2 text-xs text-secondary-foreground">
+        <dl className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-2 text-label text-secondary-foreground">
           {figures.map(([label, seconds]) => (
             <div key={label} className="flex items-baseline gap-1">
               <dt>{label}</dt>
-              <dd className="font-metric text-[0.9375rem] font-semibold text-foreground tabular-nums">
+              <dd className="text-[0.9375rem] font-semibold text-foreground tabular-nums">
                 {label === "Arrêts" ? (
                   <StopsEditor
                     raceId={data.race.id}
@@ -289,14 +289,14 @@ function Aside({
         <MonoLabel asChild size="micro">
           <h2>Points de passage</h2>
         </MonoLabel>
-        <span className="text-meta text-secondary-foreground">
+        <span className="text-body text-secondary-foreground">
           {data.waypoints.length} point{data.waypoints.length > 1 ? "s" : ""} ·{" "}
           {stations.length} ravito{stations.length > 1 ? "s" : ""} ·{" "}
           {alert > 0 ? `alertes à ${alert} m` : "sans alerte"}
         </span>
         <Link
           href={`/races/${data.race.id}/waypoints`}
-          className="text-meta text-primary hover:text-foreground"
+          className="text-body text-primary hover:text-foreground"
         >
           Modifier les points →
         </Link>
@@ -364,7 +364,7 @@ function PlanBody({
     .join(" · ");
   return (
     <>
-      <div className="sticky top-0 z-10 flex flex-col gap-1 border-b border-border bg-surface-inset py-1.5 lg:hidden print:hidden">
+      <div className="sticky top-0 z-10 flex flex-col gap-1 border-b border-border bg-background py-1.5 lg:hidden print:hidden">
         <PlanProfile data={profile} variant="sticky" caption={caption} />
       </div>
       <section
@@ -381,13 +381,13 @@ function PlanBody({
             label="Imprimer le roadbook"
             icon={false}
             size="md"
-            className="rounded-lg text-meta"
+            className="rounded-lg text-body"
           />
           <Button
             asChild
             variant="outline"
             size="md"
-            className="rounded-lg text-meta"
+            className="rounded-lg text-body"
           >
             <Link href={`${base}/waypoints#montre`}>Envoyer à la montre</Link>
           </Button>
@@ -395,13 +395,13 @@ function PlanBody({
             asChild
             variant="outline"
             size="md"
-            className="rounded-lg text-meta"
+            className="rounded-lg text-body"
           >
             <Link href={`${base}/waypoints`}>Modifier les points</Link>
           </Button>
         </div>
       </section>
-      <p className="hidden text-sm font-semibold print:block">
+      <p className="hidden text-body font-semibold print:block">
         Scénario {scenarioNames[planned.scenario.key].toLowerCase()} ·{" "}
         {formatHours(planned.scenario.seconds)}
       </p>
@@ -414,7 +414,7 @@ function PlanBody({
             proposal={proposal}
           />
           {!planned.simulation.feasible && (
-            <p role="status" className="py-2 text-sm text-warning">
+            <p role="status" className="py-2 text-body text-warning">
               Cet objectif est hors de portée avec la marche et les arrêts
               prévus : la simulation est à revoir.
             </p>
@@ -423,9 +423,9 @@ function PlanBody({
         </div>
         <Aside data={data} totals={totals} profile={profile} />
       </section>
-      <p className="flex flex-wrap items-baseline gap-x-1.5 text-meta text-secondary-foreground lg:hidden print:hidden">
+      <p className="flex flex-wrap items-baseline gap-x-1.5 text-body text-secondary-foreground lg:hidden print:hidden">
         Arrêts prévus ·
-        <span className="font-metric text-[0.9375rem] font-semibold text-foreground tabular-nums">
+        <span className="text-[0.9375rem] font-semibold text-foreground tabular-nums">
           <StopsEditor
             raceId={data.race.id}
             revision={data.plan.revision}
@@ -441,13 +441,13 @@ function PlanBody({
           label="Imprimer le roadbook"
           icon={false}
           size="md"
-          className="min-h-11 rounded-lg text-meta"
+          className="min-h-11 rounded-lg text-body"
         />
         <Button
           asChild
           variant="outline"
           size="md"
-          className="min-h-11 rounded-lg text-meta"
+          className="min-h-11 rounded-lg text-body"
         >
           <Link href={`${base}/waypoints`}>Modifier les points</Link>
         </Button>

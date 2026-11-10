@@ -21,7 +21,7 @@ export function CoachActivity({
       data-slot="coach-activity"
       data-state={state}
       className={cn(
-        "flex min-w-0 items-center gap-2 text-meta",
+        "flex min-w-0 items-center gap-2 text-body",
         (state === "idle" || state === "noticing") &&
           "text-secondary-foreground",
         state === "reading" && "flex-col items-stretch gap-1.5",

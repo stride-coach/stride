@@ -45,11 +45,11 @@ function ZoneCard({
         )}
       </div>
       {rows.length > 0 ? (
-        <table className="w-full border-collapse text-body min-[1100px]:mx-5 min-[1100px]:mb-3 min-[1100px]:w-[calc(100%-2.5rem)] min-[1100px]:text-sm">
+        <table className="w-full border-collapse text-body min-[1100px]:mx-5 min-[1100px]:mb-3 min-[1100px]:w-[calc(100%-2.5rem)] min-[1100px]:text-body">
           <caption className="sr-only">{caption}</caption>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.key} className="border-t border-border-subtle">
+              <tr key={row.key} className="border-t border-border">
                 <th
                   scope="row"
                   className="px-4 py-2.75 text-left font-normal min-[1100px]:px-0 min-[1100px]:py-2.5"
@@ -62,10 +62,10 @@ function ZoneCard({
                   {row.label}
                 </th>
                 <td className="px-4 py-2.75 text-right min-[1100px]:px-0 min-[1100px]:py-2.5">
-                  <span className="font-metric text-lead font-semibold">
+                  <span className="text-body-lg font-semibold tabular-nums">
                     {row.value}
                   </span>{" "}
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     {row.unit}
                   </span>
                 </td>
@@ -74,7 +74,7 @@ function ZoneCard({
           </tbody>
         </table>
       ) : (
-        <p className="border-t border-border-subtle px-4 py-3.5 text-sm text-secondary-foreground min-[1100px]:mx-5 min-[1100px]:px-0">
+        <p className="border-t border-border px-4 py-3.5 text-body text-secondary-foreground min-[1100px]:mx-5 min-[1100px]:px-0">
           {empty}
         </p>
       )}
@@ -94,14 +94,14 @@ export function ProfileZones({
       aria-labelledby="zones-heading"
       className="flex flex-col gap-2 min-[1100px]:gap-4"
     >
-      <div className="flex flex-col gap-1 px-1.5 min-[1100px]:flex-row min-[1100px]:items-baseline min-[1100px]:justify-between min-[1100px]:border-b min-[1100px]:border-border-strong min-[1100px]:px-0 min-[1100px]:pb-2.5">
+      <div className="flex flex-col gap-1 px-1.5 min-[1100px]:flex-row min-[1100px]:items-baseline min-[1100px]:justify-between min-[1100px]:border-b min-[1100px]:border-control-border min-[1100px]:px-0 min-[1100px]:pb-2.5">
         <h2
           id="zones-heading"
-          className="font-mono text-micro font-normal tracking-wider text-muted-foreground uppercase min-[1100px]:text-label"
+          className="text-label font-normal text-muted-foreground tabular-nums min-[1100px]:text-label"
         >
           Zones
         </h2>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-label text-muted-foreground">
           <span className="min-[1100px]:hidden">
             Elles donnent les cibles de chaque séance
           </span>
@@ -117,7 +117,7 @@ export function ProfileZones({
           aside={
             <a
               href="#entrainement"
-              className="-my-2.5 inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground min-[1100px]:my-0 min-[1100px]:min-h-8"
+              className="-my-2.5 inline-flex min-h-11 items-center text-body text-primary hover:text-foreground min-[1100px]:my-0 min-[1100px]:min-h-8"
             >
               <span className="min-[1100px]:hidden">Modifier</span>
               <span className="hidden min-[1100px]:inline">
@@ -140,7 +140,7 @@ export function ProfileZones({
           caption="Zones d’allure"
           aside={
             paces?.threshold && (
-              <span className="font-metric text-body font-semibold text-secondary-foreground">
+              <span className="text-body font-semibold text-secondary-foreground tabular-nums">
                 Seuil {paces.threshold} /km
               </span>
             )
@@ -155,7 +155,7 @@ export function ProfileZones({
           empty="Pas encore d’allures : il faut une séance au seuil sur le plat, un effort récent ou une VO₂ max Garmin."
         />
       </div>
-      <p className="hidden text-meta text-muted-foreground min-[1100px]:block">
+      <p className="hidden text-body text-muted-foreground min-[1100px]:block">
         Ces zones donnent les cibles de chaque séance du plan.
       </p>
     </section>

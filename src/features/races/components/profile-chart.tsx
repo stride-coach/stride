@@ -95,7 +95,7 @@ function MarkerShape({
           y={y + font * 0.36}
           textAnchor="middle"
           className={cn(
-            "font-metric font-bold",
+            "font-bold tabular-nums",
             filled ? "fill-background" : "fill-foreground",
           )}
           fontSize={font}
@@ -114,9 +114,7 @@ function MarkerShape({
           width={size}
           height={size}
           rx={size / 4}
-          className={
-            active ? "fill-primary" : "fill-background stroke-provider"
-          }
+          className={active ? "fill-primary" : "fill-background stroke-data-2"}
           strokeWidth={active ? 0 : 1.4}
         />
         <text
@@ -124,7 +122,7 @@ function MarkerShape({
           y={y + font * 0.36}
           textAnchor="middle"
           className={cn(
-            "font-metric font-bold",
+            "font-bold tabular-nums",
             active ? "fill-background" : "fill-foreground",
           )}
           fontSize={font}
@@ -146,7 +144,7 @@ function MarkerShape({
       d={`M${x},${y - r} L${x + r},${y} L${x},${y + r} L${x - r},${y}Z`}
       className={cn(
         "fill-background",
-        mark.tone === "caution" ? "stroke-warning" : "stroke-night",
+        mark.tone === "caution" ? "stroke-warning" : "stroke-data-2",
       )}
       strokeWidth={1.4}
     />
@@ -344,7 +342,7 @@ export function ProfileChart({
               y1="0"
               x2="0"
               y2="6"
-              className="stroke-provider"
+              className="stroke-data-2"
               strokeWidth="1.2"
               opacity=".55"
             />
@@ -359,7 +357,7 @@ export function ProfileChart({
                 x={cx}
                 y={10 * scale}
                 textAnchor="middle"
-                className="fill-muted-foreground font-mono uppercase"
+                className="fill-muted-foreground tabular-nums"
                 fontSize={8.5 * scale}
               >
                 {slot.hour}
@@ -374,7 +372,7 @@ export function ProfileChart({
                 x={cx}
                 y={49 * scale}
                 textAnchor="middle"
-                className="fill-foreground font-metric font-semibold"
+                className="fill-foreground font-semibold tabular-nums"
                 fontSize={14 * scale}
               >
                 {slot.temperature}°
@@ -385,9 +383,9 @@ export function ProfileChart({
                   y={60}
                   textAnchor="middle"
                   className={cn(
-                    "font-mono",
+                    "tabular-nums",
                     slot.precipitation >= 50
-                      ? "fill-provider"
+                      ? "fill-data-2"
                       : "fill-muted-foreground",
                   )}
                   fontSize={8}
@@ -405,14 +403,14 @@ export function ProfileChart({
               y={box.plotTop}
               width={Math.max(0, x(range.toM) - x(range.fromM))}
               height={box.plotBottom - box.plotTop}
-              className="fill-night"
+              className="fill-data-2"
               opacity={0.09}
             />
             {range.label && variant !== "compact" && (
               <text
                 x={x(range.fromM) + 6}
                 y={box.plotTop + 14}
-                className="fill-night font-mono uppercase"
+                className="fill-data-2 tabular-nums"
                 fontSize={variant === "mobile" ? 7 : 9}
                 letterSpacing=".08em"
               >
@@ -435,7 +433,7 @@ export function ProfileChart({
               <text
                 x={x(range.fromM) + 6}
                 y={box.plotTop + 14}
-                className="fill-provider font-mono uppercase"
+                className="fill-data-2 tabular-nums"
                 fontSize={9}
                 letterSpacing=".08em"
               >
@@ -452,13 +450,13 @@ export function ProfileChart({
                 x2={box.x1}
                 y1={y(value)}
                 y2={y(value)}
-                className="stroke-border-subtle"
+                className="stroke-border"
               />
               <text
                 x={box.x0 - 6}
                 y={y(value) + 3}
                 textAnchor="end"
-                className="fill-dim font-mono"
+                className="fill-data-1 tabular-nums"
                 fontSize={variant === "mobile" ? 7 : 8.5}
               >
                 {value}
@@ -526,7 +524,7 @@ export function ProfileChart({
                 x2={mx}
                 y1={box.plotTop - (variant === "compact" ? 0 : 4)}
                 y2={box.plotBottom}
-                className={edge ? "stroke-border-strong" : "stroke-dim"}
+                className={edge ? "stroke-control-border" : "stroke-data-1"}
                 strokeDasharray={edge ? "2 3" : undefined}
                 opacity={marker.boundary ? 1 : 0.5}
               />
@@ -560,7 +558,7 @@ export function ProfileChart({
               x={x(tick * 1000)}
               y={box.axisY}
               textAnchor="middle"
-              className="fill-dim font-mono"
+              className="fill-data-1 tabular-nums"
               fontSize={variant === "mobile" ? 7 : 8.5}
             >
               {tick}
@@ -580,14 +578,14 @@ export function ProfileChart({
                   width={width}
                   height={height}
                   rx={4}
-                  className={index % 2 ? "fill-surface-inset" : "fill-muted"}
+                  className={index % 2 ? "fill-background" : "fill-muted"}
                 />
                 {width > (variant === "mobile" ? 16 : 42) && (
                   <text
                     x={cx}
                     y={box.segTop + (variant === "mobile" ? 12 : 15)}
                     textAnchor="middle"
-                    className="fill-foreground font-metric font-semibold"
+                    className="fill-foreground font-semibold tabular-nums"
                     fontSize={variant === "mobile" ? 8 : 13}
                   >
                     {variant === "mobile"
@@ -600,7 +598,7 @@ export function ProfileChart({
                     x={cx}
                     y={box.segTop + 27}
                     textAnchor="middle"
-                    className="fill-muted-foreground font-mono"
+                    className="fill-muted-foreground tabular-nums"
                     fontSize={8}
                   >
                     {segment.detail}
@@ -648,7 +646,7 @@ export function ProfileChart({
                   x={tx}
                   y={top + 14}
                   textAnchor={anchor}
-                  className="fill-primary font-metric font-semibold"
+                  className="fill-primary font-semibold tabular-nums"
                   fontSize={14}
                 >
                   {marker.clock}
@@ -658,7 +656,7 @@ export function ProfileChart({
                     x={tx}
                     y={top + 26}
                     textAnchor={anchor}
-                    className="fill-warning font-mono"
+                    className="fill-warning tabular-nums"
                     fontSize={8.5}
                   >
                     BH {marker.cutoff}
@@ -711,7 +709,7 @@ export function ProfileChart({
         )}
       </svg>
       {(variant === "full" || variant === "mobile") && (
-        <div className="mt-2 flex min-h-9 flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-border-subtle pt-2 text-xs text-secondary-foreground">
+        <div className="mt-2 flex min-h-9 flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-border pt-2 text-label text-secondary-foreground">
           {inspectedMarker ? (
             <>
               <span className="font-semibold text-foreground">
@@ -719,12 +717,12 @@ export function ProfileChart({
               </span>
               <span>km {formatKm(inspectedMarker.distanceM)}</span>
               {inspectedMarker.clock && (
-                <span className="font-mono text-primary">
+                <span className="text-primary tabular-nums">
                   {inspectedMarker.clock}
                 </span>
               )}
               {inspectedMarker.cutoff && (
-                <span className="font-mono text-warning">
+                <span className="text-warning tabular-nums">
                   BH {inspectedMarker.cutoff}
                 </span>
               )}
@@ -738,7 +736,9 @@ export function ProfileChart({
                 <span>{formatMeters(hoveredElevation)}</span>
               )}
               {hoveredPassage && (
-                <span className="font-mono text-primary">{hoveredPassage}</span>
+                <span className="text-primary tabular-nums">
+                  {hoveredPassage}
+                </span>
               )}
             </>
           ) : (

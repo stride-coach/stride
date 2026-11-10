@@ -24,7 +24,7 @@ export function ConnectStages({
   return (
     <ol
       aria-label="Progression de la connexion Garmin"
-      className="flex flex-wrap items-center gap-2 font-mono text-micro uppercase"
+      className="flex flex-wrap items-center gap-2 text-label tabular-nums"
     >
       {labels.map((label, index) => {
         const status = statuses[index];
@@ -34,7 +34,7 @@ export function ConnectStages({
             aria-current={status === "current" ? "step" : undefined}
             className={cn(
               "flex items-center gap-1.5",
-              status === "done" && "text-success",
+              status === "done" && "text-primary",
               status === "current" && "font-medium text-primary",
               status === "upcoming" && "text-muted-foreground",
             )}
@@ -73,7 +73,7 @@ export function GarminNoticeBox({
   return (
     <div
       role="alert"
-      className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 rounded-lg border border-warning-border bg-card px-4.5 py-4"
+      className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 rounded-lg border border-border bg-card px-4.5 py-4"
     >
       <CircleAlertIcon
         aria-hidden="true"
@@ -81,7 +81,7 @@ export function GarminNoticeBox({
       />
       <p className="text-body font-semibold">{title}</p>
       {children && (
-        <div className="col-start-2 text-meta text-secondary-foreground">
+        <div className="col-start-2 text-body text-secondary-foreground">
           {children}
         </div>
       )}
@@ -91,7 +91,7 @@ export function GarminNoticeBox({
 
 export function SecureNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex gap-2.5 text-meta text-secondary-foreground">
+    <p className="flex gap-2.5 text-body text-secondary-foreground">
       <LockIcon aria-hidden="true" className="mt-0.75 size-3.5 shrink-0" />
       <span>{children}</span>
     </p>
@@ -100,7 +100,7 @@ export function SecureNote({ children }: { children: React.ReactNode }) {
 
 export function ReadOnlyNote() {
   return (
-    <p className="flex items-center gap-2.5 text-meta text-muted-foreground">
+    <p className="flex items-center gap-2.5 text-body text-muted-foreground">
       <PulseDot tone="provider" breathing={false} />
       Lecture seule. Stride ne publie jamais sur Garmin.
     </p>
@@ -118,7 +118,7 @@ export function AsideList({
 }) {
   return (
     <section aria-label={title} className="flex flex-col">
-      <h2 className="border-b border-border pb-3 font-mono text-label text-muted-foreground uppercase">
+      <h2 className="border-b border-border pb-3 text-label text-muted-foreground tabular-nums">
         {title}
       </h2>
       <ol>
@@ -128,7 +128,7 @@ export function AsideList({
             className="grid grid-cols-[auto_1fr] gap-x-4 border-b border-border py-3.5"
           >
             {numbered ? (
-              <span className="font-metric text-sm font-semibold text-secondary-foreground">
+              <span className="text-body font-semibold text-secondary-foreground tabular-nums">
                 {index + 1}
               </span>
             ) : (
@@ -136,9 +136,9 @@ export function AsideList({
             )}
             <span className="flex flex-col gap-1">
               {item.title && (
-                <span className="text-sm font-semibold">{item.title}</span>
+                <span className="text-body font-semibold">{item.title}</span>
               )}
-              <span className="text-meta text-secondary-foreground">
+              <span className="text-body text-secondary-foreground">
                 {item.body}
               </span>
             </span>
@@ -190,7 +190,7 @@ export function StepHeading({
         {title}
       </h1>
       {children && (
-        <p className="text-body text-pretty text-secondary-foreground lg:text-lead">
+        <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
           {children}
         </p>
       )}

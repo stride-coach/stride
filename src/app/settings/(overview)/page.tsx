@@ -60,7 +60,7 @@ export default async function SettingsOverviewPage() {
       key: "garmin",
       count: counts.garmin,
       label: `${counts.garmin} ${counts.garmin > 1 ? "faits relevés" : "fait relevé"} par Garmin`,
-      className: "bg-provider",
+      className: "bg-foreground",
     },
     {
       key: "athlete",
@@ -82,10 +82,10 @@ export default async function SettingsOverviewPage() {
           {shell.athlete.initials}
         </span>
         <div className="min-w-0 flex-1">
-          <strong className="block truncate text-xl">
+          <strong className="block truncate text-verdict">
             {shell.athlete.name}
           </strong>
-          <span className="block truncate text-sm text-secondary-foreground">
+          <span className="block truncate text-body text-secondary-foreground">
             {context.email}
             {memberSince && (
               <span className="hidden md:inline">
@@ -111,18 +111,18 @@ export default async function SettingsOverviewPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-2.5">
           <div className="flex items-center gap-2.5">
             <StrideMark className="hidden md:block" />
-            <h2 className="text-sm font-semibold md:text-lg">
+            <h2 className="text-body font-semibold md:text-title">
               <span className="md:hidden">Modèle d’athlète</span>
               <span className="hidden md:inline">Ton modèle d’athlète</span>
             </h2>
           </div>
           {updated && (
-            <span className="hidden text-sm text-secondary-foreground md:block">
+            <span className="hidden text-body text-secondary-foreground md:block">
               Mis à jour le {updated}
             </span>
           )}
         </div>
-        <p className="hidden max-w-160 text-sm leading-normal text-secondary-foreground md:block">
+        <p className="hidden max-w-160 text-body leading-normal text-secondary-foreground md:block">
           Garmin fournit les signaux. Stride en tire ton modèle, avec tes
           réponses, tes objectifs et ta façon de réagir à l’entraînement.
         </p>
@@ -142,7 +142,7 @@ export default async function SettingsOverviewPage() {
             />
           ))}
         </div>
-        <p className="text-xs text-muted-foreground md:hidden">
+        <p className="text-label text-muted-foreground md:hidden">
           {counts.garmin} {counts.garmin > 1 ? "faits" : "fait"} Garmin ·{" "}
           {counts.athlete} de toi · {counts.estimate}{" "}
           {counts.estimate > 1 ? "estimés" : "estimé"}
@@ -151,7 +151,7 @@ export default async function SettingsOverviewPage() {
           {segments.map(({ key, label, className }) => (
             <span
               key={key}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+              className="inline-flex items-center gap-1.5 text-label text-muted-foreground"
             >
               <span className={cn("size-2 rounded-xs", className)} />
               {label}

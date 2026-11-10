@@ -22,7 +22,7 @@ function ShoeBreadcrumb({ current }: { current?: string }) {
   return (
     <nav
       aria-label="Fil d’Ariane"
-      className="flex min-w-0 items-center gap-2 text-sm"
+      className="flex min-w-0 items-center gap-2 text-body"
     >
       <Link
         href="/gear"
@@ -200,7 +200,7 @@ export function GearNewLoading() {
       >
         <section className="flex flex-col gap-2.5">
           <h1 className={pageTitle}>Ajouter une paire</h1>
-          <p className="max-w-155 text-sm text-secondary-foreground">
+          <p className="max-w-155 text-body text-secondary-foreground">
             Donne le nom de la paire : Stride propose son type, son terrain et
             une phrase pour la décrire. Tu corriges si besoin.
           </p>
@@ -227,7 +227,7 @@ export function GearImportLoading() {
       >
         <section className="flex flex-col gap-2.5">
           <h1 className={pageTitle}>Importer depuis Garmin</h1>
-          <p className="max-w-160 text-sm text-secondary-foreground">
+          <p className="max-w-160 text-body text-secondary-foreground">
             Vérifie les kilomètres de chaque paire : si elle a couru avant
             d’être dans Garmin, saisis son vrai total.
           </p>

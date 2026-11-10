@@ -262,7 +262,7 @@ export function ProfileForm({
           )}
         </div>
         {invalid ? (
-          <span role="status" className="text-xs text-destructive">
+          <span role="status" className="text-label text-destructive">
             {field === "birth_date"
               ? "Saisis une date valide : JJ / MM / AAAA."
               : numeric
@@ -308,10 +308,10 @@ export function ProfileForm({
       className="flex flex-col gap-5.5 min-[1100px]:gap-9"
     >
       <section className="flex flex-col gap-2 px-1 min-[1100px]:px-0">
-        <h1 className="text-2xl font-semibold tracking-tight min-[1100px]:text-[32px]">
+        <h1 className="text-metric font-semibold tracking-tight min-[1100px]:text-[32px]">
           Profil
         </h1>
-        <p className="text-sm leading-relaxed text-secondary-foreground min-[1100px]:text-body">
+        <p className="text-body leading-relaxed text-secondary-foreground min-[1100px]:text-body">
           Corrige ce que Garmin a mal relevé. Une valeur modifiée devient la
           tienne et n’est plus écrasée.
         </p>
@@ -322,7 +322,7 @@ export function ProfileForm({
         </div>
       </section>
       <fieldset disabled={pending} className="min-w-0">
-        <legend className="mb-2 w-full px-1.5 font-mono text-micro font-normal tracking-wider text-muted-foreground uppercase min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-border-strong min-[1100px]:px-0 min-[1100px]:pb-2.5 min-[1100px]:text-label">
+        <legend className="mb-2 w-full px-1.5 text-label font-normal text-muted-foreground tabular-nums min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-control-border min-[1100px]:px-0 min-[1100px]:pb-2.5 min-[1100px]:text-label">
           Toi
         </legend>
         <FieldGroup className="gap-0 overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child]:border-b-0">
@@ -330,7 +330,7 @@ export function ProfileForm({
             <div className="flex min-h-11 items-center justify-between gap-3 min-[1100px]:contents">
               <FieldLabel className="font-normal">Photo</FieldLabel>
               <div className="flex items-center gap-2.5 min-[1100px]:gap-3">
-                <span className="text-xs text-muted-foreground min-[1100px]:hidden">
+                <span className="text-label text-muted-foreground min-[1100px]:hidden">
                   Facultatif
                 </span>
                 <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-border font-semibold">
@@ -395,7 +395,7 @@ export function ProfileForm({
                 />
               </div>
             </div>
-            <span className="hidden text-xs text-muted-foreground min-[1100px]:block">
+            <span className="hidden text-label text-muted-foreground min-[1100px]:block">
               Facultatif · JPEG, PNG, WebP · 2 Mo max
             </span>
           </Field>
@@ -421,7 +421,7 @@ export function ProfileForm({
                 { value: "unspecified", label: "Non précisé" },
               ].map((item) => (
                 <ToggleGroupItem
-                  className="min-w-0 flex-1 px-2 text-sm"
+                  className="min-w-0 flex-1 px-2 text-body"
                   value={item.value}
                   key={item.value}
                 >
@@ -436,11 +436,11 @@ export function ProfileForm({
         </FieldGroup>
       </fieldset>
       <section id="entrainement" className="scroll-mt-4">
-        <div className="mb-2 flex flex-col gap-1 px-1.5 min-[1100px]:mb-0 min-[1100px]:flex-row min-[1100px]:items-baseline min-[1100px]:justify-between min-[1100px]:border-b min-[1100px]:border-border-strong min-[1100px]:px-0 min-[1100px]:pb-2.5">
-          <h2 className="font-mono text-micro font-normal tracking-wider text-muted-foreground uppercase min-[1100px]:text-label">
+        <div className="mb-2 flex flex-col gap-1 px-1.5 min-[1100px]:mb-0 min-[1100px]:flex-row min-[1100px]:items-baseline min-[1100px]:justify-between min-[1100px]:border-b min-[1100px]:border-control-border min-[1100px]:px-0 min-[1100px]:pb-2.5">
+          <h2 className="text-label font-normal text-muted-foreground tabular-nums min-[1100px]:text-label">
             Issu de ton entraînement
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-label text-muted-foreground">
             Lu dans tes données · modifie seulement si tu sais mieux
           </p>
         </div>
@@ -468,10 +468,10 @@ export function ProfileForm({
                 ) : (
                   <div className={rowClass}>
                     <div className="flex justify-between gap-3 min-[1100px]:contents">
-                      <span className="text-body min-[1100px]:text-sm">
+                      <span className="text-body min-[1100px]:text-body">
                         {metric.label}
                       </span>
-                      <span className="font-metric text-title font-semibold">
+                      <span className="text-title font-semibold tabular-nums">
                         {value === null
                           ? "—"
                           : new Intl.NumberFormat("fr-FR", {
@@ -536,14 +536,14 @@ export function ProfileForm({
       </section>
       {children}
       {attempted && !valid && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-body text-destructive">
           Vérifie le prénom, la date de naissance, la taille (100 à 250 cm) et
           le poids (25 à 250 kg).
         </p>
       )}
       {count > 0 && (
-        <div className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-border-strong bg-muted p-3 min-[1100px]:bottom-4 min-[1100px]:w-fit min-[1100px]:gap-3 min-[1100px]:px-4.5">
-          <span className="flex-1 text-sm">
+        <div className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-control-border bg-muted p-3 min-[1100px]:bottom-4 min-[1100px]:w-fit min-[1100px]:gap-3 min-[1100px]:px-4.5">
+          <span className="flex-1 text-body">
             {count}{" "}
             {count === 1
               ? "modification non enregistrée"
@@ -584,7 +584,7 @@ export function ProfileForm({
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[95svh] gap-4 overflow-y-auto rounded-t-[18px] border-border-strong bg-muted px-5 pt-2 pb-7.5"
+          className="max-h-[95svh] gap-4 overflow-y-auto rounded-t-[18px] border-control-border bg-muted px-5 pt-2 pb-7.5"
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             (lastEditor.current === "maximum"
@@ -593,9 +593,9 @@ export function ProfileForm({
             ).current?.focus({ preventScroll: true });
           }}
         >
-          <span className="mx-auto h-1 w-10 rounded-mark bg-border-strong" />
+          <span className="mx-auto h-1 w-10 rounded-mark bg-control-border" />
           <div className="flex items-center justify-between gap-3">
-            <SheetTitle className="text-xl">
+            <SheetTitle className="text-verdict">
               {editor === "maximum" ? "FC max" : "FC au seuil"}
             </SheetTitle>
             <ProvenanceLabel source="manual">Ta valeur</ProvenanceLabel>

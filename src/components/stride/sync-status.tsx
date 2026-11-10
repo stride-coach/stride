@@ -8,10 +8,10 @@ export type SyncState =
 
 const frames: Record<SyncState, string> = {
   importing: "border-border",
-  current: "border-success-border",
-  partial: "border-warning-border",
-  retrying: "border-warning-border",
-  expired: "border-danger-border bg-danger-surface",
+  current: "border-border",
+  partial: "border-border",
+  retrying: "border-border",
+  expired: "border-border bg-card",
 };
 
 function SyncMark({ state }: { state: SyncState }) {
@@ -22,7 +22,7 @@ function SyncMark({ state }: { state: SyncState }) {
       return (
         <CheckIcon
           aria-hidden="true"
-          className="size-3 shrink-0 text-success"
+          className="size-3 shrink-0 text-primary"
           strokeWidth={3}
         />
       );
@@ -60,7 +60,7 @@ export function SyncStatus({
       data-slot="sync-status"
       data-state={state}
       className={cn(
-        "flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.75 text-meta",
+        "flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.75 text-body",
         frames[state],
         className,
       )}
@@ -73,7 +73,7 @@ export function SyncStatus({
           value={progress}
           aria-label={progressLabel}
           className="w-20 shrink-0"
-          indicatorClassName="bg-provider after:absolute after:inset-0 after:bg-linear-to-r after:from-transparent after:via-foreground/55 after:to-transparent motion-safe:after:animate-sheen"
+          indicatorClassName="bg-primary after:absolute after:inset-0 after:bg-linear-to-r after:from-transparent after:via-foreground/55 after:to-transparent motion-safe:after:animate-sheen"
         />
       )}
       {action && <span className="shrink-0">{action}</span>}

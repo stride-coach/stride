@@ -72,7 +72,7 @@ function MoreLink({
 }
 
 const toneText: Record<VerdictTone, string> = {
-  success: "text-success",
+  success: "text-primary",
   warning: "text-warning",
   danger: "text-destructive",
   muted: "text-secondary-foreground",
@@ -89,9 +89,9 @@ const toneDot: Record<
 };
 
 const verdictFrames: Record<VerdictTone, string> = {
-  success: "border-success-border bg-success-surface",
-  warning: "border-warning-border bg-warning/4",
-  danger: "border-danger-border bg-danger-surface",
+  success: "border-border bg-card",
+  warning: "border-border bg-warning/4",
+  danger: "border-border bg-card",
   muted: "border-border bg-muted",
 };
 
@@ -172,7 +172,7 @@ export function SessionSection({
           <Eyebrow id="today-session" tone="accent">
             Séances du jour
           </Eyebrow>
-          <span className="ml-auto text-xs text-muted-foreground">
+          <span className="ml-auto text-label text-muted-foreground">
             {session.count} séances
           </span>
         </div>
@@ -275,13 +275,13 @@ function DaySessionRow({ session }: { session: TodayDaySession }) {
     <Link
       href={session.href}
       aria-label={session.label}
-      className="grid min-h-11 grid-cols-[32px_minmax(0,1fr)_12px] items-center gap-3 rounded-xl border border-border px-3 py-2.5 hover:border-border-strong sm:grid-cols-[32px_minmax(0,1fr)_auto_12px] sm:gap-3.5 sm:px-3.5"
+      className="grid min-h-11 grid-cols-[32px_minmax(0,1fr)_12px] items-center gap-3 rounded-xl border border-border px-3 py-2.5 hover:border-control-border sm:grid-cols-[32px_minmax(0,1fr)_auto_12px] sm:gap-3.5 sm:px-3.5"
     >
       <SessionKindTile kind={session.family} size="lg" />
       <span className="flex min-w-0 flex-col gap-0.75 sm:gap-0.5">
         <span className="text-[15px] font-semibold">{session.title}</span>
         {session.summary && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             {session.summary}
           </span>
         )}
@@ -306,9 +306,9 @@ function DaySessionNote({
   return (
     <span
       className={cn(
-        "flex items-center gap-1.5 text-xs whitespace-nowrap",
+        "flex items-center gap-1.5 text-label whitespace-nowrap",
         session.status === "done"
-          ? "text-success"
+          ? "text-primary"
           : session.status === "partial"
             ? "text-warning"
             : "text-muted-foreground",
@@ -353,7 +353,7 @@ function PlannedSession({
         <p
           className={cn(
             "flex items-center gap-2 text-[13px]",
-            panel.status === "done" ? "text-success" : "text-warning",
+            panel.status === "done" ? "text-primary" : "text-warning",
           )}
         >
           <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
@@ -361,7 +361,7 @@ function PlannedSession({
         </p>
       )}
       {panel.checkIn?.done && (
-        <p className="flex items-center gap-2 text-[13px] text-success">
+        <p className="flex items-center gap-2 text-[13px] text-primary">
           <CheckIcon aria-hidden="true" className="size-3" strokeWidth={2.5} />
           Fait · noté par toi
         </p>
@@ -373,7 +373,7 @@ function PlannedSession({
               <dt className="order-2">
                 <Eyebrow>{stat.label}</Eyebrow>
               </dt>
-              <dd className="order-1 truncate font-metric text-[26px] leading-none font-semibold tabular-nums sm:text-[28px]">
+              <dd className="order-1 truncate text-[26px] leading-none font-semibold tabular-nums sm:text-[28px]">
                 {stat.value}
               </dd>
             </div>
@@ -401,7 +401,7 @@ function PlannedSession({
       )}
       {!done && panel.shoes && <TodayShoeRow shoes={panel.shoes} />}
       {(session.terrain || (!done && panel.shoes?.chosen)) && (
-        <span className="flex items-center gap-2.5 text-xs text-muted-foreground">
+        <span className="flex items-center gap-2.5 text-label text-muted-foreground">
           {session.terrain}
           {!done && panel.shoes && (
             <span className="ml-auto">
@@ -421,7 +421,7 @@ const statusTones: Record<FormStatus, VerdictTone> = {
 };
 
 const markerFills: Record<FormStatus, string> = {
-  normal: "bg-success",
+  normal: "bg-primary",
   watch: "bg-warning",
   crossed: "bg-destructive",
 };
@@ -429,18 +429,18 @@ const markerFills: Record<FormStatus, string> = {
 function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
   const tone = statusTones[indicator.status];
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 border-t border-border-subtle py-2.75">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 border-t border-border py-2.75">
       <dt className="flex min-w-0 items-baseline gap-2.5">
         <span className="w-18 shrink-0 text-[13px] text-secondary-foreground">
           {indicator.label}
         </span>
-        <span className="font-metric text-[19px] font-semibold tabular-nums">
+        <span className="text-[19px] font-semibold tabular-nums">
           {indicator.value}
         </span>
       </dt>
       <dd
         className={cn(
-          "inline-flex items-center gap-1.5 text-xs whitespace-nowrap",
+          "inline-flex items-center gap-1.5 text-label whitespace-nowrap",
           toneText[tone],
         )}
       >
@@ -452,7 +452,7 @@ function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
           <span aria-hidden="true" className="px-0.5">
             <span className="relative block h-1.5 rounded-full bg-border">
               <span
-                className="absolute inset-y-0 rounded-full bg-dim"
+                className="absolute inset-y-0 rounded-full bg-data-1"
                 style={{
                   left: `${indicator.band.start}%`,
                   width: `${indicator.band.end - indicator.band.start}%`,
@@ -497,7 +497,7 @@ export function FormSection({
         <h2>
           <Eyebrow id="today-form">Forme du jour</Eyebrow>
         </h2>
-        <span className="text-xs whitespace-nowrap text-muted-foreground">
+        <span className="text-label whitespace-nowrap text-muted-foreground">
           Garmin + ressenti
         </span>
         <MoreLink href={bodyPath}>Corps</MoreLink>
@@ -512,7 +512,7 @@ export function FormSection({
           />
           <span className="flex flex-col gap-0.5">
             <span className="flex items-baseline gap-1.5">
-              <span className="text-lg font-semibold">
+              <span className="text-title font-semibold">
                 {form.score} · {form.level}
               </span>
               <span className="text-[13px] text-muted-foreground">sur 100</span>
@@ -525,7 +525,7 @@ export function FormSection({
           </span>
         </div>
       ) : (
-        <p className="text-meta text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Garmin n’a pas transmis de forme du jour pour aujourd’hui.
         </p>
       )}
@@ -550,7 +550,7 @@ export function FormSection({
               {verdict.compat.answer}
             </b>
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-label text-muted-foreground">
             {verdict.compat.detail}
           </p>
         </div>
@@ -570,7 +570,7 @@ function DayMark({ state }: { state: TodayWeek["days"][number]["state"] }) {
       <CheckIcon
         className={cn(
           "size-2.5",
-          state === "done" ? "text-success" : "text-warning",
+          state === "done" ? "text-primary" : "text-warning",
         )}
         strokeWidth={3}
       />
@@ -590,7 +590,9 @@ export function WeekSection({ week }: { week: TodayWeek }) {
             Cette semaine · S{week.number} / {week.total}
           </Eyebrow>
         </h2>
-        <span className="text-xs text-muted-foreground">{week.blockName}</span>
+        <span className="text-label text-muted-foreground">
+          {week.blockName}
+        </span>
         <MoreLink href={week.href}>Plan</MoreLink>
       </div>
       <ol className="flex gap-1">
@@ -624,7 +626,7 @@ export function WeekSection({ week }: { week: TodayWeek }) {
             </span>
             <span aria-hidden="true" className="flex h-3 items-center">
               {day.families.length > 1 ? (
-                <span className="font-metric text-[11px] leading-none text-secondary-foreground tabular-nums">
+                <span className="text-[11px] leading-none text-secondary-foreground tabular-nums">
                   {day.doneCount}/{day.families.length}
                 </span>
               ) : (
@@ -636,14 +638,14 @@ export function WeekSection({ week }: { week: TodayWeek }) {
       </ol>
       <div className="flex items-center gap-3">
         <span className="text-[13px] text-secondary-foreground">
-          <b className="font-metric text-[17px] font-semibold text-foreground">
+          <b className="text-[17px] font-semibold text-foreground tabular-nums">
             {week.done.duration}
           </b>{" "}
           sur {week.planned.duration}
           {week.planned.distance && (
             <>
               {" · "}
-              <b className="font-metric text-[17px] font-semibold text-foreground">
+              <b className="text-[17px] font-semibold text-foreground tabular-nums">
                 {week.done.distance ?? "–"}
               </b>{" "}
               sur {week.planned.distance}
@@ -659,7 +661,7 @@ export function WeekSection({ week }: { week: TodayWeek }) {
           className="h-1 flex-1 overflow-hidden rounded-mark bg-border"
         >
           <span
-            className="block h-full bg-success"
+            className="block h-full bg-primary"
             style={{ width: `${week.pct}%` }}
           />
         </span>
@@ -685,7 +687,7 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
           >
             <span
               aria-hidden="true"
-              className="inline-grid size-8 shrink-0 place-items-center rounded-lg bg-primary font-metric text-[17px] font-bold text-primary-foreground"
+              className="inline-grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-[17px] font-bold text-primary-foreground tabular-nums"
             >
               {goal.letter}
             </span>
@@ -693,22 +695,22 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
               <span className="truncate text-[15px] font-semibold">
                 {goal.name}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {goal.detail}
               </span>
             </span>
-            <span className="font-metric text-[30px] leading-none font-semibold text-foreground tabular-nums">
+            <span className="text-[30px] leading-none font-semibold text-foreground tabular-nums">
               {goal.days === 0 ? "Jour J" : `J-${goal.days}`}
             </span>
           </Link>
           {(goal.block || goal.light) && (
             <dl className="flex flex-col border-t border-border">
               {goal.block && (
-                <div className="flex items-center gap-2.5 border-b border-border-subtle py-2.5 text-[13px] last:border-b-0">
+                <div className="flex items-center gap-2.5 border-b border-border py-2.5 text-[13px] last:border-b-0">
                   <dt className="flex-1 text-secondary-foreground">
                     Bloc {goal.block.name}
                   </dt>
-                  <dd className="font-metric text-base font-semibold tabular-nums">
+                  <dd className="text-body-lg font-semibold tabular-nums">
                     {goal.block.week}
                   </dd>
                 </div>
@@ -726,7 +728,7 @@ export function GoalSection({ goal }: { goal: TodayGoal | null }) {
         </>
       ) : (
         <>
-          <p className="text-meta text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             Aucune course objectif pour l’instant.
           </p>
           <div>

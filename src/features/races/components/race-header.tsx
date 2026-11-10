@@ -39,12 +39,14 @@ function Countdown({
 }) {
   if (!race.date)
     return (
-      <p className="text-sm text-muted-foreground">Date de course à définir</p>
+      <p className="text-body text-muted-foreground">
+        Date de course à définir
+      </p>
     );
   const days = daysUntil(race.date, today);
   if (days < 0)
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         Course terminée le {formatShortDate(race.date)}
       </p>
     );
@@ -58,7 +60,7 @@ function Countdown({
     <div className="flex items-end gap-2.5 md:gap-3">
       <span
         className={cn(
-          "font-metric text-[52px] leading-[0.8] font-semibold tabular-nums md:text-[56px]",
+          "text-[52px] leading-[0.8] font-semibold tabular-nums md:text-[56px]",
           days <= 7 && "text-primary",
         )}
       >
@@ -66,10 +68,10 @@ function Countdown({
       </span>
       {days > 0 && (
         <span className="flex flex-col gap-0.5">
-          <span className="text-sm md:text-body">
+          <span className="text-body md:text-body">
             {days === 1 ? "jour restant" : "jours restants"}
           </span>
-          <span className="text-xs text-muted-foreground md:text-meta">
+          <span className="text-label text-muted-foreground md:text-body">
             {detail}
           </span>
         </span>
@@ -196,11 +198,11 @@ export function RaceHeader({
   );
   const items = stats(race, plan, course, waypoints);
   const mobileCount = items.length;
-  const actionClass = "rounded-lg text-meta max-md:min-h-11 max-md:flex-1";
+  const actionClass = "rounded-lg text-body max-md:min-h-11 max-md:flex-1";
   return (
     <section className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-6">
       <div className="flex min-w-0 flex-col gap-3 md:gap-2.5">
-        <MonoLabel size="nano" className="md:text-micro">
+        <MonoLabel size="nano" className="md:text-label">
           Course {race.priority}
           {race.date ? ` · ${formatRaceDate(race.date)}` : ""}
           {plan.labels.length > 0 && (
@@ -222,12 +224,12 @@ export function RaceHeader({
                 stat.mobileOnly && "md:hidden",
               )}
             >
-              <dd className="order-1 font-metric text-xl leading-none font-semibold tabular-nums md:text-2xl">
+              <dd className="order-1 text-verdict leading-none font-semibold tabular-nums md:text-metric">
                 {stat.edit
                   ? editTrigger(
                       <button
                         type="button"
-                        className="rounded-sm text-left decoration-dim underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                        className="rounded-sm text-left decoration-muted-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
                       >
                         {stat.value}
                         <span className="sr-only">
@@ -237,7 +239,7 @@ export function RaceHeader({
                     )
                   : stat.value}
               </dd>
-              <MonoLabel size="nano" asChild className="order-2 md:text-micro">
+              <MonoLabel size="nano" asChild className="order-2 md:text-label">
                 <dt>{stat.label}</dt>
               </MonoLabel>
             </div>
@@ -285,7 +287,7 @@ export function RaceHeader({
               asChild
               variant="outline"
               size="md"
-              className="rounded-lg text-meta max-md:hidden"
+              className="rounded-lg text-body max-md:hidden"
             >
               <Link href={coachRequestHref(null, null, race.id)}>
                 <StrideMark className="size-3.5" />
@@ -295,7 +297,7 @@ export function RaceHeader({
           </div>
         ) : (
           <div className="flex flex-col gap-2.5 md:items-end">
-            <span className="inline-flex items-center gap-2 text-meta text-warning">
+            <span className="inline-flex items-center gap-2 text-body text-warning">
               <PulseDot tone="warning" breathing={false} />
               Aucun GPX pour cette course
             </span>
@@ -304,7 +306,7 @@ export function RaceHeader({
                 asChild
                 variant="outline"
                 size="md"
-                className="rounded-lg text-meta max-md:hidden"
+                className="rounded-lg text-body max-md:hidden"
               >
                 <Link href={coachRequestHref(null, null, race.id)}>
                   <StrideMark className="size-3.5" />

@@ -67,7 +67,7 @@ export function SignInForm({
         latest === "password" &&
         state.email && (
           <div
-            className="rounded-lg border border-warning/40 bg-muted p-4 text-sm"
+            className="rounded-lg border border-warning/40 bg-muted p-4 text-body"
             role="status"
           >
             <p className="font-semibold text-warning">
@@ -156,7 +156,7 @@ export function SignInForm({
             />
             <FieldLabel
               htmlFor="remember"
-              className="text-sm font-normal text-secondary-foreground"
+              className="text-body font-normal text-secondary-foreground"
             >
               Rester connecté sur cet appareil
             </FieldLabel>
@@ -176,7 +176,7 @@ export function SignInForm({
         </Button>
         <div className="hidden items-center gap-3 md:flex">
           <Separator className="flex-1" />
-          <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+          <span className="text-[10px] text-muted-foreground tabular-nums">
             ou
           </span>
           <Separator className="flex-1" />
@@ -192,7 +192,7 @@ export function SignInForm({
         >
           {magicPending ? "Envoi du lien…" : "M’envoyer un lien de connexion"}
         </Button>
-        <p className="mt-auto pt-4 text-center text-sm text-secondary-foreground md:mt-0 md:pt-0">
+        <p className="mt-auto pt-4 text-center text-body text-secondary-foreground md:mt-0 md:pt-0">
           Nouveau sur Stride ?{" "}
           <Link href="/sign-up" className="text-primary hover:underline">
             Créer un compte

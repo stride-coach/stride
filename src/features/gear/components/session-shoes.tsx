@@ -38,7 +38,7 @@ function Badge({ label }: { label: string }) {
       className={cn(
         "inline-flex items-center rounded-full px-2.25 py-0.75 text-[11px] font-semibold whitespace-nowrap",
         label === "Réservée"
-          ? "border border-border-strong font-normal text-secondary-foreground"
+          ? "border border-control-border font-normal text-secondary-foreground"
           : "bg-primary text-primary-foreground",
       )}
     >
@@ -83,17 +83,19 @@ export function PairSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="gap-3.5 rounded-t-[18px] border-border-strong bg-card px-5 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] text-foreground sm:mx-auto sm:w-full sm:max-w-120"
+        className="gap-3.5 rounded-t-[18px] border-control-border bg-card px-5 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] text-foreground sm:mx-auto sm:w-full sm:max-w-120"
       >
         <span
           aria-hidden="true"
-          className="h-1 w-9 self-center rounded-mark bg-border-strong"
+          className="h-1 w-9 self-center rounded-mark bg-control-border"
         />
         <div className="flex flex-col gap-1">
           <MonoLabel size="nano" className="text-[9.5px]">
             {context}
           </MonoLabel>
-          <SheetTitle className="text-xl font-semibold">{title}</SheetTitle>
+          <SheetTitle className="text-verdict font-semibold">
+            {title}
+          </SheetTitle>
         </div>
         <fieldset className="flex max-h-[55dvh] flex-col gap-2 overflow-y-auto">
           <legend className="sr-only">Paires actives</legend>
@@ -122,7 +124,7 @@ export function PairSheet({
                     </span>
                   )}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {item.detail}
                 </span>
                 {item.sentence && (
@@ -134,7 +136,7 @@ export function PairSheet({
             </label>
           ))}
         </fieldset>
-        <SheetDescription className="text-xs leading-[1.45] text-muted-foreground">
+        <SheetDescription className="text-label leading-[1.45] text-muted-foreground">
           {note}
         </SheetDescription>
         <div className="flex gap-2">
@@ -199,7 +201,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
   return (
     <section
       aria-labelledby="panel-shoes"
-      className="flex flex-col gap-3 rounded-[10px] border border-border bg-surface-panel p-3.5"
+      className="flex flex-col gap-3 rounded-[10px] border border-border bg-background p-3.5"
     >
       <div className="flex items-center gap-2">
         <MonoLabel size="nano" className="text-[9.5px]" id="panel-shoes">
@@ -207,7 +209,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
         </MonoLabel>
         <Link
           href="/gear"
-          className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+          className="ml-auto text-label text-muted-foreground hover:text-foreground"
         >
           Matériel ›
         </Link>
@@ -217,14 +219,14 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           href={`/gear/${shoes.chosen.id}`}
           className="flex items-center gap-3 text-foreground"
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-border-strong bg-muted">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-control-border bg-muted">
             <NavGearIcon className="size-4" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-[15px] font-semibold">
               {shoes.chosen.fullName}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-label text-muted-foreground">
               {shoes.chosen.km}
             </span>
           </span>
@@ -250,7 +252,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
               {alternatives.map((item) => (
                 <li
                   key={item.id}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border-subtle py-2.5 last:border-b-0"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border py-2.5 last:border-b-0"
                 >
                   <span className="text-[13px] font-medium">{item.name}</span>
                   <Button
@@ -263,7 +265,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
                   >
                     Choisir
                   </Button>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-label text-muted-foreground">
                     {item.sentence}
                   </span>
                 </li>
@@ -302,7 +304,7 @@ export function TodayShoeChip({
     <Link
       href={href}
       aria-label={`Paire ${shoes.chosen.badge === "Ton choix" ? "choisie" : "conseillée"} : ${shoes.chosen.name}`}
-      className="inline-flex min-h-8 items-center gap-1.75 rounded-full border border-border-strong pr-2.75 pl-2.25 text-[13px] whitespace-nowrap text-foreground hover:border-muted-foreground max-md:hidden"
+      className="inline-flex min-h-8 items-center gap-1.75 rounded-full border border-control-border pr-2.75 pl-2.25 text-[13px] whitespace-nowrap text-foreground hover:border-muted-foreground max-md:hidden"
     >
       <NavGearIcon className="size-3.5 text-muted-foreground" />
       {shoes.chosen.name}
@@ -330,7 +332,7 @@ export function TodayShoeRow({ shoes }: { shoes: SessionShoesView }) {
             </span>
           )}
         </span>
-        <span className="flex items-center text-xs text-muted-foreground">
+        <span className="flex items-center text-label text-muted-foreground">
           Changer
           <ChevronRightIcon aria-hidden="true" className="size-3" />
         </span>

@@ -155,7 +155,7 @@ function TranscriptLine({ item }: { item: TranscriptItem }) {
     return <p className="whitespace-pre-wrap">{item.text}</p>;
   if (item.type === "delegation")
     return (
-      <details className="text-sm text-secondary-foreground">
+      <details className="text-body text-secondary-foreground">
         <summary>
           {item.from} → {item.to}
         </summary>
@@ -164,18 +164,18 @@ function TranscriptLine({ item }: { item: TranscriptItem }) {
     );
   if (item.type === "tool")
     return (
-      <p className="font-mono text-xs text-secondary-foreground">
+      <p className="text-label text-secondary-foreground tabular-nums">
         outil {item.name} ({item.ok ? "ok" : "erreur"},{" "}
         {seconds.format(item.ms / 1000)} s)
       </p>
     );
   if (item.type === "mcp")
     return (
-      <p className="font-mono text-xs text-secondary-foreground">
+      <p className="text-label text-secondary-foreground tabular-nums">
         Garmin {item.name}
       </p>
     );
-  return <p className="text-sm text-destructive">{item.text}</p>;
+  return <p className="text-body text-destructive">{item.text}</p>;
 }
 
 export function CoachSpike({
@@ -280,7 +280,7 @@ export function CoachSpike({
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-2 rounded-lg bg-muted p-4 text-sm">
+      <section className="flex flex-col gap-2 rounded-lg bg-muted p-4 text-body">
         <p>
           {hasPlan
             ? `Plan actif en version ${planVersion}.`
@@ -311,12 +311,12 @@ export function CoachSpike({
                 <span className="font-medium">{proposal.title}</span>
               </div>
               {proposal.summary && (
-                <p className="text-sm text-secondary-foreground">
+                <p className="text-body text-secondary-foreground">
                   {proposal.summary}
                 </p>
               )}
               {proposal.weeks && (
-                <details className="text-sm">
+                <details className="text-body">
                   <summary>
                     {proposal.weeks.length} semaines ·{" "}
                     {proposal.weeks.reduce(
@@ -386,7 +386,7 @@ export function CoachSpike({
               {entry.athlete}
             </p>
             {entry.failed && (
-              <p className="text-sm text-destructive">{entry.failed}</p>
+              <p className="text-body text-destructive">{entry.failed}</p>
             )}
             {!entry.failed && (
               <div className="flex flex-col gap-2">
@@ -399,7 +399,7 @@ export function CoachSpike({
                   </p>
                 )}
                 {entry.turn.done && entry.turn.consoleUrl && (
-                  <p className="font-mono text-xs text-secondary-foreground">
+                  <p className="text-label text-secondary-foreground tabular-nums">
                     arrêt {entry.turn.done.stopReason} · statut{" "}
                     {entry.turn.done.status} · Garmin{" "}
                     {entry.turn.done.garmin === "available"

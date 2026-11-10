@@ -37,7 +37,7 @@ function TrailIllustration() {
         </g>
         <path
           d="M-20 830C52 780 110 723 170 706S264 682 309 581s107-134 166-160 75-34 116-101 69-76 151-96"
-          className="stroke-border-strong"
+          className="stroke-control-border"
           strokeDasharray="4 7"
           strokeWidth="2"
         />
@@ -92,7 +92,7 @@ function Wordmark() {
       className="relative z-10 inline-flex w-fit items-center gap-2 rounded-md text-foreground"
     >
       <StrideMark className="size-5" />
-      <span className="font-metric text-xl font-bold tracking-wider italic">
+      <span className="text-verdict font-bold tracking-wider italic tabular-nums">
         STRIDE
       </span>
     </Link>
@@ -126,7 +126,7 @@ export function StandalonePage({
         <TrailIllustration />
         <Wordmark />
         <div className="relative z-10 mt-auto hidden pb-1 md:block">
-          <h2 className="text-headline font-semibold tracking-tight">
+          <h2 className="text-verdict font-semibold tracking-tight">
             Tu as quitté le sentier.
           </h2>
           <MonoLabel className="mt-3 block" size="micro">
@@ -137,7 +137,7 @@ export function StandalonePage({
       <section
         role={alert ? "alert" : undefined}
         aria-labelledby="standalone-title"
-        className="flex min-h-[calc(100svh-16.25rem)] flex-col px-6 pb-8 md:m-0 md:min-h-[calc(100svh-1rem)] md:justify-center md:rounded-2xl md:border md:border-border md:bg-surface-inset md:px-8"
+        className="flex min-h-[calc(100svh-16.25rem)] flex-col px-6 pb-8 md:m-0 md:min-h-[calc(100svh-1rem)] md:justify-center md:rounded-2xl md:border md:border-border md:bg-background md:px-8"
       >
         <div className="mx-auto flex w-full max-w-95 flex-1 flex-col md:flex-none">
           <div>
@@ -145,14 +145,14 @@ export function StandalonePage({
             {numeral && (
               <p
                 aria-hidden="true"
-                className="mt-3 font-metric text-[7rem] leading-[0.85] font-bold tracking-[-0.04em] text-primary italic sm:text-[8rem]"
+                className="mt-3 text-[7rem] leading-[0.85] font-bold tracking-[-0.04em] text-primary italic tabular-nums sm:text-[8rem]"
               >
                 {numeral}
               </p>
             )}
             <h1
               id="standalone-title"
-              className="mt-5 text-headline font-semibold tracking-tight"
+              className="mt-5 text-verdict font-semibold tracking-tight"
             >
               {title}
             </h1>

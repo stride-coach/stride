@@ -2,14 +2,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const metricVariants = cva(
-  "inline-flex items-baseline font-metric font-semibold tracking-[-0.01em] whitespace-nowrap tabular-nums",
+  "inline-flex items-baseline font-semibold whitespace-nowrap tabular-nums",
   {
     variants: {
       size: {
-        sm: "text-metric-sm",
+        sm: "text-metric",
         md: "text-metric",
-        lg: "text-metric-lg",
-        hero: "text-metric-hero",
+        lg: "text-metric",
+        hero: "text-display",
       },
     },
     defaultVariants: {

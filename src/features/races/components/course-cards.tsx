@@ -54,12 +54,15 @@ export function ProfileCard({
           </span>
         </CardLabel>
         {!road && weatherNote && (
-          <MonoLabel size="micro" className="text-dim max-sm:hidden">
+          <MonoLabel
+            size="micro"
+            className="text-muted-foreground max-sm:hidden"
+          >
             {weatherNote}
           </MonoLabel>
         )}
         {!road && weather && (
-          <MonoLabel size="micro" className="text-dim sm:hidden">
+          <MonoLabel size="micro" className="text-muted-foreground sm:hidden">
             {weather.mode === "forecast" ? "Prévisions" : "Normales"}
           </MonoLabel>
         )}
@@ -91,7 +94,7 @@ export function ProfileCard({
           )}
           {!road && profile.night.length > 0 && (
             <LegendItem
-              mark={<span className="h-2.5 w-3.5 rounded-mark bg-night/35" />}
+              mark={<span className="h-2.5 w-3.5 rounded-mark bg-data-2/35" />}
             >
               <span className="max-sm:hidden">De nuit</span>
               <span className="sm:hidden">Nuit</span>
@@ -100,7 +103,7 @@ export function ProfileCard({
           {!road && profile.rain.length > 0 && (
             <LegendItem
               mark={
-                <span className="h-2.5 w-3.5 rounded-mark bg-[repeating-linear-gradient(45deg,var(--provider)_0_1px,transparent_1px_4px)]" />
+                <span className="h-2.5 w-3.5 rounded-mark bg-[repeating-linear-gradient(45deg,var(--data-2)_0_1px,transparent_1px_4px)]" />
               }
             >
               Averses prévues
@@ -110,7 +113,7 @@ export function ProfileCard({
             <span className="max-sm:hidden">
               <LegendItem
                 mark={
-                  <span className="font-metric text-sm font-semibold text-primary">
+                  <span className="text-body font-semibold text-primary tabular-nums">
                     {formatClock(planned.simulation.passages[0].clockMinutes)}
                   </span>
                 }
@@ -144,14 +147,14 @@ export function ProfileCard({
                 className="flex items-center gap-3 border-t border-border py-2.5"
               >
                 <MarkBadge marker={marker} />
-                <span className="flex-1 text-sm">
+                <span className="flex-1 text-body">
                   {marker.name}
                   <span className="text-muted-foreground">
                     {" "}
                     · {formatKm(marker.distanceM)}
                   </span>
                 </span>
-                <span className="font-metric text-lg font-semibold text-primary">
+                <span className="text-title font-semibold text-primary tabular-nums">
                   {marker.clock}
                 </span>
                 <MonoLabel
@@ -190,7 +193,7 @@ export function MarkBadge({
               ? "border-secondary-foreground"
               : mark.tone === "caution"
                 ? "border-warning"
-                : "border-night",
+                : "border-data-2",
           )}
         />
       </span>
@@ -200,14 +203,14 @@ export function MarkBadge({
     <span
       aria-hidden="true"
       className={cn(
-        "grid size-5.5 shrink-0 place-items-center font-metric text-xs leading-none font-bold",
+        "grid size-5.5 shrink-0 place-items-center text-label leading-none font-bold tabular-nums",
         mark.shape === "square" ? "rounded-sm" : "rounded-full",
         active || (mark.shape === "circle" && mark.tone === "finish")
           ? "bg-primary text-primary-foreground"
           : mark.shape === "circle" && mark.tone === "start"
             ? "bg-foreground text-background"
             : mark.shape === "square"
-              ? "border-[1.6px] border-provider text-foreground"
+              ? "border-[1.6px] border-data-2 text-foreground"
               : "border-[1.6px] border-foreground text-foreground",
         filled && "border-0",
       )}

@@ -12,10 +12,10 @@ import {
 import { formatInteger } from "@/features/progress/format";
 
 const bandTones: Record<BandTone, string> = {
-  dim: "bg-dim",
-  provider: "bg-provider",
+  dim: "bg-data-1",
+  provider: "bg-foreground",
   terrain: "bg-intensity-3",
-  success: "bg-success",
+  success: "bg-primary",
   accent: "bg-primary",
 };
 
@@ -35,10 +35,10 @@ function RaceMark({
   return (
     <span
       className={cn(
-        "grid size-4 place-items-center rounded-[4px] font-metric text-[10px] leading-none font-bold",
+        "grid size-4 place-items-center rounded-[4px] text-[10px] leading-none font-bold tabular-nums",
         primary
           ? "bg-primary text-primary-foreground"
-          : "border border-dim text-secondary-foreground",
+          : "border border-muted-foreground text-secondary-foreground",
         className,
       )}
     >
@@ -84,7 +84,7 @@ function Bar({
     >
       <span
         className={cn(
-          "font-metric text-[11px] leading-none font-semibold tabular-nums",
+          "text-[11px] leading-none font-semibold tabular-nums",
           selected ? "text-foreground" : "text-secondary-foreground",
         )}
       >
@@ -101,7 +101,7 @@ function Bar({
         <span
           className={cn(
             "w-[62%] rounded-t-[3px]",
-            muted ? "bg-provider-muted" : "bg-provider",
+            muted ? "bg-data-1" : "bg-foreground",
           )}
           style={{ height: `${week.easySeconds * scale}px` }}
         />
@@ -113,7 +113,7 @@ function Bar({
           style={{ height: `${week.qualitySeconds * scale}px` }}
         />
       </span>
-      <span className="font-metric text-[11px] leading-none font-semibold text-muted-foreground tabular-nums">
+      <span className="text-[11px] leading-none font-semibold text-muted-foreground tabular-nums">
         {distance ? `${approximate ? "≈" : ""}${distance}` : "–"}
       </span>
       <MonoLabel
@@ -150,7 +150,7 @@ export function ProgramChart({
   return (
     <section
       aria-labelledby="program-volume"
-      className="flex flex-col gap-1.5 rounded-xl border border-border bg-surface-panel px-2.5 pt-2.5 pb-3 sm:rounded-2xl sm:px-4 sm:py-3.5"
+      className="flex flex-col gap-1.5 rounded-xl border border-border bg-background px-2.5 pt-2.5 pb-3 sm:rounded-2xl sm:px-4 sm:py-3.5"
     >
       <div className="flex flex-wrap items-center gap-3.5 px-1 max-sm:sr-only">
         <MonoLabel id="program-volume">
@@ -158,11 +158,11 @@ export function ProgramChart({
             ? `Les ${weeks.length} semaines · durée en haut, km en bas`
             : "Durée en haut, km en bas"}
         </MonoLabel>
-        <span className="ml-auto flex gap-3.5 text-xs text-muted-foreground">
+        <span className="ml-auto flex gap-3.5 text-label text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-mark bg-provider"
+              className="size-2.5 rounded-mark bg-foreground"
             />
             Facile
           </span>
@@ -187,7 +187,7 @@ export function ProgramChart({
                   key={item.raceId}
                   href={`/plan?race=${item.raceId}`}
                   style={column(item.start, item.span)}
-                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-md border border-b-0 border-dashed border-dim px-2 text-[11px] whitespace-nowrap text-secondary-foreground hover:text-foreground"
+                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-md border border-b-0 border-dashed border-control-border px-2 text-[11px] whitespace-nowrap text-secondary-foreground hover:text-foreground"
                 >
                   <RaceMark letter={item.letter} primary={false} />
                   <span className="truncate">

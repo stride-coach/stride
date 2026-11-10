@@ -66,7 +66,7 @@ export function HeartRateEditor({
                 variant="outline"
                 size="icon"
                 aria-label="Diminuer"
-                className="size-13 text-xl min-[1100px]:order-2 min-[1100px]:size-10 min-[1100px]:text-body"
+                className="size-13 text-verdict min-[1100px]:order-2 min-[1100px]:size-10 min-[1100px]:text-body"
                 onClick={() =>
                   setInput(String(Math.max(100, (Number(input) || 100) - 1)))
                 }
@@ -78,7 +78,7 @@ export function HeartRateEditor({
               <InputGroupInput
                 autoFocus
                 id={`edit-${kind}`}
-                className="text-right font-metric text-[34px] font-semibold max-[1100px]:w-[76px]! max-[1100px]:flex-none! max-[1100px]:px-0! min-[1100px]:h-10! min-[1100px]:text-left min-[1100px]:font-sans min-[1100px]:text-body min-[1100px]:font-normal"
+                className="text-right text-[34px] font-semibold tabular-nums max-[1100px]:w-[76px]! max-[1100px]:flex-none! max-[1100px]:px-0! min-[1100px]:h-10! min-[1100px]:text-left min-[1100px]:font-sans min-[1100px]:text-body min-[1100px]:font-normal"
                 aria-label={`${label} en bpm`}
                 inputMode="numeric"
                 type="text"
@@ -99,7 +99,7 @@ export function HeartRateEditor({
                 variant="outline"
                 size="icon"
                 aria-label="Augmenter"
-                className="size-13 text-xl min-[1100px]:order-3 min-[1100px]:size-10 min-[1100px]:text-body"
+                className="size-13 text-verdict min-[1100px]:order-3 min-[1100px]:size-10 min-[1100px]:text-body"
                 onClick={() =>
                   setInput(String(Math.min(230, (Number(input) || 100) + 1)))
                 }
@@ -108,14 +108,14 @@ export function HeartRateEditor({
               </Button>
             )}
           </div>
-          <span className="hidden text-xs text-muted-foreground min-[1100px]:block">
+          <span className="hidden text-label text-muted-foreground min-[1100px]:block">
             Ta valeur · conservée après les imports
           </span>
         </Field>
         {!parsed.success && (
           <p
             role="status"
-            className="text-xs text-destructive min-[1100px]:pl-50"
+            className="text-label text-destructive min-[1100px]:pl-50"
           >
             Saisis un nombre entier de 100 à 230 bpm.
           </p>
@@ -143,19 +143,19 @@ export function HeartRateEditor({
                     <ToggleGroupItem
                       key={option.value}
                       value={option.value}
-                      className="px-3 text-meta last:col-span-2 min-[1100px]:flex-none min-[1100px]:text-sm"
+                      className="px-3 text-body last:col-span-2 min-[1100px]:flex-none min-[1100px]:text-body"
                     >
                       {option.label}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-                <p className="hidden text-xs text-muted-foreground min-[1100px]:block">
+                <p className="hidden text-label text-muted-foreground min-[1100px]:block">
                   La source reste associée à ta valeur lors des futurs imports.
                 </p>
               </div>
             </Field>
             <div className="flex flex-col gap-3 min-[1100px]:grid min-[1100px]:grid-cols-[180px_minmax(0,1fr)_minmax(0,1fr)] min-[1100px]:gap-5">
-              <span className="font-mono text-nano tracking-wider text-muted-foreground uppercase min-[1100px]:pt-2 min-[1100px]:font-sans min-[1100px]:text-xs min-[1100px]:tracking-normal min-[1100px]:normal-case">
+              <span className="text-label text-muted-foreground tabular-nums min-[1100px]:pt-2 min-[1100px]:font-sans min-[1100px]:text-label min-[1100px]:tracking-normal min-[1100px]:normal-case">
                 Ce que ça change
               </span>
               <div className="flex flex-col gap-2">
@@ -167,10 +167,10 @@ export function HeartRateEditor({
                   return (
                     <div
                       key={number}
-                      className="grid grid-cols-[34px_1fr_auto] items-baseline gap-2 border-t border-border py-1.75 text-xs"
+                      className="grid grid-cols-[34px_1fr_auto] items-baseline gap-2 border-t border-border py-1.75 text-label"
                     >
                       <MonoLabel size="nano">Z{number}</MonoLabel>
-                      <span className="font-metric text-lead">
+                      <span className="text-body-lg tabular-nums">
                         {zone
                           ? `${zone.lower}–${zone.upper} bpm`
                           : "Indisponible"}
@@ -182,7 +182,7 @@ export function HeartRateEditor({
                   );
                 })}
               </div>
-              <CoachNote className="text-meta">
+              <CoachNote className="text-body">
                 {zones?.method === "karvonen"
                   ? "Les zones utilisent ta FC max et ta FC au repos."
                   : zones?.method === "percentage_maximum"

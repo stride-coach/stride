@@ -17,7 +17,7 @@ export function Legend({
   items: { label: string; swatch: string }[];
 }) {
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-label text-muted-foreground">
       {items.map((item) => (
         <li key={item.label} className="flex items-center gap-1.5">
           <span aria-hidden="true" className={item.swatch} />
@@ -98,8 +98,8 @@ export function RangeChart({
             strokeLinejoin="round"
             className={cn(
               tone === "foreground" && "stroke-foreground",
-              tone === "provider" && "stroke-provider",
-              tone === "success" && "stroke-success",
+              tone === "provider" && "stroke-foreground",
+              tone === "success" && "stroke-primary",
             )}
           />
         ) : null,
@@ -115,8 +115,8 @@ export function RangeChart({
               : tone === "foreground"
                 ? "fill-foreground"
                 : tone === "provider"
-                  ? "fill-provider"
-                  : "fill-success"
+                  ? "fill-foreground"
+                  : "fill-primary"
           }
         />
       )}

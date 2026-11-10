@@ -121,84 +121,58 @@ const sessionTileKinds: SessionTileKind[] = [
 ];
 
 const surfaces = [
-  ["Shell", "bg-background", "background"],
-  ["Inset", "bg-surface-inset", "surface-inset"],
-  ["Surface", "bg-card", "card"],
-  ["Raised", "bg-muted", "muted"],
-  ["Panel", "bg-surface-panel", "surface-panel"],
-  ["Current", "bg-surface-current", "surface-current"],
-  ["Chalk", "bg-foreground", "foreground"],
-  ["Volt", "bg-primary", "primary"],
+  ["Shell", "bg-shell", "shell"],
+  ["Background", "bg-background", "background"],
+  ["Card", "bg-card", "card"],
+  ["Muted", "bg-muted", "muted"],
+  ["Accent", "bg-accent", "accent"],
+  ["Foreground", "bg-foreground", "foreground"],
 ] as const;
 
 const states = [
-  ["Success", "bg-success", "success"],
-  ["Warning", "bg-warning", "warning"],
-  ["Danger", "bg-destructive", "destructive"],
-  ["Provider", "bg-provider", "provider"],
-  ["Provider past", "bg-provider-muted", "provider-muted"],
-  ["Dim", "bg-dim", "dim"],
+  ["Dans ta plage", "bg-primary", "primary"],
+  ["À surveiller", "bg-warning", "warning"],
+  ["Alerte", "bg-destructive", "destructive"],
+  ["Série 1", "bg-data-1", "data-1"],
+  ["Série 2", "bg-data-2", "data-2"],
+  ["Série 3", "bg-data-3", "data-3"],
 ] as const;
 
 const lines = [
-  ["Hairline", "border-border", "border"],
-  ["Strong", "border-border-strong", "border-strong"],
-  ["Subtle", "border-border-subtle", "border-subtle"],
+  ["Border", "border-border", "border"],
+  ["Control", "border-control-border", "control-border"],
+  ["Field", "border-input", "input"],
 ] as const;
 
 const zones = [
-  ["Z1", "bg-intensity-1"],
-  ["Z2 · Garmin", "bg-intensity-2"],
-  ["Z3", "bg-intensity-3"],
-  ["Z4", "bg-intensity-4"],
-  ["Z5 · Error", "bg-intensity-5"],
+  ["Récup · Z1", "bg-intensity-1"],
+  ["Facile · Z2", "bg-intensity-2"],
+  ["Tempo · Z3", "bg-intensity-3"],
+  ["Seuil · Z4", "bg-intensity-4"],
+  ["Fractionné · Z5", "bg-intensity-5"],
 ] as const;
 
 const typeScale = [
-  ["display", "text-display font-semibold", "A coach that thinks out loud."],
+  ["display", "text-display font-semibold", "Séance allégée aujourd’hui."],
+  ["metric", "text-metric font-semibold tabular-nums", "46 ms"],
+  ["verdict", "text-verdict font-semibold", "3 signaux sur 4 hors de ta plage"],
+  ["title", "text-title font-semibold", "Seuil 4 × 6’"],
   [
-    "headline",
-    "text-headline font-semibold",
-    "Run the threshold, but shorter.",
+    "body-lg",
+    "text-body-lg text-secondary-foreground",
+    "Une répétition en moins qu’au plan : l’allure ne change pas.",
   ],
-  [
-    "title",
-    "text-title font-semibold",
-    "Reduce today's threshold to 4 × 6 min.",
-  ],
-  [
-    "heading",
-    "text-xl font-semibold tracking-tight",
-    "Fitness, fatigue & form",
-  ],
-  [
-    "lead",
-    "text-lead text-secondary-foreground",
-    "Garmin provides the signals. Stride builds the athlete model.",
-  ],
-  [
-    "body",
-    "text-body",
-    "Material changes wait for you; small ones apply with a 48 h undo.",
-  ],
-  ["ui", "text-sm", "Readiness, session, proposals, last run"],
-  [
-    "meta",
-    "text-meta text-secondary-foreground",
-    "Proposed by Training · accepted by you · Mon 5",
-  ],
-  [
-    "caption",
-    "text-xs text-muted-foreground",
-    "Composition shown in Settings · refined daily",
-  ],
+  ["body", "text-body", "Sortie longue trail"],
+  ["body-strong", "text-body font-semibold tabular-nums", "52 min"],
+  ["label", "text-label font-medium text-muted-foreground", "plage 52–64 ms"],
+  ["micro", "text-label font-medium text-muted-foreground", "Aujourd’hui"],
 ] as const;
 
 const radii = [
   ["mark", "rounded-mark", "2px"],
   ["sm", "rounded-sm", "5px"],
   ["md", "rounded-md", "6px"],
-  ["lg", "rounded-lg", "8px"],
+  ["lg", "rounded-lg", "9px"],
   ["xl", "rounded-xl", "12px"],
   ["2xl", "rounded-2xl", "14px"],
 ] as const;
@@ -227,7 +201,7 @@ export default function DesignSystemPage() {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-5 py-12 sm:px-10 lg:px-20 lg:py-18">
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 font-metric text-2xl font-bold tracking-wider italic">
+          <span className="inline-flex items-center gap-2 text-metric font-bold tracking-wider italic tabular-nums">
             <StrideMark className="size-5" strokeWidth="2.4" />
             STRIDE
           </span>
@@ -236,14 +210,14 @@ export default function DesignSystemPage() {
         <h1 className="max-w-4xl text-display font-semibold text-balance">
           Radix bones, Stride skin.
         </h1>
-        <p className="max-w-3xl text-lead text-pretty text-secondary-foreground">
+        <p className="max-w-3xl text-body-lg text-pretty text-secondary-foreground">
           Night Track tokens, shadcn primitives restyled for Stride, and the
           reusable product patterns from the approved system references. This
           surface exists for validation only and is not available in production.
         </p>
         <nav
           aria-label="Gallery sections"
-          className="flex flex-wrap gap-x-5 gap-y-2 text-sm"
+          className="flex flex-wrap gap-x-5 gap-y-2 text-body"
         >
           {[
             ["#tokens", "Tokens"],
@@ -273,8 +247,8 @@ export default function DesignSystemPage() {
       <GallerySection
         id="tokens"
         index="01 · Tokens"
-        title="Graphite surfaces, hairlines, one signal colour"
-        description="Volt is reserved for the coach's voice and the next action. Status, provider and zone meaning use their own tokens."
+        title="Dense tokens"
+        description="Colour only says a state: primary for in range or the action, warning to watch, destructive for an alert. Intensity is its own scale; everything else is grey."
       >
         <div className="grid gap-10 lg:grid-cols-2">
           <Specimen title="Surfaces" meta="bg-*">
@@ -284,24 +258,27 @@ export default function DesignSystemPage() {
                   <span
                     className={`h-11 rounded-md border border-border ${fill}`}
                   />
-                  <span className="text-xs">{name}</span>
+                  <span className="text-label">{name}</span>
                   <MonoLabel size="nano">{token}</MonoLabel>
                 </li>
               ))}
             </ul>
           </Specimen>
-          <Specimen title="State and provenance" meta="text-* · bg-*">
-            <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          <Specimen title="States and data series" meta="text-* · bg-*">
+            <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
               {states.map(([name, fill, token]) => (
                 <li key={token} className="flex flex-col gap-1.5">
                   <span className={`h-11 rounded-md ${fill}`} />
-                  <span className="text-xs">{name}</span>
+                  <span className="text-label">{name}</span>
                   <MonoLabel size="nano">{token}</MonoLabel>
                 </li>
               ))}
             </ul>
           </Specimen>
-          <Specimen title="Training zones" meta="bg-intensity-1…5">
+          <Specimen
+            title="Intensité et zones cardiaques"
+            meta="bg-intensity-1…5"
+          >
             <ul className="grid grid-cols-5 gap-2">
               {zones.map(([name, fill]) => (
                 <li key={name} className="flex flex-col gap-1.25">
@@ -310,7 +287,7 @@ export default function DesignSystemPage() {
                 </li>
               ))}
             </ul>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-label">
               <TrendLabel trend="improving" />
               <TrendLabel trend="stable" />
               <TrendLabel trend="watch">Watch · needs you</TrendLabel>
@@ -322,7 +299,7 @@ export default function DesignSystemPage() {
               {lines.map(([name, line, token]) => (
                 <span
                   key={token}
-                  className={`flex h-11 flex-1 items-center justify-center rounded-md border ${line} text-xs text-secondary-foreground`}
+                  className={`flex h-11 flex-1 items-center justify-center rounded-md border ${line} text-label text-secondary-foreground`}
                 >
                   {name}
                 </span>
@@ -332,9 +309,9 @@ export default function DesignSystemPage() {
               {radii.map(([name, radius, size]) => (
                 <span
                   key={name}
-                  className={`flex h-14 flex-col items-center justify-center border border-border-strong bg-card ${radius}`}
+                  className={`flex h-14 flex-col items-center justify-center border border-control-border bg-card ${radius}`}
                 >
-                  <span className="text-xs">{name}</span>
+                  <span className="text-label">{name}</span>
                   <MonoLabel size="nano">{size}</MonoLabel>
                 </span>
               ))}
@@ -345,7 +322,7 @@ export default function DesignSystemPage() {
             meta="explains, never decorates"
             className="lg:col-span-2"
           >
-            <ul className="grid border-t border-border text-sm sm:grid-cols-[minmax(0,1fr)_auto]">
+            <ul className="grid border-t border-border text-body sm:grid-cols-[minmax(0,1fr)_auto]">
               {motion.map(([label, token, timing]) => (
                 <li
                   key={token}
@@ -358,7 +335,7 @@ export default function DesignSystemPage() {
                 </li>
               ))}
             </ul>
-            <p className="text-meta text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               Reduced motion: everything resolves to its end state.
             </p>
           </Specimen>
@@ -467,7 +444,7 @@ export default function DesignSystemPage() {
               <Badge variant="success">Accepted</Badge>
               <Badge variant="danger">Sign-in expired</Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-meta text-secondary-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-body text-secondary-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <Kbd>⌘B</Kbd> collapse sidebar
               </span>
@@ -535,7 +512,7 @@ export default function DesignSystemPage() {
 
           <Specimen title="Choices" meta="ToggleGroup">
             <div className="flex flex-col gap-2">
-              <span id="ds-surface-label" className="text-sm">
+              <span id="ds-surface-label" className="text-body">
                 Mostly…
               </span>
               <ToggleGroup
@@ -550,7 +527,7 @@ export default function DesignSystemPage() {
               </ToggleGroup>
             </div>
             <div className="flex flex-col gap-2">
-              <span id="ds-days-label" className="text-sm">
+              <span id="ds-days-label" className="text-body">
                 Days you can run
               </span>
               <ToggleGroup
@@ -575,7 +552,7 @@ export default function DesignSystemPage() {
               </ToggleGroup>
             </div>
             <div className="flex flex-col gap-2">
-              <span id="ds-access-label" className="text-sm">
+              <span id="ds-access-label" className="text-body">
                 You have access to
               </span>
               <ToggleGroup
@@ -636,7 +613,7 @@ export default function DesignSystemPage() {
 
           <Specimen title="Progress and loading" meta="Progress · Skeleton">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-meta">
+              <div className="flex items-center justify-between text-body">
                 <span id="ds-import-label">Importing from Garmin</span>
                 <MonoLabel>71%</MonoLabel>
               </div>
@@ -749,7 +726,7 @@ export default function DesignSystemPage() {
             </PopoverTrigger>
             <PopoverContent align="start" className="w-80 gap-1 p-3.5">
               <p className="text-[15px] font-semibold">Notifications</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-label text-muted-foreground">
                 Popover · 14px radius, strong hairline
               </p>
             </PopoverContent>
@@ -775,7 +752,7 @@ export default function DesignSystemPage() {
               <VerdictRow label="HR drift" value="7.8%" trend="investigate" />
             </VerdictList>
             <SessionShape blocks={session} className="mt-2" />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Session shape: intensity × time, removed rep dashed.
             </p>
           </Specimen>
@@ -797,14 +774,14 @@ export default function DesignSystemPage() {
               <SessionKindTile kind="rest" size="lg" />
               <SessionKindTile kind="race" size="lg" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Easy and long on provider blue, quality on zone 4, hills and trail
               on zone 3, support work muted, race in Volt, rest dashed.
             </p>
           </Specimen>
           <Specimen title="Recommendation" meta="Card · Badge · Button">
             <ExampleRecommendation />
-            <p className="text-meta text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               Fixed anatomy: who · what · diff · why · confidence · decision.
             </p>
           </Specimen>
@@ -866,7 +843,7 @@ export default function DesignSystemPage() {
             <DecisionLegend />
           </Specimen>
           <Specimen title="Halo Volt" meta="Halo · entry and highlight only">
-            <div className="relative isolate flex h-64 flex-col justify-end overflow-hidden rounded-2xl border border-border-subtle bg-background p-6">
+            <div className="relative isolate flex h-64 flex-col justify-end overflow-hidden rounded-2xl border border-border bg-background p-6">
               <Halo
                 viewBox="0 0 600 300"
                 path="M-20,290 C140,270 230,170 330,140 S500,80 620,30"
@@ -880,7 +857,7 @@ export default function DesignSystemPage() {
                 Ton coach sait déjà d’où tu viens.
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Pool, blurred ribbon and crisp trace from the halo tokens, with a
               scrim in the surface color under text. Breathes over 8 s and stays
               static with reduced motion. Never behind data, buttons, badges or
@@ -914,14 +891,14 @@ export default function DesignSystemPage() {
           </Specimen>
           <Specimen title="Context chips" meta="ContextChip · ContextChipLink">
             <ContextChipsExample />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Removable chip for an item attached in the composer, and the link
               chip on the sent message. 44px targets below md.
             </p>
           </Specimen>
           <Specimen title="Suggested replies" meta="SuggestedReplies">
             <SuggestedRepliesExample />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Short replies above the Coach composer that send on tap. Pills
               with 44px targets that scroll below md, compact outline buttons
               that wrap from md.
@@ -944,7 +921,7 @@ export default function DesignSystemPage() {
                 <Button
                   variant="link"
                   size="xs"
-                  className="h-auto px-0 text-meta"
+                  className="h-auto px-0 text-body"
                 >
                   Ask why
                 </Button>
@@ -957,10 +934,10 @@ export default function DesignSystemPage() {
             <div className="flex items-end gap-3">
               <Metric size="hero" value="58" />
               <div className="flex flex-col gap-1 pb-2">
-                <TrendLabel trend="watch" className="text-lead">
+                <TrendLabel trend="watch" className="text-body-lg">
                   Moderate readiness
                 </TrendLabel>
-                <span className="text-meta text-secondary-foreground">
+                <span className="text-body text-secondary-foreground">
                   14-day avg 69 · mostly sleep
                 </span>
               </div>
@@ -1030,7 +1007,7 @@ export default function DesignSystemPage() {
               ]}
               currentProgress={0.6}
             />
-            <p className="text-meta text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               Desktop: in the sidebar. Mobile: segments across the top.
             </p>
           </Specimen>
@@ -1050,9 +1027,9 @@ export default function DesignSystemPage() {
             <ProvenanceLabel source="provider">
               Garmin synced 06:12
             </ProvenanceLabel>
-            <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border-strong p-5">
+            <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-control-border p-5">
               <MonoLabel>Empty · races</MonoLabel>
-              <p className="text-sm text-secondary-foreground">
+              <p className="text-body text-secondary-foreground">
                 No goal race yet. Stride plans around your availability until
                 you add one.
               </p>

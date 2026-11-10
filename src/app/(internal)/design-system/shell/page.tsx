@@ -181,7 +181,7 @@ export default async function ShellPage() {
           />
           <nav
             aria-label="Breadcrumb"
-            className="flex items-center gap-2 text-sm"
+            className="flex items-center gap-2 text-body"
           >
             <Link
               href="/design-system"
@@ -189,7 +189,7 @@ export default async function ShellPage() {
             >
               Design system
             </Link>
-            <span aria-hidden="true" className="text-dim">
+            <span aria-hidden="true" className="text-muted-foreground">
               /
             </span>
             <span aria-current="page">App shell</span>
@@ -197,15 +197,15 @@ export default async function ShellPage() {
         </header>
         <div className="flex max-w-3xl flex-col gap-6 p-5 sm:p-10">
           <MonoLabel>Wed 7 Oct · Rebuild · Week 2</MonoLabel>
-          <h1 className="text-headline font-semibold text-balance sm:text-display">
+          <h1 className="text-verdict font-semibold text-balance sm:text-display">
             A sidebar that carries context, not just links.
           </h1>
           <p className="text-body text-pretty text-secondary-foreground">
             Expanded at 264 px with an inset work area. Press{" "}
-            <kbd className="font-mono text-xs">⌘B</kbd> or use the trigger to
-            collapse to the 56 px icon rail, where badges become dots and labels
-            move to tooltips. Below 768 px the sidebar becomes a sheet and the
-            bottom tabs keep daily use one thumb away.
+            <kbd className="text-label tabular-nums">⌘B</kbd> or use the trigger
+            to collapse to the 56 px icon rail, where badges become dots and
+            labels move to tooltips. Below 768 px the sidebar becomes a sheet
+            and the bottom tabs keep daily use one thumb away.
           </p>
           <div className="flex flex-wrap gap-2">
             <Badge>Sidebar · inset</Badge>

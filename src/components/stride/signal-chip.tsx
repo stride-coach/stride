@@ -19,7 +19,7 @@ export function SignalChip({
     <span
       data-slot="signal-chip"
       className={cn(
-        "inline-flex items-center gap-2 rounded-md border border-border-strong px-2.25 py-1.25 text-meta whitespace-nowrap",
+        "inline-flex items-center gap-2 rounded-md border border-control-border px-2.25 py-1.25 text-body whitespace-nowrap",
         className,
       )}
       {...props}

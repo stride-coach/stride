@@ -14,11 +14,11 @@ import type {
 import type { NutritionDayType } from "@/features/nutrition/calculator";
 
 const dayTone: Record<NutritionDayType, string> = {
-  rest: "bg-provider",
-  easy: "bg-success",
+  rest: "bg-foreground",
+  easy: "bg-primary",
   moderate: "bg-warning",
-  long_or_hard: "bg-staff-nutritionist",
-  pre_race: "bg-staff-nutritionist",
+  long_or_hard: "bg-data-3",
+  pre_race: "bg-data-3",
   race: "bg-primary",
 };
 
@@ -36,10 +36,10 @@ function SourceTag({ tag }: { tag: NutritionSourceTag }) {
     <MonoLabel
       size="nano"
       className={cn(
-        "rounded-sm border px-1.5 py-px sm:text-micro",
+        "rounded-sm border px-1.5 py-px sm:text-label",
         tag === "garmin"
-          ? "border-success-border text-success"
-          : "border-border-strong text-warning",
+          ? "border-border text-primary"
+          : "border-control-border text-warning",
       )}
     >
       {tag === "garmin" ? "Garmin" : "Estimation"}
@@ -64,12 +64,14 @@ function Stat({
         {label}
       </MonoLabel>
       <span className="flex items-baseline gap-1 sm:gap-1.5">
-        <span className="font-metric text-[30px] leading-none font-semibold tabular-nums sm:text-[48px] sm:leading-[0.9]">
+        <span className="text-[30px] leading-none font-semibold tabular-nums sm:text-[48px] sm:leading-[0.9]">
           {value}
         </span>
-        <span className="text-xs text-muted-foreground sm:text-sm">{unit}</span>
+        <span className="text-label text-muted-foreground sm:text-body">
+          {unit}
+        </span>
       </span>
-      <span className="text-xs leading-[1.4] text-secondary-foreground sm:text-meta">
+      <span className="text-label leading-[1.4] text-secondary-foreground sm:text-body">
         {detail}
       </span>
     </div>
@@ -102,12 +104,12 @@ function ContextLinks({ today }: { today: NutritionTodayView }) {
         <li key={link.href}>
           <Link
             href={link.href}
-            className="flex min-h-11 items-center gap-2 rounded-xl border border-border-strong px-3.5 text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-focus sm:min-h-8.5 sm:rounded-full sm:px-3 sm:text-meta"
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-control-border px-3.5 text-body transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring sm:min-h-8.5 sm:rounded-full sm:px-3 sm:text-body"
           >
             {link.dot ? (
               <span
                 aria-hidden="true"
-                className="size-1.5 shrink-0 rounded-full bg-staff-nutritionist"
+                className="size-1.5 shrink-0 rounded-full bg-data-3"
               />
             ) : (
               <svg
@@ -125,7 +127,7 @@ function ContextLinks({ today }: { today: NutritionTodayView }) {
               </svg>
             )}
             {link.label}
-            <span className="ml-auto text-xs text-muted-foreground sm:ml-0">
+            <span className="ml-auto text-label text-muted-foreground sm:ml-0">
               {link.hint}
             </span>
           </Link>
@@ -163,24 +165,24 @@ function TimelineStep({ step }: { step: NutritionTimelineStepView }) {
           {step.when}
         </MonoLabel>
         <span className="flex items-baseline gap-1.5 sm:order-3">
-          <span className="font-metric text-base font-semibold tabular-nums sm:text-[30px] sm:leading-none">
+          <span className="text-body-lg font-semibold tabular-nums sm:text-[30px] sm:leading-none">
             {step.amount.value}
           </span>
-          <span className="text-xs text-muted-foreground sm:text-meta">
+          <span className="text-label text-muted-foreground sm:text-body">
             {step.amount.unit}
           </span>
         </span>
       </span>
-      <h3 className="col-start-2 text-sm font-semibold sm:order-2 sm:text-base">
+      <h3 className="col-start-2 text-body font-semibold sm:order-2 sm:text-body-lg">
         {step.title}
       </h3>
-      <p className="col-start-2 text-meta leading-normal text-secondary-foreground sm:order-4">
+      <p className="col-start-2 text-body leading-normal text-secondary-foreground sm:order-4">
         {step.detail}
       </p>
       {step.link ? (
         <Link
           href={step.link.href}
-          className="col-start-2 inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:order-5 sm:mt-auto sm:min-h-0"
+          className="col-start-2 inline-flex min-h-11 items-center text-body text-primary hover:text-foreground sm:order-5 sm:mt-auto sm:min-h-0"
         >
           {step.link.label} →
         </Link>
@@ -205,7 +207,7 @@ function FuelingBase({
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2
             id="nutrition-base"
-            className="text-[17px] font-semibold sm:text-lg"
+            className="text-[17px] font-semibold sm:text-title"
           >
             Ta base de ravito
           </h2>
@@ -225,19 +227,19 @@ function FuelingBase({
                   {label}
                 </MonoLabel>
               </dt>
-              <dd className="font-metric text-[22px] font-semibold tabular-nums sm:text-[26px]">
+              <dd className="text-[22px] font-semibold tabular-nums sm:text-[26px]">
                 {value}
               </dd>
             </div>
           ))}
         </dl>
-        <p className="text-meta leading-[1.55] text-secondary-foreground">
+        <p className="text-body leading-[1.55] text-secondary-foreground">
           {base.note}
         </p>
         {base.race ? (
           <Link
             href={base.race.href}
-            className="inline-flex min-h-11 items-center text-meta text-primary hover:text-foreground sm:min-h-0"
+            className="inline-flex min-h-11 items-center text-body text-primary hover:text-foreground sm:min-h-0"
           >
             {base.race.label} →
           </Link>
@@ -245,10 +247,10 @@ function FuelingBase({
       </div>
       <div className="flex flex-col gap-2 rounded-2xl border border-border bg-muted p-4 sm:p-5.5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-[17px] font-semibold sm:text-lg">
+          <h2 className="text-[17px] font-semibold sm:text-title">
             Teste ton ravito
           </h2>
-          <span className="text-meta text-muted-foreground">
+          <span className="text-body text-muted-foreground">
             Sorties de 1 h 30 ou plus
           </span>
         </div>
@@ -261,24 +263,24 @@ function FuelingBase({
               >
                 <Link
                   href={rehearsal.href}
-                  className="text-meta hover:text-primary sm:text-sm"
+                  className="text-body hover:text-primary sm:text-body"
                 >
                   {rehearsal.label}
                 </Link>
-                <span className="text-right font-metric text-base font-semibold tabular-nums">
+                <span className="text-right text-body-lg font-semibold tabular-nums">
                   {rehearsal.carbs}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {rehearsal.today ? "Aujourd’hui" : "À venir"}
                 </span>
-                <span className="text-right text-xs text-muted-foreground">
+                <span className="text-right text-label text-muted-foreground">
                   {rehearsal.perHour}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="border-t border-border pt-2.5 text-meta text-secondary-foreground">
+          <p className="border-t border-border pt-2.5 text-body text-secondary-foreground">
             Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
           </p>
         )}
@@ -296,14 +298,14 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
             key={day.date}
             className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 border-t border-border py-3"
           >
-            <span className={cn("text-sm", day.today && "font-semibold")}>
+            <span className={cn("text-body", day.today && "font-semibold")}>
               {day.dateLabel}
               {day.today ? " · aujourd’hui" : ""}
             </span>
-            <span className="text-right font-metric text-lg font-semibold tabular-nums">
+            <span className="text-right text-title font-semibold tabular-nums">
               {day.energy} kcal
             </span>
-            <span className="inline-flex min-w-0 items-center gap-1.5 text-xs text-secondary-foreground">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-label text-secondary-foreground">
               <Dot type={day.dayType} />
               {day.sessionHref ? (
                 <Link href={day.sessionHref} className="truncate">
@@ -313,20 +315,20 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                 <span className="truncate">{day.session}</span>
               )}
             </span>
-            <span className="text-right text-xs text-muted-foreground">
+            <span className="text-right text-label text-muted-foreground">
               Gluc. {day.carbs}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-label text-muted-foreground">
               {day.dayTypeLabel}
             </span>
-            <span className="text-right text-xs text-muted-foreground">
+            <span className="text-right text-label text-muted-foreground">
               Prot. {day.protein}
             </span>
           </li>
         ))}
       </ul>
       <div className="overflow-x-auto max-sm:hidden">
-        <table className="w-full min-w-180 border-collapse text-sm">
+        <table className="w-full min-w-180 border-collapse text-body">
           <thead>
             <tr>
               {[
@@ -342,7 +344,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                   key={title}
                   scope="col"
                   className={cn(
-                    "px-3 pb-2.5 font-mono text-label font-normal text-muted-foreground uppercase first:pl-0 last:pr-0",
+                    "px-3 pb-2.5 text-label font-normal text-muted-foreground tabular-nums first:pl-0 last:pr-0",
                     index < 3 ? "text-left" : "text-right",
                   )}
                 >
@@ -382,7 +384,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                   )}
                 </td>
                 <td className="p-3">
-                  <span className="inline-flex items-center gap-1.5 text-meta">
+                  <span className="inline-flex items-center gap-1.5 text-body">
                     <Dot type={day.dayType} />
                     {day.dayTypeLabel}
                   </span>
@@ -390,7 +392,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                 {[day.energy, day.carbs, day.protein].map((value, index) => (
                   <td
                     key={index}
-                    className="p-3 text-right font-metric text-lg font-semibold tabular-nums"
+                    className="p-3 text-right text-title font-semibold tabular-nums"
                   >
                     {value}
                   </td>
@@ -399,7 +401,7 @@ function DayRows({ days }: { days: NutritionRowView[] }) {
                   className={cn(
                     "py-3 pl-3 text-right",
                     day.fueling
-                      ? "font-metric text-lg font-semibold tabular-nums"
+                      ? "text-title font-semibold tabular-nums"
                       : "text-muted-foreground",
                   )}
                 >
@@ -428,7 +430,7 @@ export function NutritionPage({
         <h1 className="text-[25px] leading-[1.12] font-semibold tracking-[-0.025em] text-balance sm:text-[clamp(32px,4vw,46px)] sm:leading-[1.05] sm:tracking-[-0.03em]">
           {today.headline}
         </h1>
-        <p className="text-sm leading-normal text-pretty text-secondary-foreground sm:text-base sm:leading-[1.55]">
+        <p className="text-body leading-normal text-pretty text-secondary-foreground sm:text-body-lg sm:leading-[1.55]">
           {today.summary}
         </p>
         <ContextLinks today={today} />
@@ -438,7 +440,7 @@ export function NutritionPage({
             <Link href="/settings/profile">Vérifier mon profil</Link>
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground max-sm:hidden">
+        <p className="text-label text-muted-foreground max-sm:hidden">
           Léa reçoit ta séance, ta course, tes objectifs du jour et ta base de
           ravito.
         </p>
@@ -476,7 +478,7 @@ export function NutritionPage({
         </div>
         <ul
           aria-label="Sources des chiffres"
-          className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground"
+          className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-label text-muted-foreground"
         >
           {today.sources.map((source) => (
             <li key={source.text} className="inline-flex items-center gap-1.5">
@@ -494,11 +496,11 @@ export function NutritionPage({
         <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-3">
           <h2
             id="nutrition-timeline"
-            className="text-[17px] font-semibold sm:text-lg"
+            className="text-[17px] font-semibold sm:text-title"
           >
             {today.timeline.title}
           </h2>
-          <span className="pb-1.5 text-xs text-muted-foreground sm:pb-0 sm:text-meta">
+          <span className="pb-1.5 text-label text-muted-foreground sm:pb-0 sm:text-body">
             {today.timeline.caption}
           </span>
         </div>
@@ -518,11 +520,11 @@ export function NutritionPage({
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2
             id="nutrition-days"
-            className="text-[17px] font-semibold sm:text-lg"
+            className="text-[17px] font-semibold sm:text-title"
           >
             Les 7 prochains jours
           </h2>
-          <span className="text-meta text-muted-foreground max-sm:hidden">
+          <span className="text-body text-muted-foreground max-sm:hidden">
             Selon ton plan
           </span>
         </div>
@@ -535,24 +537,24 @@ export function NutritionPage({
       >
         <h2
           id="nutrition-method"
-          className="text-[17px] font-semibold sm:text-lg"
+          className="text-[17px] font-semibold sm:text-title"
         >
           Comment on calcule
         </h2>
-        <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-2.5 text-sm">
+        <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-2.5 text-body">
           {today.method.map((row) => (
             <div key={row.label} className="contents">
               <dt className="flex flex-wrap items-center gap-2 text-secondary-foreground">
                 {row.label}
                 {row.tag ? <SourceTag tag={row.tag} /> : null}
               </dt>
-              <dd className="text-right font-metric text-lg font-semibold tabular-nums">
+              <dd className="text-right text-title font-semibold tabular-nums">
                 {row.value}
               </dd>
             </div>
           ))}
         </dl>
-        <p className="text-meta leading-[1.55] text-muted-foreground">
+        <p className="text-body leading-[1.55] text-muted-foreground">
           {today.neatEstimated
             ? "L’activité hors entraînement est estimée tant que les calories quotidiennes Garmin ne sont pas disponibles. "
             : ""}
@@ -574,12 +576,12 @@ export function NutritionMissing({ missing }: { missing: string[] }) {
         <h1 className="text-[22px] leading-[1.15] font-semibold tracking-[-0.02em]">
           Complète ton profil pour voir tes objectifs.
         </h1>
-        <p className="text-sm leading-normal text-secondary-foreground">
+        <p className="text-body leading-normal text-secondary-foreground">
           Sans ces informations, Stride ne calcule aucun chiffre plutôt que de
           deviner.
         </p>
         {missing.length ? (
-          <ul className="flex flex-col gap-2 text-sm">
+          <ul className="flex flex-col gap-2 text-body">
             {missing.map((field) => (
               <li key={field} className="flex items-center gap-2">
                 <span
