@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Chip } from "@/components/stride/chip";
 import {
+  MissingValue,
   SessionStateMark,
   type SessionRowState,
 } from "@/components/stride/session-row";
@@ -160,8 +161,11 @@ function SessionCells({
   return (
     <>
       <SessionStateMark state={state} />
-      <span className="text-label text-muted-foreground tabular-nums">
+      <span className="flex flex-col text-label text-muted-foreground tabular-nums">
         {showDay && shortDay(day)}
+        {showDay && day.sessions.length > 1 && (
+          <span className="text-micro">{sessionCount(day)}</span>
+        )}
       </span>
       <span className="flex min-w-0 flex-col">
         <span
@@ -172,9 +176,14 @@ function SessionCells({
         >
           {session.title}
         </span>
-        {session.summary && (
-          <span className="truncate text-label text-muted-foreground tabular-nums sm:hidden">
-            {[session.summary, session.elevation].filter(Boolean).join(" · ")}
+        {(session.summary || session.elevation) && (
+          <span className="truncate text-label text-muted-foreground tabular-nums lg:hidden">
+            <span className="sm:hidden">
+              {[session.summary, session.elevation].filter(Boolean).join(" · ")}
+            </span>
+            {session.elevation && (
+              <span className="max-sm:hidden">{session.elevation}</span>
+            )}
           </span>
         )}
         {session.state !== "proposed" && <WatchTag tag={watch} />}
@@ -187,10 +196,12 @@ function SessionCells({
         )}
       </span>
       <span className="text-right tabular-nums max-sm:hidden">
-        {rest ? "" : (session.duration ?? "–")}
+        {rest || session.family === "race" ? null : (
+          <MissingValue value={session.duration} />
+        )}
       </span>
       <span className="text-right tabular-nums max-sm:hidden">
-        {rest ? "" : (session.distance ?? "–")}
+        {rest ? null : <MissingValue value={session.distance} />}
       </span>
       <span className="text-right text-muted-foreground tabular-nums max-lg:hidden">
         {session.elevation?.replace(" D+", "")}
@@ -223,31 +234,32 @@ function DayRows({
   );
   if (day.sessions.length > 1)
     return (
-      <li
-        role="group"
-        aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
-        aria-current={day.isToday ? "date" : undefined}
-        className={frame}
-      >
-        {day.sessions.map((session, index) => (
-          <SessionLink
-            key={session.sessionKey}
-            session={session}
-            sessionHref={sessionHref}
-            className={cn(
-              link,
-              index > 0 && "border-t border-dashed border-border",
-            )}
-          >
-            <SessionCells
-              day={day}
+      <li className={frame}>
+        <div
+          role="group"
+          aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
+          aria-current={day.isToday ? "date" : undefined}
+        >
+          {day.sessions.map((session, index) => (
+            <SessionLink
+              key={session.sessionKey}
               session={session}
-              rest={false}
-              showDay={index === 0}
-              watch={watchTags[session.sessionKey]}
-            />
-          </SessionLink>
-        ))}
+              sessionHref={sessionHref}
+              className={cn(
+                link,
+                index > 0 && "border-t border-dashed border-border",
+              )}
+            >
+              <SessionCells
+                day={day}
+                session={session}
+                rest={false}
+                showDay={index === 0}
+                watch={watchTags[session.sessionKey]}
+              />
+            </SessionLink>
+          ))}
+        </div>
       </li>
     );
   const watch = day.sessionKey ? watchTags[day.sessionKey] : undefined;

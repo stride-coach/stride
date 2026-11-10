@@ -102,9 +102,7 @@ export function ProgramHeader({
         <span className="text-label font-medium text-muted-foreground">
           {eyebrow}
         </span>
-        <h1 className="text-title font-semibold text-balance">
-          {program.title}
-        </h1>
+        <p className="text-title font-semibold text-balance">{program.title}</p>
         {program.summary && (
           <p className="text-secondary-foreground">{program.summary}</p>
         )}

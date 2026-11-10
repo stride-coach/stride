@@ -184,6 +184,7 @@ export function ProgramExplorer({
   return (
     <div className="flex flex-col xl:flex-row xl:items-start">
       <div className="flex min-w-0 flex-1 flex-col">
+        <h1 className="sr-only">{program.title}</h1>
         <div className="px-4 pt-4.5 md:px-5">
           <ProgramChart
             weeks={weeks}

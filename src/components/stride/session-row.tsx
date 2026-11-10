@@ -44,7 +44,7 @@ export function SessionStateMark({
   );
 }
 
-function MissingValue({ value }: { value?: React.ReactNode }) {
+export function MissingValue({ value }: { value?: React.ReactNode }) {
   if (value !== undefined && value !== null) return value;
   return (
     <>
