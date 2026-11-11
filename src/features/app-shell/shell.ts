@@ -121,11 +121,16 @@ export function shellSeasons(
     letter: season.letter,
     name: season.name,
     href: seasonHref(seasons, season.id),
-    dates: `${formatDateSpan(season.startsOn, season.endsOn)} · ${
+    dates: [
+      formatDateSpan(season.startsOn, season.endsOn),
       season.raceDate
         ? `course le ${formatDayMonthShort(season.raceDate)}`
-        : "aucune course A"
-    }`,
+        : season.replacedOn === null
+          ? "aucune course A"
+          : null,
+    ]
+      .filter(Boolean)
+      .join(" · "),
     progress: seasonProgress(season),
     countdown: season.status === "past" ? null : seasonCountdown(season, today),
   }));

@@ -3,18 +3,21 @@ import { buildSessionPanel } from "@/features/plans/view/session-panel";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { sessionShoesView } from "@/features/gear/planned";
 import { loadPlanShoes } from "@/server/gear/planned";
-import { loadPlanOverview } from "./overview";
+import { loadArchivedPlanOverview, loadPlanOverview } from "./overview";
 import { loadIntensityPaceRanges } from "./paces";
 import { readSessionActivities } from "./session-activities";
 
 export async function loadSessionPanel(
   context: OnboardingContext,
   sessionKey: string,
+  archivedPlanId: string | null = null,
 ) {
   const [overview, paceRanges, shoes] = await Promise.all([
-    loadPlanOverview(context),
+    archivedPlanId
+      ? loadArchivedPlanOverview(context, archivedPlanId)
+      : loadPlanOverview(context),
     loadIntensityPaceRanges(context),
-    loadPlanShoes(context),
+    archivedPlanId ? null : loadPlanShoes(context),
   ]);
   if (!overview) return null;
   const { reads, feeling } = await readSessionActivities(
@@ -36,5 +39,6 @@ export async function loadSessionPanel(
     paceRanges,
     shoes: shoes ? sessionShoesView(shoes, sessionKey) : null,
     feeling,
+    readOnly: archivedPlanId !== null,
   });
 }

@@ -322,7 +322,13 @@ function SurgeIdeas({ items }: { items: string[] }) {
   );
 }
 
-function Completion({ completion }: { completion: PanelCompletion }) {
+function Completion({
+  completion,
+  readOnly,
+}: {
+  completion: PanelCompletion;
+  readOnly: boolean;
+}) {
   const maximum = Math.max(...completion.pace);
   const minimum = Math.min(...completion.pace);
   const { debrief } = completion;
@@ -379,7 +385,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
       </tbody>
     </table>
   );
-  const feeling = debrief && (
+  const feeling = debrief && !readOnly && (
     <DebriefFeeling
       activityId={completion.activityId}
       feeling={debrief.feeling}
@@ -509,7 +515,7 @@ function Completion({ completion }: { completion: PanelCompletion }) {
         </section>
       )}
       {debrief?.feeling && feeling}
-      {debrief && <DebriefCoach href={debrief.coachHref} />}
+      {debrief && !readOnly && <DebriefCoach href={debrief.coachHref} />}
       {completion.activities.length === 0 && (
         <Button
           asChild
@@ -541,7 +547,7 @@ export function SessionPanelBody({
     <div className="flex flex-col gap-4.5 sm:gap-5">
       <Hero panel={panel} titleId={titleId} />
       {panel.completion ? (
-        <Completion completion={panel.completion} />
+        <Completion completion={panel.completion} readOnly={panel.readOnly} />
       ) : (
         <>
           {panel.proposal && <Proposal proposal={panel.proposal} />}
@@ -566,7 +572,7 @@ export function SessionPanelBody({
           {panel.checkIn?.done ? (
             <CheckedIn day={panel.day} />
           ) : (
-            panel.untracked && <Untracked />
+            panel.untracked && !panel.readOnly && <Untracked />
           )}
           {panel.contingencies.length > 0 && (
             <Contingencies items={panel.contingencies} />

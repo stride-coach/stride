@@ -1,8 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { z } from "zod";
+import { localToday } from "@/features/plans/constraints";
 import type { PlanState } from "@/features/plans/model/plan";
 import { toPlanState } from "@/features/plans/model/rows";
+import type { ArchivedPlan } from "@/features/plans/view/seasons";
 import type { OnboardingContext } from "@/server/onboarding/context";
 
 type PlanContext = Pick<OnboardingContext, "client" | "userId">;
@@ -18,6 +20,7 @@ export type StoredPlan = {
 
 const planColumns =
   "id, status, title, starts_on, ends_on, time_zone, primary_race_id, active_version";
+const archivedColumns = `${planColumns}, updated_at`;
 const blockColumns =
   "block_key, kind, name, starts_on, ends_on, objective, race_id";
 const weekColumns =
@@ -122,3 +125,59 @@ export async function readPlanVersion(
   if (!data || version > data.active_version) return null;
   return readRows(context, data, version);
 }
+
+function archivedOn(updatedAt: string, timeZone: string) {
+  return localToday(timeZone, new Date(updatedAt));
+}
+
+export const readArchivedPlans = cache(async function readArchivedPlans(
+  context: PlanContext,
+): Promise<ArchivedPlan[]> {
+  const { data, error } = await context.client
+    .from("training_plans")
+    .select("id, title, primary_race_id, time_zone, updated_at")
+    .eq("user_id", context.userId)
+    .eq("status", "archived")
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error("Unable to read the archived plans");
+  if (data.length === 0) return [];
+  const weeks = await context.client
+    .from("plan_weeks")
+    .select("plan_id, week_start")
+    .eq("user_id", context.userId)
+    .in(
+      "plan_id",
+      data.map((plan) => plan.id),
+    )
+    .is("valid_to_version", null);
+  if (weeks.error) throw new Error("Unable to read the archived plan weeks");
+  return data.map((plan) => ({
+    planId: plan.id,
+    title: plan.title,
+    primaryRaceId: plan.primary_race_id,
+    archivedOn: archivedOn(plan.updated_at, plan.time_zone),
+    weekStarts: weeks.data
+      .filter((week) => week.plan_id === plan.id)
+      .map((week) => week.week_start),
+  }));
+});
+
+export const readArchivedPlan = cache(async function readArchivedPlan(
+  context: PlanContext,
+  planId: string,
+): Promise<{ plan: StoredPlan; archivedOn: string } | null> {
+  if (!z.uuid().safeParse(planId).success) return null;
+  const { data, error } = await context.client
+    .from("training_plans")
+    .select(archivedColumns)
+    .eq("user_id", context.userId)
+    .eq("id", planId)
+    .eq("status", "archived")
+    .maybeSingle();
+  if (error) throw new Error("Unable to read the archived plan");
+  if (!data) return null;
+  const plan = await readRows(context, data, data.active_version);
+  return plan
+    ? { plan, archivedOn: archivedOn(data.updated_at, data.time_zone) }
+    : null;
+});

@@ -5,6 +5,11 @@ import { localToday } from "@/features/plans/constraints";
 import type { IntensityPaces } from "@/features/plans/model/structure";
 import { raceKinds, withRaceCourse } from "@/features/onboarding/goals";
 import {
+  archivedSeason,
+  archivedState,
+  type PlanSeason,
+} from "@/features/plans/view/seasons";
+import {
   withRaceValues,
   type ProgramInput,
   type ProgramRace,
@@ -12,9 +17,14 @@ import {
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { readRaceCourses } from "@/server/races/courses";
 import { readFreshSessionMatches } from "./auto-matches";
-import type { SessionMatch } from "./matches";
+import { readSessionMatches, type SessionMatch } from "./matches";
 import { readReadyProposals, type ReadyProposal } from "./proposals";
-import { readActivePlan, type StoredPlan } from "./stored";
+import {
+  readActivePlan,
+  readArchivedPlan,
+  readArchivedPlans,
+  type StoredPlan,
+} from "./stored";
 
 export type PlanOverview = {
   today: string;
@@ -83,6 +93,41 @@ export const loadPlanOverview = cache(
       plan: { ...plan, state: withRaceValues(plan.state, races) },
       matches,
       proposals,
+      races,
+    };
+  },
+);
+
+export const loadArchivedSeasons = cache(async function loadArchivedSeasons(
+  context: OnboardingContext,
+): Promise<PlanSeason[]> {
+  const [plans, races] = await Promise.all([
+    readArchivedPlans(context),
+    readPlanRaces(context),
+  ]);
+  return plans.flatMap((plan) => archivedSeason(plan, races) ?? []);
+});
+
+export const loadArchivedPlanOverview = cache(
+  async (
+    context: OnboardingContext,
+    planId: string,
+  ): Promise<PlanOverview | null> => {
+    const [archived, races] = await Promise.all([
+      readArchivedPlan(context, planId),
+      readPlanRaces(context),
+    ]);
+    if (!archived) return null;
+    const { plan, archivedOn } = archived;
+    const today = localToday(plan.state.plan.timeZone);
+    return {
+      today: today < archivedOn ? today : archivedOn,
+      plan: {
+        ...plan,
+        state: withRaceValues(archivedState(plan.state, archivedOn), races),
+      },
+      matches: await readSessionMatches(context, plan.planId),
+      proposals: [],
       races,
     };
   },

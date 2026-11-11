@@ -97,6 +97,7 @@ export type SessionPanelInput = {
   paceRanges?: IntensityPaceRanges | null;
   shoes?: SessionShoesView | null;
   feeling?: AthleteFeeling | null;
+  readOnly?: boolean;
 };
 
 export type PanelStatus =
@@ -177,6 +178,7 @@ export type SessionPanel = {
   surgeIdeas: string[];
   completion: PanelCompletion | null;
   shoes: SessionShoesView | null;
+  readOnly: boolean;
 };
 
 const statusLabels: Record<Exclude<PanelStatus, null>, string> = {
@@ -473,6 +475,7 @@ export function buildSessionPanel(
     (item) => item.sessionKey === input.sessionKey,
   );
   if (!session) return null;
+  const readOnly = input.readOnly ?? false;
   const sessions = weekSessions(state, session);
   const index = sessions.findIndex(
     (item) => item.sessionKey === session.sessionKey,
@@ -491,7 +494,7 @@ export function buildSessionPanel(
         ? "partial"
         : match?.status === "substituted"
           ? "substituted"
-          : session.scheduledOn === today
+          : session.scheduledOn === today && !readOnly
             ? "today"
             : session.scheduledOn < today &&
                 session.kind !== "race" &&
@@ -505,7 +508,7 @@ export function buildSessionPanel(
       ? { done: match?.status === "checked_in" }
       : null;
   const proposal =
-    status === "done" || status === "partial"
+    readOnly || status === "done" || status === "partial"
       ? null
       : (input.proposals.find((item) =>
           item.targetKeys.some((target) => {
@@ -599,6 +602,7 @@ export function buildSessionPanel(
     contingencies: session.contingencies,
     surgeIdeas: session.kind === "fartlek" ? surgeIdeas(session) : [],
     completion: match ? completion(input, session, match, paces) : null,
-    shoes: input.shoes ?? null,
+    shoes: readOnly ? null : (input.shoes ?? null),
+    readOnly,
   };
 }

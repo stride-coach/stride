@@ -1717,6 +1717,146 @@ tables.athlete_races.push({
   revision: 1,
   updated_at: "2026-01-01T00:00:00Z",
 });
+const seasonsArchivedPlanId = "dddddddd-dddd-4ddd-8ddd-121212120001";
+const seasonsArchivedRaceId = "12121212-0000-4000-8000-000000000010";
+const seasonsArchivedRaceDay = shiftDay(planStart, -9);
+const seasonsArchivedOn = shiftDay(planStart, -3);
+const seasonsArchivedWeeks = Array.from({ length: 7 }, (_, index) =>
+  shiftDay(planStart, (index - 6) * 7),
+);
+const seasonsArchivedRows = {
+  plan_id: seasonsArchivedPlanId,
+  user_id: seasonsUser.id,
+  valid_from_version: 1,
+  valid_to_version: null,
+};
+const seasonsArchivedSessions = seasonsArchivedWeeks.flatMap((weekStart) => {
+  const raceWeek = weekStart === mondayOf(seasonsArchivedRaceDay);
+  return [
+    [shiftDay(weekStart, 1), planSessionTemplates.easy(45)],
+    raceWeek
+      ? [
+          seasonsArchivedRaceDay,
+          {
+            ...planSessionTemplates.race(),
+            sport: "trail",
+            title: "Trail des Lacs 30K",
+            terrain: "trail",
+          },
+        ]
+      : [shiftDay(weekStart, 6), planSessionTemplates.long(120)],
+  ].map(([date, content]) => ({
+    ...seasonsArchivedRows,
+    session_key: `s-${date}-1`,
+    scheduled_on: date,
+    sport: content.sport,
+    kind: content.kind,
+    title: content.kind === "easy" ? "Footing vallonné" : content.title,
+    purpose: content.purpose,
+    is_key: content.kind !== "easy",
+    priority: content.kind === "race" ? "high" : "normal",
+    targets: {
+      durationSeconds: content.durationSeconds,
+      distanceMeters: content.distanceMeters,
+      elevationGainMeters: content.elevationGainMeters,
+    },
+    structure: content.structure,
+    terrain: content.terrain,
+    origin: "coach",
+    contingencies: [],
+  }));
+});
+tables.athlete_races.push({
+  id: seasonsArchivedRaceId,
+  user_id: seasonsUser.id,
+  name: "Trail des Lacs 30K",
+  race_kind: "trail",
+  race_date: seasonsArchivedRaceDay,
+  distance_km: 30,
+  elevation_gain_m: 900,
+  priority: "A",
+  target_duration_seconds: null,
+  revision: 1,
+  updated_at: "2026-01-01T00:00:00Z",
+});
+tables.training_plans.push({
+  id: seasonsArchivedPlanId,
+  user_id: seasonsUser.id,
+  status: "archived",
+  title: "Préparation Trail des Lacs",
+  starts_on: seasonsArchivedWeeks[0],
+  ends_on: shiftDay(seasonsArchivedWeeks.at(-1), 6),
+  time_zone: "Europe/Paris",
+  primary_race_id: seasonsArchivedRaceId,
+  active_version: 1,
+  updated_at: `${seasonsArchivedOn}T10:00:00Z`,
+});
+tables.plan_versions.push({
+  plan_id: seasonsArchivedPlanId,
+  user_id: seasonsUser.id,
+  version: 1,
+  race_roles: [{ raceId: seasonsArchivedRaceId, role: "primary" }],
+  confidence: { level: "normal", reasons: [] },
+  summary: "Six semaines vers le Trail des Lacs.",
+  created_at: `${seasonsArchivedWeeks[0]}T08:00:00Z`,
+});
+tables.plan_blocks.push({
+  ...seasonsArchivedRows,
+  block_key: "b-preparation",
+  kind: "specific",
+  name: "Préparation trail",
+  starts_on: seasonsArchivedWeeks[0],
+  ends_on: shiftDay(seasonsArchivedWeeks.at(-1), 6),
+  objective: "Préparer le Trail des Lacs.",
+  race_id: seasonsArchivedRaceId,
+});
+tables.plan_weeks.push(
+  ...seasonsArchivedWeeks.map((weekStart) => ({
+    ...seasonsArchivedRows,
+    week_key: `w-${weekStart}`,
+    week_start: weekStart,
+    block_key: "b-preparation",
+    week_type:
+      weekStart === mondayOf(seasonsArchivedRaceDay) ? "race" : "build",
+    target_duration_s: 9_900,
+    target_distance_m: null,
+    target_elevation_m: null,
+    quality_sessions: 0,
+    long_run_target_s: 7_200,
+    intensity_split: { easyPct: 85, moderatePct: 5, hardPct: 10 },
+    notes: null,
+  })),
+);
+tables.plan_sessions.push(...seasonsArchivedSessions);
+const seasonsArchivedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005200";
+const seasonsArchivedRun = seasonsArchivedSessions.find(
+  (session) =>
+    session.kind === "easy" &&
+    mondayOf(session.scheduled_on) === mondayOf(seasonsArchivedRaceDay),
+);
+tables.provider_activities.push({
+  ...activity(5200, 0, {
+    activity_name: "Footing vallonné",
+    distance_meters: 7600,
+    duration_seconds: 2760,
+    average_heart_rate: 139,
+  }),
+  user_id: seasonsUser.id,
+  provider_activity_id: "21894515200",
+  started_at: `${seasonsArchivedRun.scheduled_on}T16:30:00Z`,
+  local_started_at: `${seasonsArchivedRun.scheduled_on} 18:30:00`,
+});
+tables.session_activity_matches.push({
+  user_id: seasonsUser.id,
+  plan_id: seasonsArchivedPlanId,
+  session_key: seasonsArchivedRun.session_key,
+  activity_id: seasonsArchivedActivityId,
+  method: "auto",
+  status: "completed",
+  confidence: 0.9,
+  compliance: { duration: 1 },
+  algorithm_version: "match-v1",
+});
 tables.athlete_profiles.push({
   ...structuredClone(tables.athlete_profiles[0]),
   user_id: watchUser.id,
@@ -1976,7 +2116,7 @@ function selectRows(table, params) {
         matcher.test(row.activity_name),
     );
   }
-  for (const key of ["id", "provider_activity_id"]) {
+  for (const key of ["id", "provider_activity_id", "plan_id"]) {
     const listed = params.get(key)?.match(/^in\.\((.*)\)$/);
     if (listed) {
       const allowed = listed[1]
@@ -1999,6 +2139,17 @@ function selectRows(table, params) {
       if (filter?.startsWith("eq."))
         rows = rows.filter((row) => String(row[key]) === filter.slice(3));
     }
+    if (params.get("valid_to_version") === "is.null")
+      rows = rows.filter((row) => row.valid_to_version === null);
+  }
+  if (table === "training_plans") {
+    const status = params.get("status");
+    if (status?.startsWith("eq."))
+      rows = rows.filter((row) => row.status === status.slice(3));
+    if (params.get("order")?.startsWith("updated_at.desc"))
+      rows = [...rows].sort((a, b) =>
+        (b.updated_at ?? "").localeCompare(a.updated_at ?? ""),
+      );
   }
   if (table === "notifications")
     rows = rows

@@ -259,7 +259,7 @@ export function SessionSheet({
             watchPending={watchSend.pending}
           />
         </div>
-        {(watch?.action || panel.checkIn) && (
+        {(watch?.action || (panel.checkIn && !panel.readOnly)) && (
           <footer
             className={cn(
               "flex flex-wrap items-center gap-2 border-t border-border bg-background",
@@ -268,7 +268,7 @@ export function SessionSheet({
                 : "px-4 py-3.5",
             )}
           >
-            {panel.checkIn && (
+            {panel.checkIn && !panel.readOnly && (
               <SessionCheckInButton
                 planId={planId}
                 sessionKey={panel.sessionKey}
