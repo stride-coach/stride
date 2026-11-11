@@ -184,7 +184,7 @@ export function StepNavigation({
             <span className="flex items-center gap-2 font-semibold lg:hidden">
               <StrideMark /> Stride
             </span>
-            <span className="text-label text-muted-foreground tabular-nums max-lg:sr-only">
+            <span className="text-label text-muted-foreground tabular-nums max-lg:hidden">
               Étape {position + 1} sur 6
             </span>
             <span

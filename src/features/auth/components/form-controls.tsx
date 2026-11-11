@@ -202,7 +202,9 @@ export function FormHeading({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <h1 className="text-metric font-semibold text-balance">{title}</h1>
+      <h1 className="text-metric leading-tight font-semibold text-balance">
+        {title}
+      </h1>
       <p className="text-body-lg text-secondary-foreground">{description}</p>
     </div>
   );

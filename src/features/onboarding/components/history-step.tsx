@@ -70,9 +70,10 @@ export function HistoryStep({
           </h1>
           <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
             <span className="hidden lg:inline">
-              Je lis tout ce que Garmin a gardé, du plus récent au plus ancien,
-              pour pouvoir te coacher avant l’arrivée des plus vieilles années.
-              Un long historique prend du temps — inutile d’attendre ici.
+              Le staff lit tout ce que Garmin a gardé, du plus récent au plus
+              ancien, pour pouvoir te coacher avant l’arrivée des plus vieilles
+              années. Un long historique prend du temps — inutile d’attendre
+              ici.
             </span>
             <span className="lg:hidden">
               Lecture du plus récent au plus ancien. Tu peux continuer — je

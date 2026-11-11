@@ -48,10 +48,8 @@ export function HealthConsentGate({
   return (
     <div className="flex min-h-svh flex-col bg-background">
       <header className="flex min-h-14 items-center gap-2.5 px-5 pt-4 pb-1.5 md:px-6 md:py-4.5">
-        <StrideMark className="size-4.5 md:size-5" />
-        <span className="text-title font-bold tracking-wider italic tabular-nums md:text-verdict">
-          STRIDE
-        </span>
+        <StrideMark className="size-4.5 stroke-primary" />
+        <span className="font-semibold">Stride</span>
         {email && (
           <span className="ml-auto hidden text-body text-muted-foreground md:inline">
             {email}

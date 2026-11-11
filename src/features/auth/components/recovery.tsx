@@ -28,7 +28,7 @@ export function RecoveryShell({ children }: { children: ReactNode }) {
           <p className="text-label text-secondary-foreground">
             Mot de passe oublié · trois étapes
           </p>
-          <h1 className="text-metric font-semibold text-balance">
+          <h1 className="text-metric leading-tight font-semibold text-balance">
             Retour sur pied en une minute.
           </h1>
         </div>

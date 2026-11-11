@@ -76,7 +76,7 @@ export function WelcomeStep({ revision }: { revision: number }) {
           {failed ? "Réessayer" : "C’est parti"}
         </Button>
         <span className="text-center text-label text-muted-foreground lg:text-left">
-          Je ne modifie jamais ton plan sans te demander.
+          Le staff ne modifie jamais ton plan sans te demander.
         </span>
       </OnboardingActions>
     </div>

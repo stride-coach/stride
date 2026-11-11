@@ -22,7 +22,7 @@ export default async function EmailConfirmedPage() {
     <AuthShell signup>
       <div className="flex flex-1 flex-col gap-4 md:flex-none">
         <Status level="ok">E-mail confirmé</Status>
-        <h1 className="text-metric font-semibold text-balance">
+        <h1 className="text-metric leading-tight font-semibold text-balance">
           C’est validé{name ? `, ${name}` : ""}.
         </h1>
         <p className="text-body-lg text-secondary-foreground">

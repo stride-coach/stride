@@ -139,7 +139,7 @@ export function SignInForm({
             trailing={
               <Link
                 href="/forgot-password"
-                className="text-label text-primary hover:underline"
+                className="inline-flex min-h-control-touch items-center text-label text-primary hover:underline md:min-h-0"
               >
                 Mot de passe oublié ?
               </Link>
