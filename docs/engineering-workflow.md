@@ -1,10 +1,10 @@
 # Engineering workflow
 
-GitHub Issues and Pull Requests are the project source of truth. GitHub Projects may provide a human-readable view over Issues; no separate task tracker is used. Product planning and artifact ownership are described in the [BMAD planning workflow](planning-workflow.md).
+GitHub Issues and Pull Requests are the project source of truth. GitHub Projects may provide a human-readable view over Issues; no separate task tracker is used. Product planning and artifact ownership are described in the [planning workflow](planning-workflow.md).
 
 ## Delivery path
 
-Discovery and product brief lead to a reviewed PRD, UX and architecture decisions, and capability epics where the scope warrants them. Epics are defined in BMAD/product documents; approved execution work is created only as GitHub Issues. Implementation issues should state acceptance criteria, dependencies, and verification. Work proceeds on a feature branch through implementation, tests, review, and pull request.
+Discovery and product brief lead to a reviewed PRD, UX and architecture decisions, and capability epics where the scope warrants them. Epics are defined in product documents; approved execution work is created only as GitHub Issues. Implementation issues should state acceptance criteria, dependencies, and verification. Work proceeds on a feature branch through implementation, tests, review, and pull request.
 
 One GitHub Issue normally maps to one branch and one focused Pull Request. Start each branch from up-to-date `main`; use the branch patterns in `AGENTS.md` and do not create long-lived epic branches or use GitFlow. Keep changes small, inspect staged diffs before commits, and use Conventional Commits. Do not merge your own pull requests in automated workflows.
 

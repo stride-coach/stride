@@ -4,7 +4,7 @@ coverage
 playwright-report
 test-results
 .next-e2e
-.agents/skills
+.claude/skills
 evals/topology/results/
 managed-agents/agents/*.md
 CHANGELOG.md

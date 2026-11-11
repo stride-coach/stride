@@ -65,7 +65,8 @@ Stride is a web-first personal running coach for road and trail athletes. This r
 
 ## Product planning
 
-- Use the official BMAD skills installed under `.agents/skills` for discovery, product artifacts, UX, architecture, and scoped implementation when appropriate. See `docs/planning-workflow.md` for the mapping to Stride's canonical documents.
+- Stride uses Claude Code only. Project skills live in `.claude/skills`; the Superpowers plugin, enabled in `.claude/settings.json`, provides brainstorming, planning, TDD, debugging, worktree, and review workflows. See `docs/planning-workflow.md` for how they map to Stride's canonical documents.
+- Stride rules override Superpowers defaults: write implementation plans in the GitHub issue or pull request, never in committed `docs/superpowers` files; create worktrees beside the repository as `../stride-<short-name>`; always finish a branch with a pushed pull request, never a local merge into `main`; apply TDD to domain rules and state logic within the testing rules above.
 - Skills are task-scoped, not universal context: load only the relevant installed skill. Follow the skill hierarchy and boundaries in `docs/planning-workflow.md`.
 - Read selected skill instructions fully; reuse them within the session and reload when changed or no longer available after compaction. Read only issue-relevant documentation sections and supporting references.
 - Keep tool output focused: use targeted searches, filtered JSON, and concise test summaries. Store verbose logs in temporary files and inspect relevant excerpts; retain surrounding code and failure details needed to verify behavior.

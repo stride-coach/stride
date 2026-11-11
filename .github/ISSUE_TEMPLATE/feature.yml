@@ -55,7 +55,7 @@ body:
     id: references
     attributes:
       label: References
-      description: Link the BMAD spec, PRD requirements, epic, ADR, or design artifact.
+      description: Link the spec, PRD requirements, epic, ADR, or design artifact.
     validations:
       required: true
   - type: textarea

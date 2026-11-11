@@ -3,11 +3,11 @@
 - Status: Accepted (RFC #86, amended by decisions D1–D8 in #94)
 - Issues are created for near-term work only, per the [planning workflow](../../planning-workflow.md). Phase 1 is tracked by parent issue [#95](https://github.com/Julestblt/Stride/issues/95) and specified in the [plan foundation spec](../../specs/spec-plan-foundation/spec-plan-foundation.md). Later phases get a spec and issues when they become near-term; the drafts below are starting points.
 
-## BMAD path
+## Planning path
 
 1. The product owner recorded decisions D1–D8 on 2026-10-13 ([risks and decisions](risks-and-decisions.md)).
 2. Issue #94 promotes them into this RFC, accepts ADRs 0007–0012, adds the plan requirements to the PRD (FR-19 to FR-30) and writes the Phase 1 spec.
-3. Each later phase starts with its own BMAD spec, then its issues.
+3. Each later phase starts with its own spec, then its issues.
 
 ## Phases
 
