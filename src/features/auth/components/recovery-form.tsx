@@ -55,16 +55,16 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
     return () => clearInterval(timer);
   }, [sent, cooldownUntil]);
   return (
-    <div className="grid flex-1 content-start md:grid-cols-3 md:content-stretch">
+    <div className="flex flex-1 flex-col">
       <RecoveryStage number={1} title="Demande un lien" active={!sent}>
-        <p className="text-body leading-relaxed text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Saisis l’e-mail de ton inscription. On t’envoie un lien à utiliser
           avant qu’il n’expire.
         </p>
         <form
           id="recovery-request"
           action={formAction}
-          className="flex flex-col gap-5"
+          className="flex flex-col gap-4"
           aria-busy={pending}
         >
           <EmailField
@@ -79,7 +79,11 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
           <FormFeedback
             state={sent || hideFeedback ? initialAuthState : state}
           />
-          <Button type="submit" disabled={pending || sent} className="w-full">
+          <Button
+            type="submit"
+            disabled={pending || sent}
+            className="h-control-touch w-full"
+          >
             {pending ? "Envoi du lien…" : "Envoyer le lien"}
           </Button>
         </form>
@@ -89,7 +93,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
           <>
             <div
               role="status"
-              className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4.5 md:gap-3.5 md:p-5"
+              className="flex flex-col gap-2.5 rounded-lg border border-border bg-card px-4 py-3.5"
             >
               <EnvelopeMark />
               <p className="text-body">
@@ -111,14 +115,14 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
                 type="submit"
                 variant="outline"
                 disabled={pending || remaining > 0}
-                className="h-12 w-full text-body disabled:text-muted-foreground disabled:opacity-100 md:h-11.5"
+                className="h-control-touch w-full disabled:text-muted-foreground disabled:opacity-100"
               >
                 {pending ? (
                   "Envoi du lien…"
                 ) : remaining > 0 ? (
                   <>
                     Renvoyer dans{" "}
-                    <span className="text-[17px] font-semibold tabular-nums">
+                    <span className="font-semibold tabular-nums">
                       0:{String(remaining).padStart(2, "0")}
                     </span>
                   </>
@@ -131,7 +135,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
               type="button"
               variant="link"
               disabled={pending}
-              className="h-auto min-h-11 justify-start self-start p-0 text-body md:min-h-0"
+              className="h-auto min-h-control-touch justify-start self-start p-0 md:min-h-0"
               onClick={() => {
                 setInbox(undefined);
                 setHideFeedback(true);
@@ -143,7 +147,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
             </Button>
           </>
         ) : (
-          <p className="text-body leading-relaxed text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             Après ta demande, regarde dans ta boîte mail et tes spams. Cette
             étape s’active quand la demande est acceptée.
           </p>
@@ -154,7 +158,7 @@ export function RecoveryForm({ action }: { action: AuthAction }) {
         title="Choisis un nouveau mot de passe"
         active={false}
       >
-        <p className="text-body leading-relaxed text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Ouvre le lien reçu pour vérifier ton compte et choisir un nouveau mot
           de passe.
         </p>

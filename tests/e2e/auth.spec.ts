@@ -51,11 +51,12 @@ test("auth navigation, accessible controls, focus and blank initial state", asyn
   await expect(
     page.getByRole("button", { name: "Créer un compte", exact: true }),
   ).toBeEnabled();
+  const form = page.getByRole("region", { name: "Créer un compte" });
   await expect(
-    page.getByRole("link", { name: "Conditions d’utilisation" }),
+    form.getByRole("link", { name: "Conditions d’utilisation" }),
   ).toHaveAttribute("href", "/terms");
   await expect(
-    page.getByRole("link", { name: "Politique de confidentialité" }),
+    form.getByRole("link", { name: "Politique de confidentialité" }),
   ).toHaveAttribute("href", "/privacy");
 });
 

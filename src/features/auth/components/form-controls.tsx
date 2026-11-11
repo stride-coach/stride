@@ -30,6 +30,7 @@ export function EmailField({
       <FieldLabel htmlFor="email">E-mail</FieldLabel>
       <Input
         id="email"
+        className="h-control-touch"
         name="email"
         type="email"
         autoComplete="email"
@@ -79,7 +80,7 @@ export function PasswordField({
         <FieldLabel htmlFor={name}>{label}</FieldLabel>
         {trailing}
       </div>
-      <InputGroup>
+      <InputGroup className="h-control-touch">
         <InputGroupInput
           ref={input}
           id={name}
@@ -100,7 +101,7 @@ export function PasswordField({
             aria-pressed={visible}
             aria-controls={name}
             disabled={disabled}
-            className="h-8 px-2 text-[13px] text-muted-foreground"
+            className="min-h-control-touch px-2 text-label text-muted-foreground md:min-h-0"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
               setVisible(!visible);
@@ -133,7 +134,7 @@ export function PasswordGuidance({
     { met: password.length >= 14, label: "14+ caractères pour « Fort »" },
   ];
   return (
-    <div id="password-guidance" className="flex flex-col gap-3 text-[13px]">
+    <div id="password-guidance" className="flex flex-col gap-2 text-label">
       <div className="flex items-center gap-2.5" aria-live="polite">
         <div className="flex flex-1 gap-1" aria-hidden="true">
           {[1, 2, 3, 4].map((segment) => (
@@ -141,11 +142,7 @@ export function PasswordGuidance({
               key={segment}
               className={cn(
                 "h-1 flex-1 rounded-full",
-                segment <= policy.score
-                  ? policy.score === 4
-                    ? "bg-primary"
-                    : "bg-foreground"
-                  : "bg-border",
+                segment <= policy.score ? "bg-primary" : "bg-muted",
               )}
             />
           ))}
@@ -154,11 +151,13 @@ export function PasswordGuidance({
           {policy.strength}
         </span>
       </div>
-      <ul className="flex flex-col gap-1.5">
+      <ul className="flex flex-col gap-1">
         {rules.map((rule) => (
           <li
             key={rule.label}
-            className={rule.met ? "text-foreground" : "text-muted-foreground"}
+            className={
+              rule.met ? "text-secondary-foreground" : "text-muted-foreground"
+            }
           >
             <span
               className={cn(
@@ -202,11 +201,9 @@ export function FormHeading({
   description: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 md:gap-2">
-      <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.025em] md:text-[32px]">
-        {title}
-      </h1>
-      <p className="text-[15px] text-secondary-foreground">{description}</p>
+    <div className="flex flex-col gap-1.5">
+      <h1 className="text-metric font-semibold text-balance">{title}</h1>
+      <p className="text-body-lg text-secondary-foreground">{description}</p>
     </div>
   );
 }

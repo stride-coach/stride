@@ -28,9 +28,9 @@ export function ResetForm({
   const valid =
     passwordPolicy(password, email).valid && password === confirmation;
   return (
-    <div className="grid flex-1 content-start md:grid-cols-3 md:content-stretch">
+    <div className="flex flex-1 flex-col">
       <RecoveryStage number={1} title="Demande un lien" active={false}>
-        <p className="text-body leading-relaxed text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Besoin d’un autre lien ? Demande-en un nouveau avec l’e-mail de ton
           compte.
         </p>
@@ -42,7 +42,7 @@ export function ResetForm({
         </Link>
       </RecoveryStage>
       <RecoveryStage number={2} title="Vérifie ta boîte mail" active={false}>
-        <p className="text-body leading-relaxed text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Ouvre le lien reçu par e-mail pour vérifier ton compte.
         </p>
       </RecoveryStage>
@@ -55,7 +55,7 @@ export function ResetForm({
           <form
             action={formAction}
             onSubmit={() => setEdited({})}
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-4"
             aria-busy={pending}
           >
             <PasswordField
@@ -106,7 +106,7 @@ export function ResetForm({
             <Button
               type="submit"
               disabled={pending || !valid || state.status === "success"}
-              className="w-full"
+              className="h-control-touch w-full"
             >
               {pending ? "Enregistrement…" : "Enregistrer et se connecter"}
             </Button>
@@ -115,7 +115,7 @@ export function ResetForm({
                 Continuer vers Stride
               </Link>
             )}
-            <p className="text-label leading-relaxed text-muted-foreground">
+            <p className="text-label text-muted-foreground">
               Tu seras déconnecté des autres appareils après l’enregistrement.
               Les accès déjà ouverts restent valides jusqu’à leur expiration.
             </p>

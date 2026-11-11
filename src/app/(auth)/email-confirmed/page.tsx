@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Button } from "@/components/ui/button";
+import { Status } from "@/components/stride/status";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { createSupabaseServerClient } from "@/server/supabase/client";
 
@@ -19,25 +20,19 @@ export default async function EmailConfirmedPage() {
       : "";
   return (
     <AuthShell signup>
-      <div className="flex flex-1 flex-col gap-6 md:flex-none">
-        <div
-          className="grid size-14 place-items-center rounded-full border border-primary/30 bg-primary/10 text-metric text-primary"
-          aria-hidden="true"
-        >
-          ✓
-        </div>
-        <p className="text-label text-primary tabular-nums">E-mail confirmé</p>
-        <h1 className="text-[32px] leading-tight font-semibold tracking-tight">
+      <div className="flex flex-1 flex-col gap-4 md:flex-none">
+        <Status level="ok">E-mail confirmé</Status>
+        <h1 className="text-metric font-semibold text-balance">
           C’est validé{name ? `, ${name}` : ""}.
         </h1>
-        <p className="text-secondary-foreground">
+        <p className="text-body-lg text-secondary-foreground">
           Ton adresse est confirmée et tu es connecté. Prochaine étape :
           connecte Garmin pour que ton coach lise ton historique.
         </p>
-        <Button asChild className="mt-auto w-full md:mt-0">
+        <Button asChild className="mt-auto h-control-touch w-full md:mt-0">
           <Link href="/">Continuer la configuration</Link>
         </Button>
-        <p className="text-center text-body text-secondary-foreground">
+        <p className="text-label text-muted-foreground">
           Connecté en tant que {data.user.email}
         </p>
       </div>

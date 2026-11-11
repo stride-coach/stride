@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Status } from "@/components/stride/status";
 import { useActionState, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -67,13 +68,11 @@ export function SignInForm({
         latest === "password" &&
         state.email && (
           <div
-            className="rounded-lg border border-warning/40 bg-muted p-4 text-body"
+            className="rounded-lg border border-control-border bg-card px-3 py-2.5 text-body"
             role="status"
           >
-            <p className="font-semibold text-warning">
-              Confirme ton e-mail pour continuer
-            </p>
-            <p className="mt-1 text-secondary-foreground">{state.message}</p>
+            <Status level="watch">Confirme ton e-mail pour continuer</Status>
+            <p className="mt-1 text-foreground">{state.message}</p>
             <div className="mt-3">
               <ConfirmationResend
                 action={resendAction}
@@ -83,7 +82,7 @@ export function SignInForm({
             </div>
             <button
               type="button"
-              className="mt-3 text-primary hover:underline"
+              className="mt-2 inline-flex min-h-control-touch items-center text-primary hover:underline md:min-h-0"
               onClick={() => {
                 setEmail("");
                 setPassword("");
@@ -106,7 +105,7 @@ export function SignInForm({
           );
           setEdited({});
         }}
-        className="flex flex-1 flex-col gap-4.5 md:flex-none md:gap-5.5"
+        className="flex flex-1 flex-col gap-4 md:flex-none"
         aria-busy={busy}
       >
         {linkError && latest === null && (
@@ -119,7 +118,7 @@ export function SignInForm({
             }}
           />
         )}
-        <FieldGroup className="gap-4.5 md:gap-5.5">
+        <FieldGroup className="gap-4">
           <EmailField
             value={email}
             onChange={(value) => {
@@ -140,13 +139,16 @@ export function SignInForm({
             trailing={
               <Link
                 href="/forgot-password"
-                className="text-[13px] text-primary hover:underline"
+                className="text-label text-primary hover:underline"
               >
                 Mot de passe oublié ?
               </Link>
             }
           />
-          <Field orientation="horizontal" className="min-h-8 gap-2.5">
+          <Field
+            orientation="horizontal"
+            className="min-h-control-auto gap-2.5"
+          >
             <Checkbox
               id="remember"
               name="remember"
@@ -171,14 +173,16 @@ export function SignInForm({
               : feedback
           }
         />
-        <Button type="submit" disabled={busy} className="w-full">
+        <Button
+          type="submit"
+          disabled={busy}
+          className="h-control-touch w-full"
+        >
           {pending ? "Connexion…" : "Se connecter"}
         </Button>
         <div className="hidden items-center gap-3 md:flex">
           <Separator className="flex-1" />
-          <span className="text-[10px] text-muted-foreground tabular-nums">
-            ou
-          </span>
+          <span className="text-label text-muted-foreground">ou</span>
           <Separator className="flex-1" />
         </div>
         <Button
@@ -188,7 +192,7 @@ export function SignInForm({
           formNoValidate
           disabled={busy}
           variant="outline"
-          className="w-full"
+          className="h-control-touch w-full"
         >
           {magicPending ? "Envoi du lien…" : "M’envoyer un lien de connexion"}
         </Button>
