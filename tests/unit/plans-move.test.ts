@@ -7,10 +7,12 @@ vi.mock("server-only", () => ({}));
 const readActivePlan = vi.hoisted(() => vi.fn());
 const readSessionMatches = vi.hoisted(() => vi.fn());
 const planChangeset = vi.hoisted(() => vi.fn());
+const readReadyProposals = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/server/plans/stored", () => ({ readActivePlan }));
 vi.mock("../../src/server/plans/matches", () => ({ readSessionMatches }));
 vi.mock("../../src/server/plans/apply", () => ({ planChangeset }));
+vi.mock("../../src/server/plans/proposals", () => ({ readReadyProposals }));
 vi.mock("../../src/features/plans/constraints", () => ({
   localToday: () => "2026-10-20",
 }));
@@ -37,6 +39,7 @@ describe("submitting a move of today's session", () => {
     readActivePlan.mockResolvedValue(stored());
     readSessionMatches.mockResolvedValue([]);
     planChangeset.mockResolvedValue({ sessions: {} });
+    readReadyProposals.mockResolvedValue([]);
     rpc.mockResolvedValue({ data: { id: "proposal-1" }, error: null });
   });
 
@@ -64,6 +67,17 @@ describe("submitting a move of today's session", () => {
         p_title: "Séance déplacée : Footing",
       }),
     );
+  });
+
+  it("refuses while a coach proposal on the session is pending", async () => {
+    readReadyProposals.mockResolvedValue([
+      { targetKeys: ["session:s-2026-10-20-1"] },
+    ]);
+    expect(
+      await submitSessionMove(context, "s-2026-10-20-1", "2026-10-21"),
+    ).toEqual({ ok: false, reason: "proposal_pending" });
+    expect(planChangeset).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("records nothing when the validator blocks the day", async () => {

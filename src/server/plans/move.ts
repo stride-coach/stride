@@ -5,6 +5,7 @@ import { moveDays } from "@/features/today/move";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { planChangeset } from "@/server/plans/apply";
 import { readSessionMatches } from "@/server/plans/matches";
+import { readReadyProposals } from "@/server/plans/proposals";
 import { readActivePlan } from "@/server/plans/stored";
 
 export type SessionMoveSubmission =
@@ -32,6 +33,15 @@ export async function submitSessionMove(
     (item) => item.sessionKey === sessionKey,
   );
   if (!day || !session) return { ok: false, reason: "not_allowed" };
+  const proposals = await readReadyProposals(context, stored.planId);
+  if (
+    proposals.some((proposal) =>
+      proposal.targetKeys.some(
+        (target) => target.slice(target.indexOf(":") + 1) === sessionKey,
+      ),
+    )
+  )
+    return { ok: false, reason: "proposal_pending" };
   const operations: PlanOperation[] = [
     ...(day.restKey
       ? [{ op: "skip_session" as const, sessionKey: day.restKey }]

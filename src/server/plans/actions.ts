@@ -108,6 +108,8 @@ export async function moveSession(
   if (!submitted) return { status: "error" };
   if (!submitted.ok) {
     refresh();
+    if (submitted.reason === "proposal_pending")
+      return { status: "stale", reason: submitted.reason };
     const outcome = outcomeOf(submitted.reason);
     return outcome
       ? { status: outcome, reason: submitted.reason }

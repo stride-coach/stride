@@ -48,4 +48,12 @@ describe("today's move days", () => {
     plan.sessions[2] = { ...plan.sessions[2], kind: "race" };
     expect(moveDays(plan, "s-2026-10-20-1", "2026-10-20")).toEqual([]);
   });
+
+  it("never offers a race day", () => {
+    const plan = planState();
+    plan.sessions[3] = { ...plan.sessions[3], kind: "race" };
+    expect(
+      moveDays(plan, "s-2026-10-20-1", "2026-10-20").map((day) => day.date),
+    ).toEqual(["2026-10-21", "2026-10-23", "2026-10-24", "2026-10-25"]);
+  });
 });
