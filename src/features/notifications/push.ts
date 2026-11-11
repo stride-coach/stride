@@ -3,11 +3,7 @@ import {
   formatDistance,
   formatDuration as formatClock,
 } from "@/features/activities/activities";
-import {
-  defaultStaffFaces,
-  staffFacesSchema,
-  staffOf,
-} from "@/features/coach/staff";
+import { staff } from "@/features/coach/staff";
 import { formatDuration, formatLongDay } from "@/features/plans/view/format";
 import {
   notificationHref,
@@ -145,7 +141,6 @@ export const pushDeliverySchema = z.object({
   kind: z.string().min(1).max(40),
   payload: z.unknown(),
   occurredAt: z.string(),
-  faces: z.unknown(),
 });
 export type PushDelivery = z.output<typeof pushDeliverySchema>;
 
@@ -211,15 +206,12 @@ export function pushMessage(delivery: PushDelivery): PushMessage | null {
     resolution: null,
   });
   if (!notification || !pushCategoryOf[notification.kind]) return null;
-  const staff = staffOf(
-    staffFacesSchema.catch(defaultStaffFaces).parse(delivery.faces),
-  );
   const url = notificationHref(notification);
   const tag = `${notification.kind}:${url}`;
   if (notification.kind === "staff_reply") {
     const { agent, excerpt } = notification.payload;
     return {
-      title: `${staff[agent].name} a répondu`,
+      title: `${staff[agent].subject} a répondu`,
       body: `« ${excerpt} »`,
       url,
       tag,

@@ -274,7 +274,7 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/nutrition");
 
   const banner = page.getByRole("region", { name: "Plan de nutrition" });
-  await expect(banner).toContainText("Léa, ta nutritionniste");
+  await expect(banner).toContainText("Nutrition peut ajuster ce plan avec toi");
   await expect(banner).toContainText("2 changements proposés");
   const plan = page.getByRole("region", { name: "Plan par tronçon" });
   const first = plan.getByRole("row", { name: /Départ → Ravito du Bois/ });
@@ -334,7 +334,7 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
   ).toBeVisible();
 
   await banner.getByRole("link", { name: "Examiner" }).click();
-  const sheet = page.getByRole("dialog", { name: "Plan nutrition de Léa" });
+  const sheet = page.getByRole("dialog", { name: "Plan nutrition de course" });
   await expect(sheet).toContainText("Glucides par heure");
   await expect(sheet).toContainText("70 g/h");
   await sheet.getByRole("button", { name: "Accepter" }).click();

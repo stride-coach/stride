@@ -41,13 +41,15 @@ test("Examiner opens the review of a ready proposal", async ({ page }) => {
   ).toBeVisible();
   await expect(sheet.getByText("À toi de décider")).toBeVisible();
   await expect(sheet.getByText("Sur la version 3 du plan")).toBeVisible();
-  await expect(sheet.getByText("Proposée par Claire, avec Inès")).toBeVisible();
+  await expect(
+    sheet.getByText("Proposée par le Coach, avec Santé"),
+  ).toBeVisible();
   await expect(
     sheet.getByRole("heading", { name: "Ce qui change · 1 modification" }),
   ).toBeVisible();
   await expect(sheet.getByText("Remplacée", { exact: true })).toBeVisible();
   await expect(sheet.getByText("Footing court", { exact: true })).toBeVisible();
-  await expect(sheet.getByText("Médecin · consultée")).toBeVisible();
+  await expect(sheet.getByText("Consulté", { exact: true })).toBeVisible();
   await expect(sheet.getByText("D’accord", { exact: true })).toBeVisible();
   await expect(
     sheet.getByRole("heading", { name: "Contrôles de Stride" }),

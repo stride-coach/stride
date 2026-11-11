@@ -30,7 +30,6 @@ describe("push dispatch", () => {
         kind: "session_reminder",
         payload: {},
         occurredAt: "2026-10-23T05:00:00+00:00",
-        faces: null,
       },
     ]);
     expect(result).toEqual({ gone: [subscriptionId], failed: [] });

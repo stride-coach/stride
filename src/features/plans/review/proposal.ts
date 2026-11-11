@@ -1,8 +1,4 @@
-import {
-  defaultStaff,
-  staffAgents,
-  type StaffAgent,
-} from "@/features/coach/staff";
+import { staff, staffAgents, type StaffAgent } from "@/features/coach/staff";
 import { mondayOf } from "../model/dates";
 import { sessionKeyDate } from "../model/keys";
 import type { PlanState } from "../model/plan";
@@ -54,16 +50,19 @@ export type ProposalRecord = {
   decisions: ProposalDecision[];
 };
 
-export type StaffMember = { name: string; role: string; monogram: string };
+export type StaffMember = {
+  agent: StaffAgent | null;
+  name: string;
+  object: string;
+};
 
 export function staffMember(specialist: string): StaffMember {
   const known = (staffAgents as readonly string[]).includes(specialist)
-    ? defaultStaff[specialist as StaffAgent]
+    ? staff[specialist as StaffAgent]
     : null;
-  const member = known
-    ? { name: known.name, role: known.role }
-    : { name: "Spécialiste", role: "Staff" };
-  return { ...member, monogram: member.name.slice(0, 1).toUpperCase() };
+  return known
+    ? { agent: known.agent, name: known.name, object: known.object }
+    : { agent: null, name: "Spécialiste", object: "un spécialiste" };
 }
 
 export const coach = staffMember("coach");
@@ -78,11 +77,11 @@ export function consultedStaff(proposal: ProposalRecord) {
 }
 
 export function originLine(proposal: ProposalRecord) {
-  const consulted = consultedStaff(proposal).map((member) => member.name);
+  const consulted = consultedStaff(proposal).map((member) => member.object);
   const lead =
     proposal.scope === "new_plan"
-      ? `Créé avec ${coach.name}`
-      : `Proposée par ${coach.name}`;
+      ? `Créé avec ${coach.object}`
+      : `Proposée par ${coach.object}`;
   return consulted.length ? `${lead}, avec ${consulted.join(" et ")}` : lead;
 }
 

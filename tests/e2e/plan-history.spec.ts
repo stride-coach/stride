@@ -27,7 +27,7 @@ test("Historique lists proposals by month with decisions and versions", async ({
   const applied = page.getByRole("article", { name: "Repos avancé à mardi" });
   await expect(applied.getByText("Appliquée", { exact: true })).toBeVisible();
   await expect(applied.getByText("v2 → v3")).toBeVisible();
-  await expect(applied.getByText("Proposée par Claire")).toBeVisible();
+  await expect(applied.getByText("Proposée par le Coach")).toBeVisible();
 
   const stale = page.getByRole("article", {
     name: "Échanger le seuil et la sortie longue",
@@ -51,7 +51,7 @@ test("Historique lists proposals by month with decisions and versions", async ({
   const created = page.getByRole("article", {
     name: "Nouveau plan · Marathon de Paris",
   });
-  await expect(created.getByText("Créé avec Claire")).toBeVisible();
+  await expect(created.getByText("Créé avec le Coach")).toBeVisible();
   await expect(
     created.getByRole("link", { name: "Voir le programme" }),
   ).toBeVisible();

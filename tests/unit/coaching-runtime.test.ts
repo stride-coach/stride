@@ -903,7 +903,7 @@ describe("coach turn stream", () => {
       { type: "text", text: "J'ai mal au genou" },
       {
         type: "text",
-        text: "Noms dans ce groupe : coach Claire, médecin Inès, directeur sportif Marc, stratège de course Hugo, nutritionniste Léa.",
+        text: "Rôles dans ce groupe, sans prénom : Coach, Santé, Directeur sportif, Stratège de course, Nutrition.",
       },
       { type: "text", text: expect.stringContaining("Stride Medical") },
     ]);

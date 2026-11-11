@@ -3,8 +3,7 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
-import { useStaff } from "@/features/coach/components/staff-context";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { coachRequestHref } from "@/features/coach/request";
 import { changeCountLabel } from "../proposals";
 
@@ -27,11 +26,6 @@ export function NutritionistBanner({
   weather: "forecast" | "normals" | null;
   updatedOn: string | null;
 }) {
-  const nutritionist = useStaff().nutritionist;
-  const name = nutritionist.name;
-  const role = nutritionist.feminine
-    ? "ta nutritionniste"
-    : "ton nutritionniste";
   const weatherText =
     weather === "forecast"
       ? "la météo prévue"
@@ -40,15 +34,15 @@ export function NutritionistBanner({
         : null;
   const products = `${productCount} produit${productCount > 1 ? "s" : ""}`;
   const title = accepted
-    ? `${name}, ${role}, a préparé ce plan avec toi`
-    : `${name}, ${role}, peut ajuster ce plan avec toi`;
+    ? "Nutrition a préparé ce plan avec toi"
+    : "Nutrition peut ajuster ce plan avec toi";
   const detail = generic
     ? "Ajoute tes produits dans Mes produits : en attendant, Stride compte en gels, compotes et barres génériques."
     : accepted
       ? `Basé sur tes ${products}, ${carbsPerHourG} g/h${weatherText ? ` et ${weatherText}` : ""}.${updatedOn ? ` Dernière mise à jour le ${updatedOn}.` : ""}`
       : `Stride répartit tes ${products} sur les tronçons à ${carbsPerHourG} g/h${weatherText ? `, selon ${weatherText}` : ""}.`;
   const mobileTitle = accepted
-    ? `Plan préparé avec ${name}`
+    ? "Plan préparé avec Nutrition"
     : "Plan calculé par Stride";
   const mobileDetail = [
     generic ? "produits génériques" : products,
@@ -60,7 +54,7 @@ export function NutritionistBanner({
   const examine =
     proposal && `/races/${raceId}/nutrition?proposal=${proposal.id}`;
   const adjust = coachRequestHref(
-    `Ajustons ma nutrition de course avec ${name}.`,
+    "Ajustons ma stratégie de ravitaillement avec Nutrition.",
     null,
     raceId,
   );
@@ -70,7 +64,7 @@ export function NutritionistBanner({
       className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:gap-4"
     >
       <div className="flex min-w-0 flex-1 items-start gap-3">
-        <StaffPortrait agent="nutritionist" size={36} decorative />
+        <StaffAvatar agent="nutritionist" size={30} decorative />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-body-lg font-semibold text-balance">
             <span className="max-md:hidden">{title}</span>
@@ -99,7 +93,7 @@ export function NutritionistBanner({
           </Button>
         )}
         <Button asChild variant="outline">
-          <Link href={adjust}>Ajuster avec {name}</Link>
+          <Link href={adjust}>Ajuster avec Nutrition</Link>
         </Button>
       </div>
     </section>

@@ -10,13 +10,12 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import type {
   ConversationRow,
   ConversationSection,
 } from "@/features/coach/conversations";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { ThreadStatusLabel } from "@/features/coach/components/thread-status";
 
 type Filter = "all" | "mine";
@@ -32,12 +31,12 @@ function needsAthlete(row: ConversationRow) {
 
 function RowAvatar({ row }: { row: ConversationRow }) {
   const specialist = row.participants.find((agent) => agent !== "coach");
-  if (!specialist) return <StaffPortrait agent="coach" size={40} />;
+  if (!specialist) return <StaffAvatar agent="coach" size={30} decorative />;
   return (
-    <span className="relative block size-10">
-      <StaffPortrait agent="coach" size={30} />
-      <span className="absolute -right-0.5 -bottom-0.5 rounded-[9px] ring-2 ring-background">
-        <StaffPortrait agent={specialist} size={22} decorative />
+    <span className="relative block size-9">
+      <StaffAvatar agent="coach" size={30} decorative />
+      <span className="absolute -right-1 -bottom-1 rounded-full bg-background p-0.5">
+        <StaffAvatar agent={specialist} size={22} decorative />
       </span>
     </span>
   );
@@ -49,8 +48,8 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
       href={`/coach/${row.id}`}
       aria-current={current ? "page" : undefined}
       className={cn(
-        "grid min-h-11 grid-cols-[40px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[10px] px-3.5 py-3 text-foreground hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring",
-        current && "bg-muted ring-1 ring-border ring-inset",
+        "grid min-h-row-touch grid-cols-[36px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-lg px-3 py-2.5 text-foreground transition-colors duration-150 ease-stride hover:bg-muted md:min-h-row",
+        current && "bg-muted",
       )}
     >
       <RowAvatar row={row} />
@@ -58,15 +57,15 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
         <span className="flex items-baseline gap-2">
           <span
             className={cn(
-              "flex-1 truncate text-body",
+              "flex-1 truncate",
               row.unread ? "font-semibold" : "font-medium",
             )}
           >
             {row.title}
           </span>
-          <MonoLabel size="nano" className="shrink-0">
+          <span className="shrink-0 text-label text-muted-foreground tabular-nums">
             {row.date}
-          </MonoLabel>
+          </span>
           {row.unread && (
             <span className="size-2 shrink-0 self-center rounded-full bg-primary">
               <span className="sr-only">Non lu</span>
@@ -74,7 +73,7 @@ function Row({ row, current }: { row: ConversationRow; current: boolean }) {
           )}
         </span>
         {row.preview && (
-          <span className="line-clamp-2 text-body leading-snug text-muted-foreground">
+          <span className="line-clamp-2 text-secondary-foreground">
             {row.preview}
           </span>
         )}
@@ -121,21 +120,16 @@ export function ConversationList({
       aria-label="Conversations"
       className="flex min-h-0 flex-1 flex-col"
     >
-      <div className="flex flex-col gap-2.5 px-4 pt-4 pb-2.5 min-[980px]:px-3.5">
+      <div className="flex flex-col gap-2.5 px-4 pt-4 pb-2.5 min-[980px]:px-3">
         {mobileHeader}
         <div
           className={cn(
             "flex items-center gap-2",
-            mobileHeader && "max-[979px]:hidden",
+            mobileHeader && "max-[980px]:hidden",
           )}
         >
-          <h2 className="text-body-lg font-semibold">Conversations</h2>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="ml-auto h-8 rounded-lg px-2.5"
-          >
+          <h2 className="font-medium">Conversations</h2>
+          <Button asChild variant="outline" className="ml-auto">
             <Link href="/coach/new">
               <PlusIcon aria-hidden="true" />
               Nouvelle
@@ -144,7 +138,7 @@ export function ConversationList({
         </div>
         {!empty && (
           <>
-            <InputGroup className="h-9 rounded-lg border-border md:h-9">
+            <InputGroup className="h-control-touch md:h-control">
               <InputGroupAddon>
                 <SearchIcon aria-hidden="true" className="size-3.5" />
               </InputGroupAddon>
@@ -154,7 +148,6 @@ export function ConversationList({
                 placeholder="Rechercher"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="text-body"
               />
             </InputGroup>
             <div
@@ -167,7 +160,7 @@ export function ConversationList({
                   key={item.value}
                   pressed={filter === item.value}
                   onPressedChange={() => setFilter(item.value)}
-                  className="min-h-7.5 rounded-md border-border bg-transparent px-2.5 text-label font-normal text-muted-foreground hover:border-control-border data-[state=on]:border-control-border data-[state=on]:bg-muted data-[state=on]:font-normal data-[state=on]:text-foreground"
+                  className="min-h-control-touch rounded-md border-border bg-transparent px-2.5 font-normal text-muted-foreground hover:text-foreground data-[state=on]:border-control-border data-[state=on]:bg-muted data-[state=on]:font-medium data-[state=on]:text-foreground md:min-h-6"
                 >
                   {item.value === "mine"
                     ? `${item.label} · ${waiting}`
@@ -178,22 +171,22 @@ export function ConversationList({
           </>
         )}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-1.5 pb-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-1.5 pb-18 md:pb-3">
         {empty && (
-          <p className="px-3.5 py-6 text-body text-muted-foreground">
-            Aucune conversation pour l’instant. Écris à Claire pour commencer.
+          <p className="px-3 py-6 text-muted-foreground">
+            Aucune conversation pour l’instant. Écris au Coach pour commencer.
           </p>
         )}
         {!empty && visible.length === 0 && (
-          <p className="px-3.5 py-6 text-body text-muted-foreground">
+          <p className="px-3 py-6 text-muted-foreground">
             Aucune conversation ne correspond.
           </p>
         )}
         {visible.map((section) => (
           <div key={section.label} className="flex flex-col gap-0.5">
-            <MonoLabel size="micro" className="px-3.5 pt-2.5 pb-0.5">
+            <span className="px-3 pt-2.5 pb-0.5 text-label font-medium text-muted-foreground">
               {section.label}
-            </MonoLabel>
+            </span>
             {section.rows.map((row) => (
               <Row key={row.id} row={row} current={row.id === currentId} />
             ))}

@@ -14,11 +14,7 @@ import {
 const threadId = "a7000000-0000-4000-8000-00000000c001";
 const activityId = "a7000000-0000-4000-8000-00000000a001";
 
-function delivery(
-  kind: string,
-  payload: unknown,
-  faces: unknown = null,
-): PushDelivery {
+function delivery(kind: string, payload: unknown): PushDelivery {
   return {
     id: "a7000000-0000-4000-8000-000000000d01",
     subscription: {
@@ -29,34 +25,29 @@ function delivery(
     kind,
     payload,
     occurredAt: "2026-10-23T05:00:00+00:00",
-    faces,
   };
 }
 
 describe("push message", () => {
-  it("names the staff member who replied with the athlete's chosen face", () => {
+  it("names the staff role that replied, whatever face the profile kept", () => {
     expect(
       pushMessage(
-        delivery(
-          "staff_reply",
-          {
-            threadId,
-            threadTitle: "Sortie longue",
-            agent: "coach",
-            excerpt: "On garde la sortie longue dimanche.",
-          },
-          { coach: "thomas" },
-        ),
+        delivery("staff_reply", {
+          threadId,
+          threadTitle: "Sortie longue",
+          agent: "coach",
+          excerpt: "On garde la sortie longue dimanche.",
+        }),
       ),
     ).toEqual({
-      title: "Thomas a répondu",
+      title: "Le Coach a répondu",
       body: "« On garde la sortie longue dimanche. »",
       url: `/coach/${threadId}`,
       tag: `staff_reply:/coach/${threadId}`,
     });
   });
 
-  it("falls back to default faces when the profile is missing", () => {
+  it("names the role that asked a question", () => {
     expect(
       pushMessage(
         delivery("staff_question", {
@@ -66,7 +57,7 @@ describe("push message", () => {
           question: "Où as-tu mal ?",
         }),
       )?.title,
-    ).toBe("Inès t’a posé une question");
+    ).toBe("Santé t’a posé une question");
   });
 
   it("announces a ready debrief that opens the activity", () => {
@@ -116,7 +107,7 @@ describe("push message", () => {
         }),
       ),
     ).toMatchObject({
-      title: "Claire propose : Semaine allégée",
+      title: "Le Coach propose : Semaine allégée",
       body: "Deux séances raccourcies.",
     });
   });

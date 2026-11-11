@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MonoLabel } from "@/components/stride/mono-label";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { cn } from "@/lib/utils";
 import type {
   NutritionBaseView,
@@ -82,8 +82,8 @@ function AskLea({ href, className }: { href: string; className?: string }) {
   return (
     <Button asChild className={className}>
       <Link href={href}>
-        <StaffPortrait agent="nutritionist" size={22} decorative />
-        Demander à Léa pour cette journée
+        <StaffAvatar agent="nutritionist" size={22} decorative />
+        Demander à Nutrition pour cette journée
       </Link>
     </Button>
   );
@@ -441,8 +441,8 @@ export function NutritionPage({
           </Button>
         </div>
         <p className="text-label text-muted-foreground max-sm:hidden">
-          Léa reçoit ta séance, ta course, tes objectifs du jour et ta base de
-          ravito.
+          Nutrition reçoit ta séance, ta course, tes objectifs du jour et ta
+          base de ravito.
         </p>
       </section>
 
@@ -558,8 +558,8 @@ export function NutritionPage({
           {today.neatEstimated
             ? "L’activité hors entraînement est estimée tant que les calories quotidiennes Garmin ne sont pas disponibles. "
             : ""}
-          Pas d’objectif de poids : un déficit léger se demande à Léa, jamais un
-          jour long, en affûtage ou avec un signal de santé ouvert.
+          Pas d’objectif de poids : un déficit léger se demande à Nutrition,
+          jamais un jour long, en affûtage ou avec un signal de santé ouvert.
         </p>
       </section>
 

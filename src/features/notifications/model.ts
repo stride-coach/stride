@@ -437,7 +437,7 @@ export function notificationView(
       ...base,
       family: "plan",
       agent: null,
-      title: `${staff.coach.name} propose : ${title}`,
+      title: `Le Coach propose : ${title}`,
       body: summary,
       status: notification.resolution
         ? resolvedProposal[notification.resolution]
@@ -451,7 +451,7 @@ export function notificationView(
       ...base,
       family: "staff",
       agent,
-      title: `${staff[agent].name} t’a posé une question`,
+      title: `${staff[agent].subject} t’a posé une question`,
       body: question ? `« ${question} »` : threadTitle,
       status: notification.resolution
         ? { label: "Répondu", tone: "success" }
@@ -466,7 +466,7 @@ export function notificationView(
     ...base,
     family: "staff",
     agent,
-    title: `${staff[agent].name} a répondu${about(threadTitle)}`,
+    title: `${staff[agent].subject} a répondu${about(threadTitle)}`,
     body: excerpt,
     status: null,
     action: null,

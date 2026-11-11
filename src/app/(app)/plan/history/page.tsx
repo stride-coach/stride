@@ -71,8 +71,8 @@ export default async function PlanHistoryPage({
       </div>
       {history.empty ? (
         <p className="rounded-xl border border-border bg-card px-4 py-3.5 text-body text-secondary-foreground">
-          Aucune proposition pour l’instant. Les changements proposés par Claire
-          apparaîtront ici, avec ta décision.
+          Aucune proposition pour l’instant. Les changements proposés par le
+          Coach apparaîtront ici, avec ta décision.
         </p>
       ) : history.groups.length === 0 ? (
         <p className="text-body text-secondary-foreground">

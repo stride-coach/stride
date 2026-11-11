@@ -1,9 +1,7 @@
 import { Suspense } from "react";
 import { DataActivityProvider } from "@/features/data-activity/components/provider";
-import { StaffProvider } from "@/features/coach/components/staff-context";
 import { NotificationsProvider } from "@/features/notifications/components/notifications-context";
 import type { NotificationFeed } from "@/features/notifications/model";
-import type { StaffFaces } from "@/features/coach/staff";
 import { PullToSync } from "@/features/data-activity/components/pull-to-sync";
 import {
   DataActivityStatus,
@@ -81,7 +79,6 @@ export function AppShell({
   athlete,
   account,
   goal,
-  staffFaces,
   navigation,
   notifications,
   notificationsAt,
@@ -91,7 +88,6 @@ export function AppShell({
   athlete: ShellAthlete;
   account: ShellAccount;
   goal: ShellGoal | null;
-  staffFaces: StaffFaces;
   navigation: Promise<ShellNavigation>;
   notifications: Promise<NotificationFeed | null>;
   notificationsAt: string;
@@ -101,88 +97,83 @@ export function AppShell({
   const modelDetail = shellProfileDetail(account);
   return (
     <ShellIdentityProvider value={{ athlete, goal, modelDetail }}>
-      <StaffProvider faces={staffFaces}>
-        <NotificationsProvider feed={notifications} now={notificationsAt}>
-          <DataActivityProvider>
-            <SidebarProvider
-              defaultOpen={defaultOpen}
-              className="relative h-svh flex-col overflow-hidden md:bg-shell print:h-auto print:overflow-visible"
-            >
-              <ShortcutHelp />
-              <Relief
-                corner="top-right"
-                className="max-md:hidden print:hidden"
-              />
-              <Relief
-                corner="bottom-left"
-                className="max-md:hidden print:hidden"
-              />
-              <TopBar athlete={athlete} goal={goal} modelDetail={modelDetail} />
-              <div className="relative flex min-h-0 flex-1">
-                <Sidebar
-                  variant="inset"
-                  collapsible="icon"
-                  className="md:top-topbar md:h-[calc(100svh-var(--spacing-topbar))] print:hidden"
-                >
-                  <SidebarContent>
-                    <SidebarGroup>
-                      <SidebarMenu>
-                        <Suspense fallback={<TodayNavLink />}>
-                          <TodayNavItem navigation={navigation} />
-                        </Suspense>
-                        <ShellNavItem
-                          href="/plan"
-                          icon={<NavPlanIcon />}
-                          label="Plan"
-                        />
-                        <ShellNavItem
-                          href="/activities"
-                          match={["/gear"]}
-                          icon={<NavActivitiesIcon />}
-                          label="Activités"
-                        />
-                        <ShellNavItem
-                          href="/health/fitness"
-                          match={["/health", "/nutrition"]}
-                          icon={<NavProgressIcon />}
-                          label="Santé"
-                        />
-                        <ShellNavItem
-                          href="/races"
-                          icon={<NavRacesIcon />}
-                          label="Courses"
-                        />
-                        <Suspense fallback={<CoachNavItem attention={null} />}>
-                          <CoachNav navigation={navigation} />
-                        </Suspense>
-                      </SidebarMenu>
-                    </SidebarGroup>
-                    <Suspense fallback={<PlanSidebarGroupLoading />}>
-                      <PlanNav navigation={navigation} />
-                    </Suspense>
-                    <ProgressSidebarGroup />
-                  </SidebarContent>
-                  <SidebarFooter>
-                    <DataActivityStatus
-                      compact
-                      className="hidden justify-center group-data-[collapsible=icon]:flex"
-                    />
-                    <DataActivityStatus className="px-2 text-label group-data-[collapsible=icon]:hidden max-md:hidden" />
-                  </SidebarFooter>
-                  <SidebarRail />
-                </Sidebar>
-                <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
-                  <DataActivityFeedback />
-                  <PullToSync>{children}</PullToSync>
-                  <Suspense fallback={<AppMobileTabBar attention={null} />}>
-                    <MobileTabBar navigation={navigation} />
+      <NotificationsProvider feed={notifications} now={notificationsAt}>
+        <DataActivityProvider>
+          <SidebarProvider
+            defaultOpen={defaultOpen}
+            className="relative h-svh flex-col overflow-hidden md:bg-shell print:h-auto print:overflow-visible"
+          >
+            <ShortcutHelp />
+            <Relief corner="top-right" className="max-md:hidden print:hidden" />
+            <Relief
+              corner="bottom-left"
+              className="max-md:hidden print:hidden"
+            />
+            <TopBar athlete={athlete} goal={goal} modelDetail={modelDetail} />
+            <div className="relative flex min-h-0 flex-1">
+              <Sidebar
+                variant="inset"
+                collapsible="icon"
+                className="md:top-topbar md:h-[calc(100svh-var(--spacing-topbar))] print:hidden"
+              >
+                <SidebarContent>
+                  <SidebarGroup>
+                    <SidebarMenu>
+                      <Suspense fallback={<TodayNavLink />}>
+                        <TodayNavItem navigation={navigation} />
+                      </Suspense>
+                      <ShellNavItem
+                        href="/plan"
+                        icon={<NavPlanIcon />}
+                        label="Plan"
+                      />
+                      <ShellNavItem
+                        href="/activities"
+                        match={["/gear"]}
+                        icon={<NavActivitiesIcon />}
+                        label="Activités"
+                      />
+                      <ShellNavItem
+                        href="/health/fitness"
+                        match={["/health", "/nutrition"]}
+                        icon={<NavProgressIcon />}
+                        label="Santé"
+                      />
+                      <ShellNavItem
+                        href="/races"
+                        icon={<NavRacesIcon />}
+                        label="Courses"
+                      />
+                      <Suspense fallback={<CoachNavItem attention={null} />}>
+                        <CoachNav navigation={navigation} />
+                      </Suspense>
+                    </SidebarMenu>
+                  </SidebarGroup>
+                  <Suspense fallback={<PlanSidebarGroupLoading />}>
+                    <PlanNav navigation={navigation} />
                   </Suspense>
-                </SidebarInset>
-              </div>
-            </SidebarProvider>
-          </DataActivityProvider>
-        </NotificationsProvider>
-      </StaffProvider>
+                  <ProgressSidebarGroup />
+                </SidebarContent>
+                <SidebarFooter>
+                  <DataActivityStatus
+                    compact
+                    className="hidden justify-center group-data-[collapsible=icon]:flex"
+                  />
+                  <DataActivityStatus className="px-2 text-label group-data-[collapsible=icon]:hidden max-md:hidden" />
+                </SidebarFooter>
+                <SidebarRail />
+              </Sidebar>
+              <SidebarInset className="group/inset relative h-svh min-h-0 overflow-hidden md:h-[calc(100svh-var(--spacing-topbar)-0.5rem)] md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-xl print:h-auto print:overflow-visible md:print:h-auto">
+                <DataActivityFeedback />
+                <PullToSync>{children}</PullToSync>
+                <Suspense fallback={<AppMobileTabBar attention={null} />}>
+                  <MobileTabBar navigation={navigation} />
+                </Suspense>
+              </SidebarInset>
+            </div>
+          </SidebarProvider>
+        </DataActivityProvider>
+      </NotificationsProvider>
     </ShellIdentityProvider>
   );
 }

@@ -1,4 +1,3 @@
-import { PulseDot } from "@/components/stride/marks";
 import { cn } from "@/lib/utils";
 import { statusLabels, type ThreadStatus } from "../conversations";
 
@@ -21,15 +20,17 @@ export function ThreadStatusLabel({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-label",
+        "inline-flex items-center gap-1.5 text-label font-medium",
         toneText[tone],
         className,
       )}
     >
-      <PulseDot
-        tone={tone === "muted" ? "foreground" : tone}
-        breathing={status === "working"}
-        className={cn(tone === "muted" && "bg-data-1")}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "size-1.5 rounded-full bg-current",
+          status === "working" && "motion-safe:animate-pulse",
+        )}
       />
       {label}
     </span>

@@ -661,13 +661,21 @@ function opinions(proposal: ProposalRecord): ReviewOpinion[] {
   const lead = proposal.rationale ?? proposal.summary;
   return [
     ...(lead
-      ? [{ ...coach, label: coach.role, text: lead, verdict: null, lead: true }]
+      ? [
+          {
+            ...coach,
+            label: "Mène la proposition",
+            text: lead,
+            verdict: null,
+            lead: true,
+          },
+        ]
       : []),
     ...proposal.specialistOpinions.map((opinion) => {
       const member = staffMember(opinion.specialist);
       return {
         ...member,
-        label: `${member.role} · consultée`,
+        label: "Consulté",
         text: opinion.summary,
         verdict: {
           label: verdictLabel(opinion.verdict),
@@ -748,7 +756,7 @@ function bannerFor(
       return {
         tone: "muted",
         title: "Refusée · ton plan ne change pas",
-        body: `${coach.name} en tient compte. Tu peux lui en reparler pour proposer autre chose.`,
+        body: "Le Coach en tient compte. Tu peux lui en reparler pour proposer autre chose.",
       };
     case "accepted":
       return {
@@ -761,7 +769,7 @@ function bannerFor(
       return {
         tone: "danger",
         title: "Cette proposition ne peut plus être appliquée",
-        body: `${reasonText(note)} Rien n’a été modifié. Demande à ${coach.name} de la mettre à jour.`,
+        body: `${reasonText(note)} Rien n’a été modifié. Demande au Coach de la mettre à jour.`,
       };
     case "superseded":
       return {
@@ -913,7 +921,7 @@ export function buildProposalReview(input: ReviewInput): ProposalReview {
       ? {
           tone: "danger",
           title: "Cette proposition ne peut plus être appliquée",
-          body: `${blockedReason} Rien n’a été modifié. Demande à ${coach.name} de la mettre à jour.`,
+          body: `${blockedReason} Rien n’a été modifié. Demande au Coach de la mettre à jour.`,
         }
       : bannerFor(proposal, isNewPlan),
     blockedReason: pending ? blockedReason : null,

@@ -282,22 +282,21 @@ export function retryableMessage(
 
 export function typingLabel(member: StaffMember, read: string | null) {
   return read
-    ? `${member.name} lit ${read.toLowerCase()}…`
-    : `${member.name} écrit…`;
-}
-
-export function ofName({ name }: StaffMember) {
-  return /^[aeiouyàâéèêëîïôûùh]/i.test(name) ? `d’${name}` : `de ${name}`;
+    ? `${member.subject} lit ${read.toLowerCase()}…`
+    : `${member.subject} écrit…`;
 }
 
 export function questionAttribution(member: StaffMember) {
-  return `Question ${ofName(member)}`;
+  return `Question ${member.of}`;
 }
 
 export function replyToLabel(member: StaffMember) {
-  return `En réponse à ${member.name}`;
+  return `En réponse ${member.to}`;
 }
 
+const roleMention =
+  /(@(?:Directeur sportif|Stratège de course|[\p{Lu}][\p{L}’'-]*))/u;
+
 export function splitMentions(text: string) {
-  return text.split(/(@[\p{Lu}][\p{L}’'-]*)/u);
+  return text.split(roleMention);
 }

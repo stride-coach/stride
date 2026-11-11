@@ -4,7 +4,6 @@ import { MobileHeaderActions } from "@/features/app-shell/components/mobile-head
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ListIcon,
@@ -28,7 +27,6 @@ import {
 import { Toggle } from "@/components/ui/toggle";
 import { ContextChip } from "@/components/stride/context-chip";
 import { SuggestedReplies } from "@/components/stride/suggested-reply";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import { localToday } from "@/features/app-shell/shell";
 import {
@@ -54,15 +52,16 @@ import {
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
 import {
-  StaffPortrait,
+  StaffAvatar,
   StaffStack,
-} from "@/features/coach/components/staff-portrait";
-import { useStaff } from "@/features/coach/components/staff-context";
+} from "@/features/coach/components/staff-avatar";
+import { staff as allStaff } from "@/features/coach/staff";
 import { staffAgents } from "@/features/coach/staff";
 import { refusalText, splitFrames, turnFailure } from "@/features/coach/stream";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
 import { buildThread, retryableMessage } from "@/features/coach/thread";
 import { markCoachThreadRead } from "@/server/coaching/actions";
+import { CoachHeaderNav, CoachTabs } from "./coach-tabs";
 import { ContextPicker } from "./context-picker";
 import { ConversationList } from "./conversation-list";
 import { SuiviPanel } from "./suivi-panel";
@@ -125,7 +124,7 @@ function Composer({
     attachments: SentAttachment[],
   ) => Promise<boolean>;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const [text, setText] = useState(initialText);
   const [consult, setConsult] = useState(false);
   const [attachments, setAttachments] =
@@ -161,12 +160,12 @@ function Composer({
 
   if (closed)
     return (
-      <div className="mx-auto flex w-full max-w-205 flex-col gap-2 border-t border-border px-4 py-4 sm:px-[clamp(20px,3vw,44px)]">
-        <p className="text-body text-secondary-foreground">
+      <div className="mx-auto flex w-full max-w-180 flex-col gap-2 border-t border-border px-4 py-4 md:px-5">
+        <p className="text-secondary-foreground">
           Cette conversation est terminée. Démarre une nouvelle conversation
           pour continuer.
         </p>
-        <Button asChild variant="outline" size="md" className="self-start">
+        <Button asChild variant="outline" className="self-start">
           <Link href="/coach/new">Nouvelle conversation</Link>
         </Button>
       </div>
@@ -178,14 +177,14 @@ function Composer({
         event.preventDefault();
         void submit();
       }}
-      className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5"
+      className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-5 md:pb-4"
     >
       <SuggestedReplies
         replies={replies}
         onSelect={(message) => void reply(message)}
         className="max-sm:-mx-4 max-sm:px-4"
       />
-      <InputGroup className="h-auto flex-wrap rounded-xl border-control-border bg-card p-1.5 has-[>[data-align=block-start]]:flex-row md:h-auto">
+      <InputGroup className="h-auto flex-wrap rounded-lg bg-card p-1 has-[>[data-align=block-start]]:flex-row md:h-auto">
         {!answering && attachments.length > 0 && (
           <InputGroupAddon
             align="block-start"
@@ -224,7 +223,7 @@ function Composer({
               aria-expanded={pickerOpen}
               disabled={busy}
               onClick={() => setPickerOpen(true)}
-              className="size-11 rounded-lg p-0 text-secondary-foreground md:h-9 md:w-auto md:border md:border-border md:px-2.5 md:text-body md:font-normal"
+              className="size-control-touch p-0 text-secondary-foreground md:h-control md:w-auto md:px-2 md:font-normal"
             >
               <PlusIcon aria-hidden="true" />
               <span aria-hidden="true" className="max-md:hidden">
@@ -252,7 +251,7 @@ function Composer({
               void submit();
             }
           }}
-          className="max-h-40 min-h-10 min-w-0 flex-1 basis-0 py-2.5 text-body"
+          className="max-h-40 min-h-10 min-w-0 flex-1 basis-0 py-2.5"
         />
         <InputGroupAddon align="inline-end" className="gap-1.5 self-end pr-0">
           {!answering && (
@@ -262,19 +261,17 @@ function Composer({
               onPressedChange={setConsult}
               aria-label={`Mentionner ${staff.medical.name}`}
               disabled={busy}
-              className="min-h-9 gap-1.5 rounded-md border-border bg-transparent pr-2 pl-1.5 text-body font-normal data-[state=on]:border-foreground data-[state=on]:bg-muted data-[state=on]:font-semibold data-[state=on]:text-foreground"
+              className="min-h-control-touch gap-1.5 rounded-md border-transparent bg-transparent pr-2 pl-1 font-normal text-secondary-foreground data-[state=on]:border-transparent data-[state=on]:bg-accent data-[state=on]:font-medium data-[state=on]:text-primary md:min-h-control"
             >
-              <StaffStack agents={["medical"]} size={18} />@{staff.medical.name}
+              <StaffStack agents={["medical"]} size={22} />@{staff.medical.name}
             </Toggle>
           )}
           <Button
             type="submit"
-            size="icon"
-            aria-label="Envoyer"
             disabled={busy || !text.trim()}
-            className="size-9.5 rounded-lg"
+            className="min-h-control-touch md:min-h-control"
           >
-            <ArrowUpIcon aria-hidden="true" />
+            Envoyer
           </Button>
         </InputGroupAddon>
       </InputGroup>
@@ -292,9 +289,9 @@ function Composer({
         />
       )}
       <p className="text-label text-muted-foreground max-sm:hidden">
-        {staff.coach.name} lit chaque message et passe la main au bon
-        spécialiste, deux au plus par demande. Les questions d’un spécialiste
-        lui reviennent directement. Rien ne change sans ton accord.
+        Le Coach lit chaque message et passe la main au bon spécialiste, deux au
+        plus par demande. Les questions d’un spécialiste lui reviennent
+        directement. Rien ne change sans ton accord.
       </p>
     </form>
   );
@@ -319,7 +316,7 @@ export function CoachScreen({
   attachmentOptions: AttachmentOptions;
   initialAttachments?: AttachmentOption[];
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const router = useRouter();
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const baseItems = useMemo(() => thread?.items ?? [], [thread]);
@@ -592,7 +589,7 @@ export function CoachScreen({
         )?.askedFor ?? "coach")
     : null;
   const placeholder = answeringAgent
-    ? `Ta réponse à ${staff[answeringAgent].name}…`
+    ? `Ta réponse ${staff[answeringAgent].to}…`
     : "Écris au staff…";
   const empty = items.length === 0 && !sending;
   const replies = suggestedReplies({
@@ -618,13 +615,18 @@ export function CoachScreen({
     <>
       <AppHeader
         title="Coach"
-        crumbs={[{ label: "Coach" }, { label: "Conversations" }]}
+        breadcrumb={<CoachHeaderNav />}
+        actions={
+          <Button asChild variant="ghost" className="max-md:hidden">
+            <Link href="/coach/new">Nouvelle conversation</Link>
+          </Button>
+        }
         className="max-[980px]:hidden"
       />
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(
-            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-80 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border",
+            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-72 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border",
             current ? "hidden" : "flex",
           )}
         >
@@ -632,16 +634,15 @@ export function CoachScreen({
             sections={sections}
             currentId={ids.threadId}
             mobileHeader={
-              <div className="flex flex-col gap-4 min-[980px]:hidden">
+              <div className="flex flex-col gap-3 min-[980px]:hidden">
                 <div className="flex min-h-11 items-center gap-2.5">
-                  <h1 className="text-title font-semibold tracking-[-0.02em]">
-                    Coach
-                  </h1>
+                  <h1 className="text-body-lg font-semibold">Coach</h1>
+                  <span className="text-muted-foreground">ton staff</span>
                   <Button
                     asChild
                     variant="outline"
-                    size="icon"
-                    className="ml-auto size-11 rounded-lg"
+                    size="icon-lg"
+                    className="ml-auto"
                   >
                     <Link href="/coach/new" aria-label="Nouvelle conversation">
                       <PlusIcon aria-hidden="true" />
@@ -649,32 +650,32 @@ export function CoachScreen({
                   </Button>
                   <MobileHeaderActions />
                 </div>
+                <CoachTabs className="md:flex" />
                 <section
                   aria-label="Ton staff"
                   className="flex flex-col gap-2.5"
                 >
                   <div className="flex items-baseline">
-                    <MonoLabel size="nano">Ton staff</MonoLabel>
+                    <span className="text-label font-medium text-muted-foreground">
+                      Ton staff
+                    </span>
                     <Link
                       href="/coach/team"
-                      className="ml-auto inline-flex items-center gap-1.5 text-label text-secondary-foreground hover:text-foreground"
+                      className="ml-auto inline-flex min-h-control-touch items-center gap-1 text-label text-secondary-foreground hover:text-foreground"
                     >
-                      Voir l’équipe
-                      <ChevronRightIcon
-                        aria-hidden="true"
-                        className="size-2.5"
-                      />
+                      Voir le staff
+                      <ChevronRightIcon aria-hidden="true" className="size-3" />
                     </Link>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 overflow-x-auto">
                     {staffAgents.map((agent) => (
                       <Link
                         key={agent}
                         href="/coach/team"
-                        aria-label={`${staff[agent].alt}, voir l’équipe`}
-                        className="flex w-15.5 flex-col items-center gap-1.5 text-label text-secondary-foreground hover:text-foreground"
+                        aria-label={`${staff[agent].name}, voir le staff`}
+                        className="flex w-16 shrink-0 flex-col items-center gap-1.5 text-center text-label text-secondary-foreground hover:text-foreground"
                       >
-                        <StaffPortrait agent={agent} size={56} decorative />
+                        <StaffAvatar agent={agent} size={30} decorative />
                         <span aria-hidden="true">{staff[agent].name}</span>
                       </Link>
                     ))}
@@ -691,20 +692,20 @@ export function CoachScreen({
             current ? "flex" : "hidden",
           )}
         >
-          <div className="flex min-h-14 shrink-0 items-center gap-2.5 border-b border-border py-2 pr-2.5 pl-1.5 min-[980px]:gap-3 min-[980px]:px-6 min-[980px]:py-3">
+          <div className="flex min-h-13 shrink-0 items-center gap-2.5 border-b border-border py-1.5 pr-2.5 pl-1.5 min-[980px]:min-h-header min-[980px]:gap-3 min-[980px]:px-5">
             <Button
               asChild
               variant="ghost"
-              size="icon"
-              className="size-11 text-secondary-foreground min-[980px]:hidden"
+              size="icon-lg"
+              className="text-secondary-foreground min-[980px]:hidden"
             >
               <Link href="/coach" aria-label="Retour aux conversations">
                 <ChevronLeftIcon aria-hidden="true" />
               </Link>
             </Button>
-            <StaffStack agents={participants} size={30} />
+            <StaffStack agents={participants} size={22} />
             <span className="flex min-w-0 flex-1 flex-col">
-              <h1 className="truncate text-body font-semibold">
+              <h1 className="truncate font-medium">
                 {empty && !thread ? "Nouvelle conversation" : title}
               </h1>
               <span className="truncate text-label text-muted-foreground">
@@ -720,7 +721,7 @@ export function CoachScreen({
                 size="icon"
                 aria-label="Suivi de la conversation"
                 onClick={() => setSuiviOpen(true)}
-                className="size-11 rounded-lg min-[980px]:size-8.5 min-[1180px]:hidden"
+                className="max-md:size-control-touch xl:hidden"
               >
                 <ListIcon aria-hidden="true" />
               </Button>
@@ -731,17 +732,17 @@ export function CoachScreen({
           </div>
           <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
             {empty ? (
-              <div className="mx-auto flex w-full max-w-205 flex-col gap-4 px-4 pt-8 sm:px-[clamp(20px,3vw,44px)] sm:pt-12">
-                <StaffPortrait agent="coach" size={56} />
+              <div className="mx-auto flex w-full max-w-180 flex-col gap-3 px-4 pt-8 md:px-5 md:pt-12">
+                <StaffAvatar agent="coach" size={48} />
                 <h2 className="text-verdict font-semibold">
                   {mode === "plan"
-                    ? `Demande ton plan à ${staff.coach.name}`
+                    ? `Demande ton plan ${staff.coach.to}`
                     : "Écris à ton staff"}
                 </h2>
-                <p className="max-w-140 text-body leading-normal text-secondary-foreground">
+                <p className="max-w-140 text-body-lg text-secondary-foreground">
                   {mode === "plan"
-                    ? `${staff.coach.name} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
-                    : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.name} te répond ou passe la main à ${staff.medical.name}, qui te parle directement quand c’est utile.`}
+                    ? `${staff.coach.subject} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
+                    : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.subject} te répond ou passe la main ${staff.medical.to}, qui te parle directement quand c’est utile.`}
                 </p>
               </div>
             ) : (
@@ -785,7 +786,7 @@ export function CoachScreen({
         {!empty && (
           <aside
             aria-label="Suivi de la conversation"
-            className="hidden w-85 shrink-0 overflow-y-auto border-l border-border px-5.5 pt-5.5 pb-7 min-[1180px]:block"
+            className="hidden w-panel shrink-0 overflow-y-auto border-l border-border px-5 py-4.5 xl:block"
           >
             {suivi}
           </aside>
@@ -796,17 +797,16 @@ export function CoachScreen({
           side="bottom"
           showCloseButton={false}
           aria-describedby={undefined}
-          className="max-h-[85svh] gap-0 overflow-hidden border-control-border bg-background min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-2xl min-[640px]:border"
+          className="max-h-[85svh] gap-0 overflow-hidden rounded-t-2xl border-control-border bg-background shadow-float min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-xl min-[640px]:border"
         >
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-            <SheetTitle className="text-body font-semibold">
+            <SheetTitle className="font-semibold">
               Suivi de la conversation
             </SheetTitle>
             <SheetClose asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="ml-auto min-h-11 text-secondary-foreground"
+                className="ml-auto min-h-control-touch text-secondary-foreground"
               >
                 Fermer
               </Button>

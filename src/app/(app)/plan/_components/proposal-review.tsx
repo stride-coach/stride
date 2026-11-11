@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { MonoLabel } from "@/components/stride/mono-label";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { PulseDot } from "@/components/stride/marks";
 import { cn } from "@/lib/utils";
 import type { StaffMember } from "@/features/plans/review/proposal";
@@ -42,22 +43,26 @@ export function StaffMonogram({
   member: StaffMember;
   size?: "sm" | "md";
 }) {
-  return (
+  return member.agent ? (
+    <StaffAvatar
+      agent={member.agent}
+      size={size === "sm" ? 22 : 30}
+      decorative
+    />
+  ) : (
     <span
       aria-hidden="true"
       className={cn(
-        "grid shrink-0 place-items-center rounded-sm bg-muted font-semibold text-foreground ring-2 ring-background",
-        size === "sm" ? "size-6 text-label" : "size-9 text-body",
+        "shrink-0 rounded-full bg-foreground",
+        size === "sm" ? "size-5.5" : "size-7.5",
       )}
-    >
-      {member.monogram}
-    </span>
+    />
   );
 }
 
 export function StaffStack({ staff }: { staff: StaffMember[] }) {
   return (
-    <span aria-hidden="true" className="flex -space-x-1.5">
+    <span aria-hidden="true" className="flex -space-x-1">
       {staff.map((member) => (
         <StaffMonogram key={member.name} member={member} />
       ))}

@@ -47,7 +47,7 @@ test("the nutrition page shows today's targets and the next seven days", async (
     page.getByText("Comment on calcule", { exact: true }),
   ).toBeVisible();
   const coach = page.getByRole("link", {
-    name: "Demander à Léa pour cette journée",
+    name: "Demander à Nutrition pour cette journée",
   });
   const href = await coach.first().getAttribute("href");
   const url = new URL(href ?? "", "http://stride.test");
@@ -72,7 +72,7 @@ test("the nutrition page fits a phone", async ({ page }) => {
   await expect(days.getByText(/^Gluc\. /).first()).toBeVisible();
   await expect(
     page
-      .getByRole("link", { name: "Demander à Léa pour cette journée" })
+      .getByRole("link", { name: "Demander à Nutrition pour cette journée" })
       .last(),
   ).toBeVisible();
   await page.screenshot({
@@ -85,18 +85,24 @@ test("the nutrition page fits a phone", async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(0);
 });
 
-test("the team shows every specialist with a face choice", async ({ page }) => {
+test("the team shows every role without a first name or a face", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto("/coach/team");
-  for (const name of ["Inès", "Marc", "Hugo", "Léa"])
-    await expect(
-      page.getByRole("heading", { level: 3, name, exact: true }),
-    ).toBeVisible();
-  for (const role of [
+  for (const name of [
+    "Coach",
+    "Santé",
     "Directeur sportif",
     "Stratège de course",
-    "Nutritionniste",
+    "Nutrition",
   ])
-    await expect(page.getByText(role, { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name, exact: true }).first(),
+    ).toBeVisible();
+  await expect(
+    page.locator('[data-slot="staff-avatar"]').first(),
+  ).toBeVisible();
+  await expect(page.getByText("Visage", { exact: true })).toHaveCount(0);
 });
