@@ -204,13 +204,13 @@ export function AboutStep({
   }
   const answered = answeredCount({ ...local, value_sources: sources });
   return (
-    <div className="flex flex-1 flex-col gap-7 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-12">
-      <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise lg:gap-8">
+    <div className="flex flex-1 flex-col gap-8">
+      <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise">
         <div className="flex flex-col gap-3">
           <p className="text-label text-muted-foreground tabular-nums lg:hidden">
             À propos de toi · {group + 1}/{groups.length}
           </p>
-          <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
+          <h1 className="text-verdict font-semibold text-balance">
             <span className="lg:hidden">{groups[group].title}</span>
             <span className="hidden lg:inline">
               Quelques infos que Garmin ne me donne pas.
@@ -237,14 +237,12 @@ export function AboutStep({
                 <span>{labels[field as ProfileField]}</span>
                 <span className="flex gap-2">
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => resolve(field, "mine")}
                   >
                     Garder ma réponse
                   </Button>
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => {
                       resolve(field, "theirs");
@@ -417,7 +415,7 @@ export function AboutStep({
               {group < groups.length - 1 ? "Suivant" : "Continuer"}
             </Button>
             <Button
-              className="hidden lg:inline-flex lg:px-5.5"
+              className="hidden lg:inline-flex"
               disabled={completion.pending}
               aria-busy={completion.pending}
               onClick={() => void finish()}

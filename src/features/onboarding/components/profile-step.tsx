@@ -70,16 +70,16 @@ export function ProfileStep({
     );
   return (
     <div className="flex flex-1 flex-col gap-8 motion-safe:animate-rise lg:gap-10">
-      <header className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-x-10">
+      <header className="flex flex-col gap-2">
         <div className="contents">
-          <p className="text-label text-muted-foreground tabular-nums lg:col-span-2">
+          <p className="text-label text-muted-foreground tabular-nums">
             Profil d’athlète · première version
           </p>
-          <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:col-span-2 lg:text-[2.75rem]">
+          <h1 className="text-verdict font-semibold text-balance">
             Voici ce que je sais de toi
             {profile.firstName ? `, ${profile.firstName}` : ""}.
           </h1>
-          <p className="max-w-176 text-body text-pretty text-secondary-foreground lg:text-body-lg">
+          <p className="text-body-lg text-pretty text-secondary-foreground">
             Construit à partir de {integer.format(profile.activityCount)}{" "}
             activités
             {profile.history ? ` sur ${profile.history}` : ""}
@@ -103,7 +103,7 @@ export function ProfileStep({
           <Legend />
         </div>
       </header>
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-x-12 lg:gap-y-10 xl:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 sm:gap-x-8">
         <Section title={training.title}>
           <WeeklyBars weeks={profile.weeks} />
           <Facts facts={training.facts} />
@@ -166,7 +166,7 @@ export function ProfileStep({
       </div>
       <section
         aria-labelledby="next-title"
-        className="flex flex-col gap-5 rounded-xl border border-border bg-card p-5 lg:p-7"
+        className="flex flex-col gap-4 rounded-xl border border-border bg-card px-4 py-3.5"
       >
         <div className="flex gap-3">
           <StrideMark className="mt-1 size-4" />
@@ -211,7 +211,7 @@ function ProfileActions({
   return (
     <>
       <Button
-        className="w-full lg:w-auto lg:px-5.5"
+        className="w-full lg:w-auto"
         disabled={pending}
         aria-busy={pending}
         onClick={onComplete}

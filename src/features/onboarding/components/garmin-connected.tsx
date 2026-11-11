@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckIcon, LockIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PulseDot } from "@/components/stride/marks";
 import { garminAutoContinueSeconds } from "@/features/onboarding/garmin-flow";
 import { ConnectStages, ReadOnlyNote, StepLayout } from "./garmin-parts";
 import { OnboardingActions } from "./onboarding-actions";
@@ -52,14 +51,14 @@ export function GarminConnected({
   return (
     <StepLayout centered>
       <ConnectStages statuses={["done", "done", "done"]} />
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-5">
+      <div className="flex items-center gap-3">
         <span
           aria-hidden="true"
-          className="grid size-13 place-items-center rounded-full border border-border bg-card text-primary"
+          className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground"
         >
-          <CheckIcon className="size-6" />
+          <CheckIcon className="size-4" />
         </span>
-        <h1 className="text-[2rem] leading-none font-semibold tracking-[-0.035em] lg:text-[2.75rem]">
+        <h1 className="text-verdict font-semibold text-balance">
           Garmin connecté
         </h1>
       </div>
@@ -67,26 +66,25 @@ export function GarminConnected({
         {rows.map(({ Icon, title, body }) => (
           <li
             key={title}
-            className="grid grid-cols-[1rem_1fr] gap-x-4 border-b border-border py-4"
+            className="grid grid-cols-[1rem_1fr] gap-x-3 border-b border-border py-2.5"
           >
-            <Icon aria-hidden="true" className="mt-1 size-4 text-primary" />
-            <span className="flex flex-col gap-1">
-              <span className="text-body font-semibold">{title}</span>
-              <span className="text-body text-secondary-foreground">
+            <Icon aria-hidden="true" className="mt-0.5 size-4 text-primary" />
+            <span className="flex flex-col gap-0.5">
+              <span className="font-medium">{title}</span>
+              <span className="text-label text-secondary-foreground">
                 {body}
               </span>
             </span>
           </li>
         ))}
-        <li className="grid grid-cols-[1rem_1fr] gap-x-4 py-4">
-          <span aria-hidden="true" className="mt-2">
-            <PulseDot />
-          </span>
-          <span className="flex flex-col gap-1">
-            <span className="text-body font-semibold">
-              Préparation de ton historique…
-            </span>
-            <span className="text-body text-secondary-foreground">
+        <li className="grid grid-cols-[1rem_1fr] gap-x-3 py-2.5">
+          <span
+            aria-hidden="true"
+            className="mt-1.5 size-1.5 rounded-full bg-primary motion-safe:animate-pulse"
+          />
+          <span className="flex flex-col gap-0.5">
+            <span className="font-medium">Préparation de ton historique…</span>
+            <span className="text-label text-secondary-foreground">
               Je commence par tes dernières semaines, puis je remonte les
               années.
             </span>
@@ -95,7 +93,7 @@ export function GarminConnected({
       </ul>
       <OnboardingActions>
         <Button
-          className="w-full lg:w-auto lg:px-6"
+          className="w-full lg:w-auto"
           disabled={pending}
           aria-busy={pending}
           onClick={() => {
@@ -107,7 +105,7 @@ export function GarminConnected({
         </Button>
         {counting && (
           <p
-            className="text-center text-body text-muted-foreground"
+            className="text-center text-label text-muted-foreground"
             aria-live="off"
           >
             Passage automatique dans{" "}

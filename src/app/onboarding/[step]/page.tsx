@@ -7,7 +7,6 @@ import {
   stepLabels,
 } from "@/features/onboarding/progress";
 import { OnboardingShell } from "@/features/onboarding/components/onboarding-shell";
-import { WelcomeHalo } from "@/features/onboarding/components/welcome-halo";
 import { WelcomeStep } from "@/features/onboarding/components/welcome-step";
 import { GarminStep } from "@/features/onboarding/components/garmin-step";
 import { HistoryStep } from "@/features/onboarding/components/history-step";
@@ -76,9 +75,7 @@ export default async function OnboardingStepPage({
       email={email}
       step={guard.step}
     >
-      {guard.step === "welcome" && (
-        <WelcomeStep revision={progress.revision} backdrop={<WelcomeHalo />} />
-      )}
+      {guard.step === "welcome" && <WelcomeStep revision={progress.revision} />}
       {guard.step === "garmin" && (
         <GarminStep
           revision={progress.revision}

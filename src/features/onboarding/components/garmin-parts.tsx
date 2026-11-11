@@ -1,5 +1,5 @@
-import { CheckIcon, CircleAlertIcon, LockIcon } from "lucide-react";
-import { PulseDot } from "@/components/stride/marks";
+import { LockIcon } from "lucide-react";
+import { SourceMark } from "@/components/stride/marks";
 import { cn } from "@/lib/utils";
 
 type StageStatus = "done" | "current" | "upcoming";
@@ -34,27 +34,27 @@ export function ConnectStages({
             aria-current={status === "current" ? "step" : undefined}
             className={cn(
               "flex items-center gap-1.5",
-              status === "done" && "text-primary",
-              status === "current" && "font-medium text-primary",
+              status === "done" && "text-secondary-foreground",
+              status === "current" && "font-medium text-foreground",
               status === "upcoming" && "text-muted-foreground",
             )}
           >
             {index > 0 && (
-              <span aria-hidden="true" className="mr-1 h-px w-4 bg-border" />
-            )}
-            {status === "done" ? (
-              <CheckIcon aria-hidden="true" className="size-2.5" />
-            ) : (
               <span
                 aria-hidden="true"
-                className={cn(
-                  "size-1.5 rounded-full",
-                  status === "current"
-                    ? "bg-primary"
-                    : "border border-muted-foreground",
-                )}
+                className="mr-1 h-px w-4 bg-control-border"
               />
             )}
+            <span
+              aria-hidden="true"
+              className={cn(
+                "size-3 shrink-0 rounded-full border-[1.5px]",
+                status === "done" && "border-primary bg-primary",
+                status === "current" &&
+                  "border-warning bg-[linear-gradient(90deg,transparent_50%,var(--warning)_50%)]",
+                status === "upcoming" && "border-muted-foreground",
+              )}
+            />
             {label}
           </li>
         );
@@ -73,13 +73,13 @@ export function GarminNoticeBox({
   return (
     <div
       role="alert"
-      className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 rounded-lg border border-border bg-card px-4.5 py-4"
+      className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 rounded-lg border border-control-border bg-card px-3.5 py-3"
     >
-      <CircleAlertIcon
+      <span
         aria-hidden="true"
-        className="mt-0.5 size-4 text-warning"
+        className="mt-1.5 size-1.5 rounded-full bg-warning"
       />
-      <p className="text-body font-semibold">{title}</p>
+      <p className="font-medium">{title}</p>
       {children && (
         <div className="col-start-2 text-body text-secondary-foreground">
           {children}
@@ -91,8 +91,8 @@ export function GarminNoticeBox({
 
 export function SecureNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex gap-2.5 text-body text-secondary-foreground">
-      <LockIcon aria-hidden="true" className="mt-0.75 size-3.5 shrink-0" />
+    <p className="flex gap-2 text-label text-secondary-foreground">
+      <LockIcon aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
       <span>{children}</span>
     </p>
   );
@@ -100,8 +100,8 @@ export function SecureNote({ children }: { children: React.ReactNode }) {
 
 export function ReadOnlyNote() {
   return (
-    <p className="flex items-center gap-2.5 text-body text-muted-foreground">
-      <PulseDot tone="provider" breathing={false} />
+    <p className="flex items-center gap-2 text-label text-muted-foreground">
+      <SourceMark source="provider" />
       Lecture seule. Stride ne publie jamais sur Garmin.
     </p>
   );
@@ -118,27 +118,25 @@ export function AsideList({
 }) {
   return (
     <section aria-label={title} className="flex flex-col">
-      <h2 className="border-b border-border pb-3 text-label text-muted-foreground tabular-nums">
+      <h2 className="border-b border-border pb-2 text-label font-medium text-muted-foreground">
         {title}
       </h2>
       <ol>
         {items.map((item, index) => (
           <li
             key={item.title ?? item.body}
-            className="grid grid-cols-[auto_1fr] gap-x-4 border-b border-border py-3.5"
+            className="grid grid-cols-[auto_1fr] gap-x-3 border-b border-border py-2.5"
           >
             {numbered ? (
-              <span className="text-body font-semibold text-secondary-foreground tabular-nums">
+              <span className="font-semibold text-muted-foreground tabular-nums">
                 {index + 1}
               </span>
             ) : (
               <span aria-hidden="true" />
             )}
-            <span className="flex flex-col gap-1">
-              {item.title && (
-                <span className="text-body font-semibold">{item.title}</span>
-              )}
-              <span className="text-body text-secondary-foreground">
+            <span className="flex flex-col gap-0.5">
+              {item.title && <span className="font-medium">{item.title}</span>}
+              <span className="text-label text-secondary-foreground">
                 {item.body}
               </span>
             </span>
@@ -161,17 +159,15 @@ export function StepLayout({
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col gap-10 lg:grid lg:grid-cols-[minmax(0,32.5rem)_minmax(0,26.5rem)] lg:items-start lg:gap-16",
-        centered && "lg:content-center",
+        "flex flex-1 flex-col gap-10",
+        centered && "lg:justify-center",
       )}
     >
-      <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise lg:flex-none">
+      <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise">
         {children}
       </div>
       {aside && (
-        <aside className="hidden flex-col gap-6 lg:mt-11 lg:flex">
-          {aside}
-        </aside>
+        <aside className="hidden flex-col gap-6 lg:flex">{aside}</aside>
       )}
     </div>
   );
@@ -185,12 +181,10 @@ export function StepHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3">
-      <h1 className="text-[2rem] leading-[1.02] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
-        {title}
-      </h1>
+    <div className="flex flex-col gap-2">
+      <h1 className="text-verdict font-semibold text-balance">{title}</h1>
       {children && (
-        <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
+        <p className="text-body-lg text-pretty text-secondary-foreground">
           {children}
         </p>
       )}

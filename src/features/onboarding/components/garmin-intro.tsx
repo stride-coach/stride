@@ -50,7 +50,7 @@ export function GarminIntro({
         <>
           <section
             aria-label="Comment tout s’articule"
-            className="flex flex-col gap-6 rounded-xl border border-border p-7"
+            className="flex flex-col gap-4 rounded-xl border border-border bg-card px-4 py-3.5"
           >
             <h2 className="text-label text-muted-foreground tabular-nums">
               Comment tout s’articule
@@ -142,7 +142,7 @@ export function GarminIntro({
           </span>
         </HealthConsentField>
         <Button
-          className="w-full lg:w-auto lg:self-start lg:px-5.5"
+          className="w-full lg:w-auto lg:self-start"
           disabled={!consent}
           aria-describedby="garmin-consent-required"
           onClick={onStart}

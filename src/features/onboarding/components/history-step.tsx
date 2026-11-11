@@ -62,10 +62,10 @@ export function HistoryStep({
     observation?.categories.activities.state ?? "unknown",
   );
   return (
-    <div className="flex flex-1 flex-col gap-7 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-10 xl:gap-14">
-      <div className="flex flex-1 flex-col gap-7 motion-safe:animate-rise lg:gap-9">
+    <div className="flex flex-1 flex-col gap-6">
+      <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise">
         <div className="flex flex-col gap-3">
-          <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
+          <h1 className="text-verdict font-semibold text-balance">
             Création de ton profil d’athlète
           </h1>
           <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
@@ -106,12 +106,12 @@ export function HistoryStep({
             />
           ))}
         </ul>
-        <InsightsCard insights={insights} className="lg:hidden" />
+        <InsightsCard insights={insights} />
         {notice === "paused" && (
           <SyncStatus
             state="expired"
             action={
-              <Button asChild variant="outline" size="md">
+              <Button asChild variant="outline">
                 <Link href="/onboarding/garmin">Reconnecter Garmin</Link>
               </Button>
             }
@@ -138,7 +138,7 @@ export function HistoryStep({
         )}
         <OnboardingActions className="lg:flex-col lg:items-start lg:gap-3.5">
           <Button
-            className="w-full lg:w-auto lg:px-5.5"
+            className="w-full lg:w-auto"
             disabled={pending}
             aria-busy={pending}
             onClick={() =>
@@ -157,10 +157,6 @@ export function HistoryStep({
           </p>
         </OnboardingActions>
       </div>
-      <InsightsCard
-        insights={insights}
-        className="hidden motion-safe:animate-rise lg:flex"
-      />
     </div>
   );
 }
@@ -249,7 +245,7 @@ function CategoryRow({
   view: CategoryView | null;
 }) {
   return (
-    <li className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2.5 border-b border-border py-4 lg:grid-cols-[13.5rem_1fr_6.5rem] lg:gap-x-6 lg:py-5">
+    <li className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1.5 border-b border-border py-2.5 lg:grid-cols-[10rem_1fr_5rem] lg:gap-x-6 lg:py-5">
       <span className="flex flex-col gap-0.5 lg:col-start-1 lg:row-start-1">
         <span className="text-body font-semibold lg:text-body-lg">{title}</span>
         <span className="hidden text-label text-muted-foreground lg:block">

@@ -1,4 +1,3 @@
-import { PulseDot } from "@/components/stride/marks";
 import {
   importCaption,
   type ImportSummary,
@@ -10,18 +9,25 @@ export function ImportCard({ summary }: { summary: ImportSummary }) {
   return (
     <section
       aria-label="Import depuis Garmin"
-      className="mt-auto flex flex-col gap-2.5 rounded-xl border border-border p-3.5"
+      className="mt-auto flex flex-col gap-2 rounded-lg border border-border bg-card p-3"
     >
-      <p className="flex items-center gap-2 text-label font-semibold">
-        {active && <PulseDot tone="provider" />}
-        {summary.phase === "attention" || summary.phase === "unavailable" ? (
-          <PulseDot tone="warning" breathing={false} />
-        ) : null}
+      <p className="flex items-center gap-2 text-label font-medium">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "size-1.5 rounded-full",
+            summary.phase === "attention" || summary.phase === "unavailable"
+              ? "bg-warning"
+              : active
+                ? "bg-primary motion-safe:animate-pulse"
+                : "bg-primary",
+          )}
+        />
         Import depuis Garmin
       </p>
       <span
         aria-hidden="true"
-        className="relative h-1 overflow-hidden rounded-mark bg-border"
+        className="relative h-1 overflow-hidden rounded-mark bg-muted"
       >
         {active ? (
           <>

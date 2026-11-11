@@ -69,7 +69,7 @@ export function InsightsCard({
       className={cn(
         "flex flex-col",
         variant === "card"
-          ? "gap-5 rounded-xl border border-border bg-card p-5 lg:p-6"
+          ? "gap-4 rounded-xl border border-border bg-card px-4 py-3.5"
           : "gap-4 border-t border-border pt-5",
         className,
       )}
