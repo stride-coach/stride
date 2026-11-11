@@ -9,18 +9,18 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "22",
-      "hash": "3d1d5042d4b8a6e51f163375a847a22f",
-      "remote_hash": "6a5cc48782cf2cfe85d57aa9f0507285",
-      "stamp": "22"
+      "version": "23",
+      "hash": "61c1215873aab94424be0b0885737fe8",
+      "remote_hash": "f52122224494e7780c6681bb5ca794e2",
+      "stamp": "23"
     },
     "./agents/director.md": {
       "kind": "agent",
       "id": "agent_017vonN4KirZUgE4TdC7eept",
-      "version": "4",
-      "hash": "bc1263b94d17c6e4bad8c071a0e3e857",
-      "remote_hash": "0b888186bf516cbf4a93e6b89bcd78cd",
-      "stamp": "4"
+      "version": "5",
+      "hash": "68e814efc587fa2df1eb295b5308e585",
+      "remote_hash": "d04bdc1253c9422e1eb631230cabedc7",
+      "stamp": "5"
     },
     "./agents/medical.md": {
       "kind": "agent",
@@ -105,9 +105,8 @@
     "./skills/plan-periodization": {
       "kind": "skill",
       "id": "skill_01DHHZifHU7Eq6byKet5Xfoc",
-      "version": "skver_01D4C7LyMwF6tx8XEmDMtzo2",
-      "hash": "02951adf2ad1ec483c51f555c91e21d4",
-      "stamp": "skver_01D4C7LyMwF6tx8XEmDMtzo2"
+      "version": "skver_01UK6kJMASJRzyNfxUWpSNq3",
+      "hash": "6802807fdf67258058c20ffe2d142916"
     },
     "./skills/race-specificity": {
       "kind": "skill",
@@ -126,9 +125,8 @@
     "./skills/season-calendar": {
       "kind": "skill",
       "id": "skill_01QWi4yaJZQLoZAfGZU5aBBF",
-      "version": "skver_012CnsUSC949PdRT325BHLn2",
-      "hash": "10a9ed6a6eb35b9b66786cf46f0fe41a",
-      "stamp": "skver_012CnsUSC949PdRT325BHLn2"
+      "version": "skver_01HAh8cW8mgUej9tRBWYZZrw",
+      "hash": "5d3f98440d8d7441528c34c7e1b5bcb6"
     },
     "./skills/session-design": {
       "kind": "skill",
