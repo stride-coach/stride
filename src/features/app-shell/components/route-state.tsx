@@ -1,54 +1,14 @@
 import Link from "next/link";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { missingItems, type MissingItem } from "../route-state";
 import { AppHeader } from "./app-header";
 
-const contours = [
-  "M0 150C70 120 120 140 190 110S330 60 520 80",
-  "M0 170C70 140 120 160 190 130S330 80 520 100",
-  "M0 130C70 100 120 120 190 90S330 40 520 60",
-  "M0 190C70 160 120 180 190 150S330 100 520 120",
-];
-
-function BrokenTrail() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 520 200"
-      className="-mx-6 h-auto w-[calc(100%+3rem)] fill-none md:mx-0 md:w-full"
-    >
-      <g className="stroke-muted" strokeWidth="1.1">
-        {contours.map((path) => (
-          <path key={path} d={path} />
-        ))}
-      </g>
-      <path
-        d="M0 196C50 170 100 160 150 150S220 120 250 100"
-        className="stroke-primary"
-        strokeWidth="2"
-      />
-      <path
-        d="M250 100S300 72 340 60 440 36 520 30"
-        className="stroke-control-border"
-        strokeDasharray="4 6"
-        strokeWidth="2"
-      />
-      <circle
-        cx="250"
-        cy="100"
-        r="11"
-        className="stroke-primary opacity-50"
-        strokeWidth="1.5"
-      />
-      <circle cx="250" cy="100" r="4.5" className="fill-primary" />
-    </svg>
-  );
-}
-
 const actionsClass =
-  "mt-auto flex flex-col gap-2.5 pt-6 md:mt-0 md:flex-row md:flex-wrap md:pt-0 [&>*]:max-md:w-full";
+  "mt-auto flex flex-col gap-2 pt-8 md:mt-2 md:flex-row md:flex-wrap md:justify-center md:pt-0";
+
+const stateClass =
+  "flex w-full max-w-110 flex-1 flex-col gap-2.5 md:flex-none md:items-center md:text-center";
 
 export function RouteStateFrame({
   section,
@@ -61,7 +21,7 @@ export function RouteStateFrame({
     <>
       <AppHeader title={section} />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="flex min-h-full flex-col px-6 pt-8 pb-6 md:items-center md:justify-center md:p-12">
+        <main className="flex min-h-full flex-col px-4 pt-8 pb-6 md:items-center md:justify-center md:p-12">
           {children}
         </main>
       </div>
@@ -80,25 +40,16 @@ export function RouteError({
     <section
       role="alert"
       aria-labelledby="route-error-title"
-      className={cn(
-        "flex w-full max-w-130 flex-1 flex-col gap-5.5 md:flex-none",
-        className,
-      )}
+      className={cn(stateClass, className)}
     >
-      <BrokenTrail />
-      <div className="flex flex-col gap-3">
-        <MonoLabel size="micro">Erreur de chargement</MonoLabel>
-        <h1
-          id="route-error-title"
-          className="text-verdict font-semibold tracking-tight"
-        >
-          Cette page n’a pas pu se charger.
-        </h1>
-        <p className="text-body text-secondary-foreground">
-          Un service n’a pas répondu à temps. Tes données sont en sécurité :
-          réessaie, ou repars d’Aujourd’hui.
-        </p>
-      </div>
+      <p className="text-label text-muted-foreground">Erreur de chargement</p>
+      <h1 id="route-error-title" className="text-verdict font-semibold">
+        Cette page n’a pas pu se charger.
+      </h1>
+      <p className="text-body-lg text-pretty text-secondary-foreground">
+        Un service n’a pas répondu à temps. Tes données sont en sécurité :
+        réessaie, ou repars d’Aujourd’hui.
+      </p>
       <div className={actionsClass}>
         <Button type="button" onClick={retry}>
           Réessayer
@@ -114,28 +65,14 @@ export function RouteError({
 export function RouteNotFound({ item }: { item: MissingItem }) {
   const { title, message, action } = missingItems[item];
   return (
-    <section
-      aria-labelledby="route-not-found-title"
-      className="flex w-full max-w-120 flex-1 flex-col gap-5.5 md:flex-none"
-    >
-      <div className="flex flex-col gap-1">
-        <MonoLabel size="micro">Erreur 404</MonoLabel>
-        <p
-          aria-hidden="true"
-          className="text-[5.5rem] leading-[0.9] font-bold tracking-[-0.02em] text-primary italic tabular-nums md:text-[6rem]"
-        >
-          404
-        </p>
-      </div>
-      <div className="flex flex-col gap-3">
-        <h1
-          id="route-not-found-title"
-          className="text-verdict font-semibold tracking-tight"
-        >
-          {title}
-        </h1>
-        <p className="text-body text-secondary-foreground">{message}</p>
-      </div>
+    <section aria-labelledby="route-not-found-title" className={stateClass}>
+      <p className="text-label text-muted-foreground">Introuvable</p>
+      <h1 id="route-not-found-title" className="text-verdict font-semibold">
+        {title}
+      </h1>
+      <p className="text-body-lg text-pretty text-secondary-foreground">
+        {message}
+      </p>
       <div className={actionsClass}>
         {action && (
           <Button asChild>

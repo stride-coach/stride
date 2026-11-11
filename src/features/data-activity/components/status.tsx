@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FeedbackBanner } from "@/components/stride/feedback";
 import { PulseDot } from "@/components/stride/marks";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -365,16 +366,20 @@ export function DataActivityFeedback() {
         </div>
       )}
       {activity.state === "reconnect" && (
-        <div className="mx-4 mt-2 shrink-0">
-          <Alert>
-            <AlertDescription>
-              Garmin déconnecté : les nouvelles données n’arrivent plus.{" "}
-              <Link href="/settings/connections/garmin" className="underline">
+        <FeedbackBanner
+          level="watch"
+          verdict="Garmin déconnecté"
+          className="mx-4 mt-2 shrink-0 md:mx-2"
+          action={
+            <Button asChild variant="outline" className="max-sm:w-full">
+              <Link href="/settings/connections/garmin">
                 Reconnecter Garmin
               </Link>
-            </AlertDescription>
-          </Alert>
-        </div>
+            </Button>
+          }
+        >
+          Les nouvelles données n’arrivent plus.
+        </FeedbackBanner>
       )}
     </>
   );

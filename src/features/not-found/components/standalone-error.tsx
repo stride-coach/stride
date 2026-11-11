@@ -12,10 +12,10 @@ export function StandaloneError({ retry }: { retry: () => void }) {
       title="Stride n’a pas pu se charger."
       message="Un service n’a pas répondu à temps. Tes données sont en sécurité : réessaie dans un instant."
     >
-      <Button type="button" className="w-full" onClick={retry}>
+      <Button type="button" onClick={retry}>
         Réessayer
       </Button>
-      <Button asChild variant="outline" className="w-full">
+      <Button asChild variant="outline">
         <Link href="/">Retour à Stride</Link>
       </Button>
     </StandalonePage>

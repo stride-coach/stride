@@ -16,16 +16,15 @@ export default async function NotFound() {
   return (
     <StandalonePage
       label="Erreur 404"
-      numeral="404"
       title="Page introuvable"
       message="Le lien est peut-être périmé, ou la page a été déplacée. Reviens sur le tracé, on repart d'ici."
     >
-      <Button asChild className="w-full">
+      <Button asChild>
         <Link href="/">Retour à Stride</Link>
       </Button>
       <HistoryBackButton />
       {!authenticated && (
-        <p className="pt-3 text-center text-body text-muted-foreground">
+        <p className="pt-2 text-muted-foreground md:basis-full">
           Pas connecté ?{" "}
           <Link
             className="font-medium text-primary hover:underline"
