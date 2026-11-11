@@ -13,7 +13,7 @@ description: Season calendar for a running athlete. Race roles, recovery and tap
 
 ## Roles
 
-- **Objectif principal**: the race the whole plan is built for. Full preparation and a taper. One per season: a season runs from the end of the previous season to the A race and the end of its recovery, and the athlete sees the plan season by season.
+- **Objectif principal**: the race the whole plan is built for. Full preparation and a taper. One per season: a season runs from the end of the previous season to the week of its A race; the recovery after it opens the next season, and only the last A race's season keeps its recovery. The athlete sees the plan season by season.
 - **Préparation**: serves the main objective (terrain, duration, fueling rehearsal, a first bib). Run seriously, without a full taper, never inside the main objective's taper.
 - **Plaisir**: fun, social or a long run in race atmosphere, run below race effort; it replaces a session of the week.
 

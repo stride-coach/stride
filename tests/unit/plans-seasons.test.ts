@@ -54,10 +54,10 @@ function spans(state: PlanState, races: SeasonRace[], day = today) {
 }
 
 describe("plan seasons", () => {
-  it("gives each A race a season that ends with its recovery", () => {
+  it("ends a season with its race week when another A race follows", () => {
     expect(spans(plan(8, "a2"), [second, first])).toEqual([
-      ["a1", "2026-10-12", "2026-11-08", "past"],
-      ["a2", "2026-11-09", "2026-12-06", "current"],
+      ["a1", "2026-10-12", "2026-10-25", "past"],
+      ["a2", "2026-10-26", "2026-12-06", "current"],
     ]);
     const [, current] = planSeasons({
       state: plan(8, "a2"),
@@ -69,8 +69,15 @@ describe("plan seasons", () => {
       name: "a2",
       letter: "A",
       raceDate: "2026-12-06",
-      currentWeek: 1,
-      weekStarts: ["2026-11-09", "2026-11-16", "2026-11-23", "2026-11-30"],
+      currentWeek: 3,
+      weekStarts: [
+        "2026-10-26",
+        "2026-11-02",
+        "2026-11-09",
+        "2026-11-16",
+        "2026-11-23",
+        "2026-11-30",
+      ],
     });
   });
 
@@ -144,7 +151,7 @@ describe("plan seasons", () => {
     ]);
   });
 
-  it("starts the next season on the week of an A race inside a recovery", () => {
+  it("starts the next season after the race week of a close A race", () => {
     const close = race("a2", "2026-11-08", { distanceKm: 42.195 });
     const seasons = planSeasons({
       state: plan(8, "a2"),
@@ -154,8 +161,8 @@ describe("plan seasons", () => {
     expect(
       seasons.map((season) => [season.id, season.startsOn, season.endsOn]),
     ).toEqual([
-      ["a1", "2026-10-12", "2026-11-01"],
-      ["a2", "2026-11-02", "2026-12-06"],
+      ["a1", "2026-10-12", "2026-10-25"],
+      ["a2", "2026-10-26", "2026-12-06"],
     ]);
     expect(seasons.map((season) => season.raceIds)).toEqual([["a1"], ["a2"]]);
     const sameWeek = race("a2", "2026-10-24");
@@ -171,8 +178,8 @@ describe("plan seasons", () => {
         (season) => season.status,
       );
     expect(statuses("2026-10-01")).toEqual(["future", "future"]);
-    expect(statuses("2026-11-08")).toEqual(["current", "future"]);
-    expect(statuses("2026-11-09")).toEqual(["past", "current"]);
+    expect(statuses("2026-10-25")).toEqual(["current", "future"]);
+    expect(statuses("2026-10-26")).toEqual(["past", "current"]);
     expect(statuses("2027-01-01")).toEqual(["past", "past"]);
   });
 });
@@ -242,26 +249,26 @@ describe("shell seasons", () => {
         id: "a1",
         raceIds: ["a1"],
         startsOn: "2026-10-12",
-        endsOn: "2026-11-08",
+        endsOn: "2026-10-25",
         status: "past",
         letter: "A",
         name: "a1",
         href: "/plan?season=a1",
-        dates: "12 oct. → 8 nov. · course le 25 oct.",
+        dates: "12 oct. → 25 oct. · course le 25 oct.",
         progress: "Terminée",
         countdown: null,
       },
       {
         id: "a2",
         raceIds: ["a2"],
-        startsOn: "2026-11-09",
+        startsOn: "2026-10-26",
         endsOn: "2027-01-03",
         status: "current",
         letter: "A",
         name: "a2",
         href: "/plan",
-        dates: "9 nov. → 3 janv. · course le 6 déc.",
-        progress: "S1 / 8",
+        dates: "26 oct. → 3 janv. · course le 6 déc.",
+        progress: "S3 / 10",
         countdown: "J-25",
       },
     ]);

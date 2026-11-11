@@ -685,11 +685,11 @@ describe("season programs", () => {
         season.weeks[0].weekKey,
       ]),
     ).toEqual([
-      ["race-a", "past", "/plan?season=race-a", [1, 2, 3, 4], "w-2026-10-12"],
-      ["race-b", "current", "/plan", [1, 2, 3, 4], "w-2026-11-09"],
+      ["race-a", "past", "/plan?season=race-a", [1, 2], "w-2026-10-12"],
+      ["race-b", "current", "/plan", [1, 2, 3, 4, 5, 6], "w-2026-10-26"],
     ]);
     expect(seasons[1]).toMatchObject({
-      eyebrow: "Semaine 1 sur 4 · Base",
+      eyebrow: "Semaine 3 sur 6 · Base",
       title: "J-25 · Marathon de Paris",
       summary: "Deux saisons.",
       next: null,
@@ -716,7 +716,7 @@ describe("season programs", () => {
         letter: "A",
         status: "current",
         name: "Marathon de Paris",
-        detail: "En cours · S1 / 4 · J-25",
+        detail: "En cours · S3 / 6 · J-25",
       },
     });
     expect(past.milestones).toEqual([]);
