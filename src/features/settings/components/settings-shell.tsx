@@ -142,7 +142,7 @@ export function SettingsShell({
         />
         <div className="relative flex min-h-0 flex-1">
           <SettingsNav active={section?.slug} />
-          <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-background md:mr-2 md:mb-2 md:rounded-xl md:border md:border-border">
+          <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-background md:mr-2 md:mb-2 md:rounded-xl md:border md:border-border md:bg-background/70">
             <header className="relative flex h-13 shrink-0 items-center gap-2 border-b border-border px-4 md:h-header md:gap-3 md:px-5">
               {!overview && (
                 <Link

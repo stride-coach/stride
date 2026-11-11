@@ -11,7 +11,7 @@ export function RecoveryShell({ children }: { children: ReactNode }) {
       <Relief corner="top-right" className="print:hidden" />
       <Relief corner="bottom-left" className="max-md:hidden print:hidden" />
       <AuthAside />
-      <div className="relative flex flex-1 flex-col md:m-2 md:overflow-y-auto md:rounded-xl md:border md:border-border md:bg-background">
+      <div className="relative flex flex-1 flex-col md:m-2 md:overflow-y-auto md:rounded-xl md:border md:border-border md:bg-background/70">
         <header className="flex min-h-13 items-center gap-4 px-4 pt-3 md:min-h-0 md:px-8 md:pt-8">
           <Link
             href="/sign-in"
