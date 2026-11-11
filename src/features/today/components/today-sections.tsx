@@ -1,3 +1,4 @@
+import { CountUp } from "@/components/stride/count-up";
 import { CheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
@@ -170,7 +171,7 @@ function PlannedSession({
           {session.stats.map((stat) => (
             <div key={stat.key} className="flex items-baseline gap-1.5">
               <dd className="text-body-lg font-semibold tabular-nums">
-                {stat.value}
+                <CountUp>{stat.value}</CountUp>
               </dd>
               <dt className="text-label text-muted-foreground">{stat.label}</dt>
             </div>
@@ -289,7 +290,13 @@ export function SessionSection({
   );
 }
 
-function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
+function IndicatorRow({
+  indicator,
+  order,
+}: {
+  indicator: FormIndicator;
+  order: number;
+}) {
   const level = statusLevels[indicator.status];
   return (
     <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3.5 border-t border-border py-2.75 first:border-t-0 sm:nth-2:border-t-0">
@@ -302,7 +309,7 @@ function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
       <dd className="flex min-w-0 flex-col gap-1.5">
         <span className="flex flex-wrap items-center gap-x-2.25 gap-y-0.5">
           <b className="text-body-lg font-semibold whitespace-nowrap tabular-nums">
-            {indicator.value}
+            <CountUp>{indicator.value}</CountUp>
           </b>
           <Status level={level}>{indicator.statusLabel}</Status>
         </span>
@@ -317,6 +324,7 @@ function IndicatorRow({ indicator }: { indicator: FormIndicator }) {
               value: indicator.marker,
             }}
             threshold={indicator.threshold}
+            revealOrder={order}
           />
         )}
       </dd>
@@ -383,8 +391,12 @@ export function BodySection({
           )}
           {form.indicators.length > 0 && (
             <dl className="grid gap-x-6 sm:grid-cols-2">
-              {form.indicators.map((indicator) => (
-                <IndicatorRow key={indicator.key} indicator={indicator} />
+              {form.indicators.map((indicator, order) => (
+                <IndicatorRow
+                  key={indicator.key}
+                  indicator={indicator}
+                  order={order}
+                />
               ))}
             </dl>
           )}

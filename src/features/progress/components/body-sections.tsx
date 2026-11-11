@@ -1,3 +1,4 @@
+import { CountUp } from "@/components/stride/count-up";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { ChartInspector } from "@/components/stride/chart-inspector";
 import { Status, type StatusLevel } from "@/components/stride/status";
@@ -47,7 +48,7 @@ export function ReadinessPanel({
         <div className="flex flex-col gap-1">
           <div className="flex items-baseline gap-2.5">
             <span data-slot="metric" className={cn("text-metric", value)}>
-              {formatInteger(summary.score)}
+              <CountUp>{formatInteger(summary.score)}</CountUp>
             </span>
             <Status level={summaryLevels[summary.tone]}>{summary.level}</Status>
           </div>
@@ -332,7 +333,7 @@ function RangeCard({
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex items-baseline justify-between gap-3">
             <span data-slot="metric" className={cn("text-metric", value)}>
-              {formatInteger(signal.last)}
+              <CountUp>{formatInteger(signal.last)}</CountUp>
               <span className="ml-1 text-body font-normal text-secondary-foreground">
                 {unit}
               </span>

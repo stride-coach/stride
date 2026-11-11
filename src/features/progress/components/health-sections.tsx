@@ -1,3 +1,4 @@
+import { CountUp } from "@/components/stride/count-up";
 import { cn } from "@/lib/utils";
 import type { HealthKpi, Tone } from "../health-view";
 
@@ -19,7 +20,7 @@ export function KpiStrip({ kpis }: { kpis: HealthKpi[] }) {
               data-slot="metric"
               className="text-title font-semibold whitespace-nowrap tabular-nums"
             >
-              {kpi.value}
+              <CountUp>{kpi.value}</CountUp>
             </span>
             {kpi.unit && (
               <span className="text-body text-secondary-foreground">

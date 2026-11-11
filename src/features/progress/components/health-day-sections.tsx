@@ -1,3 +1,4 @@
+import { CountUp } from "@/components/stride/count-up";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Widget } from "@/components/stride/widget";
@@ -214,7 +215,7 @@ export function NightCard({
                 data-slot="metric"
                 className="text-title font-semibold tabular-nums"
               >
-                {figure.value}
+                <CountUp>{figure.value}</CountUp>
               </dd>
               <dd className="text-label text-muted-foreground">
                 {figure.detail}
