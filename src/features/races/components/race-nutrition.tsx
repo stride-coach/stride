@@ -1,5 +1,5 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Widget } from "@/components/stride/widget";
 import { cn } from "@/lib/utils";
 import {
   AddProductButton,
@@ -29,7 +29,6 @@ import type { RaceWeather } from "../weather";
 import type { CourseModel, RacePlanModel } from "../workspace";
 import { NutritionTargetTile } from "./nutrition-target-tile";
 import { NutritionistBanner } from "./nutritionist-banner";
-import { RaceCard } from "./race-ui";
 
 const updatedFormat = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -38,7 +37,9 @@ const updatedFormat = new Intl.DateTimeFormat("fr-FR", {
 });
 
 const headClass =
-  "px-2 py-2.5 tabular-nums text-label font-normal text-muted-foreground ";
+  "px-2 py-2 tabular-nums text-label font-normal text-muted-foreground ";
+
+const panelHeading = "text-label font-medium text-muted-foreground";
 
 export type NutritionBodyProps = {
   data: {
@@ -59,46 +60,41 @@ export type NutritionBodyProps = {
 
 function SegmentBadge({ index }: { index: number }) {
   return (
-    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-control-border bg-muted text-label font-semibold tabular-nums">
+    <span className="inline-flex h-5 min-w-7 items-center justify-center rounded-sm border border-control-border text-label font-medium tabular-nums">
       T{index}
     </span>
   );
 }
 
-function ShoppingCard({
+function ShoppingList({
   rows,
   note,
+  id,
 }: {
   rows: ReturnType<typeof shoppingRows>;
   note: string | null;
+  id: string;
 }) {
   return (
-    <RaceCard
-      aria-labelledby="liste-courses"
-      className="gap-1.5 max-sm:p-4 sm:gap-2"
-    >
-      <h2 id="liste-courses" className="text-body-lg font-semibold">
+    <section aria-labelledby={id} className="flex flex-col gap-2">
+      <h2 id={id} className={panelHeading}>
         Liste de courses
       </h2>
       <dl>
         {rows.map((row) => (
           <div
             key={row.id}
-            className="flex justify-between gap-3 border-t border-border py-2 text-body sm:text-body"
+            className="flex min-h-row items-center justify-between gap-3 border-t border-border"
           >
             <dt>{row.name}</dt>
-            <dd className="text-body-lg font-semibold tabular-nums">
+            <dd data-slot="metric" className="font-semibold tabular-nums">
               {row.count}
             </dd>
           </div>
         ))}
       </dl>
-      {note && (
-        <span className="text-label text-muted-foreground max-lg:hidden">
-          {note}
-        </span>
-      )}
-    </RaceCard>
+      {note && <p className="text-label text-muted-foreground">{note}</p>}
+    </section>
   );
 }
 
@@ -131,18 +127,14 @@ export function ProductsCard({
     product.catalogueKey ? [product.catalogueKey] : [],
   );
   return (
-    <RaceCard aria-labelledby="mes-produits" className="gap-1.5 max-sm:p-4">
-      <div className="flex items-center gap-3">
-        <h2
-          id="mes-produits"
-          className="text-body-lg font-semibold sm:text-title"
-        >
-          Mes produits
-        </h2>
-        <AddProductButton added={added} className="ml-auto max-sm:min-h-9" />
-      </div>
+    <Widget
+      headingLevel={2}
+      title={<span id="mes-produits">Mes produits</span>}
+      verdict={<AddProductButton added={added} />}
+      aria-labelledby="mes-produits"
+    >
       {rows.length === 0 ? (
-        <p className="border-t border-border py-3 text-body text-secondary-foreground">
+        <p className="text-body text-secondary-foreground">
           Ajoute tes gels, boissons et barres : Stride calcule alors les
           quantités exactes de chaque tronçon.
         </p>
@@ -150,7 +142,7 @@ export function ProductsCard({
         <>
           <table className="w-full table-fixed border-collapse text-left text-body max-md:hidden">
             <thead>
-              <tr className="border-b border-control-border">
+              <tr className="border-b border-border">
                 {[
                   "Produit",
                   "Type",
@@ -168,27 +160,31 @@ export function ProductsCard({
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.product.id} className="border-b border-border">
-                  <th scope="row" className="px-2 py-3 align-top">
+                <tr
+                  key={row.product.id}
+                  className="border-b border-border last:border-b-0"
+                >
+                  <th scope="row" className="px-2 py-2.5 align-top">
                     <EditProductButton product={row.product} />
                   </th>
-                  <td className="px-2 py-3 align-top text-secondary-foreground">
+                  <td className="px-2 py-2.5 align-top text-secondary-foreground">
                     {row.kind}
                   </td>
                   {[row.carbs, row.sodium, row.caffeine].map((value, index) => (
                     <td
                       key={index}
-                      className="px-2 py-3 align-top text-[0.9375rem] font-semibold tabular-nums"
+                      data-slot="metric"
+                      className="px-2 py-2.5 align-top font-semibold tabular-nums"
                     >
                       {value}
                     </td>
                   ))}
-                  <td className="px-2 py-3 align-top text-secondary-foreground">
+                  <td className="px-2 py-2.5 align-top text-secondary-foreground">
                     {row.serving}
                   </td>
                   <td
                     className={cn(
-                      "px-2 py-3 align-top",
+                      "px-2 py-2.5 align-top",
                       row.product.tested ? "text-primary" : "text-warning",
                     )}
                   >
@@ -202,7 +198,7 @@ export function ProductsCard({
             {rows.map((row) => (
               <li
                 key={row.product.id}
-                className="flex flex-col items-start gap-0.5 border-t border-border py-2.25"
+                className="flex flex-col items-start gap-0.5 border-b border-border py-2 last:border-b-0"
               >
                 <EditProductButton
                   product={row.product}
@@ -231,11 +227,11 @@ export function ProductsCard({
           </ul>
         </>
       )}
-      <span className="text-label text-muted-foreground max-md:hidden">
+      <p className="pt-2 text-label text-muted-foreground max-md:hidden">
         Catalogue des marques courantes (Maurten, Näak, Overstims, Precision
         Fuel…) ou saisie libre.
-      </span>
-    </RaceCard>
+      </p>
+    </Widget>
   );
 }
 
@@ -297,398 +293,414 @@ export function NutritionBody({
   const rows = segmentRows(allocation, timeline);
   const tile = { raceId, revision: plan.revision };
   return (
-    <>
-      <NutritionistBanner
-        raceId={raceId}
-        proposal={proposal}
-        accepted={data.nutritionPlan !== null}
-        generic={allocation.generic}
-        productCount={products.length}
-        carbsPerHourG={plan.carbsPerHourG}
-        weather={weather?.mode ?? null}
-        updatedOn={
-          data.nutritionPlan
-            ? updatedFormat.format(new Date(data.nutritionPlan.updatedAt))
-            : null
-        }
-      />
-      <section
-        aria-label="Cibles nutrition"
-        className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5"
-      >
-        <NutritionTargetTile
-          key={`carbs-${plan.revision}`}
-          {...tile}
-          label="Glucides"
-          value={tiles.carbs.value}
-          detail={tiles.carbs.detail}
-          mobileDetail={tiles.carbs.mobile}
-          title="Glucides par heure"
-          fields={[
-            {
-              key: "carbsPerHourG",
-              label: "Glucides (g/h)",
-              value: plan.carbsPerHourG,
-              min: 20,
-              max: 120,
-            },
-          ]}
+    <div className="flex flex-col gap-5 md:gap-6 xl:flex-row xl:items-start">
+      <div className="flex min-w-0 flex-1 flex-col gap-5 md:gap-6">
+        <NutritionistBanner
+          raceId={raceId}
+          proposal={proposal}
+          accepted={data.nutritionPlan !== null}
+          generic={allocation.generic}
+          productCount={products.length}
+          carbsPerHourG={plan.carbsPerHourG}
+          weather={weather?.mode ?? null}
+          updatedOn={
+            data.nutritionPlan
+              ? updatedFormat.format(new Date(data.nutritionPlan.updatedAt))
+              : null
+          }
         />
-        <NutritionTargetTile
-          key={`water-${plan.revision}`}
-          {...tile}
-          label="Eau"
-          value={tiles.water.value}
-          detail={tiles.water.detail}
-          mobileDetail={tiles.water.mobile}
-          title="Eau et contenants"
-          fields={[
-            {
-              key: "waterMlPerHour",
-              label: "Eau (ml/h)",
-              value: plan.waterMlPerHour,
-              min: 100,
-              max: 1500,
-            },
-            {
-              key: "flaskCount",
-              label: "Flasques",
-              value: plan.flaskCount,
-              min: 0,
-              max: 6,
-            },
-            {
-              key: "flaskMl",
-              label: "Volume (ml)",
-              value: plan.flaskMl,
-              min: 100,
-              max: 1500,
-            },
-            {
-              key: "bladderMl",
-              label: "Poche à eau (ml)",
-              value: plan.bladderMl,
-              min: 250,
-              max: 3000,
-              optional: true,
-            },
-          ]}
-        />
-        <NutritionTargetTile
-          key={`sodium-${plan.revision}`}
-          {...tile}
-          label="Sodium"
-          value={tiles.sodium.value}
-          detail={tiles.sodium.detail}
-          title="Sodium par heure"
-          fields={[
-            {
-              key: "sodiumMgPerHour",
-              label: "Sodium (mg/h)",
-              value: plan.sodiumMgPerHour,
-              min: 0,
-              max: 2000,
-            },
-          ]}
-        />
-        <NutritionTargetTile
-          key={`caffeine-${plan.revision}`}
-          {...tile}
-          label="Caféine"
-          value={tiles.caffeine.value}
-          detail={tiles.caffeine.detail}
-          mobileDetail={tiles.caffeine.mobile}
-          title="Caféine sur la course"
-          fields={[
-            {
-              key: "caffeineMaxMg",
-              label: "Maximum (mg)",
-              value: plan.caffeineMaxMg,
-              min: 0,
-              max: 600,
-            },
-          ]}
-          nightCaffeine={plan.nightCaffeine}
-        />
-        <NutritionTargetTile
-          key={`alarm-${plan.revision}`}
-          {...tile}
-          label="Alarme"
-          value={tiles.alarm.value}
-          detail={tiles.alarm.detail}
-          title="Alarme de la montre"
-          className="max-lg:hidden"
-          fields={[
-            {
-              key: "alarmMinutes",
-              label: "Toutes les (min)",
-              value: plan.alarmMinutes,
-              min: 5,
-              max: 60,
-            },
-          ]}
-        />
-      </section>
-      <section
-        aria-label="Base commune"
-        className="flex flex-col gap-2 rounded-2xl border border-border p-3.5 text-body text-secondary-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:px-4.5"
-      >
-        <MonoLabel size="nano" tone="accent" className="sm:text-label">
-          Base commune
-        </MonoLabel>
-        <p className="leading-normal sm:min-w-65 sm:flex-1">
-          Ces chiffres sont aussi ta base d’entraînement : chaque séance de 1 h
-          30 ou plus suit {formatInteger(plan.carbsPerHourG)} g/h,{" "}
-          {formatInteger(plan.sodiumMgPerHour)} mg/h de sodium et{" "}
-          {formatInteger(plan.waterMlPerHour)} ml/h d’eau.
-        </p>
-        <Link
-          href="/nutrition"
-          className="inline-flex min-h-11 items-center text-primary hover:text-foreground sm:min-h-0"
+        <section
+          aria-label="Cibles nutrition"
+          className="grid grid-cols-2 gap-x-4 gap-y-1 border-y border-border py-2 sm:grid-cols-3 lg:grid-cols-5"
         >
-          Nutrition du jour →
-        </Link>
-      </section>
-      <div className="grid min-w-0 items-start gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
-          <RaceCard
-            aria-labelledby="au-depart"
-            className="gap-2 max-sm:p-4 sm:gap-3"
+          <NutritionTargetTile
+            key={`carbs-${plan.revision}`}
+            {...tile}
+            label="Glucides"
+            value={tiles.carbs.value}
+            detail={tiles.carbs.detail}
+            mobileDetail={tiles.carbs.mobile}
+            title="Glucides par heure"
+            fields={[
+              {
+                key: "carbsPerHourG",
+                label: "Glucides (g/h)",
+                value: plan.carbsPerHourG,
+                min: 20,
+                max: 120,
+              },
+            ]}
+          />
+          <NutritionTargetTile
+            key={`water-${plan.revision}`}
+            {...tile}
+            label="Eau"
+            value={tiles.water.value}
+            detail={tiles.water.detail}
+            mobileDetail={tiles.water.mobile}
+            title="Eau et contenants"
+            fields={[
+              {
+                key: "waterMlPerHour",
+                label: "Eau (ml/h)",
+                value: plan.waterMlPerHour,
+                min: 100,
+                max: 1500,
+              },
+              {
+                key: "flaskCount",
+                label: "Flasques",
+                value: plan.flaskCount,
+                min: 0,
+                max: 6,
+              },
+              {
+                key: "flaskMl",
+                label: "Volume (ml)",
+                value: plan.flaskMl,
+                min: 100,
+                max: 1500,
+              },
+              {
+                key: "bladderMl",
+                label: "Poche à eau (ml)",
+                value: plan.bladderMl,
+                min: 250,
+                max: 3000,
+                optional: true,
+              },
+            ]}
+          />
+          <NutritionTargetTile
+            key={`sodium-${plan.revision}`}
+            {...tile}
+            label="Sodium"
+            value={tiles.sodium.value}
+            detail={tiles.sodium.detail}
+            title="Sodium par heure"
+            fields={[
+              {
+                key: "sodiumMgPerHour",
+                label: "Sodium (mg/h)",
+                value: plan.sodiumMgPerHour,
+                min: 0,
+                max: 2000,
+              },
+            ]}
+          />
+          <NutritionTargetTile
+            key={`caffeine-${plan.revision}`}
+            {...tile}
+            label="Caféine"
+            value={tiles.caffeine.value}
+            detail={tiles.caffeine.detail}
+            mobileDetail={tiles.caffeine.mobile}
+            title="Caféine sur la course"
+            fields={[
+              {
+                key: "caffeineMaxMg",
+                label: "Maximum (mg)",
+                value: plan.caffeineMaxMg,
+                min: 0,
+                max: 600,
+              },
+            ]}
+            nightCaffeine={plan.nightCaffeine}
+          />
+          <NutritionTargetTile
+            key={`alarm-${plan.revision}`}
+            {...tile}
+            label="Alarme"
+            value={tiles.alarm.value}
+            detail={tiles.alarm.detail}
+            title="Alarme de la montre"
+            className="max-lg:hidden"
+            fields={[
+              {
+                key: "alarmMinutes",
+                label: "Toutes les (min)",
+                value: plan.alarmMinutes,
+                min: 5,
+                max: 60,
+              },
+            ]}
+          />
+        </section>
+        <section
+          aria-label="Base commune"
+          className="flex flex-col gap-1 text-body text-secondary-foreground sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3"
+        >
+          <span className="font-medium text-foreground">Base commune</span>
+          <p className="sm:min-w-65 sm:flex-1">
+            Ces chiffres sont aussi ta base d’entraînement : chaque séance de 1
+            h 30 ou plus suit {formatInteger(plan.carbsPerHourG)} g/h,{" "}
+            {formatInteger(plan.sodiumMgPerHour)} mg/h de sodium et{" "}
+            {formatInteger(plan.waterMlPerHour)} ml/h d’eau.
+          </p>
+          <Link
+            href="/nutrition"
+            className="inline-flex min-h-control-touch items-center text-primary hover:text-foreground md:min-h-0"
           >
-            <div className="flex items-baseline gap-3">
-              <h2
-                id="au-depart"
-                className="text-body-lg font-semibold sm:text-title"
-              >
-                Au départ
-                <span className="sm:hidden"> · {formatClock(startClock)}</span>
-              </h2>
-              <span className="ml-auto text-body text-muted-foreground max-sm:hidden">
-                {formatClock(startClock)} · {start?.name}
-              </span>
-            </div>
-            <div className="grid gap-3 max-sm:hidden sm:grid-cols-3">
-              {boxes.map((box) => (
-                <div
-                  key={box.label}
-                  className="flex min-w-0 flex-col gap-1.5 rounded-xl border border-border p-3.5"
+            Nutrition du jour
+          </Link>
+        </section>
+        <Widget
+          headingLevel={2}
+          title={<span id="plan-par-troncon">Plan par tronçon</span>}
+          verdict={
+            <span className="text-label font-normal text-muted-foreground">
+              calé sur le plan de course
+            </span>
+          }
+          aria-labelledby="plan-par-troncon"
+        >
+          <table className="w-full table-fixed border-collapse text-left text-body max-md:hidden">
+            <colgroup>
+              <col className="w-12" />
+              <col className="w-[22%]" />
+              <col className="w-30" />
+              <col className="w-[30%]" />
+              <col />
+            </colgroup>
+            <thead>
+              <tr className="border-b border-border">
+                <th scope="col" className={headClass}>
+                  <span className="sr-only">Numéro</span>
+                </th>
+                <th scope="col" className={headClass}>
+                  Tronçon
+                </th>
+                <th scope="col" className={headClass}>
+                  Glucides · eau · sodium
+                </th>
+                <th scope="col" className={headClass}>
+                  À prendre pendant
+                </th>
+                <th scope="col" className={headClass}>
+                  Au ravito d’arrivée
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-border align-top last:border-b-0"
                 >
-                  <MonoLabel size="micro">{box.label}</MonoLabel>
-                  <span className="text-body font-semibold">{box.value}</span>
-                  <span className="text-label text-muted-foreground">
-                    {box.detail}
+                  <td className="px-2 py-2.5">
+                    <SegmentBadge index={row.index} />
+                  </td>
+                  <th scope="row" className="px-2 py-2.5 font-normal">
+                    <span className="font-medium">{row.route}</span>
+                    <br />
+                    <span className="text-label text-muted-foreground">
+                      {row.timing}
+                    </span>
+                  </th>
+                  <td className="px-2 py-2.5">
+                    <span
+                      data-slot="metric"
+                      className="font-semibold tabular-nums"
+                    >
+                      {row.carbs}
+                    </span>
+                    <br />
+                    <span className="text-label whitespace-nowrap text-muted-foreground">
+                      {row.water} · {row.sodium}
+                    </span>
+                  </td>
+                  <td className="px-2 py-2.5">{row.eat}</td>
+                  <td className="px-2 py-2.5 text-secondary-foreground">
+                    {row.arrival}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <ol className="flex flex-col md:hidden">
+            {rows.map((row) => (
+              <li
+                key={row.id}
+                className="flex flex-col gap-1 border-b border-border py-2.5 first:pt-0 last:border-b-0 last:pb-0"
+              >
+                <div className="flex items-center gap-2">
+                  <SegmentBadge index={row.index} />
+                  <span className="min-w-0 font-medium">{row.route}</span>
+                  <span
+                    data-slot="metric"
+                    className="ml-auto font-semibold tabular-nums"
+                  >
+                    {row.carbs}
                   </span>
                 </div>
-              ))}
-            </div>
-            <dl className="flex flex-col sm:hidden">
+                <span className="flex gap-3 text-label text-secondary-foreground">
+                  <span>Eau {row.water}</span>
+                  <span>Sodium {row.sodium}</span>
+                </span>
+                <span>{row.eat}</span>
+                <span className="text-label text-muted-foreground">
+                  Au ravito : {row.arrival}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Widget>
+        <div className="grid min-w-0 items-start gap-3 lg:grid-cols-2">
+          <Widget
+            headingLevel={2}
+            title={
+              <span id="au-depart">
+                Au départ
+                <span className="sm:hidden"> · {formatClock(startClock)}</span>
+              </span>
+            }
+            verdict={
+              <span className="text-label font-normal text-muted-foreground tabular-nums max-sm:hidden">
+                {formatClock(startClock)} · {start?.name}
+              </span>
+            }
+            aria-labelledby="au-depart"
+          >
+            <dl className="flex flex-col">
               {boxes.map((box) => (
                 <div
                   key={box.label}
-                  className="flex items-center justify-between gap-2.5 border-t border-border py-2 text-body"
+                  className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-baseline gap-x-3 gap-y-0.5 border-b border-border py-2 first:pt-0 last:border-b-0 last:pb-0"
                 >
-                  <dt>
-                    <MonoLabel size="nano">
+                  <dt className="text-secondary-foreground">
+                    <span className="max-sm:hidden">{box.label}</span>
+                    <span className="sm:hidden">
                       {box.label
                         .split(" · ")[0]
                         .replace("Poches avant", "Poches")}
-                    </MonoLabel>
+                    </span>
                   </dt>
-                  <dd className="text-right">{box.value}</dd>
+                  <dd className="font-medium">{box.value}</dd>
+                  <dd className="col-start-2 text-label text-muted-foreground max-sm:hidden">
+                    {box.detail}
+                  </dd>
                 </div>
               ))}
             </dl>
-          </RaceCard>
-          <RaceCard aria-labelledby="teste-ravito" className="gap-2 max-sm:p-4">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h2 id="teste-ravito" className="text-body-lg font-semibold">
-                Teste ton ravito
-              </h2>
-              <span className="text-label text-muted-foreground sm:ml-auto">
+          </Widget>
+          <Widget
+            headingLevel={2}
+            title={<span id="teste-ravito">Teste ton ravito</span>}
+            verdict={
+              <span className="text-label font-normal text-muted-foreground max-sm:hidden">
                 Sorties de 1 h 30 ou plus avant la course
               </span>
-            </div>
-            {sessions.length ? (
-              <ul aria-label="Sorties pour tester ton ravito">
-                {sessions.map((session) => (
-                  <li
-                    key={session.sessionKey}
-                    className="flex items-start gap-2.5 border-t border-border py-2 text-body"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="mt-1 size-2.5 shrink-0 rounded-full bg-warning"
-                    />
-                    <span className="flex flex-1 flex-col gap-0.5">
-                      <Link
-                        href={sessionPanelHref(session.sessionKey)}
-                        className="hover:text-primary"
-                      >
-                        {formatShortDate(session.date)} · {session.title} ·{" "}
-                        {formatDuration(session.durationSeconds)}
-                      </Link>
-                      <span className="text-label text-muted-foreground">
-                        {formatInteger(session.carbsG.max)} g à{" "}
-                        {formatInteger(plan.carbsPerHourG)} g/h
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="border-t border-border pt-2 text-body text-secondary-foreground">
-                Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
-              </p>
-            )}
-            {tested.length ? (
-              <>
-                <MonoLabel size="micro" className="pt-2">
-                  Déjà validé
-                </MonoLabel>
-                <ul>
-                  {tested.map((row, index) => (
+            }
+            aria-labelledby="teste-ravito"
+          >
+            <div className="flex flex-col gap-2">
+              {sessions.length ? (
+                <ul aria-label="Sorties pour tester ton ravito">
+                  {sessions.map((session) => (
                     <li
-                      key={index}
-                      className="flex items-start gap-2.5 border-t border-border py-2 text-body"
+                      key={session.sessionKey}
+                      className="flex items-start gap-2.5 border-b border-border py-2 first:pt-0"
                     >
-                      {row.done ? (
-                        <CheckMark />
-                      ) : (
+                      <span
+                        aria-hidden="true"
+                        className="mt-1.5 size-3 shrink-0 rounded-full border border-muted-foreground"
+                      />
+                      <span className="flex flex-1 flex-col gap-0.5">
+                        <Link
+                          href={sessionPanelHref(session.sessionKey)}
+                          className="font-medium hover:text-primary"
+                        >
+                          {formatShortDate(session.date)} · {session.title} ·{" "}
+                          {formatDuration(session.durationSeconds)}
+                        </Link>
+                        <span className="text-label text-muted-foreground">
+                          {formatInteger(session.carbsG.max)} g à{" "}
+                          {formatInteger(plan.carbsPerHourG)} g/h
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-1.5 text-label font-medium text-warning">
                         <span
                           aria-hidden="true"
-                          className="mt-1 size-2.5 shrink-0 rounded-full border border-warning"
+                          className="size-1.5 rounded-full bg-current"
                         />
-                      )}
-                      <span className="flex-1">
-                        <span className="sr-only">
-                          {row.done ? "Testé : " : "À tester : "}
-                        </span>
-                        {row.text}
+                        À faire
                       </span>
                     </li>
                   ))}
                 </ul>
-              </>
-            ) : (
-              <p className="pt-1 text-label text-muted-foreground">
-                Coche « Testé à l’entraînement » dans Mes produits après ta
-                prochaine sortie longue.
-              </p>
-            )}
-            {sessions.length > 0 && (
-              <Link
-                href="/plan"
-                className="inline-flex min-h-11 items-center text-body text-primary hover:text-foreground sm:min-h-0"
-              >
-                Voir ces séances dans le plan →
-              </Link>
-            )}
-          </RaceCard>
+              ) : (
+                <p className="text-secondary-foreground">
+                  Aucune sortie de 1 h 30 ou plus prévue d’ici la course.
+                </p>
+              )}
+              {tested.length ? (
+                <>
+                  <h3 className="pt-1 text-label font-medium text-muted-foreground">
+                    Déjà validé
+                  </h3>
+                  <ul>
+                    {tested.map((row, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-2.5 border-b border-border py-2 last:border-b-0"
+                      >
+                        {row.done ? (
+                          <CheckMark />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="mt-1.5 size-3 shrink-0 rounded-full border border-warning"
+                          />
+                        )}
+                        <span className="flex-1">
+                          <span className="sr-only">
+                            {row.done ? "Testé : " : "À tester : "}
+                          </span>
+                          {row.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="text-label text-muted-foreground">
+                  Coche « Testé à l’entraînement » dans Mes produits après ta
+                  prochaine sortie longue.
+                </p>
+              )}
+              {sessions.length > 0 && (
+                <Link
+                  href="/plan"
+                  className="inline-flex min-h-control-touch items-center text-primary hover:text-foreground md:min-h-0"
+                >
+                  Voir ces séances dans le plan
+                </Link>
+              )}
+            </div>
+          </Widget>
         </div>
-        <aside
-          aria-label="Liste de courses"
-          className="flex flex-col gap-6 max-lg:hidden"
-        >
-          <ShoppingCard rows={shopping} note={bagNote} />
-        </aside>
+        <div className="flex flex-col gap-3 xl:hidden">
+          <ShoppingList
+            id="liste-courses-mobile"
+            rows={shopping}
+            note={bagNote}
+          />
+          <p className="text-label text-muted-foreground">
+            Repères d’entraînement, pas un avis médical. Adapte si quelque chose
+            ne passe pas en sortie longue.
+          </p>
+        </div>
       </div>
-      <section
-        aria-labelledby="plan-par-troncon"
-        className="flex min-w-0 flex-col gap-2 md:gap-1.5 md:rounded-2xl md:border md:border-border md:bg-card md:px-6 md:py-5.5"
+      <aside
+        aria-label="Contexte de l’alimentation"
+        className="flex flex-col gap-4 max-xl:hidden xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border xl:pl-5"
       >
-        <h2
-          id="plan-par-troncon"
-          className="text-body-lg font-semibold md:text-title"
-        >
-          Plan par tronçon
-        </h2>
-        <table className="w-full table-fixed border-collapse text-left text-body max-md:hidden">
-          <colgroup>
-            <col className="w-12" />
-            <col className="w-[22%]" />
-            <col className="w-30" />
-            <col className="w-[30%]" />
-            <col />
-          </colgroup>
-          <thead>
-            <tr className="border-b border-control-border">
-              <th scope="col" className={headClass}>
-                <span className="sr-only">Numéro</span>
-              </th>
-              <th scope="col" className={headClass}>
-                Tronçon
-              </th>
-              <th scope="col" className={headClass}>
-                Glucides
-                <br />
-                eau · sodium
-              </th>
-              <th scope="col" className={headClass}>
-                À prendre pendant
-              </th>
-              <th scope="col" className={headClass}>
-                Au ravito d’arrivée
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id} className="border-b border-border align-top">
-                <td className="px-2 py-3">
-                  <SegmentBadge index={row.index} />
-                </td>
-                <th scope="row" className="px-2 py-3 font-normal">
-                  <span className="font-medium">{row.route}</span>
-                  <br />
-                  <span className="text-label text-muted-foreground">
-                    {row.timing}
-                  </span>
-                </th>
-                <td className="px-2 py-3">
-                  <span className="text-[1.0625rem] font-semibold tabular-nums">
-                    {row.carbs}
-                  </span>
-                  <br />
-                  <span className="text-label whitespace-nowrap text-muted-foreground">
-                    {row.water} · {row.sodium}
-                  </span>
-                </td>
-                <td className="px-2 py-3">{row.eat}</td>
-                <td className="px-2 py-3 text-secondary-foreground">
-                  {row.arrival}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <ol className="flex flex-col gap-2 md:hidden">
-          {rows.map((row) => (
-            <li
-              key={row.id}
-              className="flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-3"
-            >
-              <div className="flex items-center gap-2">
-                <SegmentBadge index={row.index} />
-                <span className="text-body font-medium">{row.route}</span>
-                <span className="ml-auto text-body-lg font-semibold tabular-nums">
-                  {row.carbs}
-                </span>
-              </div>
-              <span className="flex gap-3 text-label text-secondary-foreground">
-                <span>Eau {row.water}</span>
-                <span>Sodium {row.sodium}</span>
-              </span>
-              <span className="text-body">{row.eat}</span>
-              <span className="text-label text-muted-foreground">
-                Au ravito : {row.arrival}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
-      <div className="lg:hidden">
-        <ShoppingCard rows={shopping} note={bagNote} />
-      </div>
-    </>
+        <ShoppingList id="liste-courses" rows={shopping} note={bagNote} />
+        <p className="border-t border-border pt-3 text-label text-muted-foreground">
+          Repères d’entraînement, pas un avis médical. Adapte si quelque chose
+          ne passe pas en sortie longue.
+        </p>
+      </aside>
+    </div>
   );
 }

@@ -24,7 +24,7 @@ export function Widget({
       )}
       {...props}
     >
-      <header className="flex h-row items-center gap-2 px-2.5 font-medium text-secondary-foreground">
+      <header className="flex min-h-row items-center gap-2 px-2.5 font-medium text-secondary-foreground">
         {icon && (
           <span aria-hidden="true" className="[&_svg]:size-4">
             {icon}

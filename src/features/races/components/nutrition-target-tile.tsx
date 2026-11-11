@@ -11,7 +11,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import { actionMessage } from "../messages";
 import { saveRacePlan } from "@/server/races/actions";
@@ -110,17 +109,20 @@ export function NutritionTargetTile({
         <button
           type="button"
           className={cn(
-            "flex min-w-0 flex-col gap-0.5 rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring sm:gap-1 sm:p-4",
+            "-mx-2 grid min-w-0 rounded-md px-2 py-1.5 text-left transition-colors duration-150 ease-stride hover:bg-muted",
             className,
           )}
         >
-          <MonoLabel size="nano" className="sm:text-label">
+          <span className="order-2 text-label text-secondary-foreground">
             {label}
-          </MonoLabel>
-          <span className="text-[1.375rem] leading-none font-semibold tabular-nums sm:text-[1.875rem]">
+          </span>
+          <span
+            data-slot="metric"
+            className="order-1 text-title font-semibold whitespace-nowrap tabular-nums"
+          >
             {value}
           </span>
-          <span className="text-[0.6875rem] text-muted-foreground sm:text-label">
+          <span className="order-3 text-label text-muted-foreground">
             <span className={cn(mobileDetail && "max-sm:hidden")}>
               {detail}
             </span>
@@ -131,7 +133,9 @@ export function NutritionTargetTile({
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={8} className="w-76 p-4">
         <form onSubmit={save} className="flex flex-col gap-3.5">
-          <MonoLabel size="micro">{title}</MonoLabel>
+          <p className="text-label font-medium text-muted-foreground">
+            {title}
+          </p>
           <div className={cn("grid gap-3", fields.length > 1 && "grid-cols-2")}>
             {fields.map((field) => (
               <div key={field.key} className="flex flex-col gap-1.5">
@@ -175,8 +179,7 @@ export function NutritionTargetTile({
           )}
           <Button
             type="submit"
-            size="md"
-            className="self-start rounded-lg text-body"
+            className="self-start"
             disabled={!valid || pending}
             aria-busy={pending}
           >

@@ -114,12 +114,12 @@ export default async function NutritionPage({
     return (
       <>
         {sheet}
-        <RaceCard>
-          <CardLabel>Nutrition de course</CardLabel>
+        <RaceCard aria-labelledby="nutrition-empty">
+          <CardLabel id="nutrition-empty">Nutrition de course</CardLabel>
           <EmptyState
             title="Prépare ton plan de nutrition"
             action={
-              <Button asChild variant="outline" size="md">
+              <Button asChild variant="outline">
                 <Link href={`/races/${id}${data.course ? "" : "/course"}`}>
                   {data.course
                     ? "Définir un objectif de temps"

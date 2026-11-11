@@ -1,7 +1,7 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { EmptyState, RaceCard } from "@/features/races/components/race-ui";
+import { EmptyState } from "@/features/races/components/race-ui";
 import { WaypointWorkspace } from "@/features/races/components/waypoint-workspace";
 import { mapData } from "@/features/races/map";
 import { profileData } from "@/features/races/profile";
@@ -18,16 +18,16 @@ export default async function WaypointsPage({
   if (data.race.kind === "road") redirect(`/races/${id}`);
   if (!data.course)
     return (
-      <RaceCard>
-        <EmptyState title="Ajoute le parcours">
-          <span>
-            Importe un GPX pour placer tes points de passage sur le tracé.
-          </span>
+      <EmptyState
+        title="Ajoute le parcours"
+        action={
           <Button asChild variant="outline">
             <Link href={`/races/${id}/course`}>Importer un GPX</Link>
           </Button>
-        </EmptyState>
-      </RaceCard>
+        }
+      >
+        Importe un GPX pour placer tes points de passage sur le tracé.
+      </EmptyState>
     );
   const views = planFor(data);
   if (!views) return null;

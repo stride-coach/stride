@@ -95,7 +95,7 @@ function MarkerShape({
           y={y + font * 0.36}
           textAnchor="middle"
           className={cn(
-            "font-bold tabular-nums",
+            "font-semibold tabular-nums",
             filled ? "fill-background" : "fill-foreground",
           )}
           fontSize={font}
@@ -122,7 +122,7 @@ function MarkerShape({
           y={y + font * 0.36}
           textAnchor="middle"
           className={cn(
-            "font-bold tabular-nums",
+            "font-semibold tabular-nums",
             active ? "fill-background" : "fill-foreground",
           )}
           fontSize={font}

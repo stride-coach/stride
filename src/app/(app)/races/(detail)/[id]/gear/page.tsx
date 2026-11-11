@@ -18,7 +18,7 @@ import {
   DropBagCard,
 } from "@/features/races/components/checklist-board";
 import { PrintSheetButton } from "@/features/races/components/print-sheet-button";
-import { StatusPill } from "@/features/races/components/race-ui";
+import { Status } from "@/components/stride/status";
 import {
   dropBagView,
   racePairView,
@@ -46,14 +46,23 @@ function Readiness({
     : 0;
   return (
     <section
-      aria-label="Préparation"
-      className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4"
+      aria-labelledby="gear-readiness"
+      className="flex flex-col gap-2.5 border-b border-border pb-4.5 xl:sticky xl:top-0 xl:col-start-2 xl:row-start-1 xl:border-b-0 xl:border-l xl:pb-0 xl:pl-5 print:border-0"
     >
-      <div className="flex items-baseline gap-2.5 md:items-center md:gap-4">
-        <span className="text-[2.125rem] leading-none font-semibold tracking-[-0.01em] whitespace-nowrap tabular-nums md:text-[2.5rem]">
+      <h2
+        id="gear-readiness"
+        className="text-label font-medium text-muted-foreground"
+      >
+        Préparation
+      </h2>
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <span
+          data-slot="metric"
+          className="text-metric font-semibold whitespace-nowrap tabular-nums"
+        >
           {readiness.ready} / {readiness.total}
         </span>
-        <span className="text-body text-secondary-foreground md:text-body">
+        <span className="text-body text-secondary-foreground">
           <span className="md:hidden">
             {readinessDetail(readiness, { short: true })}
           </span>
@@ -63,13 +72,13 @@ function Readiness({
       <Progress
         value={percent}
         aria-label={`${readiness.ready} éléments prêts sur ${readiness.total}`}
-        className="h-1.5 bg-border md:max-w-105 md:flex-1"
+        className="h-1.5 bg-muted"
       />
       <PrintSheetButton
         label="Imprimer la check-list"
         icon={false}
         size="md"
-        className="ml-auto max-md:hidden"
+        className="self-start max-md:hidden"
       />
     </section>
   );
@@ -87,24 +96,22 @@ function groupKey(items: ChecklistItem[]) {
 function PairLead({ pair }: { pair: RacePairView | null }) {
   if (!pair)
     return (
-      <p className="pb-2 text-body text-secondary-foreground">
+      <p className="py-2.5 text-body text-secondary-foreground">
         Aucune paire choisie pour cette course. Lie une paire à une ligne
         ci-dessous ou réserve-la dans Matériel.
       </p>
     );
   return (
-    <div className="flex flex-col gap-2.5 pb-2">
-      <div className="flex items-center gap-3 rounded-xl border border-primary/25 p-2.5 md:gap-3.5 md:p-3">
-        <span
+    <div className="flex flex-col gap-1.5 border-b border-border py-2.5">
+      <div className="flex items-center gap-3">
+        <NavGearIcon
           aria-hidden="true"
-          className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-muted max-md:hidden"
-        >
-          <NavGearIcon className="size-5.5" />
-        </span>
+          className="size-4 shrink-0 text-muted-foreground max-md:hidden"
+        />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <Link
             href={`/gear/${pair.id}`}
-            className="self-start text-[15px] font-semibold hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
+            className="self-start font-semibold hover:text-primary"
           >
             {pair.name}
           </Link>
@@ -113,14 +120,9 @@ function PairLead({ pair }: { pair: RacePairView | null }) {
             <span className="max-md:hidden"> · {pair.terrain}</span>
           </span>
         </span>
-        <StatusPill
-          tone="outline"
-          className="border-primary/35 text-[11px] text-primary md:text-label"
-        >
-          {pair.badge}
-        </StatusPill>
+        <Status level="ok">{pair.badge}</Status>
       </div>
-      <p className="text-body text-secondary-foreground max-md:hidden">
+      <p className="text-label text-secondary-foreground max-md:hidden">
         {pair.advice}
       </p>
     </div>
@@ -197,12 +199,12 @@ export default async function RaceGearPage({
 
   if (data.race.kind === "road")
     return (
-      <>
+      <div className="flex flex-col gap-4.5 xl:grid xl:grid-cols-[minmax(0,1fr)_var(--spacing-panel)] xl:items-start">
         <Readiness items={data.checklist} lists={prepLists} />
-        <div className="grid items-start gap-5 md:grid-cols-3 md:gap-6 print:grid-cols-3">
+        <div className="grid items-start gap-3 md:grid-cols-3 xl:col-start-1 xl:row-start-1 print:grid-cols-3">
           {prepLists.map((list) => group(list))}
         </div>
-      </>
+      </div>
     );
 
   const libraryRead = readNutritionLibrary(context).catch(() => ({
@@ -241,19 +243,19 @@ export default async function RaceGearPage({
   const fromTemplate = mandatory.some((item) => templateLabels.has(item.label));
 
   return (
-    <>
+    <div className="flex flex-col gap-4.5 xl:grid xl:grid-cols-[minmax(0,1fr)_var(--spacing-panel)] xl:items-start">
       <Readiness items={data.checklist} lists={trailChecklistLists} />
-      <div className="grid items-start gap-5 lg:grid-cols-2 lg:gap-6 print:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
+      <div className="grid items-start gap-3 lg:grid-cols-2 xl:col-start-1 xl:row-start-1 print:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-3">
           {group("gear_kit", {
             pairs,
             lead: <PairLead pair={pair} />,
             aside: (
               <Link
                 href="/gear"
-                className="text-body text-primary underline underline-offset-2 hover:text-foreground max-md:hidden print:hidden"
+                className="text-label text-primary hover:text-foreground max-md:hidden print:hidden"
               >
-                Matériel →
+                Matériel
               </Link>
             ),
             empty: null,
@@ -269,7 +271,7 @@ export default async function RaceGearPage({
           {group("gear_weather")}
           {group("gear_forbidden")}
         </div>
-        <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-3">
           {bags.map((bag, index) => (
             <DropBagCard
               key={`${bag.stationId}-${data.dropBag?.revision ?? 0}`}
@@ -283,6 +285,6 @@ export default async function RaceGearPage({
           {prepLists.map((list) => group(list))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
