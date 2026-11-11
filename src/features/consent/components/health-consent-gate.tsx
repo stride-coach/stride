@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Status } from "@/components/stride/status";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { signOut } from "@/server/auth/actions";
 import { giveHealthConsent } from "@/server/consent/actions";
@@ -65,21 +65,17 @@ export function HealthConsentGate({
         >
           <div className="flex flex-col gap-4.5 px-5 pt-5 md:gap-7 md:px-0 md:pt-0">
             {withdrawnOn && (
-              <span className="inline-flex min-h-7 w-fit items-center gap-2 rounded-full border border-border px-2.5 text-label text-warning">
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 rounded-full bg-warning"
-                />
+              <Status level="watch">
                 Consentement retiré le {withdrawnOn}
-              </span>
+              </Status>
             )}
             <div className="flex flex-col gap-2.5 md:gap-3.5">
-              <MonoLabel className="hidden md:block">
+              <p className="text-label font-medium text-muted-foreground max-md:hidden">
                 Données de santé
-              </MonoLabel>
+              </p>
               <h1
                 id="consent-title"
-                className="text-[1.875rem] leading-[1.05] font-semibold tracking-tight md:text-[2.75rem] md:leading-[1.04]"
+                className="text-verdict font-semibold text-balance md:text-display"
               >
                 Ton accord pour continuer
               </h1>
@@ -97,11 +93,11 @@ export function HealthConsentGate({
               {commitments.map((item) => (
                 <li
                   key={item.short}
-                  className="grid grid-cols-[1.125rem_1fr] gap-2.5 border-b border-border py-2.5 text-body last:border-b-0 md:grid-cols-[1.375rem_1fr] md:gap-3 md:py-3 md:text-body"
+                  className="grid grid-cols-[1rem_1fr] gap-2.5 border-b border-border py-2.5 last:border-b-0 md:gap-3 md:py-3"
                 >
                   <CheckIcon
                     aria-hidden="true"
-                    className="mt-0.5 size-3.5 text-primary md:mt-1 md:size-4"
+                    className="mt-0.5 size-3.5 text-primary"
                   />
                   <span>
                     <span className="hidden md:inline">{item.long}</span>
@@ -120,7 +116,7 @@ export function HealthConsentGate({
             </HealthConsentField>
             <div className="flex flex-wrap items-center gap-4">
               <Button
-                className="w-full md:w-auto md:px-5.5"
+                className="w-full md:w-auto"
                 disabled={!consent || pending}
                 onClick={submit}
               >
@@ -136,13 +132,13 @@ export function HealthConsentGate({
             >
               <Link
                 href="/settings/privacy"
-                className="flex min-h-11 items-center text-secondary-foreground hover:text-foreground"
+                className="flex min-h-control-touch items-center text-secondary-foreground hover:text-foreground md:min-h-control"
               >
                 Réglages
               </Link>
               <Link
                 href="/privacy"
-                className="hidden min-h-11 items-center text-secondary-foreground hover:text-foreground md:flex"
+                className="hidden min-h-control items-center text-secondary-foreground hover:text-foreground md:flex"
               >
                 Politique de confidentialité
               </Link>
@@ -153,7 +149,7 @@ export function HealthConsentGate({
               >
                 <button
                   type="submit"
-                  className="flex min-h-11 items-center text-secondary-foreground hover:text-foreground"
+                  className="flex min-h-control-touch items-center text-secondary-foreground hover:text-foreground md:min-h-control"
                 >
                   Se déconnecter
                 </button>

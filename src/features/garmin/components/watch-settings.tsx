@@ -36,8 +36,8 @@ export function WatchToggle({
     });
   }
   return (
-    <div className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 border-b border-border py-3.25">
-      <span id="watch-toggle-label">
+    <div className="grid min-h-row grid-cols-[1fr_auto] items-center gap-x-4 gap-y-0.5 border-b border-border py-3">
+      <span id="watch-toggle-label" className="font-medium">
         Envoyer les séances prévues à ta montre
       </span>
       <Switch
@@ -49,7 +49,7 @@ export function WatchToggle({
       />
       <span
         id="watch-toggle-detail"
-        className="col-span-full text-label leading-normal text-muted-foreground"
+        className="col-span-full text-label text-secondary-foreground"
       >
         {pending && checked
           ? "Envoi vers ta montre…"
@@ -73,10 +73,8 @@ export function WatchRowAction({
     <Button
       type="button"
       variant="outline"
-      size="sm"
       disabled={pending}
       onClick={() => send(action)}
-      className="rounded-md text-[13px] max-sm:h-11"
     >
       {pending ? "Envoi…" : label}
     </Button>

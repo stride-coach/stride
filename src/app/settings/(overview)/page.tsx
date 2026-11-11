@@ -10,10 +10,8 @@ import {
 import { cn } from "@/lib/utils";
 import { ageOn } from "@/features/settings/age";
 import { ModelQuestions } from "@/features/settings/components/model-questions";
-import {
-  SettingsGroup,
-  SettingsLinkRow,
-} from "@/features/settings/components/settings-shell";
+import { SettingsLinkRow } from "@/features/settings/components/settings-shell";
+import { Widget } from "@/components/stride/widget";
 import { loadAthleteProfile } from "@/server/onboarding/athlete-profile";
 import { readProfile } from "@/server/onboarding/profile";
 import { readGoals } from "@/server/onboarding/goals";
@@ -60,7 +58,7 @@ export default async function SettingsOverviewPage() {
       key: "garmin",
       count: counts.garmin,
       label: `${counts.garmin} ${counts.garmin > 1 ? "faits relevés" : "fait relevé"} par Garmin`,
-      className: "bg-foreground",
+      className: "bg-secondary-foreground",
     },
     {
       key: "athlete",
@@ -75,119 +73,113 @@ export default async function SettingsOverviewPage() {
       className: "bg-primary",
     },
   ];
+  const signOutAction = async () => {
+    "use server";
+    await signOut();
+  };
+  const profileDetail =
+    [
+      profile.values.height_cm && `${profile.values.height_cm} cm`,
+      profile.values.weight_kg && `${profile.values.weight_kg} kg`,
+      age !== null && `${age} ans`,
+    ]
+      .filter(Boolean)
+      .join(" · ") || "Renseigner mon profil";
   return (
     <>
-      <div className="mb-5 flex items-center gap-4 md:mb-8">
-        <span className="grid size-14 place-items-center rounded-lg bg-muted font-semibold">
+      <h1 className="sr-only">Réglages</h1>
+      <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-3">
+        <span
+          aria-hidden="true"
+          className="grid size-12 shrink-0 place-items-center rounded-full border border-control-border bg-muted text-body-lg font-semibold"
+        >
           {shell.athlete.initials}
         </span>
         <div className="min-w-0 flex-1">
-          <strong className="block truncate text-verdict">
+          <p className="truncate text-verdict font-semibold">
             {shell.athlete.name}
-          </strong>
-          <span className="block truncate text-body text-secondary-foreground">
+          </p>
+          <p className="truncate text-secondary-foreground">
             {context.email}
-            {memberSince && (
-              <span className="hidden md:inline">
-                {" "}
-                · membre depuis {memberSince}
-              </span>
-            )}
-          </span>
+            {memberSince && ` · membre depuis ${memberSince}`}
+          </p>
         </div>
-        <form
-          action={async () => {
-            "use server";
-            await signOut();
-          }}
-          className="hidden md:block"
-        >
-          <Button type="submit" variant="outline">
+        <form action={signOutAction} className="max-sm:w-full">
+          <Button type="submit" variant="outline" className="max-sm:w-full">
             Se déconnecter
           </Button>
         </form>
       </div>
-      <div className="mb-6 flex flex-col gap-2 rounded-lg border border-border bg-card p-4 md:mb-10 md:gap-4 md:px-6 md:py-5.5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2.5">
-          <div className="flex items-center gap-2.5">
-            <StrideMark className="hidden md:block" />
-            <h2 className="text-body font-semibold md:text-title">
-              <span className="md:hidden">Modèle d’athlète</span>
-              <span className="hidden md:inline">Ton modèle d’athlète</span>
-            </h2>
-          </div>
-          {updated && (
-            <span className="hidden text-body text-secondary-foreground md:block">
+      <Widget
+        headingLevel={2}
+        icon={<StrideMark />}
+        title={<span id="settings-model">Ton modèle d’athlète</span>}
+        verdict={
+          updated && (
+            <span className="text-label font-normal text-muted-foreground">
               Mis à jour le {updated}
             </span>
-          )}
+          )
+        }
+        aria-labelledby="settings-model"
+        className="mb-6"
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-secondary-foreground">
+            Garmin fournit les signaux. Stride en tire ton modèle, avec tes
+            réponses, tes objectifs et ta façon de réagir à l’entraînement.
+          </p>
+          <div
+            role="img"
+            aria-label={segments.map(({ label }) => label).join(", ")}
+            className="flex h-1.5 gap-0.5"
+          >
+            {segments.map(({ key, count, className }) => (
+              <span
+                key={key}
+                style={{ flexGrow: count }}
+                className={cn(
+                  "basis-0 first:rounded-l-mark last:rounded-r-mark",
+                  className,
+                )}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {segments.map(({ key, label, className }) => (
+              <span
+                key={key}
+                className="inline-flex items-center gap-1.5 text-label text-muted-foreground"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn("size-1.5 rounded-full", className)}
+                />
+                {label}
+              </span>
+            ))}
+          </div>
+          <ModelQuestions questions={questions} />
         </div>
-        <p className="hidden max-w-160 text-body leading-normal text-secondary-foreground md:block">
-          Garmin fournit les signaux. Stride en tire ton modèle, avec tes
-          réponses, tes objectifs et ta façon de réagir à l’entraînement.
-        </p>
-        <div
-          role="img"
-          aria-label={segments.map(({ label }) => label).join(", ")}
-          className="flex h-2 gap-0.5 md:h-2.5"
-        >
-          {segments.map(({ key, count, className }) => (
-            <span
-              key={key}
-              style={{ flexGrow: count }}
-              className={cn(
-                "basis-0 first:rounded-l-xs last:rounded-r-xs",
-                className,
-              )}
-            />
-          ))}
-        </div>
-        <p className="text-label text-muted-foreground md:hidden">
-          {counts.garmin} {counts.garmin > 1 ? "faits" : "fait"} Garmin ·{" "}
-          {counts.athlete} de toi · {counts.estimate}{" "}
-          {counts.estimate > 1 ? "estimés" : "estimé"}
-        </p>
-        <div className="hidden flex-wrap gap-x-5 gap-y-2 md:flex">
-          {segments.map(({ key, label, className }) => (
-            <span
-              key={key}
-              className="inline-flex items-center gap-1.5 text-label text-muted-foreground"
-            >
-              <span className={cn("size-2 rounded-xs", className)} />
-              {label}
-            </span>
-          ))}
-        </div>
-        <ModelQuestions questions={questions} />
-      </div>
-      <SettingsGroup title="Toi">
+      </Widget>
+      <nav
+        aria-label="Sections des réglages"
+        className="border-t border-border"
+      >
         <SettingsLinkRow
           href="/settings/profile"
-          title="Profil"
-          detail={
-            [
-              profile.values.height_cm && `${profile.values.height_cm} cm`,
-              profile.values.weight_kg && `${profile.values.weight_kg} kg`,
-              age !== null && `${age} ans`,
-            ]
-              .filter(Boolean)
-              .join(" · ") || "Renseigner mon profil"
-          }
+          title="Profil et zones"
+          detail={profileDetail}
         />
         <SettingsLinkRow
           href="/settings/training"
-          title="Entraînement et coach"
+          title="Entraînement et staff"
           detail={
             days ? `${days} jours par semaine` : "Renseigner mes disponibilités"
           }
         />
         <SettingsLinkRow
-          href="/settings/goals"
-          title="Objectifs et courses"
-          detail={races.join(" · ") || "Aucune course"}
-        />
-        <SettingsLinkRow
-          href="/settings/training#notifications"
+          href="/settings/notifications"
           title="Notifications"
           detail={pushSummary({
             configured: push.publicKey !== null,
@@ -195,8 +187,16 @@ export default async function SettingsOverviewPage() {
             preferences: push.preferences,
           })}
         />
-      </SettingsGroup>
-      <SettingsGroup title="Données">
+        <SettingsLinkRow
+          href="/settings/appearance"
+          title="Apparence et raccourcis"
+          detail="Thème · raccourcis clavier"
+        />
+        <SettingsLinkRow
+          href="/settings/goals"
+          title="Objectifs et courses"
+          detail={races.join(" · ") || "Aucune course"}
+        />
         <SettingsLinkRow
           href="/settings/connections"
           title="Connexions"
@@ -205,20 +205,9 @@ export default async function SettingsOverviewPage() {
         <SettingsLinkRow
           href="/settings/privacy"
           title="Données et confidentialité"
-          detail="Ce qu’on stocke · copie de tes réglages"
+          detail="Ce que Stride conserve · copie de tes réglages"
         />
-      </SettingsGroup>
-      <form
-        action={async () => {
-          "use server";
-          await signOut();
-        }}
-        className="fixed right-4 bottom-4 left-4 md:hidden"
-      >
-        <Button type="submit" variant="outline" className="w-full">
-          Se déconnecter
-        </Button>
-      </form>
+      </nav>
     </>
   );
 }

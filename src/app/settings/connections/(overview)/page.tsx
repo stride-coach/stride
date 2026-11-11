@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { ActivityIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+import { Widget } from "@/components/stride/widget";
 import { Button } from "@/components/ui/button";
-import { GarminConnectionLabel } from "@/features/data-activity/components/connection-status";
 import {
-  SettingsGroup,
-  SettingsHeading,
-} from "@/features/settings/components/settings-shell";
+  DataFigure,
+  DataRow,
+  DataSection,
+  GarminStatus,
+} from "@/features/settings/components/data-rows";
+import { SettingsHeading } from "@/features/settings/components/settings-shell";
 import { requireAthleteAccount } from "@/server/app/session";
 import {
   readSettingsConnection,
@@ -26,65 +30,64 @@ export default async function ConnexionsSettingsPage() {
         title="Connexions"
         description="Garmin fournit les activités et les données de santé de ton historique."
       />
-      <div className="mb-9 overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex flex-wrap items-center gap-4 p-5">
-          <span className="grid size-12 place-items-center rounded-md border border-control-border font-semibold">
-            G
-          </span>
-          <div className="flex-1">
-            <h2 className="text-title font-semibold">Garmin</h2>
-            <GarminConnectionLabel status={state.connection?.status ?? null} />
-          </div>
-          <Button variant="secondary" asChild>
-            <Link href="/settings/connections/garmin">Gérer</Link>
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 border-t border-border md:grid-cols-3">
-          <div className="p-5">
-            <strong className="block text-metric tabular-nums">
-              {counts.activities ?? "—"}
-            </strong>
-            <span className="text-label text-secondary-foreground tabular-nums">
-              Activités enregistrées
+      <div className="flex flex-col gap-9">
+        <Widget
+          headingLevel={2}
+          icon={<ActivityIcon />}
+          title={<span id="connection-garmin">Garmin</span>}
+          verdict={
+            <span className="text-label font-normal text-muted-foreground">
+              Principale · obligatoire
             </span>
+          }
+          aria-labelledby="connection-garmin"
+        >
+          <div className="flex flex-col gap-3.5">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+              <GarminStatus
+                status={state.connection?.status ?? null}
+                className="flex-1"
+              />
+              <Button variant="outline" asChild className="max-md:w-full">
+                <Link href="/settings/connections/garmin">Gérer</Link>
+              </Button>
+            </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-3.5 md:grid-cols-3">
+              <DataFigure
+                value={counts.activities ?? "—"}
+                label="Activités enregistrées"
+              />
+              <DataFigure
+                value={counts.observations ?? "—"}
+                label="Mesures de santé"
+              />
+              <DataFigure
+                className="col-span-2 md:col-span-1"
+                value={
+                  state.connection?.lastSyncAt
+                    ? new Date(state.connection.lastSyncAt).toLocaleString(
+                        "fr-FR",
+                        { timeZone: "Europe/Paris" },
+                      )
+                    : "Aucune synchro enregistrée"
+                }
+                valueClassName="text-body"
+                label="Dernière synchro"
+              />
+            </dl>
           </div>
-          <div className="border-l border-border p-5">
-            <strong className="block text-metric tabular-nums">
-              {counts.observations ?? "—"}
-            </strong>
-            <span className="text-label text-secondary-foreground tabular-nums">
-              Mesures de santé
-            </span>
-          </div>
-          <div className="col-span-2 border-t border-border p-5 md:col-span-1 md:border-t-0 md:border-l">
-            <strong className="block text-body">
-              {state.connection?.lastSyncAt
-                ? new Date(state.connection.lastSyncAt).toLocaleString(
-                    "fr-FR",
-                    { timeZone: "Europe/Paris" },
-                  )
-                : "Aucune synchro enregistrée"}
-            </strong>
-            <span className="text-label text-secondary-foreground tabular-nums">
-              Dernière synchro
-            </span>
-          </div>
-        </div>
+        </Widget>
+        <DataSection id="connection-others" title="Autres sources">
+          <DataRow
+            title="Autres montres et applications"
+            detail="Les autres fournisseurs ne sont pas encore pris en charge."
+          />
+          <DataRow
+            title="Saisie manuelle"
+            detail="L’ajout de séances sans montre n’est pas encore disponible."
+          />
+        </DataSection>
       </div>
-      <SettingsGroup title="Autres sources">
-        <div className="border-b border-border p-4 md:px-0">
-          <strong className="text-body">Autres montres et applications</strong>
-          <p className="mt-1 text-body text-secondary-foreground">
-            Les autres fournisseurs ne sont pas encore pris en charge.
-          </p>
-        </div>
-        <div className="p-4 md:px-0">
-          <strong className="text-body">Saisie manuelle</strong>
-          <p className="mt-1 text-body text-secondary-foreground">
-            L’ajout de séances sans montre n’est pas encore disponible.
-          </p>
-        </div>
-      </SettingsGroup>
     </>
   );
 }

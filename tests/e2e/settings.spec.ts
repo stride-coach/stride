@@ -111,7 +111,7 @@ test("desktop settings reflect stored athlete data and expose every supported se
     page.getByRole("button", { name: "Se déconnecter" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /Profil.*35 ans/ }),
+    page.getByRole("link", { name: /Profil et zones.*35 ans/ }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 1, name: "Réglages" }),
@@ -142,10 +142,10 @@ test("desktop settings reflect stored athlete data and expose every supported se
   );
   await page
     .getByRole("navigation", { name: "Réglages personnels" })
-    .getByRole("link", { name: "Entraînement et coach" })
+    .getByRole("link", { name: "Entraînement et staff" })
     .click();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Entraînement et coach" }),
+    page.getByRole("heading", { level: 1, name: "Entraînement et staff" }),
   ).toBeVisible();
   await expect(page.getByRole("radio", { name: "Trail" })).toBeChecked();
   await page.getByText("Route", { exact: true }).click();
@@ -254,7 +254,7 @@ test("mobile settings keep a narrow viewport navigable", async ({ page }) => {
   ).toBe(true);
 });
 
-test("settings pages use the available desktop width and center on wide screens", async ({
+test("settings pages keep a centred reading column on every width", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -264,6 +264,8 @@ test("settings pages use the available desktop width and center on wide screens"
     "/settings",
     "/settings/profile",
     "/settings/training",
+    "/settings/notifications",
+    "/settings/appearance",
     "/settings/goals",
     "/settings/connections",
     "/settings/connections/garmin",
@@ -275,7 +277,7 @@ test("settings pages use the available desktop width and center on wide screens"
     const content = page.locator('[data-slot="settings-content"]');
     await expect(content).toBeVisible();
     const bounds = await content.boundingBox();
-    expect(bounds?.width).toBeGreaterThan(1000);
+    expect(bounds?.width).toBeLessThanOrEqual(720);
     if (route === "/settings") {
       await page.screenshot({
         path: "test-results/settings-laptop-layout.png",
@@ -286,8 +288,6 @@ test("settings pages use the available desktop width and center on wide screens"
   await page.setViewportSize({ width: 2560, height: 1440 });
   await page.goto("/settings/connections/garmin");
   const content = page.locator('[data-slot="settings-content"]');
-  const bounds = await content.boundingBox();
-  expect(bounds?.width).toBe(1440);
   const gaps = await content.evaluate((element) => {
     const parent = element.parentElement;
     const parentBox = parent!.getBoundingClientRect();
@@ -312,11 +312,7 @@ test("desktop settings keep the account footer fixed", async ({ page }) => {
     await page.goto(`/settings/${section}`);
     const footer = page.locator('[data-slot="settings-account"]');
     const before = await footer.boundingBox();
-    const settingsAvatar = await footer
-      .getByText("JU", { exact: true })
-      .boundingBox();
     expect(before).not.toBeNull();
-    expect(settingsAvatar).not.toBeNull();
 
     const scroller = page
       .locator('[data-slot="settings-content"]')

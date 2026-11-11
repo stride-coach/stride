@@ -12,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { Button } from "@/components/ui/button";
 import { withdrawHealthConsent } from "@/server/consent/actions";
 
@@ -51,11 +50,7 @@ export function WithdrawConsentButton({ contact }: { contact: string }) {
     });
   return (
     <>
-      <Button
-        variant="destructive"
-        className="max-md:w-full"
-        onClick={() => setOpen(true)}
-      >
+      <Button variant="outline" onClick={() => setOpen(true)}>
         Retirer mon consentement
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -71,20 +66,18 @@ export function WithdrawConsentButton({ contact }: { contact: string }) {
             {changes.map((change) => (
               <div
                 key={change.label}
-                className="flex flex-col gap-0.75 border-b border-border py-2.25 text-body last:border-b-0 md:grid md:grid-cols-[4.375rem_1fr] md:gap-3.5 md:py-3.25"
+                className="flex flex-col gap-0.5 border-b border-border py-2.5 last:border-b-0 md:grid md:grid-cols-[5rem_1fr] md:gap-3.5 md:py-3"
               >
-                <dt>
-                  <MonoLabel
-                    size="micro"
-                    tone={change.tone === "warning" ? "warning" : undefined}
-                    className={
-                      change.tone === "success" ? "text-primary" : undefined
-                    }
-                  >
-                    {change.label}
-                  </MonoLabel>
+                <dt
+                  className={
+                    change.tone === "warning"
+                      ? "font-medium text-warning"
+                      : "font-medium text-primary"
+                  }
+                >
+                  {change.label}
                 </dt>
-                <dd>{change.body}</dd>
+                <dd className="text-secondary-foreground">{change.body}</dd>
               </div>
             ))}
           </dl>
