@@ -101,7 +101,10 @@ function Plot({
           );
         })}
       </g>
-      <g className="fill-destructive" opacity="0.12">
+      <g
+        className="fill-destructive motion-safe:animate-chart-fade"
+        opacity="0.12"
+      >
         {chart.overload.map((range) => {
           const left = x(range.from);
           const right = Math.max(left + 2, x(range.to));
@@ -123,49 +126,55 @@ function Plot({
         y2={frame.baseline}
         className="stroke-control-border"
       />
-      <path
-        d={path(
-          chart.points.map((point) => [x(point.day), y(point.condition)]),
-        )}
-        fill="none"
-        strokeWidth="2.2"
-        strokeLinejoin="round"
-        className="stroke-foreground"
-      />
-      <path
-        d={path(chart.points.map((point) => [x(point.day), y(point.fatigue)]))}
-        fill="none"
-        strokeWidth="1.6"
-        strokeDasharray="5 4"
-        strokeLinejoin="round"
-        className="stroke-destructive"
-      />
+      <g data-slot="load-lines" className="motion-safe:animate-chart-draw">
+        <path
+          d={path(
+            chart.points.map((point) => [x(point.day), y(point.condition)]),
+          )}
+          fill="none"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+          className="stroke-foreground"
+        />
+        <path
+          d={path(
+            chart.points.map((point) => [x(point.day), y(point.fatigue)]),
+          )}
+          fill="none"
+          strokeWidth="1.6"
+          strokeDasharray="5 4"
+          strokeLinejoin="round"
+          className="stroke-destructive"
+        />
+      </g>
       <g className="tabular-nums" fontSize={frame.font}>
-        {chart.markers.map((marker, index) => {
-          const markerX = x(marker.day);
-          const labelY = frame.top - 12 + (index % 2) * (frame.font + 6);
-          const end = markerX > frame.width * 0.7;
-          return (
-            <g key={`${marker.day}-${marker.name}`}>
-              <line
-                x1={markerX}
-                x2={markerX}
-                y1={labelY + 2}
-                y2={frame.baseline}
-                strokeDasharray="2 3"
-                className="stroke-data-1"
-              />
-              <text
-                x={end ? markerX - 6 : markerX + 6}
-                y={labelY}
-                textAnchor={end ? "end" : "start"}
-                className="fill-foreground"
-              >
-                {`${marker.name} · ${formatDayMonthShort(marker.day)}`}
-              </text>
-            </g>
-          );
-        })}
+        <g className="motion-safe:animate-chart-marks">
+          {chart.markers.map((marker, index) => {
+            const markerX = x(marker.day);
+            const labelY = frame.top - 12 + (index % 2) * (frame.font + 6);
+            const end = markerX > frame.width * 0.7;
+            return (
+              <g key={`${marker.day}-${marker.name}`}>
+                <line
+                  x1={markerX}
+                  x2={markerX}
+                  y1={labelY + 2}
+                  y2={frame.baseline}
+                  strokeDasharray="2 3"
+                  className="stroke-data-1"
+                />
+                <text
+                  x={end ? markerX - 6 : markerX + 6}
+                  y={labelY}
+                  textAnchor={end ? "end" : "start"}
+                  className="fill-foreground"
+                >
+                  {`${marker.name} · ${formatDayMonthShort(marker.day)}`}
+                </text>
+              </g>
+            );
+          })}
+        </g>
         {ticks.map((tick, index) => (
           <text
             key={tick}

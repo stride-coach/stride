@@ -149,6 +149,11 @@ const motion = [
     "600 ms, 80 ms stagger",
   ],
   ["Key figures — count up once", "CountUp", "500 ms"],
+  [
+    "Load chart — band fades, lines draw, markers last",
+    "animate-chart-draw",
+    "700 ms",
+  ],
 ] as const;
 
 const session = [
