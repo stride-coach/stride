@@ -76,7 +76,7 @@ Separate zones with a one-pixel `border` and a change of background, never a sha
 
 ## Halo
 
-The Night Track halo (`src/components/stride/halo.tsx`) still renders on auth, onboarding welcome and highlight moments, mapped to the neutral `relief-strong` with a `primary` end point, until the relief replaces it and it is removed in #407. Do not add new uses.
+The Night Track halo (`src/components/stride/halo.tsx`) no longer renders in the product: auth and onboarding use the relief instead. It remains only in the `/design-system` gallery until #407 removes it. Do not add new uses.
 
 ## Components and shadcn
 
