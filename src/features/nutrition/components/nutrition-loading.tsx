@@ -1,60 +1,54 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoadingScope } from "@/features/data-activity/components/loading";
 
+function WidgetLoading({ title, rows }: { title: string; rows: number }) {
+  return (
+    <div className="rounded-xl border border-border bg-muted px-1 pb-1">
+      <p className="flex h-row items-center px-2.5 font-medium text-secondary-foreground">
+        {title}
+      </p>
+      <div
+        aria-hidden="true"
+        className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3.5"
+      >
+        {Array.from({ length: rows }, (_, index) => (
+          <Skeleton key={index} className="h-5 w-full" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function NutritionLoading() {
   return (
     <LoadingScope
       label="Chargement de la nutrition"
-      className="flex flex-col gap-6.5 sm:gap-12"
+      className="flex flex-col xl:flex-row xl:items-start"
     >
-      <section
-        aria-hidden="true"
-        className="flex max-w-205 flex-col gap-2.5 sm:gap-3"
-      >
-        <Skeleton className="h-3 w-48" />
-        <Skeleton className="h-7 w-3/4 sm:h-12" />
-        <Skeleton className="h-10 w-full sm:h-12" />
-        <div className="flex gap-2.5 pt-1.5 max-sm:hidden">
-          <Skeleton className="h-9 w-40 rounded-lg" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div
+          aria-hidden="true"
+          className="flex flex-col gap-2.5 border-b border-border px-4 py-4.5 md:px-5"
+        >
+          <Skeleton className="h-3 w-48" />
+          <Skeleton className="h-6 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-control-auto w-64" />
         </div>
-      </section>
-      <section
-        aria-hidden="true"
-        className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] sm:gap-8 sm:border-y sm:border-border sm:py-7"
-      >
-        {[0, 1, 2, 3].map((item) => (
-          <div
-            key={item}
-            className="flex flex-col gap-1.5 rounded-2xl border border-border bg-muted p-3.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
-          >
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-8 w-24 sm:h-12" />
-            <Skeleton className="h-3 w-3/4" />
-          </div>
-        ))}
-      </section>
-      <section
-        aria-hidden="true"
-        className="grid grid-cols-[repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-x-10 gap-y-6.5"
-      >
-        {[0, 1].map((item) => (
-          <div key={item} className="flex flex-col gap-2 sm:gap-2.5">
-            <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-11 w-28" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ))}
-      </section>
-      <section aria-hidden="true" className="flex flex-col gap-3.5">
-        <Skeleton className="h-5 w-48" />
-        <div className="flex flex-col">
-          {Array.from({ length: 6 }, (_, item) => (
-            <div key={item} className="border-t border-border py-3">
-              <Skeleton className="h-6 w-full" />
-            </div>
-          ))}
+        <div className="grid items-start gap-3 px-4 py-4.5 md:px-5">
+          <WidgetLoading title="Objectifs du jour" rows={2} />
+          <WidgetLoading title="Ta journée" rows={4} />
+          <WidgetLoading title="Les 7 prochains jours" rows={7} />
         </div>
-      </section>
+      </div>
+      <div className="flex flex-col gap-3 px-4 py-4.5 md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border">
+        <p className="text-label font-medium text-muted-foreground">
+          Ta base de ravito
+        </p>
+        {Array.from({ length: 3 }, (_, index) => (
+          <Skeleton key={index} aria-hidden="true" className="h-5 w-full" />
+        ))}
+      </div>
     </LoadingScope>
   );
 }
