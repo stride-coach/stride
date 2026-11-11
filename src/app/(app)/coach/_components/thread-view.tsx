@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { createContext, useContext, useId } from "react";
 import { CheckIcon, RotateCcwIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContextChipLink } from "@/components/stride/context-chip";
@@ -18,6 +18,10 @@ import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
 import { dayLabel, sameDay, timeLabel } from "@/features/coach/conversations";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { Markdown } from "@/features/coach/components/markdown";
+import {
+  Highlighted,
+  type Highlight,
+} from "@/features/coach/components/highlighted";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { summaryCard } from "@/features/coach/topics";
 import { staff as allStaff } from "@/features/coach/staff";
@@ -32,6 +36,27 @@ import {
 } from "@/features/coach/thread";
 import { ProposalLink } from "../../plan/_components/proposal-sheet";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+
+export type ThreadSearch = {
+  query: string;
+  currentId: string | null;
+  matchIds: ReadonlySet<string>;
+} | null;
+
+const SearchContext = createContext<ThreadSearch>(null);
+
+function useHighlight(itemId: string | undefined): Highlight {
+  const search = useContext(SearchContext);
+  if (!search || !itemId || !search.matchIds.has(itemId)) return null;
+  return { query: search.query, current: itemId === search.currentId };
+}
+
+function searchMark(itemId: string | undefined, highlight: Highlight) {
+  return {
+    "data-item-id": itemId,
+    "data-search-current": highlight?.current ? "true" : undefined,
+  };
+}
 
 function StaffName({ agent }: { agent: StaffAgent }) {
   return (
@@ -83,9 +108,11 @@ function QuestionCard({
 }) {
   const staff = allStaff;
   const titleId = useId();
+  const highlight = useHighlight(block.itemId);
   const pending = block.state === "pending";
   return (
     <Widget
+      {...searchMark(block.itemId, highlight)}
       role="group"
       aria-labelledby={titleId}
       title={questionAttribution(staff[block.askedFor])}
@@ -108,7 +135,7 @@ function QuestionCard({
     >
       <div className="flex flex-col gap-2.5">
         <p id={titleId} className="font-medium">
-          {block.question}
+          <Highlighted text={block.question} highlight={highlight} />
         </p>
         {block.options.length > 0 && (pending || block.answer) && (
           <div className="flex flex-wrap gap-1.5">
@@ -180,9 +207,11 @@ function ProposalCard({
   block: Extract<StaffBlock, { type: "proposal" }>;
 }) {
   const staff = allStaff;
+  const highlight = useHighlight(block.itemId);
   const status = proposalStatus[block.status];
   return (
     <Widget
+      {...searchMark(block.itemId, highlight)}
       title={proposalKickers[block.scope]}
       verdict={
         status.level ? (
@@ -197,9 +226,13 @@ function ProposalCard({
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <p className="text-body-lg font-semibold">{block.title}</p>
+          <p className="text-body-lg font-semibold">
+            <Highlighted text={block.title} highlight={highlight} />
+          </p>
           {block.summary && (
-            <p className="text-secondary-foreground">{block.summary}</p>
+            <p className="text-secondary-foreground">
+              <Highlighted text={block.summary} highlight={highlight} />
+            </p>
           )}
         </div>
         {block.opinions.length > 0 && (
@@ -253,6 +286,18 @@ function ProposalCard({
   );
 }
 
+function TextBlock({ itemId, text }: { itemId?: string; text: string }) {
+  const highlight = useHighlight(itemId);
+  return (
+    <Markdown
+      {...searchMark(itemId, highlight)}
+      text={text}
+      highlight={highlight}
+      className="max-w-150"
+    />
+  );
+}
+
 function StaffMessage({
   entry,
   timeZone,
@@ -273,7 +318,7 @@ function StaffMessage({
       {entry.blocks.map((block, index) => {
         if (block.type === "text")
           return (
-            <Markdown key={index} text={block.text} className="max-w-150" />
+            <TextBlock key={index} itemId={block.itemId} text={block.text} />
           );
         if (block.type === "question")
           return (
@@ -289,7 +334,11 @@ function StaffMessage({
         if (block.type === "proposal")
           return <ProposalCard key={index} block={block} />;
         return (
-          <div key={index} className="flex flex-col items-start gap-2">
+          <div
+            key={index}
+            data-item-id={block.itemId}
+            className="flex flex-col items-start gap-2"
+          >
             <p className="text-body text-destructive">{block.text}</p>
             {onRetry && index === entry.blocks.length - 1 && (
               <Button
@@ -326,9 +375,11 @@ function TopicSummaryMessage({
   timeZone: string;
 }) {
   const card = summaryCard(entry.item, timeZone);
+  const highlight = useHighlight(entry.item.id);
   return (
     <StaffRow agent={card.lead} time={timeLabel(entry.at, timeZone)}>
       <Widget
+        {...searchMark(entry.item.id, highlight)}
         title={card.heading}
         icon={<StrideMark />}
         verdict={
@@ -340,7 +391,9 @@ function TopicSummaryMessage({
       >
         <div className="flex flex-col gap-3">
           {card.summary ? (
-            <p className="text-secondary-foreground">{card.summary}</p>
+            <p className="text-secondary-foreground">
+              <Highlighted text={card.summary} highlight={highlight} />
+            </p>
           ) : null}
           <div className="flex flex-wrap gap-1.5">
             {card.chips.map((chip) => (
@@ -407,6 +460,7 @@ function AthleteMessage({
   timeZone: string;
 }) {
   const staff = allStaff;
+  const highlight = useHighlight(entry.itemId);
   const target = entry.replyTo ?? entry.consult;
   return (
     <div className="flex max-w-[84%] flex-col items-end gap-1 self-end sm:max-w-[72%]">
@@ -418,8 +472,11 @@ function AthleteMessage({
             : `@${staff[target].name}`}
         </span>
       )}
-      <div className="rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap">
-        {entry.text}
+      <div
+        {...searchMark(entry.itemId, highlight)}
+        className="rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap"
+      >
+        <Highlighted text={entry.text} highlight={highlight} />
         <SentChips attachments={entry.attachments} />
       </div>
       <span className="text-label text-muted-foreground tabular-nums">
@@ -438,8 +495,10 @@ export function ThreadLog({
   onAnswer,
   onOther,
   onRetry,
+  search = null,
 }: {
   entries: ThreadEntry[];
+  search?: ThreadSearch;
   pending: { text: string; attachments: SentAttachment[] } | null;
   timeZone: string;
   now: Date;
@@ -449,55 +508,59 @@ export function ThreadLog({
   onRetry?: () => void;
 }) {
   return (
-    <div
-      role="log"
-      aria-label="Messages"
-      className="mx-auto flex w-full max-w-180 flex-col gap-5.5 px-4 pt-4.5 pb-6 md:px-5"
-    >
-      {entries.map((entry, index) => {
-        const previous = entries[index - 1];
-        const separator =
-          !previous || !sameDay(previous.at, entry.at, timeZone);
-        return (
-          <div key={entry.key} className="flex flex-col gap-5.5">
-            {separator && (
-              <div className="flex items-center gap-3" aria-hidden="true">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-label text-muted-foreground">
-                  {dayLabel(entry.at, now, timeZone)}
-                </span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-            )}
-            {entry.type === "athlete" ? (
-              <AthleteMessage entry={entry} timeZone={timeZone} />
-            ) : entry.type === "topic_summary" ? (
-              <TopicSummaryMessage entry={entry} timeZone={timeZone} />
-            ) : entry.type === "typing" ? (
-              <TypingMessage entry={entry} />
-            ) : (
-              <StaffMessage
-                entry={entry}
-                timeZone={timeZone}
-                onAnswer={onAnswer}
-                onOther={onOther}
-                onRetry={
-                  index === entries.length - 1 && !pending ? onRetry : undefined
-                }
-                busy={busy}
-              />
-            )}
+    <SearchContext value={search}>
+      <div
+        role="log"
+        aria-label="Messages"
+        className="mx-auto flex w-full max-w-180 flex-col gap-5.5 px-4 pt-4.5 pb-6 md:px-5"
+      >
+        {entries.map((entry, index) => {
+          const previous = entries[index - 1];
+          const separator =
+            !previous || !sameDay(previous.at, entry.at, timeZone);
+          return (
+            <div key={entry.key} className="flex flex-col gap-5.5">
+              {separator && (
+                <div className="flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-label text-muted-foreground">
+                    {dayLabel(entry.at, now, timeZone)}
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )}
+              {entry.type === "athlete" ? (
+                <AthleteMessage entry={entry} timeZone={timeZone} />
+              ) : entry.type === "topic_summary" ? (
+                <TopicSummaryMessage entry={entry} timeZone={timeZone} />
+              ) : entry.type === "typing" ? (
+                <TypingMessage entry={entry} />
+              ) : (
+                <StaffMessage
+                  entry={entry}
+                  timeZone={timeZone}
+                  onAnswer={onAnswer}
+                  onOther={onOther}
+                  onRetry={
+                    index === entries.length - 1 && !pending
+                      ? onRetry
+                      : undefined
+                  }
+                  busy={busy}
+                />
+              )}
+            </div>
+          );
+        })}
+        {pending && (
+          <div className="flex max-w-[84%] flex-col self-end rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap opacity-70">
+            {pending.text}
+            <SentChips attachments={pending.attachments} />
+            <span className="sr-only">Envoi en cours</span>
           </div>
-        );
-      })}
-      {pending && (
-        <div className="flex max-w-[84%] flex-col self-end rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap opacity-70">
-          {pending.text}
-          <SentChips attachments={pending.attachments} />
-          <span className="sr-only">Envoi en cours</span>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </SearchContext>
   );
 }
 

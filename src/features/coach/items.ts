@@ -79,7 +79,7 @@ export type ThreadItemKind = keyof typeof bodies;
 export const threadItemKinds = Object.keys(bodies) as ThreadItemKind[];
 
 export type ThreadItem = {
-  [Kind in ThreadItemKind]: { kind: Kind; at: string } & z.output<
+  [Kind in ThreadItemKind]: { kind: Kind; at: string; id?: string } & z.output<
     (typeof bodies)[Kind]
   >;
 }[ThreadItemKind];
@@ -92,6 +92,7 @@ export type ItemOf<Kind extends ThreadItemKind> = Extract<
 export type ProposalOpinion = z.output<typeof opinionSchema>;
 
 export function parseThreadItem(row: {
+  id?: string;
   kind: string;
   body: unknown;
   created_at: string;
@@ -100,7 +101,12 @@ export function parseThreadItem(row: {
   const kind = row.kind as ThreadItemKind;
   const parsed = bodies[kind].safeParse(row.body);
   if (!parsed.success) return null;
-  return { kind, at: row.created_at, ...parsed.data } as ThreadItem;
+  return {
+    kind,
+    at: row.created_at,
+    ...(row.id === undefined ? {} : { id: row.id }),
+    ...parsed.data,
+  } as ThreadItem;
 }
 
 export function clampItem(item: ThreadItem): ThreadItem {
@@ -115,5 +121,6 @@ export function itemBody(item: ThreadItem): Record<string, unknown> {
   const body: Record<string, unknown> = { ...item };
   delete body.kind;
   delete body.at;
+  delete body.id;
   return body;
 }

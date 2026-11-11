@@ -199,6 +199,24 @@ export async function listMainSessions(
   return z.array(rowSchema).parse(data ?? []);
 }
 
+export async function listAllOwnSessions(
+  context: OnboardingContext,
+): Promise<CoachSessionRecord[]> {
+  const rows: unknown[] = [];
+  for (let offset = 0; ; offset += searchPage) {
+    const { data, error } = await context.client
+      .from("coach_sessions")
+      .select(columns)
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + searchPage - 1);
+    if (error) throw new Error("Unable to list the coach sessions");
+    rows.push(...(data ?? []));
+    if ((data ?? []).length < searchPage) break;
+  }
+  return z.array(rowSchema).parse(rows);
+}
+
 export async function findLatestMainSession(
   context: OnboardingContext,
 ): Promise<CoachSessionRecord | null> {
@@ -255,6 +273,7 @@ export async function appendThreadItem(
 }
 
 const itemRowSchema = z.object({
+  id: z.union([z.number().int(), z.string().regex(/^\d+$/)]).transform(String),
   coach_session_id: z.uuid(),
   kind: z.string(),
   body: z.unknown(),
@@ -266,7 +285,7 @@ function parseItemRows(data: unknown) {
     .array(itemRowSchema)
     .parse(data ?? [])
     .flatMap((row) => {
-      const item = parseThreadItem(row);
+      const item = parseThreadItem({ ...row, id: row.id });
       return item ? [{ threadId: row.coach_session_id, item }] : [];
     });
 }
@@ -280,27 +299,123 @@ export async function readThreadItems(
   return rows.map((row) => row.item);
 }
 
+const itemColumns = "id, coach_session_id, kind, body, created_at";
+
+export type ItemScope = readonly string[] | "main";
+
+function emptyScope(scope: ItemScope) {
+  return scope !== "main" && !scope.length;
+}
+
+function itemsQuery(
+  context: OnboardingContext,
+  scope: ItemScope | null,
+  kinds?: readonly ThreadItem["kind"][],
+) {
+  let query = context.client
+    .from("coach_thread_items")
+    .select(
+      scope === "main"
+        ? `${itemColumns}, coach_sessions!inner(kind)`
+        : itemColumns,
+    )
+    .eq("user_id", context.userId);
+  if (scope === "main") query = query.eq("coach_sessions.kind", "main");
+  else if (scope)
+    query =
+      scope.length === 1
+        ? query.eq("coach_session_id", scope[0])
+        : query.in("coach_session_id", [...scope]);
+  return kinds ? query.in("kind", [...kinds]) : query;
+}
+
 export async function readSessionsItems(
   context: OnboardingContext,
-  coachSessionIds: readonly string[],
+  scope: ItemScope,
   limit = 500,
   kinds?: readonly ThreadItem["kind"][],
 ) {
-  if (!coachSessionIds.length) return [];
-  let query = context.client
-    .from("coach_thread_items")
-    .select("coach_session_id, kind, body, created_at")
-    .eq("user_id", context.userId);
-  query =
-    coachSessionIds.length === 1
-      ? query.eq("coach_session_id", coachSessionIds[0])
-      : query.in("coach_session_id", [...coachSessionIds]);
-  if (kinds) query = query.in("kind", [...kinds]);
-  const { data, error } = await query
+  if (emptyScope(scope)) return [];
+  const { data, error } = await itemsQuery(context, scope, kinds)
     .order("id", { ascending: false })
     .limit(limit);
   if (error) throw new Error("Unable to read the coach thread items");
   return parseItemRows(data).reverse();
+}
+
+const searchPage = 1000;
+
+export async function readRecentItems(
+  context: OnboardingContext,
+  kinds: readonly ThreadItem["kind"][],
+  limit: number,
+) {
+  const pages: unknown[] = [];
+  for (let offset = 0; offset < limit; offset += searchPage) {
+    const size = Math.min(searchPage, limit - offset);
+    const { data, error } = await itemsQuery(context, null, kinds)
+      .order("id", { ascending: false })
+      .range(offset, offset + size - 1);
+    if (error) throw new Error("Unable to read the coach thread items");
+    pages.push(...(data ?? []));
+    if ((data ?? []).length < size) break;
+  }
+  return parseItemRows(pages).reverse();
+}
+
+export async function readItemsAround(
+  context: OnboardingContext,
+  scope: ItemScope,
+  anchorId: string,
+  before = 100,
+  after = 400,
+) {
+  if (emptyScope(scope)) return [];
+  const [older, newer] = await Promise.all([
+    itemsQuery(context, scope)
+      .lte("id", anchorId)
+      .order("id", { ascending: false })
+      .limit(before + 1),
+    itemsQuery(context, scope)
+      .gte("id", anchorId)
+      .order("id", { ascending: true })
+      .limit(after),
+  ]);
+  if (older.error || newer.error)
+    throw new Error("Unable to read the coach thread items");
+  const rows = [...parseItemRows(older.data).reverse()];
+  const seen = new Set(rows.map((row) => row.item.id));
+  for (const row of parseItemRows(newer.data))
+    if (!seen.has(row.item.id)) rows.push(row);
+  return rows;
+}
+
+export async function findItemInSessions(
+  context: OnboardingContext,
+  scope: ItemScope,
+  itemId: string,
+) {
+  if (emptyScope(scope)) return null;
+  const { data, error } = await itemsQuery(context, scope)
+    .eq("id", Number(itemId))
+    .limit(1);
+  if (error) throw new Error("Unable to read the coach thread item");
+  return parseItemRows(data)[0] ?? null;
+}
+
+export async function findFirstItemSince(
+  context: OnboardingContext,
+  scope: ItemScope,
+  since: string,
+  kinds: readonly ThreadItem["kind"][],
+) {
+  if (emptyScope(scope)) return null;
+  const { data, error } = await itemsQuery(context, scope, kinds)
+    .gte("created_at", since)
+    .order("id", { ascending: true })
+    .limit(1);
+  if (error) throw new Error("Unable to read the coach thread item");
+  return parseItemRows(data)[0] ?? null;
 }
 
 export async function markThreadsRead(
