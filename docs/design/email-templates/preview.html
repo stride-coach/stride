@@ -1,264 +1,242 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stride auth emails | Design preview</title>
+    <title>E-mails d’authentification · Stride</title>
     <style>
       :root {
-        color-scheme: dark;
+        color-scheme: light dark;
+        --shell: #efefec;
+        --bg: #fafaf9;
+        --fg: #17181a;
+        --sub: #44464c;
+        --mut: #666970;
+        --bd: #e6e6e2;
+        --acc: #2456e6;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --shell: #070809;
+          --bg: #0c0d0f;
+          --fg: #edeef0;
+          --sub: #b3b6bd;
+          --mut: #868a94;
+          --bd: #1e2025;
+          --acc: #6e9bff;
+        }
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: #0c0d0b;
-        color: #edece6;
-        font-family:
-          "Instrument Sans", "Segoe UI", Arial, Helvetica, sans-serif;
+        background: var(--shell);
+        color: var(--fg);
+        font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
       }
       .page {
-        max-width: 1000px;
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 48px 24px 80px;
-      }
-      .masthead {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 24px;
-        border-bottom: 1px solid #34352f;
-        padding-bottom: 24px;
+        padding: 32px 24px 64px;
       }
       .mark {
         display: inline-flex;
         align-items: center;
-        gap: 12px;
-        font-family: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
-        font-size: 27px;
-        font-weight: 700;
-        font-style: italic;
-        letter-spacing: 1px;
-      }
-      .mark .bars {
-        display: inline-flex;
-        gap: 1px;
-        color: #d5ff3f;
-        font:
-          normal 900 30px/1 Arial,
-          Helvetica,
-          sans-serif;
-        letter-spacing: 0;
-      }
-      .overline,
-      .index,
-      .meta-label {
-        color: #8a8981;
-        font:
-          11px/1.5 "IBM Plex Mono",
-          "Courier New",
-          Courier,
-          monospace;
-        letter-spacing: 1.2px;
-        text-transform: uppercase;
-      }
-      .intro {
-        margin: 50px 0 64px;
+        gap: 6px;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.045em;
       }
       h1 {
-        max-width: 760px;
-        margin: 10px 0 16px;
-        font-size: clamp(36px, 5vw, 64px);
-        line-height: 1.03;
-        letter-spacing: -3px;
+        margin: 24px 0 6px;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
       }
-      .intro p:last-child {
-        max-width: 620px;
-        color: #b3b2aa;
-        font-size: 16px;
-        line-height: 1.6;
+      .lead {
+        margin: 0 0 28px;
+        max-width: 680px;
+        color: var(--sub);
       }
       .item {
-        display: grid;
-        grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
-        gap: 32px;
-        padding: 42px 0;
-        border-top: 1px solid #34352f;
+        margin-top: 24px;
+        padding: 20px;
+        border: 1px solid var(--bd);
+        border-radius: 12px;
+        background: var(--bg);
       }
-      .item h2 {
-        margin: 18px 0 12px;
-        font-size: 25px;
-        letter-spacing: -0.7px;
-      }
-      .description {
-        margin: 0 0 26px;
-        color: #b3b2aa;
-        font-size: 14px;
-        line-height: 1.6;
+      h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+        font-weight: 600;
       }
       .meta {
-        display: grid;
-        gap: 5px;
-        margin: 0 0 20px;
-      }
-      .meta-value {
-        color: #edece6;
+        margin: 0 0 16px;
+        color: var(--mut);
         font-size: 13px;
-        line-height: 1.5;
       }
-      .frame {
-        min-width: 0;
-        overflow: hidden;
-        border: 1px solid #34352f;
-        border-radius: 8px;
-        background: #080907;
+      .meta strong {
+        color: var(--sub);
+        font-weight: 500;
       }
-      .frame-top {
-        display: flex;
-        gap: 7px;
-        align-items: center;
-        height: 34px;
-        padding: 0 14px;
-        border-bottom: 1px solid #34352f;
-        background: #1a1b18;
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
       }
-      .frame-top i {
-        width: 7px;
-        height: 7px;
-        border: 1px solid #8a8981;
-        border-radius: 50%;
+      figure {
+        margin: 0;
+      }
+      figcaption {
+        margin-bottom: 6px;
+        color: var(--mut);
+        font-size: 12px;
       }
       iframe {
         display: block;
         width: 100%;
-        height: 675px;
-        border: 0;
-        background: #080907;
+        height: 560px;
+        border: 1px solid var(--bd);
+        border-radius: 8px;
       }
-      .footer {
-        color: #8a8981;
-        font:
-          11px/1.6 "Courier New",
-          Courier,
-          monospace;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-      @media (max-width: 760px) {
-        .page {
-          padding: 28px 16px 48px;
-        }
-        .masthead {
-          align-items: flex-start;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .intro {
-          margin: 40px 0 48px;
-        }
-        h1 {
-          letter-spacing: -1.5px;
-        }
-        .item {
-          grid-template-columns: 1fr;
-          gap: 18px;
-        }
-        iframe {
-          height: 860px;
-        }
+      .note {
+        margin: 0 0 8px;
+        color: var(--mut);
+        font-size: 13px;
       }
     </style>
   </head>
   <body>
     <main class="page">
-      <header class="masthead">
-        <div class="mark">
-          <span class="bars" aria-hidden="true"
-            ><span>/</span><span>/</span></span
-          ><span>STRIDE</span>
-        </div>
-        <div class="overline">DESIGN STUDY / AUTH EMAILS</div>
-      </header>
-      <section class="intro">
-        <p class="overline">NIGHT TRACK / EMAIL SYSTEM</p>
-        <h1>Account moments, in Stride’s visual language.</h1>
-        <p>
-          Three local proposals for the emails sent during sign-up, password
-          recovery, and passwordless sign-in. Each panel displays the actual
-          HTML file intended for Supabase.
-        </p>
-      </section>
+      <span class="mark">
+        <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+          <rect
+            x="10"
+            y="7"
+            width="18"
+            height="7.5"
+            rx="1.5"
+            fill="var(--fg)"
+          />
+          <rect
+            x="4"
+            y="17.5"
+            width="18"
+            height="7.5"
+            rx="1.5"
+            fill="var(--acc)"
+          />
+        </svg>
+        Stride
+      </span>
+      <h1>E-mails d’authentification</h1>
+      <p class="lead">
+        Les trois e-mails envoyés par Supabase, dans le design system Dense.
+        Chaque e-mail est affiché en clair et en sombre&nbsp;; le mode sombre
+        suit la préférence du client de messagerie.
+      </p>
+      <p id="file-note" class="note" hidden>
+        Ouvert depuis le disque, l’aperçu ne peut pas forcer le thème&nbsp;: les
+        deux colonnes suivent celui de ton système. Sers le dossier en HTTP pour
+        comparer clair et sombre côte à côte.
+      </p>
+
       <section class="item" aria-labelledby="confirmation-title">
-        <div>
-          <div class="index">01 / CONFIRM SIGN-UP</div>
-          <h2 id="confirmation-title">Confirm your email</h2>
-          <p class="description">
-            A clear final step after creating an account.
-          </p>
-          <div class="meta">
-            <span class="meta-label">SUBJECT</span
-            ><span class="meta-value">Confirm your email for Stride</span>
-          </div>
-          <div class="meta">
-            <span class="meta-label">SUPABASE TEMPLATE</span
-            ><span class="meta-value">Confirm sign up</span>
-          </div>
-        </div>
-        <div class="frame">
-          <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
-          <iframe
-            title="Confirm your email preview"
-            src="confirmation.html"
-          ></iframe>
+        <h2 id="confirmation-title">Confirmation de l’inscription</h2>
+        <p class="meta">
+          <strong>Objet</strong> Confirme ton adresse e-mail ·
+          <strong>Modèle Supabase</strong> Confirm sign up
+        </p>
+        <div class="modes">
+          <figure>
+            <figcaption>Clair</figcaption>
+            <iframe
+              data-mode="light"
+              src="confirmation.html"
+              title="Confirmation, thème clair"
+            ></iframe>
+          </figure>
+          <figure>
+            <figcaption>Sombre</figcaption>
+            <iframe
+              data-mode="dark"
+              src="confirmation.html"
+              title="Confirmation, thème sombre"
+            ></iframe>
+          </figure>
         </div>
       </section>
+
       <section class="item" aria-labelledby="recovery-title">
-        <div>
-          <div class="index">02 / PASSWORD RECOVERY</div>
-          <h2 id="recovery-title">Reset your password</h2>
-          <p class="description">
-            A direct recovery action with a short security note.
-          </p>
-          <div class="meta">
-            <span class="meta-label">SUBJECT</span
-            ><span class="meta-value">Reset your Stride password</span>
-          </div>
-          <div class="meta">
-            <span class="meta-label">SUPABASE TEMPLATE</span
-            ><span class="meta-value">Reset password</span>
-          </div>
-        </div>
-        <div class="frame">
-          <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
-          <iframe
-            title="Password recovery preview"
-            src="recovery.html"
-          ></iframe>
+        <h2 id="recovery-title">Réinitialisation du mot de passe</h2>
+        <p class="meta">
+          <strong>Objet</strong> Réinitialise ton mot de passe ·
+          <strong>Modèle Supabase</strong> Reset password
+        </p>
+        <div class="modes">
+          <figure>
+            <figcaption>Clair</figcaption>
+            <iframe
+              data-mode="light"
+              src="recovery.html"
+              title="Réinitialisation, thème clair"
+            ></iframe>
+          </figure>
+          <figure>
+            <figcaption>Sombre</figcaption>
+            <iframe
+              data-mode="dark"
+              src="recovery.html"
+              title="Réinitialisation, thème sombre"
+            ></iframe>
+          </figure>
         </div>
       </section>
+
       <section class="item" aria-labelledby="magic-title">
-        <div>
-          <div class="index">03 / PASSWORDLESS SIGN-IN</div>
-          <h2 id="magic-title">Your sign-in link</h2>
-          <p class="description">
-            A single action for a one-time sign-in link.
-          </p>
-          <div class="meta">
-            <span class="meta-label">SUBJECT</span
-            ><span class="meta-value">Your Stride sign-in link</span>
-          </div>
-          <div class="meta">
-            <span class="meta-label">SUPABASE TEMPLATE</span
-            ><span class="meta-value">Magic link</span>
-          </div>
-        </div>
-        <div class="frame">
-          <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
-          <iframe title="Magic link preview" src="magic-link.html"></iframe>
+        <h2 id="magic-title">Lien de connexion</h2>
+        <p class="meta">
+          <strong>Objet</strong> Ton lien de connexion Stride ·
+          <strong>Modèle Supabase</strong> Magic link
+        </p>
+        <div class="modes">
+          <figure>
+            <figcaption>Clair</figcaption>
+            <iframe
+              data-mode="light"
+              src="magic-link.html"
+              title="Lien de connexion, thème clair"
+            ></iframe>
+          </figure>
+          <figure>
+            <figcaption>Sombre</figcaption>
+            <iframe
+              data-mode="dark"
+              src="magic-link.html"
+              title="Lien de connexion, thème sombre"
+            ></iframe>
+          </figure>
         </div>
       </section>
-      <p class="footer">LOCAL PREVIEW / NOT CONNECTED TO SUPABASE</p>
     </main>
+    <script>
+      const themed = (html, mode) =>
+        mode === "dark"
+          ? html.replace("<html", "<html data-ogsc data-ogsb")
+          : html.replace(/prefers-color-scheme:\s*dark/g, "not all");
+      for (const frame of document.querySelectorAll("iframe[data-mode]")) {
+        fetch(frame.getAttribute("src"))
+          .then((response) => response.text())
+          .then((html) => {
+            frame.srcdoc = themed(html, frame.dataset.mode);
+          })
+          .catch(() => {
+            document.getElementById("file-note").hidden = false;
+          });
+      }
+    </script>
   </body>
 </html>
