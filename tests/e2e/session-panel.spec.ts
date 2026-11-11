@@ -129,10 +129,13 @@ test("a pair chosen in the panel updates Today underneath", async ({
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
-  const chip = todaySession(page).getByRole("link", {
-    name: /^Paire (conseillée|choisie) : /,
-    includeHidden: true,
-  });
+  await expect(todaySession(page)).toBeAttached();
+  const chip = todaySession(page)
+    .getByRole("link", {
+      name: /^Paire (conseillée|choisie) : /,
+      includeHidden: true,
+    })
+    .filter({ visible: true });
   test.skip((await chip.count()) === 0, "No running session today");
   const original = (await chip.textContent())?.trim() ?? "";
   await chip.click();
