@@ -95,7 +95,7 @@ export function AccountAvatarMenu({
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-70 rounded-xl bg-background p-1.5"
+        className="w-70 rounded-xl bg-background p-1.5 shadow-float"
       >
         <AccountMenuItems athlete={athlete} modelDetail={modelDetail} />
       </DropdownMenuContent>

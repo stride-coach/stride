@@ -10,20 +10,24 @@ export function TopBar({
   athlete,
   goal,
   modelDetail,
+  sidebarToggle = true,
 }: {
   athlete: ShellAthlete;
   goal: ShellGoal | null;
   modelDetail: string;
+  sidebarToggle?: boolean;
 }) {
   return (
     <header
       data-slot="top-bar"
       className="relative z-20 hidden h-topbar shrink-0 items-center gap-2.5 pr-3.5 pl-2 md:flex print:hidden"
     >
-      <SidebarTrigger
-        aria-label="Afficher ou masquer la barre latérale"
-        className="text-muted-foreground"
-      />
+      {sidebarToggle && (
+        <SidebarTrigger
+          aria-label="Afficher ou masquer la barre latérale"
+          className="text-muted-foreground"
+        />
+      )}
       <Link
         href="/today"
         className="flex items-center gap-2 rounded-md px-1 font-semibold tracking-[-0.02em]"

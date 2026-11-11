@@ -1,231 +1,252 @@
 "use client";
 
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { ProvenanceLabel } from "@/components/stride/provenance";
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ArrowLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PulseDot } from "@/components/stride/marks";
+import { Relief } from "@/components/stride/relief";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { useDataActivity } from "@/features/data-activity/components/provider";
-import { DataActivityStatus } from "@/features/data-activity/components/status";
+import {
+  DataActivityStatus,
+  DataActivityThread,
+} from "@/features/data-activity/components/status";
 import { activityTone } from "@/features/data-activity/model";
-import { NotificationBell } from "@/features/notifications/components/notification-bell";
-import { ThemeSwitcher } from "@/features/theme/components/theme-switcher";
+import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
+import { ShellIdentityProvider } from "@/features/app-shell/components/shell-identity";
+import { ShortcutHelp } from "@/features/app-shell/components/shortcut-help";
+import { TopBar } from "@/features/app-shell/components/top-bar";
+import type { ShellAthlete, ShellGoal } from "@/features/app-shell/shell";
 import { settingsHref, settingsSections } from "../navigation";
+
+const toneDots = {
+  success: "bg-primary",
+  warning: "bg-warning",
+  danger: "bg-destructive",
+  provider: "bg-muted-foreground",
+} as const;
+
+function GarminState() {
+  const activity = useDataActivity();
+  if (!activity) return null;
+  const tone = activityTone(activity.state);
+  return (
+    <span className="ml-auto flex items-center gap-1.5 text-label font-normal text-muted-foreground">
+      {activity.state !== "checking" && (
+        <span
+          aria-hidden="true"
+          className={cn("size-1.5 rounded-full", toneDots[tone])}
+        />
+      )}
+      Garmin
+    </span>
+  );
+}
+
+function SettingsNav({ active }: { active: string | undefined }) {
+  return (
+    <aside className="flex w-sidebar shrink-0 flex-col gap-4 px-2.5 pt-2 pb-3 max-lg:hidden print:hidden">
+      <Link
+        href="/today"
+        className="flex min-h-control items-center gap-1.5 rounded-md px-2 font-medium transition-colors duration-150 ease-stride hover:bg-muted"
+      >
+        <ChevronLeftIcon aria-hidden="true" className="size-3.5" />
+        Retour à Stride
+      </Link>
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+        {(["You", "Data"] as const).map((group) => (
+          <div key={group} className="flex flex-col gap-0.5">
+            <p className="px-2 pb-1 text-label text-muted-foreground">
+              {group === "You" ? "Toi" : "Données"}
+            </p>
+            <nav
+              aria-label={
+                group === "You" ? "Réglages personnels" : "Réglages des données"
+              }
+              className="flex flex-col gap-0.5"
+            >
+              {settingsSections
+                .filter((section) => section.group === group)
+                .map((section) => {
+                  const current = active === section.slug;
+                  return (
+                    <Link
+                      key={section.slug}
+                      href={settingsHref(section.slug)}
+                      aria-current={current ? "page" : undefined}
+                      className={cn(
+                        "flex min-h-control items-center gap-2 rounded-md px-2 transition-colors duration-150 ease-stride hover:bg-muted",
+                        current
+                          ? "bg-muted font-medium text-foreground"
+                          : "text-secondary-foreground hover:text-foreground",
+                      )}
+                    >
+                      {section.label}
+                      {section.slug === "connections" && <GarminState />}
+                    </Link>
+                  );
+                })}
+            </nav>
+          </div>
+        ))}
+      </div>
+      <div data-slot="settings-account" className="mt-auto px-2">
+        <DataActivityStatus className="text-label" />
+      </div>
+    </aside>
+  );
+}
 
 export function SettingsShell({
   athlete,
+  goal,
+  modelDetail,
   children,
 }: {
-  athlete: { name: string; initials: string; detail: string };
+  athlete: ShellAthlete;
+  goal: ShellGoal | null;
+  modelDetail: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const activity = useDataActivity();
   const search = useSearchParams().toString();
   const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [pathname, search]);
-  const profile = pathname === "/settings/profile";
   const goals = pathname === "/settings/goals";
   const garmin = pathname === "/settings/connections/garmin";
-  const active = settingsSections.find(
-    (section) =>
-      settingsHref(section.slug) === pathname ||
-      (garmin && section.slug === "connections"),
+  const section = settingsSections.find(
+    (item) =>
+      settingsHref(item.slug) === pathname ||
+      (garmin && item.slug === "connections"),
   );
+  const overview = section?.slug === "";
+  const label = section?.label ?? "Réglages";
   return (
-    <div className="min-h-svh bg-background text-foreground md:grid md:h-svh md:min-h-0 md:grid-cols-[16.5rem_minmax(0,1fr)] md:overflow-hidden">
-      <aside className="hidden h-svh min-h-0 flex-col border-r border-border bg-background px-2 pt-4 pb-2 md:flex">
-        <Link
-          href="/activities"
-          className="mb-8 flex items-center gap-2 rounded-md px-2 text-body focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          <span className="grid size-9 place-items-center rounded-md border border-control-border">
-            <ArrowLeftIcon className="size-4" />
-          </span>
-          <span>
-            <strong className="block">Réglages</strong>
-            <span className="text-label text-secondary-foreground">
-              Retour à Stride
-            </span>
-          </span>
-        </Link>
-        <div className="min-h-0 overflow-y-auto">
-          {(["You", "Data"] as const).map((group) => (
-            <div key={group} className="mb-4">
-              <p className="mb-1 px-2 text-label text-secondary-foreground tabular-nums">
-                {group === "You" ? "Toi" : "Données"}
-              </p>
+    <ShellIdentityProvider value={{ athlete, goal, modelDetail }}>
+      <SidebarProvider
+        open
+        onOpenChange={() => {}}
+        className="relative h-svh flex-col overflow-hidden bg-background md:bg-shell"
+      >
+        <ShortcutHelp />
+        <Relief corner="top-right" className="max-md:hidden print:hidden" />
+        <Relief corner="bottom-left" className="max-md:hidden print:hidden" />
+        <TopBar
+          athlete={athlete}
+          goal={goal}
+          modelDetail={modelDetail}
+          sidebarToggle={false}
+        />
+        <div className="relative flex min-h-0 flex-1">
+          <SettingsNav active={section?.slug} />
+          <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-background md:mr-2 md:mb-2 md:rounded-xl md:border md:border-border">
+            <header className="relative flex h-13 shrink-0 items-center gap-2 border-b border-border px-4 md:h-header md:gap-3 md:px-5">
+              {!overview && (
+                <Link
+                  href={garmin ? "/settings/connections" : "/settings"}
+                  aria-label={
+                    garmin ? "Retour aux connexions" : "Retour aux réglages"
+                  }
+                  className="-ml-3 grid size-control-touch shrink-0 place-items-center rounded-md text-secondary-foreground hover:text-foreground lg:hidden"
+                >
+                  <ChevronLeftIcon aria-hidden="true" className="size-5" />
+                </Link>
+              )}
+              {overview && (
+                <Link
+                  href="/today"
+                  aria-label="Retour à Stride"
+                  className="-ml-3 grid size-control-touch shrink-0 place-items-center rounded-md text-secondary-foreground hover:text-foreground lg:hidden"
+                >
+                  <ChevronLeftIcon aria-hidden="true" className="size-5" />
+                </Link>
+              )}
               <nav
-                aria-label={
-                  group === "You"
-                    ? "Réglages personnels"
-                    : "Réglages des données"
-                }
-                className="flex flex-col gap-0.5"
+                aria-label="Fil d’Ariane"
+                className="flex min-w-0 flex-1 items-center gap-2"
               >
-                {settingsSections
-                  .filter((section) => section.group === group)
-                  .map((section) => {
-                    const href = settingsHref(section.slug);
-                    return (
-                      <Link
-                        key={href}
-                        href={href}
-                        aria-current={
-                          active?.slug === section.slug ? "page" : undefined
-                        }
-                        className={cn(
-                          "rounded-md px-2 py-2 text-body text-secondary-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring",
-                          active?.slug === section.slug &&
-                            "bg-muted font-medium text-foreground",
-                          section.slug === "connections" &&
-                            "flex items-center gap-2",
-                        )}
-                      >
-                        {section.label}
-                        {section.slug === "connections" && activity && (
-                          <span className="ml-auto flex items-center gap-1.5 text-label font-normal text-muted-foreground">
-                            {activity.state !== "checking" && (
-                              <PulseDot
-                                tone={activityTone(activity.state)}
-                                breathing={false}
-                              />
-                            )}
-                            Garmin
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-              </nav>
-            </div>
-          ))}
-        </div>
-        <div
-          data-slot="settings-account"
-          className="mt-auto flex flex-col gap-1.5 p-2"
-        >
-          <DataActivityStatus className="px-2.5" />
-          <div className="flex min-h-12 items-center gap-2.5 px-1.5 text-body">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-border text-label font-semibold">
-              {athlete.initials}
-            </span>
-            <span className="flex min-w-0 flex-col text-left">
-              <strong className="truncate text-body leading-tight font-semibold">
-                {athlete.name}
-              </strong>
-              <span className="block truncate text-label text-muted-foreground">
-                {athlete.detail}
-              </span>
-            </span>
-          </div>
-        </div>
-      </aside>
-      <main className="min-w-0 p-0 md:h-svh md:min-h-0 md:overflow-hidden md:p-2">
-        <div className="min-h-svh rounded-2xl border-0 bg-background md:flex md:h-full md:min-h-0 md:flex-col md:border">
-          <header className="flex min-h-14 items-center gap-3 border-b border-border px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:border-0 max-md:bg-background md:shrink-0 md:px-6">
-            <Link
-              href={
-                garmin
-                  ? "/settings/connections"
-                  : active?.slug
-                    ? "/settings"
-                    : "/activities"
-              }
-              aria-label={
-                active?.slug ? "Retour aux réglages" : "Retour à Stride"
-              }
-              className="rounded-md p-1 text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:hidden"
-            >
-              <ArrowLeftIcon className="size-4" />
-            </Link>
-            {active?.slug ? (
-              <span className="text-label text-secondary-foreground tabular-nums md:font-sans md:text-body md:tracking-normal md:normal-case">
-                Réglages
-                {profile ? <span className="md:hidden"> / Profil</span> : null}
-                {goals ? (
-                  <span className="md:hidden"> / Objectifs et courses</span>
-                ) : null}
-              </span>
-            ) : (
-              <h1 className="text-metric font-semibold tracking-tight md:text-body md:font-normal md:tracking-normal md:text-secondary-foreground">
-                Réglages
-              </h1>
-            )}
-            {active?.slug && (
-              <>
-                <span className="hidden text-secondary-foreground md:inline">
-                  /
+                {overview ? (
+                  <span className="truncate font-semibold max-md:text-body-lg md:font-normal md:text-secondary-foreground">
+                    Réglages
+                  </span>
+                ) : (
+                  <Link
+                    href="/settings"
+                    className="text-secondary-foreground hover:text-foreground max-md:hidden"
+                  >
+                    Réglages
+                  </Link>
+                )}
+                <span
+                  aria-hidden="true"
+                  className="text-muted-foreground max-md:hidden"
+                >
+                  ›
                 </span>
                 {garmin ? (
                   <>
                     <Link
                       href="/settings/connections"
-                      className="hidden text-body text-secondary-foreground hover:text-foreground md:inline"
+                      className="text-secondary-foreground hover:text-foreground max-md:hidden"
                     >
-                      {active.label}
+                      {label}
                     </Link>
-                    <span className="hidden text-secondary-foreground md:inline">
-                      /
+                    <span
+                      aria-hidden="true"
+                      className="text-muted-foreground max-md:hidden"
+                    >
+                      ›
                     </span>
-                    <span className="hidden text-body md:inline">Garmin</span>
+                    <span aria-current="page" className="truncate font-medium">
+                      Garmin
+                    </span>
                   </>
                 ) : (
-                  <span className="hidden text-body md:inline">
-                    {active.label}
+                  <span
+                    aria-current="page"
+                    className={cn(
+                      "truncate font-medium",
+                      overview && "max-md:hidden",
+                      !overview && "max-md:text-body-lg max-md:font-semibold",
+                    )}
+                  >
+                    {label}
                   </span>
                 )}
-              </>
-            )}
-            {goals && (
-              <Link
-                href="/settings/goals?course=nouvelle"
-                aria-label="Ajouter une course"
-                className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-verdict font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring md:inline-flex md:min-h-9 md:rounded-md md:px-3.5 md:text-body"
-              >
-                <span className="md:hidden" aria-hidden="true">
-                  +
-                </span>
-                <span className="hidden md:inline">+ Ajouter une course</span>
-              </Link>
-            )}
-            {profile && (
-              <div className="ml-auto hidden gap-3.5 md:flex">
-                <ProvenanceLabel source="provider">Garmin</ProvenanceLabel>
-                <ProvenanceLabel source="manual">Toi</ProvenanceLabel>
-                <ProvenanceLabel source="estimate">
-                  Estimation Stride
-                </ProvenanceLabel>
-              </div>
-            )}
-            <ThemeSwitcher
-              className={
-                profile ? "max-md:ml-auto" : goals ? undefined : "ml-auto"
-              }
-            />
-            <NotificationBell />
-          </header>
-          <div
-            ref={scroller}
-            className="relative md:min-h-0 md:flex-1 md:[scrollbar-gutter:stable] md:overflow-y-auto md:overscroll-contain"
-          >
-            <div
-              data-slot="settings-content"
-              className={cn(
-                "mx-auto w-full max-w-[1440px] px-4 pt-4 pb-16 md:mx-0 md:px-12 md:pt-10 2xl:mx-auto",
-                profile && "md:pt-9",
+              </nav>
+              {goals && (
+                <Link
+                  href="/settings/goals?course=nouvelle"
+                  aria-label="Ajouter une course"
+                  className="inline-flex min-h-control-touch shrink-0 items-center justify-center rounded-md bg-primary px-3 font-medium text-primary-foreground hover:bg-primary/90 max-md:min-w-control-touch md:min-h-control"
+                >
+                  <span aria-hidden="true" className="md:hidden">
+                    +
+                  </span>
+                  <span className="max-md:hidden">+ Ajouter une course</span>
+                </Link>
               )}
+              <MobileHeaderActions />
+              <DataActivityThread />
+            </header>
+            <div
+              ref={scroller}
+              className="relative min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
             >
-              {children}
+              <div
+                data-slot="settings-content"
+                className="mx-auto w-full max-w-180 px-4 pt-5 pb-18 md:px-5 md:pt-8 md:pb-12"
+              >
+                {children}
+              </div>
             </div>
-          </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </SidebarProvider>
+    </ShellIdentityProvider>
   );
 }
 
@@ -237,12 +258,10 @@ export function SettingsHeading({
   description?: string;
 }) {
   return (
-    <div className="mb-9">
-      <h1 className="text-display font-semibold tracking-tight md:text-display">
-        {title}
-      </h1>
+    <div className="mb-6 flex flex-col gap-1.5">
+      <h1 className="text-verdict font-semibold text-balance">{title}</h1>
       {description && (
-        <p className="mt-2 max-w-3xl text-body leading-relaxed text-secondary-foreground md:text-body-lg">
+        <p className="text-body-lg text-pretty text-secondary-foreground">
           {description}
         </p>
       )}
@@ -250,66 +269,31 @@ export function SettingsHeading({
   );
 }
 
-export function SettingsGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mb-9">
-      <h2 className="mb-3 text-label text-secondary-foreground tabular-nums">
-        {title}
-      </h2>
-      <div className="overflow-hidden rounded-lg border border-border md:rounded-none md:border-x-0 md:border-b-0">
-        {children}
-      </div>
-    </section>
-  );
-}
-
 export function SettingsLinkRow({
   href,
   title,
   detail,
+  detailLead,
 }: {
   href: string;
   title: string;
   detail: string;
+  detailLead?: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="flex min-h-17 items-center gap-4 border-b border-border px-4 py-3 last:border-b-0 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring md:grid md:grid-cols-[9.5rem_minmax(0,1fr)_1rem] md:gap-5 md:px-0 md:py-4.5"
+      className="grid min-h-row-touch grid-cols-[minmax(0,1fr)_1rem] items-center gap-x-3 gap-y-0.5 border-b border-border py-3 transition-colors duration-150 ease-stride hover:bg-muted md:grid-cols-[12.5rem_minmax(0,1fr)_1rem] md:gap-x-5 md:py-4.5"
     >
-      <strong className="min-w-0 flex-1 text-body md:flex-none md:text-body-lg">
-        {title}
-      </strong>
-      <span className="max-w-[55%] text-right text-body text-secondary-foreground md:max-w-none md:text-left">
+      <strong className="min-w-0 font-semibold">{title}</strong>
+      <span className="row-start-2 min-w-0 truncate text-label text-secondary-foreground md:row-start-auto md:text-body">
+        {detailLead}
         {detail}
       </span>
-      <ChevronRightIcon className="size-4 shrink-0 text-secondary-foreground" />
+      <ChevronRightIcon
+        aria-hidden="true"
+        className="col-start-2 row-span-2 row-start-1 size-4 shrink-0 text-muted-foreground md:col-start-3 md:row-span-1"
+      />
     </Link>
-  );
-}
-
-export function UnavailableSettingRow({
-  title,
-  detail,
-  value,
-}: {
-  title: string;
-  detail: string;
-  value?: string;
-}) {
-  return (
-    <div className="grid gap-2 border-b border-border px-4 py-4 last:border-b-0 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-center md:px-0">
-      <strong className="text-body font-medium">{title}</strong>
-      <p className="text-body text-secondary-foreground">{detail}</p>
-      <span className="text-label text-secondary-foreground tabular-nums">
-        {value ?? "Indisponible"}
-      </span>
-    </div>
   );
 }

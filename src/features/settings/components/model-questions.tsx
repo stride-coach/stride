@@ -12,29 +12,20 @@ function QuestionList({ questions }: { questions: AthleteModelQuestion[] }) {
         <li key={question.key} className="border-t border-border">
           <Link
             href={question.href}
-            className="grid min-h-11 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-0.5 py-2.5 md:hidden"
+            className="grid min-h-row-touch grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-0.5 py-2.5 md:hidden"
           >
-            <strong className="text-body font-semibold">
-              {question.question}
-            </strong>
+            <strong className="font-medium">{question.question}</strong>
             <ChevronRightIcon
               aria-hidden
               className="row-span-2 size-3 text-muted-foreground"
             />
-            <span className="text-label leading-snug text-muted-foreground">
+            <span className="text-label text-secondary-foreground">
               {question.impact}
             </span>
           </Link>
-          <div className="hidden grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-1 py-3 md:grid">
-            <strong className="text-body font-semibold">
-              {question.question}
-            </strong>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="row-span-2 h-10 px-3.5 text-body font-normal"
-            >
+          <div className="hidden min-h-row grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-0.5 py-2.5 md:grid">
+            <strong className="font-medium">{question.question}</strong>
+            <Button asChild variant="outline" className="row-span-2">
               <Link
                 href={question.href}
                 aria-label={`${question.action} : ${question.question}`}
@@ -42,7 +33,7 @@ function QuestionList({ questions }: { questions: AthleteModelQuestion[] }) {
                 {question.action}
               </Link>
             </Button>
-            <span className="text-body text-muted-foreground">
+            <span className="text-label text-secondary-foreground">
               {question.impact}
             </span>
           </div>
@@ -61,7 +52,7 @@ export function ModelQuestions({
   const rest = questions.slice(visibleQuestions);
   return (
     <div className="flex flex-col pt-1">
-      <h3 className="pb-2 text-label font-normal text-muted-foreground tabular-nums md:text-label">
+      <h3 className="pb-2 text-label font-medium text-secondary-foreground">
         {questions.length} {questions.length > 1 ? "questions" : "question"}
         <span className="md:hidden">
           {questions.length > 1 ? " l’affineraient" : " l’affinerait"}
@@ -75,7 +66,7 @@ export function ModelQuestions({
       <QuestionList questions={questions.slice(0, visibleQuestions)} />
       {rest.length > 0 && (
         <details className="group border-t border-border">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-body text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-control-touch cursor-pointer list-none items-center gap-1.5 text-primary hover:text-foreground md:min-h-row [&::-webkit-details-marker]:hidden">
             <ChevronRightIcon
               aria-hidden
               className="size-3.5 transition-transform group-open:rotate-90 motion-reduce:transition-none"

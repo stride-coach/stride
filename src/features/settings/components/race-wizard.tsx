@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { StrideMark } from "@/components/stride/stride-mark";
+import { PriorityBadge } from "@/features/races/components/races-overview";
 import { cn } from "@/lib/utils";
 import {
   maskFrenchDate,
@@ -66,9 +67,9 @@ const priorities: {
 
 const fieldLabel =
   "flex items-center justify-between gap-2 text-body text-secondary-foreground";
-const fieldInput = "h-10 bg-card px-3 text-body md:text-body";
+const fieldInput = "h-control-auto bg-card px-3";
 const segment =
-  "min-h-10 flex-1 rounded-md border border-control-border bg-card px-3 text-body text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:font-semibold aria-pressed:text-background";
+  "min-h-control-touch flex-1 rounded-md px-2.5 text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground aria-pressed:bg-muted aria-pressed:font-medium aria-pressed:text-foreground md:min-h-6";
 
 function Field({
   label,
@@ -86,7 +87,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1.75", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
       <label htmlFor={htmlFor} className={fieldLabel}>
         <span>{label}</span>
       </label>
@@ -123,8 +124,8 @@ function Stepper({ step }: { step: number }) {
             <span
               aria-current={current ? "step" : undefined}
               className={cn(
-                "grid size-5.5 shrink-0 place-items-center rounded-full border-[1.5px] text-body tabular-nums",
-                current && "border-foreground bg-foreground text-background",
+                "grid size-5.5 shrink-0 place-items-center rounded-full border text-label font-medium tabular-nums",
+                current && "border-primary bg-primary text-primary-foreground",
                 done && "border-primary text-primary",
                 !current &&
                   !done &&
@@ -135,9 +136,9 @@ function Stepper({ step }: { step: number }) {
             </span>
             <span
               className={cn(
-                "text-body whitespace-nowrap",
+                "whitespace-nowrap",
                 current
-                  ? "font-semibold text-foreground"
+                  ? "font-medium text-foreground"
                   : "text-secondary-foreground",
                 !current && "max-md:sr-only",
               )}
@@ -145,7 +146,7 @@ function Stepper({ step }: { step: number }) {
               {label}
             </span>
             {index < steps.length - 1 && (
-              <span className="h-px w-4.5 bg-control-border md:w-8 md:flex-none" />
+              <span className="h-px w-4.5 bg-border md:w-8 md:flex-none" />
             )}
           </li>
         );
@@ -314,7 +315,7 @@ export function RaceWizard({
     <Dialog open onOpenChange={(open) => !open && close()}>
       <DialogContent
         showCloseButton={false}
-        className="top-0 left-0 block h-svh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none border-0 bg-background p-0 ring-0 md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100svh-4rem)] md:w-215 md:max-w-215 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-control-border md:bg-popover md:shadow-2xl"
+        className="top-0 left-0 block h-svh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-none border-0 bg-background p-0 ring-0 md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100svh-4rem)] md:w-215 md:max-w-215 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border md:bg-popover md:shadow-float"
       >
         <form
           onSubmit={(event) => {
@@ -334,7 +335,7 @@ export function RaceWizard({
               >
                 Annuler
               </Button>
-              <DialogTitle className="flex-1 text-center text-body font-semibold md:flex-none md:text-left md:text-[1.375rem] md:tracking-tight">
+              <DialogTitle className="flex-1 text-center font-semibold md:flex-none md:text-left md:text-title">
                 {mode === "edit" ? "Modifier la course" : "Ajouter une course"}
               </DialogTitle>
               <span className="min-w-14 text-right text-label text-muted-foreground tabular-nums md:ml-auto">
@@ -361,7 +362,7 @@ export function RaceWizard({
           </DialogDescription>
 
           <div className="flex flex-1 flex-col gap-6 px-5 py-5 md:px-7 md:py-6">
-            <h1 className="text-metric font-semibold tracking-tight md:hidden">
+            <h1 className="text-verdict font-semibold md:hidden">
               {steps[step - 1]}
             </h1>
 
@@ -481,7 +482,7 @@ export function RaceWizard({
                     <div
                       role="group"
                       aria-labelledby="race-kind"
-                      className="flex gap-1.5"
+                      className="flex gap-0.5 rounded-lg border border-border bg-card p-0.5"
                     >
                       {(["road", "trail"] as const).map((option) => (
                         <button
@@ -505,7 +506,7 @@ export function RaceWizard({
                 <section className="flex flex-col gap-2.5">
                   <span
                     id="race-priority"
-                    className="text-label text-secondary-foreground tabular-nums"
+                    className="font-medium text-secondary-foreground"
                   >
                     Priorité
                   </span>
@@ -528,42 +529,32 @@ export function RaceWizard({
                           aria-checked={selected}
                           onClick={() => setPriority(option.value)}
                           className={cn(
-                            "flex w-full items-start gap-3 rounded-lg border border-control-border bg-card p-3.5 text-left focus-visible:outline-2 focus-visible:outline-ring",
-                            selected &&
-                              "border-foreground shadow-[inset_0_0_0_1px_var(--foreground)]",
+                            "flex w-full items-start gap-3 rounded-lg border border-control-border bg-card p-3.5 text-left transition-colors duration-150 ease-stride",
+                            selected && "border-primary bg-accent",
                           )}
                         >
-                          <span
-                            className={cn(
-                              "grid size-7.5 shrink-0 place-items-center rounded-md text-body-lg font-bold tabular-nums",
-                              option.value === "A" &&
-                                "bg-primary text-primary-foreground",
-                              option.value === "B" &&
-                                "border-[1.5px] border-foreground text-foreground",
-                              option.value === "C" &&
-                                "border-[1.5px] border-control-border text-secondary-foreground",
-                            )}
-                          >
-                            {option.value}
-                          </span>
-                          <span className="flex flex-1 flex-col gap-0.75">
-                            <span className="text-body font-semibold">
+                          <PriorityBadge priority={option.value} />
+                          <span className="flex flex-1 flex-col gap-0.5">
+                            <span className="font-medium">
+                              <span className="sr-only">
+                                Course {option.value} ·{" "}
+                              </span>
                               {option.title}
                             </span>
-                            <span className="text-body leading-snug text-muted-foreground">
+                            <span className="text-label text-secondary-foreground">
                               {description}
                             </span>
                           </span>
                           <span
                             className={cn(
-                              "mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border-[1.5px]",
+                              "mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border",
                               selected
-                                ? "border-foreground"
+                                ? "border-primary"
                                 : "border-control-border",
                             )}
                           >
                             {selected && (
-                              <span className="size-2 rounded-full bg-foreground" />
+                              <span className="size-2 rounded-full bg-primary" />
                             )}
                           </span>
                         </button>
@@ -571,7 +562,7 @@ export function RaceWizard({
                     })}
                   </div>
                   {warning && (
-                    <p className="flex items-center gap-2 text-label text-muted-foreground">
+                    <p className="flex items-center gap-2 text-label text-secondary-foreground">
                       <span className="size-1.5 shrink-0 rounded-full bg-warning" />
                       {warning}
                     </p>
@@ -598,7 +589,7 @@ export function RaceWizard({
 
             {step === 3 && (
               <>
-                <p className="flex items-center gap-2 text-body font-semibold text-primary">
+                <p className="flex items-center gap-2 font-medium text-primary">
                   <CheckIcon className="size-4" />
                   {mode === "edit"
                     ? "Course mise à jour."
@@ -607,10 +598,10 @@ export function RaceWizard({
                 <div className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-3.5">
                   <StrideMark className="mt-0.5 size-3.5 shrink-0" />
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-body font-semibold">
+                    <p className="font-medium">
                       Aucun plan n’est défini pour l’instant.
                     </p>
-                    <p className="text-body leading-relaxed text-secondary-foreground">
+                    <p className="text-secondary-foreground">
                       Cette course est enregistrée sans modifier aucune semaine.
                       Quand tu auras un plan, Stride s’appuiera sur elle pour le
                       construire et te proposera les ajustements à relire avant
@@ -618,7 +609,7 @@ export function RaceWizard({
                     </p>
                   </div>
                 </div>
-                <dl className="flex flex-wrap gap-x-8 gap-y-4">
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-y border-border py-3.5 md:grid-cols-4">
                   {[
                     {
                       label: name || "Course",
@@ -642,13 +633,19 @@ export function RaceWizard({
                       value: targetSeconds ? formatTarget(targetSeconds) : "—",
                     },
                   ].map((item) => (
-                    <div key={item.label} className="flex flex-col gap-0.5">
-                      <dd className="text-metric leading-none font-semibold tabular-nums">
-                        {item.value}
-                      </dd>
-                      <dt className="text-label text-muted-foreground">
+                    <div
+                      key={item.label}
+                      className="flex min-w-0 flex-col-reverse gap-0.5"
+                    >
+                      <dt className="truncate text-label text-secondary-foreground">
                         {item.label}
                       </dt>
+                      <dd
+                        data-slot="metric"
+                        className="text-title font-semibold tabular-nums"
+                      >
+                        {item.value}
+                      </dd>
                     </div>
                   ))}
                 </dl>

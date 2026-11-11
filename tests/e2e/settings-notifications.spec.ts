@@ -17,7 +17,7 @@ test("notification settings show the browser state and the four categories", asy
   });
   await page.setViewportSize({ width: 1440, height: 900 });
   await signInAs(page, "athlete@example.com");
-  await page.goto("/settings/training");
+  await page.goto("/settings/notifications");
 
   const device = page.getByRole("switch", { name: "Sur ce navigateur" });
   await expect(device).toBeVisible({ timeout: 15_000 });
@@ -46,7 +46,7 @@ test("a browser with blocked notifications explains how to allow them", async ({
     Object.defineProperty(Notification, "permission", { get: () => "denied" });
   });
   await signInAs(page, "athlete@example.com");
-  await page.goto("/settings/training");
+  await page.goto("/settings/notifications");
 
   const device = page.getByRole("switch", { name: "Notifications bloquées" });
   await expect(device).toBeDisabled({ timeout: 15_000 });
@@ -66,7 +66,7 @@ test("an iPhone outside the home screen gets the install steps", async ({
   });
   const page = await context.newPage();
   await signInAs(page, "athlete@example.com");
-  await page.goto("/settings/training");
+  await page.goto("/settings/notifications");
 
   await expect(page.getByText("Installe Stride sur ton iPhone")).toBeVisible({
     timeout: 15_000,

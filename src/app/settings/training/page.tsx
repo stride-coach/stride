@@ -22,10 +22,8 @@ import {
 import { localToday } from "@/features/plans/constraints";
 import { currentPeriods } from "@/features/settings/planning";
 import { readPlanningConstraints } from "@/server/plans/constraints";
-import { PushSettings } from "@/features/notifications/components/push-settings";
-import { readPushSettings } from "@/server/push/preferences";
 
-export const metadata: Metadata = { title: "Entraînement et coach · Réglages" };
+export const metadata: Metadata = { title: "Entraînement et staff · Réglages" };
 
 const weekdays = [
   { value: 1, short: "L", label: "Lundi" },
@@ -51,20 +49,17 @@ export default async function TrainingSettingsPage({
     requireAthleteAccount(),
     searchParams,
   ]);
-  const [profile, planning, push] = await Promise.all([
+  const [profile, planning] = await Promise.all([
     readProfile(context),
     readPlanningConstraints(context),
-    readPushSettings(context),
   ]);
   const values = profile.values;
   return (
-    <div className="flex flex-col gap-6 md:gap-10">
+    <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col gap-2 px-1 md:px-0">
-        <h1 className="text-metric font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
-          Entraînement et coach
-        </h1>
-        <p className="text-body leading-normal text-secondary-foreground md:text-body">
-          Ça guide mes plans. Changer tes disponibilités déclenchera une
+        <h1 className="text-verdict font-semibold">Entraînement et staff</h1>
+        <p className="max-w-150 text-body-lg text-pretty text-secondary-foreground">
+          Ça guide tes plans. Changer tes disponibilités déclenche une
           proposition de mise à jour, sans réécrire ta semaine en douce.
         </p>
       </div>
@@ -87,8 +82,8 @@ export default async function TrainingSettingsPage({
           </PreferenceRow>
           <PreferenceRow
             labelId="t-days"
-            label="Jours de course"
-            hint="5 max par semaine"
+            label="Jours où tu peux courir"
+            hint="5 jours par semaine au maximum."
           >
             <WeekdayField
               name="available_weekdays"
@@ -126,7 +121,7 @@ export default async function TrainingSettingsPage({
               }))}
             />
           </PreferenceRow>
-          <PreferenceRow labelId="t-acc" label="Accès à">
+          <PreferenceRow labelId="t-acc" label="Tu as accès à">
             <SegmentedField
               name="training_access"
               type="checkbox"
@@ -152,11 +147,6 @@ export default async function TrainingSettingsPage({
         )}
         addAction={addSettingsUnavailability}
         removeAction={removeSettingsUnavailability}
-      />
-      <PushSettings
-        publicKey={push.publicKey}
-        preferences={push.preferences}
-        endpoints={push.endpoints}
       />
     </div>
   );

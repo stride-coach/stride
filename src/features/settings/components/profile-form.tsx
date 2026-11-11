@@ -37,7 +37,13 @@ import { HeartRateEditor } from "./heart-rate-editor";
 
 type Draft = ReturnType<typeof profileDraft>;
 const rowClass =
-  "flex flex-col gap-1.5 border-b border-border px-4 py-3 min-[1100px]:grid min-[1100px]:grid-cols-[180px_320px_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-5 min-[1100px]:border-border min-[1100px]:px-0 min-[1100px]:py-3.5";
+  "flex min-h-row flex-col gap-1.5 border-b border-border px-4 py-3 min-[1100px]:grid min-[1100px]:grid-cols-[9rem_15rem_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-5 min-[1100px]:px-0 min-[1100px]:py-3";
+const fieldClass =
+  "h-control-touch w-40 shrink-0 min-[1100px]:h-control! min-[1100px]:w-full";
+const sectionHead =
+  "mb-2 flex flex-col gap-0.5 px-1 min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-border min-[1100px]:px-0 min-[1100px]:pb-2.5";
+const sectionCard =
+  "overflow-hidden rounded-xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent";
 const labels: Partial<Record<keyof Draft, string>> = {
   first_name: "Prénom",
   birth_date: "Date de naissance",
@@ -223,19 +229,18 @@ export function ProfileForm({
     };
     return (
       <Field className={rowClass} key={field} data-invalid={invalid}>
-        <div className="flex min-h-11 items-center justify-between gap-3 min-[1100px]:contents">
-          <FieldLabel htmlFor={field} className="shrink-0 font-normal">
+        <div className="flex min-h-control-touch items-center justify-between gap-3 min-[1100px]:contents">
+          <FieldLabel htmlFor={field} className="shrink-0 font-medium">
             {label}
           </FieldLabel>
           {unit ? (
             <InputGroup
               className={cn(
-                "h-11 w-40 shrink-0 bg-muted min-[1100px]:h-10! min-[1100px]:w-full min-[1100px]:bg-card",
+                fieldClass,
                 sources[field]?.source === "garmin" && "border-dashed",
               )}
             >
               <InputGroupInput
-                className="min-[1100px]:h-10!"
                 id={field}
                 name={field}
                 aria-invalid={invalid}
@@ -253,7 +258,7 @@ export function ProfileForm({
               aria-invalid={invalid}
               value={display}
               onChange={onChange}
-              className="h-11 w-40 shrink-0 bg-muted min-[1100px]:h-10! min-[1100px]:w-full min-[1100px]:bg-card"
+              className={fieldClass}
               autoComplete={field === "first_name" ? "given-name" : "bday"}
               placeholder={
                 field === "birth_date" ? "JJ / MM / AAAA" : undefined
@@ -305,41 +310,44 @@ export function ProfileForm({
           setPreview(null);
         });
       }}
-      className="flex flex-col gap-5.5 min-[1100px]:gap-9"
+      className="flex flex-col gap-6 min-[1100px]:gap-8"
     >
       <section className="flex flex-col gap-2 px-1 min-[1100px]:px-0">
-        <h1 className="text-metric font-semibold tracking-tight min-[1100px]:text-[32px]">
-          Profil
-        </h1>
-        <p className="text-body leading-relaxed text-secondary-foreground min-[1100px]:text-body">
-          Corrige ce que Garmin a mal relevé. Une valeur modifiée devient la
-          tienne et n’est plus écrasée.
+        <h1 className="text-verdict font-semibold">Profil et zones</h1>
+        <p className="max-w-150 text-body-lg text-pretty text-secondary-foreground">
+          Corrige ce que Garmin a mal relevé. Une valeur que tu modifies devient
+          la tienne et n’est plus écrasée.
         </p>
-        <div className="flex gap-3 pt-1 min-[1100px]:hidden">
+        <div className="flex flex-wrap gap-3 pt-1">
           <ProvenanceLabel source="provider">Garmin</ProvenanceLabel>
           <ProvenanceLabel source="manual">Toi</ProvenanceLabel>
           <ProvenanceLabel source="estimate">Estimation Stride</ProvenanceLabel>
         </div>
       </section>
       <fieldset disabled={pending} className="min-w-0">
-        <legend className="mb-2 w-full px-1.5 text-label font-normal text-muted-foreground tabular-nums min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-control-border min-[1100px]:px-0 min-[1100px]:pb-2.5 min-[1100px]:text-label">
+        <legend className="mb-2 w-full px-1 text-body-lg font-semibold min-[1100px]:mb-0 min-[1100px]:border-b min-[1100px]:border-border min-[1100px]:px-0 min-[1100px]:pb-2.5">
           Toi
         </legend>
-        <FieldGroup className="gap-0 overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child]:border-b-0">
+        <FieldGroup
+          className={cn(
+            "gap-0 max-[1100px]:[&>:last-child]:border-b-0",
+            sectionCard,
+          )}
+        >
           <Field className={rowClass}>
-            <div className="flex min-h-11 items-center justify-between gap-3 min-[1100px]:contents">
-              <FieldLabel className="font-normal">Photo</FieldLabel>
+            <div className="flex min-h-control-touch items-center justify-between gap-3 min-[1100px]:contents">
+              <FieldLabel className="font-medium">Photo</FieldLabel>
               <div className="flex items-center gap-2.5 min-[1100px]:gap-3">
-                <span className="text-label text-muted-foreground min-[1100px]:hidden">
+                <span className="text-label text-secondary-foreground min-[1100px]:hidden">
                   Facultatif
                 </span>
-                <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-border font-semibold">
+                <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-label font-semibold">
                   {(preview || saved.photoUrl) &&
                   (preview ?? saved.photoUrl) !== failedPhoto ? (
                     <Image
                       unoptimized
-                      width={44}
-                      height={44}
+                      width={40}
+                      height={40}
                       src={preview ?? saved.photoUrl ?? ""}
                       onError={() => setFailedPhoto(preview ?? saved.photoUrl)}
                       alt="Ta photo de profil"
@@ -352,7 +360,6 @@ export function ProfileForm({
                 <Button
                   type="button"
                   variant="outline"
-                  size="md"
                   onClick={() => upload.current?.click()}
                 >
                   Importer
@@ -395,21 +402,22 @@ export function ProfileForm({
                 />
               </div>
             </div>
-            <span className="hidden text-label text-muted-foreground min-[1100px]:block">
+            <span className="hidden text-label text-secondary-foreground min-[1100px]:block">
               Facultatif · JPEG, PNG, WebP · 2 Mo max
             </span>
           </Field>
           {personalRow("first_name", "Prénom")}
           {personalRow("birth_date", "Date de naissance")}
           <Field className={rowClass}>
-            <FieldLabel id="profile-sex" className="font-normal">
+            <FieldLabel id="profile-sex" className="font-medium">
               Sexe
             </FieldLabel>
             <ToggleGroup
               type="single"
+              variant="segment"
               aria-labelledby="profile-sex"
               value={draft.sex ?? ""}
-              className="flex-nowrap gap-1.5"
+              className="w-full bg-card"
               onValueChange={(sex) => {
                 if (sex === "female" || sex === "male" || sex === "unspecified")
                   setDraft((current) => ({ ...current, sex }));
@@ -421,7 +429,7 @@ export function ProfileForm({
                 { value: "unspecified", label: "Non précisé" },
               ].map((item) => (
                 <ToggleGroupItem
-                  className="min-w-0 flex-1 px-2 text-body"
+                  className="min-w-0 flex-1 max-md:min-h-control-touch"
                   value={item.value}
                   key={item.value}
                 >
@@ -436,15 +444,20 @@ export function ProfileForm({
         </FieldGroup>
       </fieldset>
       <section id="entrainement" className="scroll-mt-4">
-        <div className="mb-2 flex flex-col gap-1 px-1.5 min-[1100px]:mb-0 min-[1100px]:flex-row min-[1100px]:items-baseline min-[1100px]:justify-between min-[1100px]:border-b min-[1100px]:border-control-border min-[1100px]:px-0 min-[1100px]:pb-2.5">
-          <h2 className="text-label font-normal text-muted-foreground tabular-nums min-[1100px]:text-label">
+        <div className={sectionHead}>
+          <h2 className="text-body-lg font-semibold">
             Issu de ton entraînement
           </h2>
-          <p className="text-label text-muted-foreground">
-            Lu dans tes données · modifie seulement si tu sais mieux
+          <p className="text-body text-secondary-foreground">
+            Lu dans tes données. Modifie seulement si tu sais mieux.
           </p>
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card min-[1100px]:rounded-none min-[1100px]:border-0 min-[1100px]:bg-transparent max-[1100px]:[&>:last-child>div]:border-b-0">
+        <div
+          className={cn(
+            "max-[1100px]:[&>:last-child>div]:border-b-0",
+            sectionCard,
+          )}
+        >
           {metrics.map((metric) => {
             const value =
               metric.key === "maximum"
@@ -468,10 +481,11 @@ export function ProfileForm({
                 ) : (
                   <div className={rowClass}>
                     <div className="flex justify-between gap-3 min-[1100px]:contents">
-                      <span className="text-body min-[1100px]:text-body">
-                        {metric.label}
-                      </span>
-                      <span className="text-title font-semibold tabular-nums">
+                      <span className="font-medium">{metric.label}</span>
+                      <span
+                        data-slot="metric"
+                        className="text-body-lg font-semibold tabular-nums"
+                      >
                         {value === null
                           ? "—"
                           : new Intl.NumberFormat("fr-FR", {
@@ -480,7 +494,7 @@ export function ProfileForm({
                         {value === null ? "" : ` ${metric.unit}`}
                       </span>
                     </div>
-                    <div className="flex min-h-7 items-center justify-between gap-2">
+                    <div className="flex min-h-control items-center justify-between gap-2">
                       <ProvenanceLabel
                         source={
                           manual
@@ -512,7 +526,6 @@ export function ProfileForm({
                           }
                           type="button"
                           variant="ghost"
-                          size="sm"
                           aria-label={`Modifier ${metric.label}`}
                           disabled={pending}
                           onClick={() => {
@@ -542,8 +555,8 @@ export function ProfileForm({
         </p>
       )}
       {count > 0 && (
-        <div className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-control-border bg-muted p-3 min-[1100px]:bottom-4 min-[1100px]:w-fit min-[1100px]:gap-3 min-[1100px]:px-4.5">
-          <span className="flex-1 text-body">
+        <div className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-float min-[1100px]:bottom-4 min-[1100px]:w-fit min-[1100px]:gap-3 min-[1100px]:px-4">
+          <span className="flex-1">
             {count}{" "}
             {count === 1
               ? "modification non enregistrée"
@@ -557,7 +570,6 @@ export function ProfileForm({
           <Button
             type="button"
             variant="ghost"
-            size="md"
             disabled={pending}
             onClick={() => {
               setDraft(profileDraft(saved));
@@ -570,7 +582,7 @@ export function ProfileForm({
           >
             Annuler
           </Button>
-          <Button type="submit" size="md" disabled={pending || !!editor}>
+          <Button type="submit" disabled={pending || !!editor}>
             {pending ? "Enregistrement…" : "Enregistrer"}
           </Button>
         </div>
@@ -584,7 +596,7 @@ export function ProfileForm({
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[95svh] gap-4 overflow-y-auto rounded-t-[18px] border-control-border bg-muted px-5 pt-2 pb-7.5"
+          className="max-h-[95svh] gap-4 overflow-y-auto rounded-t-2xl border-control-border bg-card px-5 pt-2 pb-7.5"
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             (lastEditor.current === "maximum"

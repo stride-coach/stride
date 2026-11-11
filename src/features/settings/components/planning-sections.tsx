@@ -91,7 +91,7 @@ export function UnavailabilitySection({
     <div className="flex flex-col gap-6">
       <PreferenceSection title="Indisponibilités">
         {periods.length === 0 ? (
-          <p className="px-4 py-3 text-body text-secondary-foreground md:px-0 md:py-4">
+          <p className="border-b border-border px-4 py-3 text-secondary-foreground max-md:border-b-0 md:px-0 md:py-3.5">
             Aucune période à venir. Ajoute tes voyages ou tes pauses pour que
             ton plan les évite.
           </p>
@@ -102,11 +102,11 @@ export function UnavailabilitySection({
               return (
                 <li
                   key={period.id}
-                  className="flex items-center justify-between gap-4 border-b border-border px-4 py-3 last:border-b-0 md:px-0"
+                  className="flex min-h-row items-center justify-between gap-4 border-b border-border px-4 py-2.5 last:border-b-0 md:px-0 md:last:border-b"
                 >
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-body">{label}</span>
-                    <span className="truncate text-label text-muted-foreground">
+                    <span className="font-medium">{label}</span>
+                    <span className="truncate text-label text-secondary-foreground">
                       {unavailabilityKindLabels[period.kind]}
                       {period.reason ? ` · ${period.reason}` : ""}
                     </span>
@@ -116,7 +116,6 @@ export function UnavailabilitySection({
                     <Button
                       type="submit"
                       variant="ghost"
-                      size="sm"
                       aria-label={`Supprimer la période : ${label}`}
                     >
                       Supprimer
@@ -136,11 +135,11 @@ export function UnavailabilitySection({
               aria-labelledby="u-dates"
               className="grid grid-cols-2 gap-2 md:w-80"
             >
-              <label className="flex flex-col gap-1 text-label text-muted-foreground">
+              <label className="flex flex-col gap-1 text-label text-secondary-foreground">
                 Début
                 <FrenchDateInput id="u-start" name="starts_on" required />
               </label>
-              <label className="flex flex-col gap-1 text-label text-muted-foreground">
+              <label className="flex flex-col gap-1 text-label text-secondary-foreground">
                 Fin
                 <FrenchDateInput id="u-end" name="ends_on" required />
               </label>

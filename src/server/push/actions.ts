@@ -19,7 +19,8 @@ const endpointSchema = z.strictObject({
 });
 
 function refresh() {
-  revalidatePath("/settings/training");
+  revalidatePath("/settings/notifications");
+  revalidatePath("/settings");
 }
 
 export async function subscribePush(input: unknown): Promise<PushActionResult> {

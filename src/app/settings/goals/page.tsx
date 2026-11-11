@@ -9,7 +9,6 @@ import {
   racePriorities,
   resolveRaceSnapshots,
   type GoalFocus,
-  type RacePriority,
 } from "@/features/onboarding/goals";
 import {
   daysUntil,
@@ -22,6 +21,7 @@ import {
   splitRaces,
 } from "@/features/settings/goals-view";
 import { cn } from "@/lib/utils";
+import { PriorityBadge } from "@/features/races/components/races-overview";
 import { requireAthleteAccount } from "@/server/app/session";
 import { readGoals } from "@/server/onboarding/goals";
 import { readRaceCourses } from "@/server/races/courses";
@@ -41,33 +41,9 @@ const focusLabels: Record<GoalFocus, string> = {
 const columns =
   "md:grid-cols-[2.75rem_minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem_4.375rem]";
 
-function PriorityBadge({
-  priority,
-  dashed = false,
-}: {
-  priority: RacePriority;
-  dashed?: boolean;
-}) {
-  return (
-    <span
-      className={cn(
-        "grid size-8 shrink-0 place-items-center rounded-md text-body-lg font-bold tabular-nums",
-        priority === "A" && !dashed && "bg-primary text-primary-foreground",
-        priority !== "A" &&
-          !dashed &&
-          "border-[1.5px] border-control-border text-secondary-foreground",
-        dashed &&
-          "border-[1.5px] border-dashed border-control-border text-muted-foreground",
-      )}
-    >
-      {priority}
-    </span>
-  );
-}
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="px-1.5 text-label text-secondary-foreground tabular-nums md:px-0 md:text-label">
+    <h2 className="px-1 text-body-lg font-semibold md:border-b md:border-border md:px-0 md:pb-2.5">
       {children}
     </h2>
   );
@@ -124,12 +100,10 @@ export default async function GoalsSettingsPage({
         race.values.name,
     )?.values.name ?? null;
   return (
-    <div className="flex flex-col gap-6 md:gap-10">
+    <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col gap-2 px-1 md:px-0">
-        <h1 className="text-metric font-semibold tracking-tight md:text-[2rem] md:tracking-[-0.025em]">
-          Objectifs et courses
-        </h1>
-        <p className="text-body leading-normal text-secondary-foreground md:text-body">
+        <h1 className="text-verdict font-semibold">Objectifs et courses</h1>
+        <p className="max-w-150 text-body-lg text-pretty text-secondary-foreground">
           Ta course A structure tout le plan. La changer crée une proposition de
           plan que tu peux relire avant.
         </p>
@@ -160,14 +134,15 @@ export default async function GoalsSettingsPage({
       {primary && (
         <section className="flex flex-col gap-2 md:gap-3">
           <SectionTitle>Objectif principal</SectionTitle>
-          <div className="flex flex-col gap-3.5 rounded-xl border border-primary bg-card p-4 md:flex-row md:flex-wrap md:items-center md:gap-4 md:rounded-lg md:bg-transparent md:px-5 md:py-4.5">
-            <div className="flex min-w-0 items-start gap-3 md:min-w-55 md:flex-1 md:items-center md:gap-4">
+          <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5 md:flex-row md:flex-wrap md:items-center md:gap-4">
+            <div className="flex min-w-0 items-start gap-3 md:min-w-55 md:flex-1 md:items-center">
               <PriorityBadge priority="A" />
-              <div className="flex min-w-0 flex-col gap-0.75">
+              <div className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-title font-semibold">
+                  <span className="sr-only">Course A · </span>
                   {primary.values.name}
                 </span>
-                <span className="text-body leading-snug text-muted-foreground">
+                <span className="text-secondary-foreground">
                   {[
                     formatRaceLongDate(primary.values.race_date),
                     formatKm(primary.values.distance_km),
@@ -181,21 +156,24 @@ export default async function GoalsSettingsPage({
               </div>
             </div>
             <div className="flex items-end justify-between gap-4 max-md:border-t max-md:border-border max-md:pt-3 md:contents">
-              <div className="flex flex-col gap-0.75 md:items-end">
-                <span className="text-display leading-none font-semibold tabular-nums md:text-[1.625rem]">
+              <div className="flex flex-col gap-0.5 md:items-end">
+                <span
+                  data-slot="metric"
+                  className="text-metric font-semibold tabular-nums"
+                >
                   {primary.values.race_date
                     ? `${daysUntil(primary.values.race_date, today)} jours`
                     : "—"}
                 </span>
                 {primary.values.target_duration_seconds !== null && (
-                  <span className="text-label text-muted-foreground">
+                  <span className="text-label text-secondary-foreground">
                     Cible {formatTarget(primary.values.target_duration_seconds)}
                   </span>
                 )}
               </div>
               <Link
                 href={`/races/${primary.id}`}
-                className="inline-flex min-h-11 items-center text-body font-medium text-primary hover:underline md:min-h-0"
+                className="inline-flex min-h-control-touch items-center font-medium text-primary hover:text-foreground md:min-h-0"
               >
                 Plan de course →
               </Link>
@@ -206,7 +184,7 @@ export default async function GoalsSettingsPage({
       <section className="flex flex-col gap-2 md:gap-0">
         <div
           className={cn(
-            "hidden gap-4 border-b border-control-border pb-2.5 text-label text-secondary-foreground tabular-nums md:grid",
+            "hidden gap-4 border-b border-border pb-2.5 text-label text-muted-foreground md:grid",
             columns,
           )}
         >
@@ -217,42 +195,43 @@ export default async function GoalsSettingsPage({
           <span>Cible</span>
           <span />
         </div>
-        <h2 className="px-1.5 text-label text-secondary-foreground tabular-nums md:hidden">
-          À venir
-        </h2>
+        <h2 className="px-1 text-body-lg font-semibold md:hidden">À venir</h2>
         <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
           {upcoming.map((race) => (
             <div
               key={race.id}
               className={cn(
-                "grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-3 pr-2 pl-4 md:gap-4 md:py-4 md:pr-0 md:pl-0",
+                "grid min-h-row-touch grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2.5 pr-2 pl-4 md:min-h-row md:gap-4 md:pr-0 md:pl-0",
                 columns,
               )}
             >
               <PriorityBadge priority={race.values.priority} />
               <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate text-body font-medium">
+                <span className="truncate font-medium">
+                  <span className="sr-only">
+                    Course {race.values.priority} ·{" "}
+                  </span>
                   {race.values.name ?? "Course sans nom"}
                 </span>
-                <span className="text-body text-muted-foreground md:hidden">
+                <span className="text-label text-secondary-foreground md:hidden">
                   {formatRaceShortDate(race.values.race_date)} ·{" "}
                   {formatRaceDistance(race.values)}
                   {race.values.target_duration_seconds !== null &&
                     ` · cible ${formatTarget(race.values.target_duration_seconds)}`}
                 </span>
               </div>
-              <span className="hidden text-body text-secondary-foreground md:block">
+              <span className="hidden text-secondary-foreground tabular-nums md:block">
                 {formatRaceShortDate(race.values.race_date)}
               </span>
-              <span className="hidden text-title font-semibold tabular-nums md:block">
+              <span className="hidden font-semibold tabular-nums md:block">
                 {formatRaceDistance(race.values)}
               </span>
-              <span className="hidden text-title font-semibold tabular-nums md:block">
+              <span className="hidden font-semibold tabular-nums md:block">
                 {formatTarget(race.values.target_duration_seconds)}
               </span>
               <Link
                 href={`/settings/goals?course=${race.id}`}
-                className="inline-flex min-h-11 items-center justify-end px-2.5 text-body text-secondary-foreground hover:text-foreground md:min-h-8 md:px-0 md:pr-3.5"
+                className="inline-flex min-h-control-touch items-center justify-end px-2.5 text-secondary-foreground hover:text-foreground md:min-h-control md:px-0 md:pr-3.5"
               >
                 Modifier
               </Link>
@@ -262,17 +241,17 @@ export default async function GoalsSettingsPage({
             <div
               key={priority}
               className={cn(
-                "grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-3 pr-2 pl-4 last:border-b-0 md:gap-4 md:py-4 md:pr-0 md:pl-0",
+                "grid min-h-row-touch grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2.5 pr-2 pl-4 last:border-b-0 md:min-h-row md:gap-4 md:pr-0 md:pl-0",
                 columns,
               )}
             >
-              <PriorityBadge priority={priority} dashed />
-              <span className="text-body leading-snug text-muted-foreground md:col-span-4 md:max-w-xl">
+              <PriorityBadge priority={priority} planned={false} />
+              <span className="text-secondary-foreground md:col-span-4 md:max-w-xl">
                 {priorityMissingCopy[priority]}
               </span>
               <Link
                 href={`/settings/goals?course=nouvelle&priorite=${priority}`}
-                className="inline-flex min-h-11 items-center justify-end px-2.5 text-body font-medium text-primary hover:underline md:min-h-8 md:px-0 md:pr-3.5"
+                className="inline-flex min-h-control-touch items-center justify-end px-2.5 font-medium text-primary hover:text-foreground md:min-h-control md:px-0 md:pr-3.5"
               >
                 Ajouter
               </Link>
@@ -282,27 +261,27 @@ export default async function GoalsSettingsPage({
       </section>
       {past.length > 0 && (
         <section className="flex flex-col gap-2 md:gap-0">
-          <h2 className="px-1.5 text-label text-secondary-foreground tabular-nums md:border-b md:border-control-border md:px-0 md:pb-2.5 md:text-label">
+          <h2 className="px-1 text-body-lg font-semibold md:border-b md:border-border md:px-0 md:pb-2.5">
             Courses passées
           </h2>
           <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card md:overflow-visible md:rounded-none md:border-0 md:bg-transparent">
             {past.map((race) => (
               <div
                 key={race.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.5 border-b border-border px-4 py-3 text-body last:border-b-0 md:grid-cols-[minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem] md:gap-4 md:px-0 md:py-3.25 md:text-body"
+                className="grid min-h-row grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.5 border-b border-border px-4 py-2.5 last:border-b-0 md:grid-cols-[minmax(0,1.6fr)_7.5rem_8.75rem_6.875rem] md:gap-4 md:px-0"
               >
                 <span className="truncate">
                   {race.values.name ?? "Course sans nom"}
                 </span>
-                <span className="text-[1.0625rem] font-semibold tabular-nums md:order-last">
+                <span className="font-semibold tabular-nums md:order-last">
                   {race.values.target_duration_seconds !== null
                     ? formatTarget(race.values.target_duration_seconds)
                     : "Terminé"}
                 </span>
-                <span className="text-body text-muted-foreground md:order-2 md:text-body">
+                <span className="text-secondary-foreground tabular-nums md:order-2">
                   {formatRaceShortDate(race.values.race_date)}
                 </span>
-                <span className="text-right text-body-lg font-semibold text-secondary-foreground tabular-nums md:order-3 md:text-left md:text-[1.0625rem] md:text-foreground">
+                <span className="text-right font-semibold text-secondary-foreground tabular-nums md:order-3 md:text-left md:text-foreground">
                   {formatKm(race.values.distance_km)}
                 </span>
               </div>
@@ -321,14 +300,14 @@ export default async function GoalsSettingsPage({
             name="revision"
             value={goals.goal.revision ?? ""}
           />
-          <label htmlFor="focus" className="text-body font-medium">
+          <label htmlFor="focus" className="font-medium">
             Quel est ton objectif ?
           </label>
           <select
             id="focus"
             name="focus"
             defaultValue={goals.goal.values.focus ?? ""}
-            className="h-10 w-full rounded-md border border-input bg-card px-3 text-body focus-visible:outline-2 focus-visible:outline-ring"
+            className="h-control-auto w-full rounded-lg border border-input bg-card px-3"
           >
             {goalFocuses.map((focus) => (
               <option key={focus} value={focus}>

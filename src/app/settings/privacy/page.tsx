@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRightIcon } from "lucide-react";
+import { Status } from "@/components/stride/status";
 import { Button } from "@/components/ui/button";
-import {
-  SettingsGroup,
-  SettingsHeading,
-  SettingsLinkRow,
-} from "@/features/settings/components/settings-shell";
+import { DataRow, DataSection } from "@/features/settings/components/data-rows";
+import { SettingsHeading } from "@/features/settings/components/settings-shell";
 import { WithdrawConsentButton } from "@/features/consent/components/withdraw-consent-button";
 import { formatConsentDate } from "@/features/consent/health-consent";
 import { publisher } from "@/features/public/publisher";
@@ -16,6 +15,24 @@ import { readStoredCounts } from "@/server/settings/data";
 export const metadata: Metadata = {
   title: "Données et confidentialité · Réglages",
 };
+
+const documents = [
+  {
+    href: "/privacy",
+    title: "Confidentialité",
+    detail: "Données collectées, prestataires et tes droits",
+  },
+  {
+    href: "/terms",
+    title: "Conditions",
+    detail: "Conditions d’utilisation du service",
+  },
+  {
+    href: "/legal",
+    title: "Mentions légales",
+    detail: "Éditeur et hébergement",
+  },
+];
 
 export default async function PrivacySettingsPage() {
   const context = await requireAthleteAccount();
@@ -29,113 +46,101 @@ export default async function PrivacySettingsPage() {
         title="Données et confidentialité"
         description="Tes données ne servent qu’à te coacher. Elles ne sont jamais vendues ni utilisées pour de la publicité. Tu peux télécharger une copie de tes réglages ou demander la suppression de ton compte."
       />
-      <SettingsGroup title="Enregistré dans Stride">
-        <div className="border-b border-border p-4 md:px-0">
-          <strong className="text-body">Activités et mesures Garmin</strong>
-          <p className="mt-1 text-body text-secondary-foreground">
-            {counts.activities ?? "—"} activités et {counts.observations ?? "—"}{" "}
-            mesures de santé sont enregistrées dans ton compte.
-          </p>
-        </div>
-        <div className="p-4 md:px-0">
-          <strong className="text-body">
-            Profil, entraînement, objectifs et courses
-          </strong>
-          <p className="mt-1 text-body text-secondary-foreground">
-            Tes réponses restent disponibles dans ton compte après connexion.
-          </p>
-        </div>
-      </SettingsGroup>
-      <SettingsGroup title="Consentement aux données de santé">
-        <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
-          <div className="min-w-0 flex-1 basis-80">
-            <strong className="flex items-center gap-2 text-body">
-              <span
-                aria-hidden="true"
-                className={
-                  consent.kind === "active"
-                    ? "size-1.75 rounded-full bg-primary"
-                    : "size-1.75 rounded-full bg-warning"
-                }
-              />
-              {consent.kind === "active"
-                ? `Accordé le ${formatConsentDate(consent.grantedAt)}`
-                : consent.kind === "withdrawn"
-                  ? `Retiré le ${formatConsentDate(consent.withdrawnAt)}`
-                  : "Pas encore accordé"}
-            </strong>
-            <p className="mt-1 text-body text-secondary-foreground">
-              Sommeil, VFC, fréquence cardiaque et douleurs signalées servent
-              uniquement à adapter ton entraînement.{" "}
-              {consent.kind === "active"
-                ? `Donné selon la politique de confidentialité du ${formatConsentDate(consent.policyVersion)}.`
-                : "Sans ton accord, ton coaching reste en pause."}
-            </p>
-          </div>
-          {consent.kind === "active" ? (
-            <WithdrawConsentButton contact={publisher.email} />
-          ) : (
-            <Button asChild className="max-md:w-full">
-              <Link href="/consent">Donner mon accord</Link>
-            </Button>
-          )}
-        </div>
-      </SettingsGroup>
-      <SettingsGroup title="Ta copie">
-        <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
-          <div className="flex-1">
-            <strong className="text-body">Télécharger les réglages</strong>
-            <p className="mt-1 text-body text-secondary-foreground">
-              Profil, objectifs et courses au format JSON. Les activités Garmin
-              ne sont pas incluses.
-            </p>
-          </div>
-          <Button asChild variant="secondary">
-            <a href="/settings/export" download>
-              Télécharger le JSON
-            </a>
-          </Button>
-        </div>
-      </SettingsGroup>
-      <SettingsGroup title="Documents">
-        <SettingsLinkRow
-          href="/privacy"
-          title="Confidentialité"
-          detail="Données collectées, prestataires et tes droits"
-        />
-        <SettingsLinkRow
-          href="/terms"
-          title="Conditions"
-          detail="Conditions d’utilisation du service"
-        />
-        <SettingsLinkRow
-          href="/legal"
-          title="Mentions légales"
-          detail="Éditeur et hébergement"
-        />
-      </SettingsGroup>
-      <SettingsGroup title="Suppression">
-        <div className="flex flex-wrap items-center gap-4 p-4 md:px-0">
-          <div className="min-w-0 flex-1 basis-80">
-            <strong className="text-body">
-              Supprimer ton compte ou tes données Garmin
-            </strong>
-            <p className="mt-1 text-body text-secondary-foreground">
-              Pas encore possible depuis les réglages. Écris-nous à{" "}
-              {publisher.email} : on supprime ce que tu demandes sous 30 jours
-              et on te confirme par e-mail. Tes données sur Garmin ne sont pas
-              touchées.
-            </p>
-          </div>
-          <Button asChild variant="outline" className="max-md:w-full">
-            <a
-              href={`mailto:${publisher.email}?subject=${encodeURIComponent("Suppression de mon compte Stride")}`}
+      <div className="flex flex-col gap-9">
+        <DataSection id="privacy-stored" title="Ce que Stride conserve">
+          <DataRow
+            title="Activités et mesures Garmin"
+            detail={`${counts.activities ?? "—"} activités et ${counts.observations ?? "—"} mesures de santé sont enregistrées dans ton compte.`}
+          />
+          <DataRow
+            title="Profil, entraînement, objectifs et courses"
+            detail="Tes réponses restent disponibles dans ton compte après connexion."
+          />
+        </DataSection>
+        <DataSection id="privacy-consent" title="Consentement">
+          <DataRow
+            title="Consentement aux données de santé"
+            detail={
+              <span className="flex flex-col gap-1">
+                <Status
+                  level={consent.kind === "active" ? "ok" : "watch"}
+                  className="text-label"
+                >
+                  {consent.kind === "active"
+                    ? `Accordé le ${formatConsentDate(consent.grantedAt)}`
+                    : consent.kind === "withdrawn"
+                      ? `Retiré le ${formatConsentDate(consent.withdrawnAt)}`
+                      : "Pas encore accordé"}
+                </Status>
+                <span>
+                  Sommeil, VFC, fréquence cardiaque et douleurs signalées
+                  servent uniquement à adapter ton entraînement.{" "}
+                  {consent.kind === "active"
+                    ? `Donné selon la politique de confidentialité du ${formatConsentDate(consent.policyVersion)}.`
+                    : "Sans ton accord, ton coaching reste en pause."}
+                </span>
+              </span>
+            }
+            action={
+              consent.kind === "active" ? (
+                <WithdrawConsentButton contact={publisher.email} />
+              ) : (
+                <Button asChild>
+                  <Link href="/consent">Donner mon accord</Link>
+                </Button>
+              )
+            }
+          />
+        </DataSection>
+        <DataSection id="privacy-copy" title="Ta copie">
+          <DataRow
+            title="Télécharger les réglages"
+            detail="Profil, objectifs et courses au format JSON. Les activités Garmin ne sont pas incluses."
+            action={
+              <Button asChild variant="outline">
+                <a href="/settings/export" download>
+                  Télécharger le JSON
+                </a>
+              </Button>
+            }
+          />
+        </DataSection>
+        <DataSection id="privacy-documents" title="Documents">
+          {documents.map((document) => (
+            <Link
+              key={document.href}
+              href={document.href}
+              className="flex min-h-row-touch items-center gap-4 border-b border-border py-3 transition-colors duration-150 ease-stride hover:bg-muted md:min-h-row"
             >
-              Écrire à l’équipe
-            </a>
-          </Button>
-        </div>
-      </SettingsGroup>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="font-medium">{document.title}</span>
+                <span className="text-label text-secondary-foreground">
+                  {document.detail}
+                </span>
+              </span>
+              <ChevronRightIcon
+                aria-hidden="true"
+                className="size-4 shrink-0 text-muted-foreground"
+              />
+            </Link>
+          ))}
+        </DataSection>
+        <DataSection id="privacy-deletion" title="Suppression">
+          <DataRow
+            title="Supprimer ton compte ou tes données Garmin"
+            detail={`Pas encore possible depuis les réglages. Écris-nous à ${publisher.email} : on supprime ce que tu demandes sous 30 jours et on te confirme par e-mail. Tes données sur Garmin ne sont pas touchées.`}
+            action={
+              <Button asChild variant="outline">
+                <a
+                  href={`mailto:${publisher.email}?subject=${encodeURIComponent("Suppression de mon compte Stride")}`}
+                >
+                  Écrire à l’équipe
+                </a>
+              </Button>
+            }
+          />
+        </DataSection>
+      </div>
     </>
   );
 }
