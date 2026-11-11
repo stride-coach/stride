@@ -101,6 +101,8 @@ test("the team shows every role without a first name or a face", async ({
     await expect(
       page.getByRole("heading", { name, exact: true }).first(),
     ).toBeVisible();
-  await expect(page.getByRole("img", { name: "Santé" }).first()).toBeVisible();
+  await expect(
+    page.locator('[data-slot="staff-avatar"]').first(),
+  ).toBeVisible();
   await expect(page.getByText("Visage", { exact: true })).toHaveCount(0);
 });

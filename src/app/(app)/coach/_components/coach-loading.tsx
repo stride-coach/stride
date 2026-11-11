@@ -42,7 +42,7 @@ function ConversationListLoading() {
             </Button>
             <MobileHeaderActions />
           </div>
-          <CoachTabs />
+          <CoachTabs className="md:flex" />
           <section aria-label="Ton staff" className="flex flex-col gap-2.5">
             <span className="text-label font-medium text-muted-foreground">
               Ton staff
@@ -60,7 +60,7 @@ function ConversationListLoading() {
             </div>
           </section>
         </div>
-        <div className="flex items-center gap-2 max-[979px]:hidden">
+        <div className="flex items-center gap-2 max-[980px]:hidden">
           <h2 className="font-medium">Conversations</h2>
           <Button asChild variant="outline" className="ml-auto">
             <Link href="/coach/new">

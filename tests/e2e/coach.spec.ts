@@ -922,7 +922,7 @@ test("the staff page shows five roles without faces and names them everywhere", 
   const coach = page.getByRole("article", { name: "Coach" });
   await expect(coach).toContainText("Ton entraînement au quotidien");
   await expect(coach).toContainText("2 conversations ce mois");
-  await expect(coach.getByRole("img", { name: "Coach" })).toBeVisible();
+  await expect(coach.locator('[data-slot="staff-avatar"]')).toBeVisible();
   await expect(
     coach.getByRole("link", { name: "Écrire au Coach" }),
   ).toBeVisible();

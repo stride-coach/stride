@@ -31,10 +31,10 @@ function needsAthlete(row: ConversationRow) {
 
 function RowAvatar({ row }: { row: ConversationRow }) {
   const specialist = row.participants.find((agent) => agent !== "coach");
-  if (!specialist) return <StaffAvatar agent="coach" size={30} />;
+  if (!specialist) return <StaffAvatar agent="coach" size={30} decorative />;
   return (
     <span className="relative block size-9">
-      <StaffAvatar agent="coach" size={30} />
+      <StaffAvatar agent="coach" size={30} decorative />
       <span className="absolute -right-1 -bottom-1 rounded-full bg-background p-0.5">
         <StaffAvatar agent={specialist} size={22} decorative />
       </span>
@@ -125,7 +125,7 @@ export function ConversationList({
         <div
           className={cn(
             "flex items-center gap-2",
-            mobileHeader && "max-[979px]:hidden",
+            mobileHeader && "max-[980px]:hidden",
           )}
         >
           <h2 className="font-medium">Conversations</h2>

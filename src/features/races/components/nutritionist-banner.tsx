@@ -54,7 +54,7 @@ export function NutritionistBanner({
   const examine =
     proposal && `/races/${raceId}/nutrition?proposal=${proposal.id}`;
   const adjust = coachRequestHref(
-    "Ajustons ma nutrition de course avec Nutrition.",
+    "Ajustons ma stratégie de ravitaillement avec Nutrition.",
     null,
     raceId,
   );

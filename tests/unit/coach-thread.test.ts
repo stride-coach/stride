@@ -45,7 +45,7 @@ const consultTurn: ThreadItem[] = [
     consult: "medical",
     attachments: [],
   },
-  { kind: "coach", at: at(1), text: "Je demande à Inès." },
+  { kind: "coach", at: at(1), text: "Je demande à Santé." },
   {
     kind: "consult_request",
     at: at(1),
@@ -144,7 +144,7 @@ describe("thread view model", () => {
     ]);
     expect(entries[1]).toMatchObject({
       agent: "coach",
-      blocks: [{ type: "text", text: "Je demande à Inès." }],
+      blocks: [{ type: "text", text: "Je demande à Santé." }],
     });
     expect(entries[2]).toMatchObject({
       agent: "medical",
@@ -355,12 +355,17 @@ describe("thread view model", () => {
   });
 
   it("splits mentions out of message text", () => {
-    expect(splitMentions("@Inès, tu vois avec @Jules ?")).toEqual([
+    expect(splitMentions("@Santé, tu vois avec @Jules ?")).toEqual([
       "",
-      "@Inès",
+      "@Santé",
       ", tu vois avec ",
       "@Jules",
       " ?",
+    ]);
+    expect(splitMentions("@Stratège de course, regarde le profil")).toEqual([
+      "",
+      "@Stratège de course",
+      ", regarde le profil",
     ]);
   });
 

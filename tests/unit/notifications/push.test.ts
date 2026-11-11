@@ -14,11 +14,7 @@ import {
 const threadId = "a7000000-0000-4000-8000-00000000c001";
 const activityId = "a7000000-0000-4000-8000-00000000a001";
 
-function delivery(
-  kind: string,
-  payload: unknown,
-  faces: unknown = null,
-): PushDelivery {
+function delivery(kind: string, payload: unknown): PushDelivery {
   return {
     id: "a7000000-0000-4000-8000-000000000d01",
     subscription: {
@@ -29,7 +25,6 @@ function delivery(
     kind,
     payload,
     occurredAt: "2026-10-23T05:00:00+00:00",
-    faces,
   };
 }
 
@@ -37,16 +32,12 @@ describe("push message", () => {
   it("names the staff role that replied, whatever face the profile kept", () => {
     expect(
       pushMessage(
-        delivery(
-          "staff_reply",
-          {
-            threadId,
-            threadTitle: "Sortie longue",
-            agent: "coach",
-            excerpt: "On garde la sortie longue dimanche.",
-          },
-          { coach: "thomas" },
-        ),
+        delivery("staff_reply", {
+          threadId,
+          threadTitle: "Sortie longue",
+          agent: "coach",
+          excerpt: "On garde la sortie longue dimanche.",
+        }),
       ),
     ).toEqual({
       title: "Le Coach a répondu",

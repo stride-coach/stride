@@ -324,7 +324,7 @@ function TypingMessage({
   const staff = allStaff;
   return (
     <div role="status" aria-live="polite">
-      <StaffRow agent={entry.agent} state="think">
+      <StaffRow agent={entry.agent} state={entry.read ? "think" : "speak"}>
         <span className="text-secondary-foreground">
           {typingLabel(staff[entry.agent], entry.read)}
         </span>

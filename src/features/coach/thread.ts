@@ -294,6 +294,9 @@ export function replyToLabel(member: StaffMember) {
   return `En réponse ${member.to}`;
 }
 
+const roleMention =
+  /(@(?:Directeur sportif|Stratège de course|[\p{Lu}][\p{L}’'-]*))/u;
+
 export function splitMentions(text: string) {
-  return text.split(/(@[\p{Lu}][\p{L}’'-]*)/u);
+  return text.split(roleMention);
 }

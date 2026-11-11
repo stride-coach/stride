@@ -650,7 +650,7 @@ export function CoachScreen({
                   </Button>
                   <MobileHeaderActions />
                 </div>
-                <CoachTabs />
+                <CoachTabs className="md:flex" />
                 <section
                   aria-label="Ton staff"
                   className="flex flex-col gap-2.5"

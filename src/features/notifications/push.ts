@@ -141,7 +141,6 @@ export const pushDeliverySchema = z.object({
   kind: z.string().min(1).max(40),
   payload: z.unknown(),
   occurredAt: z.string(),
-  faces: z.unknown(),
 });
 export type PushDelivery = z.output<typeof pushDeliverySchema>;
 

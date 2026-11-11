@@ -68,7 +68,7 @@ export function galetFrame(
   const amplitude = state === "think" ? 0.14 : 0.09;
   const speed = state === "think" ? 1.8 : 0.45;
   const blink = blinking && time % 4.2 < 0.14 ? 0.12 : 1;
-  const eyeHeight = (state === "speak" ? 11 : 16) * blink;
+  const eyeHeight = Math.round((state === "speak" ? 11 : 16) * blink * 10) / 10;
   return {
     body: ring(
       34 * (1 + 0.05 * level),
@@ -78,12 +78,13 @@ export function galetFrame(
       state === "think" ? time * 0.35 : 0,
     ),
     halo: ring(41 + 4 * level, seed, time * speed, amplitude, 0),
-    haloOpacity: state === "speak" ? 0.25 + 0.6 * level : 0,
+    haloOpacity:
+      state === "speak" ? Math.round((0.25 + 0.6 * level) * 100) / 100 : 0,
     eyeHeight,
     eyeY: 48 - eyeHeight / 2,
     eyeShift:
       state === "think"
-        ? { x: -5 + 2 * Math.sin(time * 0.9), y: -6 }
+        ? { x: Math.round((-5 + 2 * Math.sin(time * 0.9)) * 10) / 10, y: -6 }
         : { x: 0, y: 0 },
   };
 }

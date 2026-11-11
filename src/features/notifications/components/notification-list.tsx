@@ -50,7 +50,7 @@ const familyIcons: Record<
 
 function NotificationIcon({ view }: { view: NotificationView }) {
   if (view.agent)
-    return <StaffAvatar agent={view.agent} size={30} className="rounded-lg" />;
+    return <StaffAvatar agent={view.agent} size={30} decorative />;
   const { icon: Icon, className } =
     familyIcons[view.family === "staff" ? "plan" : view.family];
   return (

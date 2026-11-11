@@ -92,10 +92,11 @@ export function StaffAvatar({
       [Key in keyof typeof elements]: NonNullable<(typeof elements)[Key]>;
     };
     let unsubscribe: (() => void) | null = null;
+    let visible = true;
     const start = () => {
       unsubscribe?.();
       unsubscribe = null;
-      if (motion.matches) {
+      if (motion.matches || !visible) {
         apply(ready, galetFrame(agent, state, 0, false));
         return;
       }
@@ -103,9 +104,19 @@ export function StaffAvatar({
         apply(ready, galetFrame(agent, state, seconds)),
       );
     };
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting === visible) return;
+            visible = entry.isIntersecting;
+            start();
+          });
+    observer?.observe(ready.body.ownerSVGElement ?? ready.body);
     start();
     motion.addEventListener("change", start);
     return () => {
+      observer?.disconnect();
       motion.removeEventListener("change", start);
       unsubscribe?.();
     };
@@ -164,7 +175,7 @@ export function StaffStack({
   className,
 }: {
   agents: readonly StaffAgent[];
-  size: 22 | 30;
+  size: 22;
   className?: string;
 }) {
   return (

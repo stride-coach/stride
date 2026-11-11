@@ -43,7 +43,7 @@ function RoleCard({ agent, usage }: { agent: StaffAgent; usage: StaffUsage }) {
       className="flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5"
     >
       <div className="flex items-start gap-3">
-        <StaffAvatar agent={agent} size={48} />
+        <StaffAvatar agent={agent} size={48} decorative />
         <div className="flex min-w-0 flex-1 flex-col">
           <h2 id={id} className="text-title font-semibold">
             {member.name}
