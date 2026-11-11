@@ -25,7 +25,7 @@ The release pull request is opened with the workflow token, so CI does not run o
 
 ## Releasing
 
-The owner asks an agent to release; the agent runs the `release` skill (`.agents/skills/release`). It summarizes the release pull request, checks that `main` is green, that pre-production runs the current commit and that hosted migrations are applied, merges the release pull request, then follows the tag through to the production deployment.
+The owner asks an agent to release; the agent runs the `release` skill (`.claude/skills/release`). It summarizes the release pull request, checks that `main` is green, that pre-production runs the current commit and that hosted migrations are applied, merges the release pull request, then follows the tag through to the production deployment.
 
 ## Migrations
 

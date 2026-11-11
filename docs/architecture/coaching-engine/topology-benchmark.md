@@ -39,7 +39,7 @@ The benchmark runs through the official subscription CLIs as plain text transpor
 
 No judge belongs to the generator's family. API-equivalent cost per plan is read from the generator CLI's usage report and compared at list prices.
 
-The harness lives in `evals/topology/`, outside the product code, and imports only Phase 1 domain modules.
+The harness lived in `evals/topology/`, outside the product code, and imported only Phase 1 domain modules. It was removed in #472 after decision D10 closed the benchmark; it remains in git history.
 
 ## Scenarios
 

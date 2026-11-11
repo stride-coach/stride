@@ -1,9 +1,6 @@
 .git
 .github
 .claude
-.agents
-_bmad
-_bmad-output
 node_modules
 .next
 .next-e2e
@@ -16,7 +13,6 @@ playwright.config.ts
 scripts
 docs
 supabase
-evals
 *.tsbuildinfo
 .env*
 !.env.example
