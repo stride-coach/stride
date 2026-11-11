@@ -171,7 +171,6 @@
   --animate-trace: trace 1.6s var(--stride-ease) infinite;
   --animate-sheen: sheen 1.8s linear infinite;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
-  --animate-relief-drift: relief-drift 60s ease-in-out infinite alternate;
 
   @keyframes rise {
     from {
@@ -201,15 +200,6 @@
   @keyframes breathe {
     50% {
       opacity: 0.35;
-    }
-  }
-
-  @keyframes relief-drift {
-    from {
-      transform: translate3d(0, 0, 0);
-    }
-    to {
-      transform: translate3d(-18px, 12px, 0);
     }
   }
 }

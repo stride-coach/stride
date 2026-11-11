@@ -13,6 +13,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   activityState,
+  reliefBusy,
   dataActivitySchema,
   freshCategories,
   threadActive,
@@ -50,7 +51,9 @@ type ActivityContext = {
   apply: () => void;
   markLoading: () => () => void;
   markSkeleton: () => () => void;
+  markThinking: () => () => void;
   thread: boolean;
+  busy: boolean;
   sync: SyncRequestControl;
 };
 
@@ -74,6 +77,7 @@ export function DataActivityProvider({
   const [fresh, setFresh] = useState<GarminSyncCategory[]>([]);
   const [loads, setLoads] = useState(0);
   const [skeletons, setSkeletons] = useState(0);
+  const [thinking, setThinking] = useState(0);
   const [thread, setThread] = useState(false);
   const [applying, startTransition] = useTransition();
   const [requested, setRequested] = useState<RequestedSync | null>(null);
@@ -115,6 +119,10 @@ export function DataActivityProvider({
   const markSkeleton = useCallback(() => {
     setSkeletons((count) => count + 1);
     return () => setSkeletons((count) => Math.max(0, count - 1));
+  }, []);
+  const markThinking = useCallback(() => {
+    setThinking((count) => count + 1);
+    return () => setThinking((count) => Math.max(0, count - 1));
   }, []);
   const apply = () => {
     if (offline) return;
@@ -247,13 +255,15 @@ export function DataActivityProvider({
     };
   }, [router]);
 
-  const active = threadActive({
+  const signals = {
     offline,
     syncing: state === "syncing" || pending,
     navigations: loads,
     skeletons,
     refreshing: applying,
-  });
+  };
+  const active = threadActive(signals);
+  const busy = reliefBusy({ ...signals, thinking });
   const visibleSince = useRef(0);
   useEffect(() => {
     if (offline) {
@@ -286,7 +296,9 @@ export function DataActivityProvider({
         apply,
         markLoading,
         markSkeleton,
+        markThinking,
         thread,
+        busy,
         sync: { pending, progress, availableAt, failure, request },
       }}
     >

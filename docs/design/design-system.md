@@ -140,7 +140,7 @@ Prefer React Server Components and stable content. Use local skeletons only for 
 
 Motion explains state and hierarchy. Keep transitions restrained; reference timings are starting points, not required animations. Respect `prefers-reduced-motion` by resolving transitions and animations to their end state. Do not animate for decoration.
 
-Motion tokens: `ease-stride` (`cubic-bezier(0.2, 0.8, 0.2, 1)`, the single curve), durations `--stride-duration-fast` (150ms), `-base` (220ms), `-slow` (320ms) and `-reveal` (600ms), `animate-rise` (320ms rise 8px and fade for recommendations and findings), `animate-trace` (1.6s coach reading sweep), `animate-sheen` (1.8s import lane), `animate-breathe` (2.4s sync dot) and `animate-relief-drift` (60s relief drift). The sidebar collapses in 220ms. Apply looping animations with `motion-safe:` so reduced motion shows the static end state.
+Motion tokens: `ease-stride` (`cubic-bezier(0.2, 0.8, 0.2, 1)`, the single curve), durations `--stride-duration-fast` (150ms), `-base` (220ms), `-slow` (320ms) and `-reveal` (600ms), `animate-rise` (320ms rise 8px and fade for recommendations and findings), `animate-trace` (1.6s coach reading sweep), `animate-sheen` (1.8s import lane) and `animate-breathe` (2.4s sync dot). The relief breathes: its contour phase advances slowly and continuously, faster while a screen loads, data syncs or the coach thinks, and it stays at phase 0 with reduced motion. The sidebar collapses in 220ms. Apply looping animations with `motion-safe:` so reduced motion shows the static end state.
 
 ## Errors and missing items
 

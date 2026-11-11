@@ -95,3 +95,27 @@ test("deferred onboarding routes and sync endpoint remain unavailable", async ({
   expect(sync.status()).toBe(404);
   expect(sync.headers()["cache-control"]).toContain("no-store");
 });
+
+test("the relief breathes and stays still with reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const contour = page.locator("[data-slot=relief] polygon").first();
+  const pointsAfter = (milliseconds: number) =>
+    contour.evaluate(
+      (polygon, delay) =>
+        new Promise<string | null>((resolve) =>
+          setTimeout(() => resolve(polygon.getAttribute("points")), delay),
+        ),
+      milliseconds,
+    );
+
+  await page.goto("/");
+  const resting = await pointsAfter(0);
+  await expect.poll(() => pointsAfter(200)).not.toBe(resting);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload();
+  const frozen = await pointsAfter(300);
+  expect(await pointsAfter(600)).toBe(frozen);
+});

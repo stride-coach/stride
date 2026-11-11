@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+import { useDataActivity } from "@/features/data-activity/components/provider";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -589,6 +590,11 @@ function ConversationPane({
     }
     logEnd.current?.scrollIntoView({ block: "end" });
   }, [items.length, firstId, lastId, sending, focusId]);
+
+  const markThinking = useDataActivity()?.markThinking;
+  useEffect(() => {
+    if (working && markThinking) return markThinking();
+  }, [working, markThinking]);
 
   useEffect(() => {
     if (!working) return;

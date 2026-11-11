@@ -1,6 +1,19 @@
 export type ReliefContour = { points: string; strong: boolean };
 
 const samples = 96;
+const easeSeconds = 0.67;
+
+export const reliefRestSpeed = 0.24;
+export const reliefBusySpeed = 0.6;
+
+export function reliefSpeed(
+  current: number,
+  busy: boolean,
+  elapsedSeconds: number,
+) {
+  const target = busy ? reliefBusySpeed : reliefRestSpeed;
+  return target + (current - target) * Math.exp(-elapsedSeconds / easeSeconds);
+}
 const verticalScale = 1.05;
 
 export function reliefContours({
