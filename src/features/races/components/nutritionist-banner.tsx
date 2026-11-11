@@ -2,6 +2,7 @@
 
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/stride/chip";
 import { StaffPortrait } from "@/features/coach/components/staff-portrait";
 import { useStaff } from "@/features/coach/components/staff-context";
 import { coachRequestHref } from "@/features/coach/request";
@@ -66,59 +67,41 @@ export function NutritionistBanner({
   return (
     <section
       aria-label="Plan de nutrition"
-      className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-4.5 md:px-6 md:py-5.5"
+      className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:gap-4"
     >
-      <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4.5">
-        <StaffPortrait
-          agent="nutritionist"
-          size={44}
-          decorative
-          className="max-md:hidden"
-        />
-        <StaffPortrait
-          agent="nutritionist"
-          size={40}
-          decorative
-          className="md:hidden"
-        />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5 md:gap-0.75">
-          <span className="text-body font-semibold md:text-body">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <StaffPortrait agent="nutritionist" size={36} decorative />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-body-lg font-semibold text-balance">
             <span className="max-md:hidden">{title}</span>
             <span className="md:hidden">{mobileTitle}</span>
           </span>
-          <span className="text-label text-muted-foreground md:text-body md:text-secondary-foreground">
+          <span className="text-secondary-foreground">
             <span className="max-md:hidden">{detail}</span>
-            <span className="md:hidden">{mobileDetail}</span>
+            <span className="text-label md:hidden">{mobileDetail}</span>
           </span>
         </div>
       </div>
-      {proposal && (
-        <span className="inline-flex items-center self-center rounded-full border border-warning/30 px-2.25 py-0.5 text-label whitespace-nowrap text-warning max-md:hidden">
-          {changeCountLabel(proposal.changes)}
-        </span>
-      )}
-      {examine && (
-        <Button
-          asChild
-          size="md"
-          className="rounded-lg text-body max-md:min-h-11"
-        >
-          <Link href={examine} scroll={false} data-proposal-id={proposal.id}>
-            <span className="max-md:hidden">Examiner</span>
-            <span className="md:hidden">
-              Examiner {changeCountLabel(proposal.changes)}
-            </span>
-          </Link>
+      <div className="flex flex-wrap items-center gap-2 max-md:[&>a]:flex-1">
+        {proposal && (
+          <Chip proposal className="max-md:hidden">
+            {changeCountLabel(proposal.changes)}
+          </Chip>
+        )}
+        {examine && (
+          <Button asChild>
+            <Link href={examine} scroll={false} data-proposal-id={proposal.id}>
+              <span className="max-md:hidden">Examiner</span>
+              <span className="md:hidden">
+                Examiner {changeCountLabel(proposal.changes)}
+              </span>
+            </Link>
+          </Button>
+        )}
+        <Button asChild variant="outline">
+          <Link href={adjust}>Ajuster avec {name}</Link>
         </Button>
-      )}
-      <Button
-        asChild
-        variant="outline"
-        size="md"
-        className="rounded-lg text-body max-md:min-h-11"
-      >
-        <Link href={adjust}>Ajuster avec {name}</Link>
-      </Button>
+      </div>
     </section>
   );
 }

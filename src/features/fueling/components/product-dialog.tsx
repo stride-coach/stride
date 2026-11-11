@@ -343,8 +343,7 @@ export function AddProductButton({
       <Button
         type="button"
         variant="outline"
-        size="md"
-        className={cn("rounded-lg text-body", className)}
+        className={className}
         onClick={() => setOpen(true)}
       >
         <span aria-hidden="true">+</span>
@@ -389,7 +388,7 @@ export function EditProductButton({
       <button
         type="button"
         className={cn(
-          "rounded-sm text-left font-medium decoration-muted-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring",
+          "inline-flex min-h-control-touch items-center rounded-sm text-left font-medium decoration-muted-foreground underline-offset-4 hover:underline md:min-h-0",
           className,
         )}
         onClick={() => setOpen(true)}
