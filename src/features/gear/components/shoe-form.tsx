@@ -135,7 +135,7 @@ function Chips<T extends string>({
               checked={value === option}
               onChange={() => onChange(option)}
             />
-            <span className="inline-flex min-h-10 items-center rounded-md border border-control-border px-3 text-body text-secondary-foreground peer-checked:border-foreground peer-checked:bg-foreground peer-checked:font-semibold peer-checked:text-background peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+            <span className="inline-flex min-h-control-touch items-center rounded-md border border-control-border px-2.5 text-secondary-foreground transition-colors duration-150 ease-stride peer-checked:border-transparent peer-checked:bg-accent peer-checked:font-medium peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring md:min-h-control">
               {labels[option]}
             </span>
           </label>
@@ -367,7 +367,7 @@ export function ShoeForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
-      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
+      <section className="flex flex-col gap-4 rounded-xl border border-border bg-card px-4 py-3.5">
         {mode === "create" && (
           <div className="flex flex-col gap-3">
             <label htmlFor="shoe-name" className="text-body font-semibold">
@@ -391,7 +391,7 @@ export function ShoeForm({
               <Button
                 type="button"
                 variant="outline"
-                size="md"
+
                 disabled={suggesting || name.trim().length < 3}
                 onClick={complete}
               >
@@ -441,8 +441,8 @@ export function ShoeForm({
         </div>
       </section>
 
-      <section className="flex flex-col gap-4.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-body-lg font-semibold">La paire</h2>
+      <section className="flex flex-col gap-4 rounded-xl border border-border bg-card px-4 py-3.5">
+        <h2 className="font-semibold">La paire</h2>
         <Chips
           legend="Type"
           options={shoeCategories}
@@ -512,8 +512,8 @@ export function ShoeForm({
       </section>
 
       {mode === "create" && (
-        <section className="flex flex-col gap-4.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <h2 className="text-body-lg font-semibold">Kilomètres</h2>
+        <section className="flex flex-col gap-4 rounded-xl border border-border bg-card px-4 py-3.5">
+          <h2 className="font-semibold">Kilomètres</h2>
           <Chips
             legend="Cette paire a-t-elle déjà couru ?"
             options={["new", "worn"] as const}
@@ -562,12 +562,12 @@ export function ShoeForm({
       )}
 
       {mode === "create" && (
-        <section className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <h2 className="flex items-center gap-2.5 text-body-lg font-semibold">
+        <section className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
+          <h2 className="flex items-center gap-2 font-semibold">
             <SourceMark source="provider" />
             Dans Garmin
           </h2>
-          <p className="text-body leading-normal text-secondary-foreground">
+          <p className="text-body text-secondary-foreground">
             Stride crée la paire dans Garmin Connect. Garmin comptera ensuite
             chaque sortie et te préviendra quand elle atteindra sa durée de vie.
           </p>
@@ -593,12 +593,12 @@ export function ShoeForm({
         <Button
           type="button"
           variant="outline"
-          size="md"
+
           onClick={() => router.back()}
         >
           Annuler
         </Button>
-        <Button type="submit" size="md" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {mode === "create"
             ? pending
               ? "Création dans Garmin…"

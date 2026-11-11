@@ -41,11 +41,11 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
     <div
       role="group"
       aria-labelledby={id}
-      className="flex flex-col gap-2.5 rounded-xl border border-border bg-warning/4 px-3.5 py-3"
+      className="flex flex-col gap-2.5 rounded-xl border border-border bg-card px-3.5 py-3"
     >
       <span
         id={id}
-        className="flex items-start gap-2 text-[13px] leading-[1.45] text-foreground"
+        className="flex items-start gap-2 text-body text-foreground"
       >
         <span
           aria-hidden="true"
@@ -61,9 +61,7 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
       <div className="flex flex-wrap gap-1.5">
         <Button
           variant="outline"
-          size="md"
           disabled={pending}
-          className="max-sm:h-11"
           onClick={() =>
             save(null, `C’étaient les ${question.garmin.name}, c’est noté.`)
           }
@@ -72,9 +70,7 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
         </Button>
         <Button
           variant="outline"
-          size="md"
           disabled={pending}
-          className="max-sm:h-11"
           onClick={() =>
             save(
               question.planned.id,
@@ -86,15 +82,13 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
         </Button>
         <Button
           variant="outline"
-          size="md"
           disabled={pending}
-          className="max-sm:h-11"
           onClick={() => setPicking(true)}
         >
           Autre paire
         </Button>
       </div>
-      <span className="text-[11.5px] text-muted-foreground">
+      <span className="text-label text-muted-foreground">
         Ta réponse corrige aussi la paire dans Garmin.
       </span>
       {picking && (
@@ -120,19 +114,19 @@ export function PairQuestionCard({ question }: { question: PairQuestion }) {
 
 export function PairAlert({ question }: { question: PairQuestion }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border bg-warning/4 px-4 py-3.5">
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
       <span
         aria-hidden="true"
         className="mt-1.75 size-1.5 shrink-0 rounded-full bg-warning"
       />
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-body font-medium">{question.title}</span>
-        <span className="text-[13px] leading-[1.45] text-secondary-foreground">
+        <span className="text-body text-secondary-foreground">
           Garmin indique les {question.garmin.name}, la séance prévoyait les{" "}
           {question.planned.name}.
         </span>
       </span>
-      <Button asChild variant="outline" size="md" className="max-sm:h-11">
+      <Button asChild variant="outline">
         <Link href={`/activities/${question.activityId}`}>Répondre</Link>
       </Button>
     </div>
@@ -183,7 +177,7 @@ export function ActivityPairBlock({
             type="button"
             disabled={pending}
             onClick={() => setPicking(true)}
-            className="inline-flex min-h-8 shrink-0 items-center whitespace-nowrap underline underline-offset-3 hover:text-foreground disabled:opacity-50"
+            className="inline-flex min-h-control-touch shrink-0 items-center whitespace-nowrap underline underline-offset-3 hover:text-foreground disabled:opacity-50 md:min-h-control"
           >
             Changer
           </button>
@@ -194,13 +188,13 @@ export function ActivityPairBlock({
   return (
     <section
       aria-label="Chaussures"
-      className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5"
+      className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5"
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-control-border bg-muted">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
         <NavGearIcon className="size-4.5" />
       </span>
       <span className="flex min-w-40 flex-1 flex-col gap-0.5">
-        <span className="text-body font-semibold">{view.name}</span>
+        <span className="font-semibold">{view.name}</span>
         <span className="inline-flex items-center gap-1.5 text-label text-muted-foreground">
           <span
             aria-hidden="true"
@@ -215,8 +209,6 @@ export function ActivityPairBlock({
       {view.options.length > 0 && (
         <Button
           variant="outline"
-          size="md"
-          className="max-sm:h-11"
           disabled={pending}
           onClick={() => setPicking(true)}
         >

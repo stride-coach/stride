@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { GearFrame } from "@/features/gear/components/gear-frame";
-import { GearList } from "@/features/gear/components/gear-list";
+import { GearListFrame } from "@/features/gear/components/gear-frame";
+import {
+  GearActions,
+  GearList,
+  GearSummary,
+} from "@/features/gear/components/gear-list";
 import {
   PlannedPairs,
   RotationStrip,
@@ -40,11 +44,14 @@ export default async function GearRoute() {
           : [],
       )
     : [];
+  const view = pairList(shoes, today);
   return (
-    <GearFrame crumbs={[{ label: "Matériel" }]}>
+    <GearListFrame
+      actions={<GearActions importable={importable.length} />}
+      aside={<GearSummary view={view} />}
+    >
       <GearList
-        view={pairList(shoes, today)}
-        importable={importable.length}
+        view={view}
         alerts={
           questions.length > 0 && (
             <section
@@ -59,7 +66,7 @@ export default async function GearRoute() {
         }
       >
         {active && (
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,460px),1fr))] gap-3.5">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] items-start gap-3">
             {overview && planned && (
               <PlannedPairs
                 rows={weekShoes(planned, overview.plan.state.sessions)}
@@ -69,6 +76,6 @@ export default async function GearRoute() {
           </div>
         )}
       </GearList>
-    </GearFrame>
+    </GearListFrame>
   );
 }

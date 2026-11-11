@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { GearDetail } from "@/features/gear/components/gear-detail";
+import {
+  GearDetail,
+  GearDetailPanel,
+} from "@/features/gear/components/gear-detail";
 import { GearFrame } from "@/features/gear/components/gear-frame";
 import { modelName } from "@/features/gear/view";
 import { requireAthlete } from "@/server/app/session";
@@ -25,6 +28,7 @@ export default async function ShoeRoute({
         { label: modelName(shoe.spec) },
       ]}
       back={{ href: "/activities/gear", label: "Retour au matériel" }}
+      aside={<GearDetailPanel shoe={shoe} />}
     >
       <GearDetail shoe={shoe} today={today} />
     </GearFrame>

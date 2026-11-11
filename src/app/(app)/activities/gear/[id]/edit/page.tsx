@@ -27,9 +27,7 @@ export default async function EditShoeRoute({
       ]}
       back={{ href: `/activities/gear/${shoe.id}`, label: "Retour à la paire" }}
     >
-      <h1 className="text-[clamp(30px,3.2vw,40px)] leading-none font-semibold tracking-[-0.03em]">
-        Modifier la fiche
-      </h1>
+      <h1 className="text-verdict font-semibold">Modifier la fiche</h1>
       <ShoeForm
         mode="edit"
         id={shoe.id}

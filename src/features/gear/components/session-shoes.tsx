@@ -11,7 +11,6 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { NavGearIcon } from "@/components/stride/nav-icons";
 import { cn } from "@/lib/utils";
 import { chooseSessionShoe } from "@/server/gear/actions";
@@ -36,12 +35,11 @@ function Badge({ label }: { label: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.25 py-0.75 text-[11px] font-semibold whitespace-nowrap",
-        label === "Réservée"
-          ? "border border-control-border font-normal text-secondary-foreground"
-          : "bg-primary text-primary-foreground",
+        "inline-flex items-center gap-1.5 text-label font-medium whitespace-nowrap",
+        label === "Réservée" ? "text-secondary-foreground" : "text-primary",
       )}
     >
+      <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
       {label}
     </span>
   );
@@ -83,16 +81,16 @@ export function PairSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="gap-3.5 rounded-t-[18px] border-control-border bg-card px-5 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] text-foreground sm:mx-auto sm:w-full sm:max-w-120"
+        className="gap-3.5 rounded-t-2xl border-control-border bg-card px-5 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] text-foreground sm:mx-auto sm:w-full sm:max-w-120"
       >
         <span
           aria-hidden="true"
           className="h-1 w-9 self-center rounded-mark bg-control-border"
         />
         <div className="flex flex-col gap-1">
-          <MonoLabel size="nano" className="text-[9.5px]">
+          <span className="text-label font-medium text-muted-foreground">
             {context}
-          </MonoLabel>
+          </span>
           <SheetTitle className="text-verdict font-semibold">
             {title}
           </SheetTitle>
@@ -103,7 +101,7 @@ export function PairSheet({
             <label
               key={item.id}
               className={cn(
-                "grid cursor-pointer grid-cols-[22px_minmax(0,1fr)] gap-3 rounded-xl border p-3.5 has-focus-visible:outline-2 has-focus-visible:outline-ring",
+                "grid cursor-pointer grid-cols-[22px_minmax(0,1fr)] gap-3 rounded-lg border p-3 has-focus-visible:outline-2 has-focus-visible:outline-ring",
                 selected === item.id ? "border-primary" : "border-border",
               )}
             >
@@ -117,7 +115,7 @@ export function PairSheet({
               />
               <span className="flex min-w-0 flex-col gap-1">
                 <span className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold">{item.name}</span>
+                  <span className="font-semibold">{item.name}</span>
                   {item.badge && (
                     <span className="ml-auto">
                       <Badge label={item.badge} />
@@ -128,7 +126,7 @@ export function PairSheet({
                   {item.detail}
                 </span>
                 {item.sentence && (
-                  <span className="text-[13px] leading-[1.45] text-secondary-foreground">
+                  <span className="text-body text-secondary-foreground">
                     {item.sentence}
                   </span>
                 )}
@@ -136,19 +134,19 @@ export function PairSheet({
             </label>
           ))}
         </fieldset>
-        <SheetDescription className="text-label leading-[1.45] text-muted-foreground">
+        <SheetDescription className="text-label text-muted-foreground">
           {note}
         </SheetDescription>
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="h-12 flex-1"
+            className="h-control-touch flex-1"
             onClick={() => onOpenChange(false)}
           >
             Annuler
           </Button>
           <Button
-            className="h-12 flex-2"
+            className="h-control-touch flex-2"
             disabled={!option || pending}
             aria-busy={pending}
             onClick={() => {
@@ -201,15 +199,18 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
   return (
     <section
       aria-labelledby="panel-shoes"
-      className="flex flex-col gap-3 rounded-[10px] border border-border bg-background p-3.5"
+      className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3.5"
     >
       <div className="flex items-center gap-2">
-        <MonoLabel size="nano" className="text-[9.5px]" id="panel-shoes">
+        <h3
+          id="panel-shoes"
+          className="text-label font-medium text-muted-foreground"
+        >
           Chaussures
-        </MonoLabel>
+        </h3>
         <Link
           href="/activities/gear"
-          className="ml-auto text-label text-muted-foreground hover:text-foreground"
+          className="ml-auto inline-flex min-h-control-touch items-center text-label text-muted-foreground hover:text-foreground md:min-h-0"
         >
           Matériel ›
         </Link>
@@ -219,13 +220,11 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           href={`/activities/gear/${shoes.chosen.id}`}
           className="flex items-center gap-3 text-foreground"
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-control-border bg-muted">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
             <NavGearIcon className="size-4" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[15px] font-semibold">
-              {shoes.chosen.fullName}
-            </span>
+            <span className="font-semibold">{shoes.chosen.fullName}</span>
             <span className="text-label text-muted-foreground">
               {shoes.chosen.km}
             </span>
@@ -233,16 +232,9 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           <Badge label={shoes.chosen.badge} />
         </Link>
       )}
-      <p className="text-[13px] leading-normal text-secondary-foreground">
-        {shoes.sentence}
-      </p>
+      <p className="text-body text-secondary-foreground">{shoes.sentence}</p>
       {!shoes.hasPairs ? (
-        <Button
-          asChild
-          variant="outline"
-          size="md"
-          className="self-start max-sm:h-11 max-sm:w-full"
-        >
+        <Button asChild variant="outline" className="self-start max-sm:w-full">
           <Link href="/activities/gear/new">Ajouter une paire</Link>
         </Button>
       ) : (
@@ -254,11 +246,11 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
                   key={item.id}
                   className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border py-2.5 last:border-b-0"
                 >
-                  <span className="text-[13px] font-medium">{item.name}</span>
+                  <span className="font-medium">{item.name}</span>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="row-span-2 h-8"
+                    className="row-span-2"
                     disabled={pending}
                     aria-label={`Choisir ${theModel(item.name)}`}
                     onClick={() => choose(item.id, item.name)}
@@ -274,7 +266,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           )}
           <Button
             variant="outline"
-            className="h-11 md:hidden"
+            className="h-control-touch md:hidden"
             onClick={() => setPicking(true)}
           >
             Changer de paire
@@ -304,7 +296,7 @@ export function TodayShoeChip({
     <Link
       href={href}
       aria-label={`Paire ${shoes.chosen.badge === "Ton choix" ? "choisie" : "conseillée"} : ${shoes.chosen.name}`}
-      className="inline-flex min-h-8 items-center gap-1.75 rounded-full border border-control-border pr-2.75 pl-2.25 text-[13px] whitespace-nowrap text-foreground hover:border-muted-foreground max-md:hidden"
+      className="inline-flex min-h-6 items-center gap-1.5 rounded-md border border-control-border px-2 whitespace-nowrap text-foreground transition-colors duration-150 ease-stride hover:border-muted-foreground max-md:hidden"
     >
       <NavGearIcon className="size-3.5 text-muted-foreground" />
       {shoes.chosen.name}
@@ -321,13 +313,13 @@ export function TodayShoeRow({ shoes }: { shoes: SessionShoesView }) {
         type="button"
         onClick={() => setPicking(true)}
         aria-label={`Changer de paire, actuellement ${shoes.chosen.name}`}
-        className="flex min-h-11 w-full items-center gap-2.5 rounded-[10px] border border-border px-3 py-1.5 text-left text-[13px] text-foreground md:hidden"
+        className="flex min-h-control-touch w-full items-center gap-2.5 rounded-lg border border-border px-3 py-1.5 text-left text-foreground md:hidden"
       >
         <NavGearIcon className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="flex min-w-0 flex-1 flex-col">
           <span>{shoes.chosen.name}</span>
           {shoes.chip && (
-            <span className="truncate text-[11.5px] text-muted-foreground">
+            <span className="truncate text-label text-muted-foreground">
               {shoes.chip}
             </span>
           )}

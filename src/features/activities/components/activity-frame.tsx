@@ -18,30 +18,39 @@ import { ActivityFilters, filterItemClass } from "./activity-list";
 const tabClass =
   "inline-flex min-h-control-touch items-center rounded-full border px-3 whitespace-nowrap transition-colors duration-150 ease-stride md:min-h-header md:rounded-none md:border-0 md:border-b-2 md:px-0.5";
 
-function ActivityTabs() {
+const tabCurrent =
+  "border-control-border bg-muted font-medium text-foreground md:border-foreground md:bg-transparent";
+const tabIdle =
+  "border-border text-muted-foreground hover:text-foreground md:border-transparent";
+
+export function ActivityTabs({
+  current = "activities",
+}: {
+  current?: "activities" | "gear";
+}) {
   return (
     <nav
       aria-label="Activités et matériel"
       className="flex gap-1.5 md:gap-5 md:self-stretch"
     >
-      <span
-        aria-current="page"
-        className={cn(
-          tabClass,
-          "border-control-border bg-muted font-medium text-foreground md:border-foreground md:bg-transparent",
-        )}
-      >
-        Sorties
-      </span>
-      <Link
-        href="/activities/gear"
-        className={cn(
-          tabClass,
-          "border-border text-muted-foreground hover:text-foreground md:border-transparent",
-        )}
-      >
-        Matériel
-      </Link>
+      {current === "activities" ? (
+        <span aria-current="page" className={cn(tabClass, tabCurrent)}>
+          Sorties
+        </span>
+      ) : (
+        <Link href="/activities" className={cn(tabClass, tabIdle)}>
+          Sorties
+        </Link>
+      )}
+      {current === "gear" ? (
+        <span aria-current="page" className={cn(tabClass, tabCurrent)}>
+          Matériel
+        </span>
+      ) : (
+        <Link href="/activities/gear" className={cn(tabClass, tabIdle)}>
+          Matériel
+        </Link>
+      )}
     </nav>
   );
 }

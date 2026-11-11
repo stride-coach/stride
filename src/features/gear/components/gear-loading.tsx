@@ -2,16 +2,14 @@
 
 import { useParams } from "next/navigation";
 import { PlusIcon } from "lucide-react";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { LoadingScope } from "@/features/data-activity/components/loading";
 import { AddTabs } from "./add-tabs";
-import { GearFrame } from "./gear-frame";
+import { GearFrame, GearListFrame } from "./gear-frame";
 
-const pageTitle =
-  "text-[clamp(30px,3.2vw,40px)] leading-none font-semibold tracking-[-0.03em]";
+const pageTitle = "text-verdict font-semibold";
 
 function useShoeId() {
   const { id } = useParams<{ id?: string }>();
@@ -31,13 +29,13 @@ function ShoeBreadcrumb({ current }: { current?: string }) {
         Matériel
       </Link>
       <span aria-hidden="true" className="text-muted-foreground">
-        /
+        ›
       </span>
       <Skeleton aria-hidden="true" className="h-4 w-32" />
       {current && (
         <>
           <span aria-hidden="true" className="text-muted-foreground">
-            /
+            ›
           </span>
           <span aria-current="page" className="truncate">
             {current}
@@ -54,15 +52,15 @@ function FormLoading({ create }: { create: boolean }) {
       <Skeleton
         className={
           create
-            ? "h-80 w-full rounded-2xl sm:h-52"
-            : "h-60 w-full rounded-2xl sm:h-28"
+            ? "h-80 w-full rounded-xl sm:h-52"
+            : "h-60 w-full rounded-xl sm:h-28"
         }
       />
-      <Skeleton className="h-96 w-full rounded-2xl sm:h-80" />
+      <Skeleton className="h-96 w-full rounded-xl sm:h-80" />
       {create && (
         <>
-          <Skeleton className="h-60 w-full rounded-2xl sm:h-44" />
-          <Skeleton className="h-52 w-full rounded-2xl sm:h-44" />
+          <Skeleton className="h-60 w-full rounded-xl sm:h-44" />
+          <Skeleton className="h-52 w-full rounded-xl sm:h-44" />
         </>
       )}
       <div className="flex flex-wrap justify-end gap-2">
@@ -75,44 +73,39 @@ function FormLoading({ create }: { create: boolean }) {
 
 export function GearListLoading() {
   return (
-    <GearFrame crumbs={[{ label: "Matériel" }]}>
+    <GearListFrame
+      actions={
+        <Button asChild>
+          <Link href="/activities/gear/new">
+            <PlusIcon data-icon="inline-start" aria-hidden="true" />
+            Ajouter une paire
+          </Link>
+        </Button>
+      }
+    >
       <LoadingScope
         label="Chargement du matériel"
-        className="flex flex-col gap-7"
+        className="flex flex-col gap-4"
       >
-        <section className="flex flex-wrap items-end justify-between gap-5">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-[clamp(32px,3.5vw,44px)] leading-none font-semibold tracking-[-0.03em]">
-              Matériel
-            </h1>
-            <Skeleton aria-hidden="true" className="h-5 w-80 max-w-full" />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="md">
-              <Link href="/activities/gear/new">
-                <PlusIcon data-icon="inline-start" aria-hidden="true" />
-                Ajouter une paire
-              </Link>
-            </Button>
-          </div>
-        </section>
+        <h1 className="sr-only">Matériel</h1>
+        <Skeleton aria-hidden="true" className="h-5 w-80 max-w-full" />
         <div
           aria-hidden="true"
-          className="grid grid-cols-[repeat(auto-fill,minmax(228px,1fr))] gap-3.5"
+          className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3"
         >
           {[0, 1, 2, 3].map((item) => (
-            <Skeleton key={item} className="h-70 rounded-2xl" />
+            <Skeleton key={item} className="h-56 rounded-xl" />
           ))}
         </div>
         <div
           aria-hidden="true"
-          className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,460px),1fr))] gap-3.5"
+          className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-3"
         >
-          <Skeleton className="h-64 rounded-2xl" />
-          <Skeleton className="h-64 rounded-2xl max-md:hidden" />
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl max-md:hidden" />
         </div>
       </LoadingScope>
-    </GearFrame>
+    </GearListFrame>
   );
 }
 
@@ -125,7 +118,7 @@ export function GearDetailLoading() {
     >
       <LoadingScope
         label="Chargement de la paire"
-        className="flex flex-col gap-7"
+        className="flex flex-col gap-4"
       >
         <section
           aria-hidden="true"
@@ -149,14 +142,14 @@ export function GearDetailLoading() {
         </section>
         <Skeleton
           aria-hidden="true"
-          className="h-140 w-full rounded-2xl sm:h-100"
+          className="h-140 w-full rounded-xl sm:h-100"
         />
         <div
           aria-hidden="true"
           className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-2"
         >
-          <Skeleton className="h-80 rounded-2xl" />
-          <Skeleton className="h-80 rounded-2xl" />
+          <Skeleton className="h-80 rounded-xl" />
+          <Skeleton className="h-80 rounded-xl" />
         </div>
       </LoadingScope>
     </GearFrame>
@@ -176,7 +169,7 @@ export function GearEditLoading() {
     >
       <LoadingScope
         label="Chargement de la fiche"
-        className="flex flex-col gap-7"
+        className="flex flex-col gap-4"
       >
         <h1 className={pageTitle}>Modifier la fiche</h1>
         <FormLoading create={false} />
@@ -196,11 +189,11 @@ export function GearNewLoading() {
     >
       <LoadingScope
         label="Chargement du formulaire"
-        className="flex flex-col gap-7"
+        className="flex flex-col gap-4"
       >
         <section className="flex flex-col gap-2.5">
           <h1 className={pageTitle}>Ajouter une paire</h1>
-          <p className="max-w-155 text-body text-secondary-foreground">
+          <p className="max-w-155 text-body-lg text-pretty text-secondary-foreground">
             Donne le nom de la paire : Stride propose son type, son terrain et
             une phrase pour la décrire. Tu corriges si besoin.
           </p>
@@ -223,26 +216,26 @@ export function GearImportLoading() {
     >
       <LoadingScope
         label="Chargement des paires Garmin"
-        className="flex flex-col gap-7"
+        className="flex flex-col gap-4"
       >
         <section className="flex flex-col gap-2.5">
           <h1 className={pageTitle}>Importer depuis Garmin</h1>
-          <p className="max-w-160 text-body text-secondary-foreground">
+          <p className="max-w-160 text-body-lg text-pretty text-secondary-foreground">
             Vérifie les kilomètres de chaque paire : si elle a couru avant
             d’être dans Garmin, saisis son vrai total.
           </p>
         </section>
         <AddTabs current="garmin" />
-        <section className="flex flex-col rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <section className="flex flex-col rounded-xl border border-border bg-card px-4 py-3.5">
           <div className="hidden grid-cols-[28px_minmax(0,1fr)_120px_170px] gap-3.5 pb-2.5 sm:grid">
             <span />
-            <MonoLabel size="nano">Paire</MonoLabel>
-            <MonoLabel size="nano" className="text-right">
+            <span className="text-label text-muted-foreground">Paire</span>
+            <span className="text-right text-label text-muted-foreground">
               Compté par Garmin
-            </MonoLabel>
-            <MonoLabel size="nano" className="text-right">
+            </span>
+            <span className="text-right text-label text-muted-foreground">
               Km actuels
-            </MonoLabel>
+            </span>
           </div>
           {[0, 1, 2, 3].map((row) => (
             <div

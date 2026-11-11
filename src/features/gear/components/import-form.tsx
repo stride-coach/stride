@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { SourceMark } from "@/components/stride/marks";
 import { cn } from "@/lib/utils";
 import { importShoes } from "@/server/gear/actions";
@@ -106,14 +105,14 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
 
   if (gear.length === 0)
     return (
-      <section className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-body-lg font-semibold">Aucune paire à importer</h2>
-        <p className="max-w-150 text-body leading-normal text-secondary-foreground">
+      <section className="flex flex-col items-start gap-2 rounded-xl border border-border bg-card px-4 py-3.5">
+        <h2 className="font-semibold">Aucune paire à importer</h2>
+        <p className="max-w-150 text-body text-secondary-foreground">
           Ton compte Garmin n’a pas de chaussures qui ne soient pas déjà dans
           Stride. Ajoute tes paires dans Stride : elles seront créées dans
           Garmin.
         </p>
-        <Button asChild size="md">
+        <Button asChild>
           <Link href="/activities/gear/new">Ajouter une paire</Link>
         </Button>
       </section>
@@ -121,16 +120,16 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
 
   return (
     <>
-      <section className="flex flex-col rounded-2xl border border-border bg-card p-5 sm:p-6">
+      <section className="flex flex-col rounded-xl border border-border bg-card px-4 py-3.5">
         <div className="hidden grid-cols-[28px_minmax(0,1fr)_120px_170px] gap-3.5 pb-2.5 sm:grid">
           <span />
-          <MonoLabel size="nano">Paire</MonoLabel>
-          <MonoLabel size="nano" className="text-right">
+          <span className="text-label text-muted-foreground">Paire</span>
+          <span className="text-right text-label text-muted-foreground">
             Compté par Garmin
-          </MonoLabel>
-          <MonoLabel size="nano" className="text-right">
+          </span>
+          <span className="text-right text-label text-muted-foreground">
             Km actuels
-          </MonoLabel>
+          </span>
         </div>
         {gear.map((item) => {
           const row = rows[item.gearUuid];
@@ -173,7 +172,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                         category: event.target.value as ShoeCategory,
                       })
                     }
-                    className="h-9 w-fit rounded-md border border-input bg-background px-2.5 text-body text-foreground"
+                    className="h-control-auto w-fit rounded-lg border border-input bg-card px-2.5 text-body text-foreground"
                   >
                     {shoeCategories.map((category) => (
                       <option key={category} value={category}>
@@ -189,7 +188,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                         terrain: event.target.value as ShoeTerrain,
                       })
                     }
-                    className="h-9 w-fit rounded-md border border-input bg-background px-2.5 text-body text-foreground"
+                    className="h-control-auto w-fit rounded-lg border border-input bg-card px-2.5 text-body text-foreground"
                   >
                     {shoeTerrains.map((terrain) => (
                       <option key={terrain} value={terrain}>
@@ -200,16 +199,16 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                 </span>
               </div>
               <span className="col-start-2 flex items-center gap-2 sm:col-start-auto sm:flex-col sm:items-end sm:gap-0.5">
-                <span className="text-[19px] font-semibold tabular-nums">
+                <span
+                  data-slot="metric"
+                  className="text-title font-semibold tabular-nums"
+                >
                   {kmFormat.format(item.garminKm)} km
                 </span>
-                <MonoLabel
-                  size="nano"
-                  className="inline-flex items-center gap-1.5"
-                >
+                <span className="inline-flex items-center gap-1.5 text-label text-muted-foreground">
                   <SourceMark source="provider" />
                   Garmin
-                </MonoLabel>
+                </span>
               </span>
               <span className="col-start-2 flex flex-col gap-1 sm:col-start-auto">
                 <span className="flex items-center gap-1.5">
@@ -220,7 +219,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                     value={row.currentKm}
                     aria-invalid={wrong || undefined}
                     className={cn(
-                      "text-right text-title font-semibold tabular-nums",
+                      "text-right font-semibold tabular-nums",
                       extra > 0.5 && "border-foreground",
                     )}
                     onChange={(event) =>
@@ -231,7 +230,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
                 </span>
                 <span
                   className={cn(
-                    "text-right text-[11.5px]",
+                    "text-right text-label",
                     extra > 0.5 ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
@@ -244,7 +243,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
           );
         })}
       </section>
-      <p className="text-body leading-normal text-secondary-foreground">
+      <p className="text-body text-secondary-foreground">
         Les anciennes activités restent sans paire : leurs kilomètres sont déjà
         dans le total que tu saisis. Tu pourras compléter la fiche de chaque
         paire ensuite.
@@ -255,14 +254,10 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
         </p>
       )}
       <div className="flex flex-wrap justify-end gap-2">
-        <Button asChild variant="outline" size="md">
+        <Button asChild variant="outline">
           <Link href="/activities/gear">Annuler</Link>
         </Button>
-        <Button
-          size="md"
-          disabled={pending || selected.length === 0}
-          onClick={submit}
-        >
+        <Button disabled={pending || selected.length === 0} onClick={submit}>
           {selected.length > 1
             ? `Importer ${selected.length} paires`
             : "Importer la paire"}

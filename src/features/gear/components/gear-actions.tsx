@@ -47,13 +47,13 @@ export function RetireShoeButton({
     });
   if (retired)
     return (
-      <Button variant="outline" size="md" disabled={pending} onClick={run}>
+      <Button variant="outline" disabled={pending} onClick={run}>
         Remettre en service
       </Button>
     );
   return (
     <>
-      <Button variant="outline" size="md" onClick={() => setOpen(true)}>
+      <Button variant="outline" onClick={() => setOpen(true)}>
         Retirer
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -116,7 +116,7 @@ export function CurrentKmButton({
   };
   return (
     <>
-      <Button variant="outline" size="md" onClick={() => setOpen(true)}>
+      <Button variant="outline" onClick={() => setOpen(true)}>
         Ajuster les km actuels
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -153,12 +153,12 @@ export function CurrentKmButton({
               <Button
                 type="button"
                 variant="outline"
-                size="md"
+
                 onClick={() => setOpen(false)}
               >
                 Annuler
               </Button>
-              <Button type="submit" size="md" disabled={pending}>
+              <Button type="submit" disabled={pending}>
                 Enregistrer
               </Button>
             </DialogFooter>
