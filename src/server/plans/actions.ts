@@ -108,16 +108,12 @@ export async function moveSession(
   if (!submitted) return { status: "error" };
   if (!submitted.ok) {
     refresh();
-    return submitted.reason === "stale_version"
-      ? { status: "stale", reason: submitted.reason }
+    const outcome = outcomeOf(submitted.reason);
+    return outcome
+      ? { status: outcome, reason: submitted.reason }
       : { status: "invalid-request" };
   }
-  const { error } = await context.client.rpc("accept_plan_proposal", {
-    p_proposal_id: submitted.proposalId,
-  });
-  const result: ProposalActionResult = error
-    ? { status: "error" }
-    : await apply(context, submitted.proposalId);
+  const result = await apply(context, submitted.proposalId);
   refresh();
   return result;
 }

@@ -212,7 +212,7 @@ function PlannedSession({
           sessionKey={panel.sessionKey}
           plannedTitle={panel.title}
           proposal={proposal}
-          moveDays={session.moveDays}
+          moveDays={proposal ? [] : session.moveDays}
         />
       )}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

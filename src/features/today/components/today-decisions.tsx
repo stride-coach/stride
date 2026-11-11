@@ -135,14 +135,18 @@ export function TodayDecisions({
                 onSelect={() =>
                   run(
                     () => moveSession({ sessionKey, toDate: day.date }),
-                    `Séance déplacée à ${day.label}.`,
+                    `Séance déplacée : ${day.label}.`,
                     moveBlocked,
                   )
                 }
               >
                 <span className="first-letter:uppercase">{day.label}</span>
                 <span className="ml-auto pl-3 text-muted-foreground">
-                  {day.sessions.length > 0 ? day.sessions.join(" · ") : "Libre"}
+                  {day.sessions.length > 0
+                    ? day.sessions.join(" · ")
+                    : day.restKey
+                      ? "Repos"
+                      : "Libre"}
                 </span>
               </DropdownMenuItem>
             ))}

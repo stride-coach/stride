@@ -3002,6 +3002,52 @@ export type Database = {
         };
         Returns: boolean;
       };
+      submit_athlete_session_move: {
+        Args: {
+          p_base_version: number;
+          p_plan_id: string;
+          p_preview: Json;
+          p_rest_key?: string;
+          p_session_key: string;
+          p_summary: string;
+          p_title: string;
+          p_to_date: string;
+        };
+        Returns: {
+          agent_run_id: string | null;
+          applied_version: number | null;
+          assumptions: NonNullable<Json>;
+          base_version: number | null;
+          coach_session_id: string | null;
+          created_at: string;
+          evidence: NonNullable<Json>;
+          expires_at: string | null;
+          id: string;
+          operations: NonNullable<Json>;
+          origin: string;
+          plan_id: string | null;
+          preview: Json | null;
+          rationale: string | null;
+          requested_by: string;
+          scope: string;
+          specialist_opinions: NonNullable<Json>;
+          status: string;
+          summary: string | null;
+          superseded_by: string | null;
+          target_keys: string[];
+          title: string;
+          uncertainty: Json | null;
+          updated_at: string;
+          user_id: string;
+          validation: Json | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "plan_proposals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       submit_plan_proposal: {
         Args: {
           p_base_version?: number;
