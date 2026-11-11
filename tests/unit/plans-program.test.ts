@@ -32,6 +32,7 @@ function input(overrides: Partial<ProgramInput> = {}): ProgramInput {
         targetSeconds: null,
         distanceKm: null,
         elevationGainM: null,
+        kind: "road",
       },
     ],
     ...overrides,
@@ -64,17 +65,20 @@ function withRace(state: PlanState): PlanState {
 
 describe("program overview", () => {
   it("builds the primary program header from the stored plan", () => {
-    const [program] = buildProgram(input()).programs;
+    const [program] = buildProgram(input()).seasons;
     expect(program).toMatchObject({
+      id: "race-a",
       raceId: "race-a",
-      tab: null,
+      status: "current",
+      href: "/plan",
       eyebrow: "Semaine 2 sur 4 · Base",
       title: "J-18 · Marathon de Paris",
       summary: "Quatre semaines de base.",
-      nested: [],
+      next: null,
       defaultWeekKey: "w-2026-10-19",
     });
     expect(program.kpis.map((kpi) => [kpi.label, kpi.value])).toEqual([
+      ["Course", "8 nov."],
       ["Total prévu", "5 h"],
       ["Plus longue sortie", "1h30"],
       ["Semaine de pic", "3h10"],
@@ -199,11 +203,12 @@ describe("program overview", () => {
   });
 
   it("falls back to the plan title without a primary race", () => {
-    const { programs } = buildProgram(input({ races: [] }));
-    expect(programs).toHaveLength(1);
-    expect(programs[0]).toMatchObject({
+    const { seasons } = buildProgram(input({ races: [] }));
+    expect(seasons).toHaveLength(1);
+    expect(seasons[0]).toMatchObject({
+      id: "open",
       raceId: null,
-      tab: null,
+      letter: null,
       title: "Marathon de Paris",
     });
   });
@@ -220,10 +225,11 @@ describe("program overview", () => {
             targetSeconds: 11_400,
             distanceKm: null,
             elevationGainM: null,
+            kind: "road",
           },
         ],
       }),
-    ).programs;
+    ).seasons;
     expect(program.title).toBe("Marathon de Paris · cible 3:10:00");
   });
 
@@ -280,6 +286,7 @@ const nestedRaces: ProgramInput["races"] = [
     targetSeconds: null,
     distanceKm: null,
     elevationGainM: null,
+    kind: "road",
   },
   {
     id: "race-c",
@@ -289,8 +296,58 @@ const nestedRaces: ProgramInput["races"] = [
     targetSeconds: 2_670,
     distanceKm: null,
     elevationGainM: null,
+    kind: "road",
   },
 ];
+
+function twoSeasons(today: string): ProgramInput {
+  const state = planState();
+  const weekStarts = ["2026-11-09", "2026-11-16", "2026-11-23", "2026-11-30"];
+  return input({
+    today,
+    summary: "Deux saisons.",
+    state: {
+      ...state,
+      plan: { ...state.plan, endsOn: "2026-12-06", primaryRaceId: "race-b" },
+      blocks: [{ ...state.blocks[0], endsOn: "2026-12-06" }],
+      weeks: [
+        ...state.weeks,
+        ...weekStarts.map((weekStart) => ({
+          ...state.weeks[0],
+          weekKey: `w-${weekStart}`,
+          weekStart,
+        })),
+      ],
+    },
+    matches: ["s-2026-10-13-1", "s-2026-10-20-1"].map((sessionKey) => ({
+      sessionKey,
+      status: "completed" as const,
+      compliance: { duration: null, distance: null },
+    })),
+    races: [
+      {
+        id: "race-a",
+        name: "10K Vincennes",
+        date: "2026-10-25",
+        priority: "A",
+        targetSeconds: null,
+        distanceKm: 10,
+        elevationGainM: null,
+        kind: "road",
+      },
+      {
+        id: "race-b",
+        name: "Marathon de Paris",
+        date: "2026-12-06",
+        priority: "A",
+        targetSeconds: null,
+        distanceKm: 42.195,
+        elevationGainM: null,
+        kind: "road",
+      },
+    ],
+  });
+}
 
 describe("race values", () => {
   const races = (
@@ -305,6 +362,7 @@ describe("race values", () => {
       targetSeconds: null,
       distanceKm,
       elevationGainM,
+      kind: "road",
     },
   ];
   const raceSession = (state: PlanState) =>
@@ -540,67 +598,71 @@ describe("double days", () => {
   });
 });
 
-describe("race programs", () => {
-  it("adds a tab and a nested program for a race attached to blocks", () => {
-    const [main, nested] = buildProgram(
+describe("season programs", () => {
+  it("keeps a B or C race inside its season as a marker and a race entry", () => {
+    const { seasons } = buildProgram(
       input({ state: withNestedRace(planState()), races: nestedRaces }),
-    ).programs;
-    expect(main.tab).toEqual({
-      letter: "A",
-      name: "Marathon de Paris",
-      when: "dim. 8 nov. · J-18",
-      detail: "S2 / 4",
-      primary: true,
-    });
-    expect(main.nested).toEqual([
-      {
-        raceId: "race-c",
-        letter: "C",
-        name: "10K Vincennes",
-        start: 2,
-        span: 2,
-      },
-    ]);
+    );
+    expect(seasons).toHaveLength(1);
+    const [season] = seasons;
     expect(
-      main.bands.map((band) => [band.name, band.start, band.span]),
+      season.bands.map((band) => [band.name, band.start, band.span]),
     ).toEqual([
       ["Base", 0, 2],
       ["Vitesse", 2, 2],
     ]);
-    expect(main.weeks[2]).toMatchObject({
+    expect(season.weeks[2]).toMatchObject({
       label: "10K Vincennes · C",
       race: { letter: "C", primary: false },
     });
-    expect(nested).toMatchObject({
-      raceId: "race-c",
-      tab: {
-        letter: "C",
+    expect(season.weeks[3].race).toEqual({ letter: "A", primary: true });
+    expect(season.races).toEqual([
+      {
+        raceId: "race-c",
+        number: 3,
         name: "10K Vincennes",
-        when: "dim. 1 nov. · J-11",
-        detail: "débute le 26 oct.",
-        primary: false,
+        detail: "Course C · cible 44:30",
+        when: "1 nov.",
       },
-      eyebrow: "2 semaines · débute dans 5 jours",
-      title: "10K Vincennes · cible 44:30",
-      summary:
-        "S’insère dans ton programme Marathon de Paris, semaines 3 à 4. La qualité devient de la vitesse.",
-      defaultWeekKey: "w-2026-10-26",
+      {
+        raceId: "race-a",
+        number: 4,
+        name: "Marathon de Paris",
+        detail: "Course A",
+        when: "8 nov.",
+      },
+    ]);
+  });
+
+  it("marks a race the plan does not know inside its week", () => {
+    const { weeks } = buildProgram(
+      input({
+        races: [
+          ...input().races,
+          {
+            id: "race-b",
+            name: "Semi de Boulogne",
+            date: "2026-10-25",
+            priority: "B",
+            targetSeconds: null,
+            distanceKm: 21.1,
+            elevationGainM: null,
+            kind: "road",
+          },
+        ],
+      }),
+    );
+    expect(weeks[1]).toMatchObject({
+      label: "Semi de Boulogne · B",
+      race: { letter: "B", primary: false },
     });
-    expect(nested.weeks.map((week) => [week.number, week.weekKey])).toEqual([
-      [1, "w-2026-10-26"],
-      [2, "w-2026-11-02"],
-    ]);
-    expect(nested.kpis.map((kpi) => [kpi.label, kpi.value])).toEqual([
-      ["Total", "50’"],
-      ["De qualité", "1 séance"],
-    ]);
   });
 
   it("derives upcoming milestones from the plan", () => {
     const state = withNestedRace(withRace(planState()));
-    const [main] = buildProgram(input({ state, races: nestedRaces })).programs;
+    const [season] = buildProgram(input({ state, races: nestedRaces })).seasons;
     expect(
-      main.milestones.map((milestone) => [
+      season.milestones.map((milestone) => [
         milestone.number,
         milestone.label,
         milestone.when,
@@ -608,7 +670,66 @@ describe("race programs", () => {
     ).toEqual([
       [2, "Allégée", "19–25 oct."],
       [2, "Pic de volume", "19–25 oct."],
-      [3, "10K Vincennes", "dim. 1 nov."],
+    ]);
+  });
+
+  it("builds one program per season with weeks numbered from 1", () => {
+    const { seasons, weeks } = buildProgram(twoSeasons("2026-11-11"));
+    expect(weeks.map((week) => week.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(
+      seasons.map((season) => [
+        season.id,
+        season.status,
+        season.href,
+        season.weeks.map((week) => week.number),
+        season.weeks[0].weekKey,
+      ]),
+    ).toEqual([
+      ["race-a", "past", "/plan?season=race-a", [1, 2, 3, 4], "w-2026-10-12"],
+      ["race-b", "current", "/plan", [1, 2, 3, 4], "w-2026-11-09"],
+    ]);
+    expect(seasons[1]).toMatchObject({
+      eyebrow: "Semaine 1 sur 4 · Base",
+      title: "J-25 · Marathon de Paris",
+      summary: "Deux saisons.",
+      next: null,
+      defaultWeekKey: "w-2026-11-09",
+    });
+    expect(seasons[1].kpis[0]).toEqual({
+      key: "race",
+      label: "Course",
+      value: "6 déc.",
+      detail: "J-25",
+    });
+  });
+
+  it("reads a past season from what was run", () => {
+    const [past] = buildProgram(twoSeasons("2026-11-11")).seasons;
+    expect(past).toMatchObject({
+      eyebrow: "Saison terminée · objectif A",
+      title: "10K Vincennes",
+      summary: null,
+      defaultWeekKey: "w-2026-10-19",
+      next: {
+        seasonId: "race-b",
+        href: "/plan",
+        letter: "A",
+        status: "current",
+        name: "Marathon de Paris",
+        detail: "En cours · S1 / 4 · J-25",
+      },
+    });
+    expect(past.milestones).toEqual([]);
+    expect(past.kpis).toEqual([
+      { key: "race", label: "Course", value: "25 oct." },
+      {
+        key: "sessions",
+        label: "Séances",
+        value: "2 / 5",
+        detail: "40 % faites",
+      },
+      { key: "volume", label: "Volume couru", value: "1h35" },
+      { key: "peak", label: "Pic", value: "50’", detail: "en S2" },
     ]);
   });
 });

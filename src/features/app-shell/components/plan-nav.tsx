@@ -147,7 +147,11 @@ export function PlanSidebarGroup({
   if (!nav || (pathname !== "/plan" && !pathname.startsWith("/plan/")))
     return null;
   const week = params.get("week");
-  const overview = pathname === "/plan" && !week && !params.get("race");
+  const overview =
+    pathname === "/plan" &&
+    !week &&
+    !params.get("season") &&
+    !params.get("race");
   const selected = pathname === "/plan" ? week : null;
   const history = pathname === "/plan/history";
   return (

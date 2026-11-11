@@ -31,6 +31,7 @@ import {
   type ShellAthlete,
   type ShellGoal,
   type ShellNavigation,
+  type ShellSeason,
 } from "@/features/app-shell/shell";
 import { AppMobileTabBar } from "./app-mobile-tab-bar";
 import { CoachNavItem } from "./coach-nav";
@@ -79,6 +80,7 @@ export function AppShell({
   athlete,
   account,
   goal,
+  seasons,
   navigation,
   notifications,
   notificationsAt,
@@ -88,6 +90,7 @@ export function AppShell({
   athlete: ShellAthlete;
   account: ShellAccount;
   goal: ShellGoal | null;
+  seasons: Promise<ShellSeason[]>;
   navigation: Promise<ShellNavigation>;
   notifications: Promise<NotificationFeed | null>;
   notificationsAt: string;
@@ -96,7 +99,7 @@ export function AppShell({
 }) {
   const modelDetail = shellProfileDetail(account);
   return (
-    <ShellIdentityProvider value={{ athlete, goal, modelDetail }}>
+    <ShellIdentityProvider value={{ athlete, goal, seasons, modelDetail }}>
       <NotificationsProvider feed={notifications} now={notificationsAt}>
         <DataActivityProvider>
           <SidebarProvider

@@ -9,10 +9,10 @@ import {
   weekEyebrow,
   type MilestoneTone,
   type ProgramMilestone,
-  type RaceProgram,
+  type SeasonProgram,
 } from "@/features/plans/view/program";
 import { ProgramChart } from "./program-chart";
-import { ProgramHeader } from "./program-hero";
+import { NextSeason, ProgramHeader, SeasonRaces } from "./program-hero";
 import { ProgramWeekPanel } from "./program-week";
 import type { WatchDayTag } from "@/features/garmin/watch";
 
@@ -88,7 +88,7 @@ export function ProgramExplorer({
   proposals = {},
   watchTags = {},
 }: {
-  program: RaceProgram;
+  program: SeasonProgram;
   initialWeekKey: string | null;
   proposals?: Record<string, WeekProposal[]>;
   watchTags?: Record<string, WatchDayTag>;
@@ -159,7 +159,7 @@ export function ProgramExplorer({
       >
         <ChevronLeftIcon aria-hidden="true" />
       </Button>
-      {program.defaultWeekKey && (
+      {program.status === "current" && program.defaultWeekKey && (
         <Button
           variant="outline"
           size="sm"
@@ -189,7 +189,6 @@ export function ProgramExplorer({
           <ProgramChart
             weeks={weeks}
             bands={program.bands}
-            nested={program.nested}
             selected={selected}
             onSelect={select}
           />
@@ -201,7 +200,7 @@ export function ProgramExplorer({
             navigation={navigation}
             sessionHref={(sessionKey) => {
               const query = new URLSearchParams();
-              if (program.raceId) query.set("race", program.raceId);
+              if (program.href !== "/plan") query.set("season", program.id);
               query.set("week", week.weekStart);
               query.set("session", sessionKey);
               return `/plan?${query}`;
@@ -209,7 +208,7 @@ export function ProgramExplorer({
             proposals={proposals[week.weekStart]}
             reviewHref={(proposalId) => {
               const query = new URLSearchParams();
-              if (program.raceId) query.set("race", program.raceId);
+              if (program.href !== "/plan") query.set("season", program.id);
               query.set("week", week.weekStart);
               query.set("proposal", proposalId);
               return `/plan?${query}`;
@@ -234,6 +233,16 @@ export function ProgramExplorer({
         {program.milestones.length > 0 && (
           <div className="px-4 py-4.5 md:px-5 xl:p-0">
             <Milestones milestones={program.milestones} onSelect={select} />
+          </div>
+        )}
+        {program.races.length > 0 && (
+          <div className="px-4 py-4.5 md:px-5 xl:p-0">
+            <SeasonRaces races={program.races} />
+          </div>
+        )}
+        {program.next && (
+          <div className="px-4 py-4.5 md:px-5 xl:p-0">
+            <NextSeason season={program.next} />
           </div>
         )}
       </aside>

@@ -27,12 +27,22 @@ import {
   formatDistance,
   formatDuration,
   formatElevation,
-  formatLongDay,
   formatMonthSpan,
   formatWeekRange,
   formatWeekdayShort,
 } from "./format";
 import { sessionBlocks } from "./plan-view";
+import type { RaceKind } from "@/features/races/calendar";
+import {
+  defaultSeason,
+  openSeasonName,
+  planSeasons,
+  seasonCountdown,
+  seasonHref,
+  seasonProgress,
+  type PlanSeason,
+  type SeasonStatus,
+} from "./seasons";
 
 export type SessionFamily = SessionTileKind;
 
@@ -76,6 +86,7 @@ export type ProgramRace = {
   targetSeconds: number | null;
   distanceKm: number | null;
   elevationGainM: number | null;
+  kind: RaceKind;
 };
 
 export type ProgramMatch = {
@@ -183,7 +194,12 @@ export type ProgramBlock = {
   current: boolean;
 };
 
-export type ProgramKpi = { key: string; label: string; value: string };
+export type ProgramKpi = {
+  key: string;
+  label: string;
+  value: string;
+  detail?: string;
+};
 
 export type BandTone = "dim" | "provider" | "terrain" | "success" | "accent";
 
@@ -194,14 +210,6 @@ export type ProgramBand = {
   span: number;
   tone: BandTone;
   current: boolean;
-};
-
-export type ProgramNested = {
-  raceId: string;
-  letter: string;
-  name: string;
-  start: number;
-  span: number;
 };
 
 export type MilestoneTone =
@@ -216,30 +224,46 @@ export type ProgramMilestone = {
   tone: MilestoneTone;
 };
 
-export type ProgramTab = {
-  letter: string;
+export type ProgramSeasonRace = {
+  raceId: string;
+  number: number;
   name: string;
-  when: string | null;
-  detail: string | null;
-  primary: boolean;
+  detail: string;
+  when: string;
 };
 
-export type RaceProgram = {
+export type ProgramSeasonLink = {
+  seasonId: string;
+  href: string;
+  letter: PlanSeason["letter"];
+  status: SeasonStatus;
+  name: string;
+  detail: string;
+};
+
+export type SeasonProgram = Pick<
+  PlanSeason,
+  "id" | "raceIds" | "startsOn" | "endsOn"
+> & {
   raceId: string | null;
-  tab: ProgramTab | null;
+  letter: PlanSeason["letter"];
+  name: string;
+  status: SeasonStatus;
+  href: string;
   eyebrow: string;
   title: string;
   summary: string | null;
   kpis: ProgramKpi[];
   weeks: ProgramWeek[];
   bands: ProgramBand[];
-  nested: ProgramNested[];
   milestones: ProgramMilestone[];
+  races: ProgramSeasonRace[];
+  next: ProgramSeasonLink | null;
   defaultWeekKey: string | null;
 };
 
 export type ProgramOverview = {
-  programs: RaceProgram[];
+  seasons: SeasonProgram[];
   blocks: ProgramBlock[];
   weeks: ProgramWeek[];
   currentWeekKey: string | null;
@@ -372,20 +396,29 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
     }),
   );
   const planRaceIds = planRaceIdsOf(state);
+  const seasons = planSeasons({ state, races: input.races, today });
+  const objectiveIds = new Set([
+    state.plan.primaryRaceId,
+    ...seasons.map((season) => season.raceId),
+  ]);
   const raceOn = (date: string) =>
     input.races.find(
       (race) => race.date === date && planRaceIds.has(race.id),
     ) ??
     input.races.find((race) => race.date === date) ??
     null;
-  const planRaceIn = (start: string, end: string) =>
-    input.races.find(
-      (race) =>
-        planRaceIds.has(race.id) &&
-        race.date !== null &&
-        race.date >= start &&
-        race.date <= end,
-    ) ?? null;
+  const raceIn = (start: string, end: string) => {
+    const inside = input.races.filter(
+      (race) => race.date !== null && race.date >= start && race.date <= end,
+    );
+    return (
+      inside.find((race) => planRaceIds.has(race.id)) ??
+      inside.sort((first, second) =>
+        (first.priority ?? "Z").localeCompare(second.priority ?? "Z"),
+      )[0] ??
+      null
+    );
+  };
   const daySession = (
     session: PlanSession,
     date: string,
@@ -458,9 +491,9 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
     const raceSession = sessions.find((session) => session.kind === "race");
     const race = raceSession
       ? raceOn(raceSession.scheduledOn)
-      : planRaceIn(week.weekStart, end);
+      : raceIn(week.weekStart, end);
     const isPrimaryRace = race
-      ? race.id === state.plan.primaryRaceId
+      ? objectiveIds.has(race.id)
       : raceSession !== undefined && week.weekType === "race";
     const raceName = race?.name ?? raceSession?.title ?? null;
     const label = raceName
@@ -678,9 +711,8 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
     };
   });
 
-  const programs = racePrograms(input, weeks);
   return {
-    programs,
+    seasons: seasonPrograms(input, weeks, seasons),
     blocks,
     weeks,
     currentWeekKey:
@@ -698,15 +730,6 @@ const bandTones: Record<PlanBlock["kind"], BandTone> = {
   taper: "success",
   race: "accent",
 };
-
-const qualityFamilies = new Set<SessionFamily>([
-  "tempo",
-  "threshold",
-  "intervals",
-  "hills",
-  "fartlek",
-  "race_specific",
-]);
 
 function weeksDistance(weeks: ProgramWeek[]) {
   return completeDistance(
@@ -735,11 +758,6 @@ function daysBetween(from: string, to: string) {
     (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
       86_400_000,
   );
-}
-
-function countdown(race: ProgramRace, today: string) {
-  if (!race.date || race.date < today) return null;
-  return `J-${daysBetween(today, race.date)}`;
 }
 
 function kilometers(meters: number) {
@@ -775,8 +793,6 @@ function programBands(state: PlanState, weeks: ProgramWeek[]): ProgramBand[] {
 function programMilestones(
   state: PlanState,
   weeks: ProgramWeek[],
-  races: ProgramRace[],
-  ownRaceId: string | null,
 ): ProgramMilestone[] {
   const milestones: ProgramMilestone[] = [];
   const upcoming = weeks.filter((week) => week.status !== "past");
@@ -804,23 +820,6 @@ function programMilestones(
   );
   if (recovery)
     add(recovery, "recovery", "Allégée", recovery.range, "provider");
-  for (const week of weeks) {
-    const end = addDays(week.weekStart, 6);
-    for (const race of races)
-      if (
-        race.id !== ownRaceId &&
-        race.date &&
-        race.date >= week.weekStart &&
-        race.date <= end
-      )
-        add(
-          week,
-          `race-${race.id}`,
-          race.name,
-          formatLongDay(race.date),
-          "accent",
-        );
-  }
   const runs = state.sessions.filter(
     (session) =>
       isRunningSession(session) &&
@@ -877,37 +876,30 @@ function programMilestones(
   return milestones.sort((first, second) => first.number - second.number);
 }
 
-function programKpis(
-  state: PlanState,
-  weeks: ProgramWeek[],
-  primary: boolean,
-): ProgramKpi[] {
+function programKpis(state: PlanState, weeks: ProgramWeek[]): ProgramKpi[] {
   const total = sum(weeks.map((week) => week.totals.durationSeconds));
   const distance = weeksDistance(weeks);
-  const sessions = state.sessions.filter((session) =>
-    weeks.some(
-      (week) =>
-        session.scheduledOn >= week.weekStart &&
-        session.scheduledOn <= addDays(week.weekStart, 6),
-    ),
-  );
   const longest = Math.max(
     0,
-    ...sessions
-      .filter((session) => isRunningSession(session) && session.kind !== "race")
+    ...state.sessions
+      .filter(
+        (session) =>
+          isRunningSession(session) &&
+          session.kind !== "race" &&
+          weeks.some(
+            (week) =>
+              session.scheduledOn >= week.weekStart &&
+              session.scheduledOn <= addDays(week.weekStart, 6),
+          ),
+      )
       .map((session) => session.targets.durationSeconds),
   );
   const peak = Math.max(0, ...weeks.map((week) => week.totals.durationSeconds));
-  const quality = sessions.filter((session) =>
-    qualityFamilies.has(sessionFamilyOf(session)),
-  ).length;
   const kpis: ProgramKpi[] = [
     {
       key: "duration",
-      label: primary ? "Total prévu" : "Total",
-      value: primary
-        ? `${Math.round(total / 3600).toLocaleString("fr-FR")} h`
-        : formatDuration(total),
+      label: "Total prévu",
+      value: `${Math.round(total / 3600).toLocaleString("fr-FR")} h`,
     },
   ];
   if (distance !== null && distance.meters > 0)
@@ -916,24 +908,17 @@ function programKpis(
       label: "Distance",
       value: approximate(kilometers(distance.meters), distance.estimated),
     });
-  if (primary) {
-    if (longest > 0)
-      kpis.push({
-        key: "longest",
-        label: "Plus longue sortie",
-        value: formatDuration(longest),
-      });
-    if (peak > 0 && weeks.length > 1)
-      kpis.push({
-        key: "peak",
-        label: "Semaine de pic",
-        value: formatDuration(peak),
-      });
-  } else if (quality > 0)
+  if (longest > 0)
     kpis.push({
-      key: "quality",
-      label: "De qualité",
-      value: plural(quality, "séance", "séances"),
+      key: "longest",
+      label: "Plus longue sortie",
+      value: formatDuration(longest),
+    });
+  if (peak > 0 && weeks.length > 1)
+    kpis.push({
+      key: "peak",
+      label: "Semaine de pic",
+      value: formatDuration(peak),
     });
   return kpis;
 }
@@ -963,109 +948,183 @@ function eyebrow(weeks: ProgramWeek[]) {
     : span;
 }
 
-function racePrograms(
+function seasonKpis(weeks: ProgramWeek[]): ProgramKpi[] {
+  const kpis: ProgramKpi[] = [];
+  const sessions = weeks
+    .flatMap((week) => week.days.flatMap((day) => day.sessions))
+    .filter((session) => session.family !== "race");
+  const done = sessions.filter(
+    (session) => session.state === "done" || session.state === "partial",
+  ).length;
+  if (sessions.length > 0)
+    kpis.push({
+      key: "sessions",
+      label: "Séances",
+      value: `${done} / ${sessions.length}`,
+      detail: `${Math.round((done / sessions.length) * 100)} % faites`,
+    });
+  const distance = completeDistance(
+    weeks.map((week) =>
+      week.done.distanceMeters !== null
+        ? {
+            meters: week.done.distanceMeters,
+            estimated: week.done.distanceEstimated,
+          }
+        : week.done.durationSeconds === 0
+          ? { meters: 0, estimated: false }
+          : null,
+    ),
+  );
+  const elevation = presentSum(weeks.map((week) => week.done.elevationMeters));
+  kpis.push({
+    key: "volume",
+    label: "Volume couru",
+    value:
+      distance !== null && distance.meters > 0
+        ? approximate(kilometers(distance.meters), distance.estimated)
+        : formatDuration(sum(weeks.map((week) => week.done.durationSeconds))),
+    ...(elevation !== null && elevation > 0
+      ? { detail: `${formatElevation(elevation)} D+` }
+      : {}),
+  });
+  const peak = weeks.reduce<ProgramWeek | null>(
+    (best, week) =>
+      week.done.durationSeconds > (best?.done.durationSeconds ?? 0)
+        ? week
+        : best,
+    null,
+  );
+  if (peak)
+    kpis.push({
+      key: "peak",
+      label: "Pic",
+      value: formatDuration(peak.done.durationSeconds),
+      detail: `en S${peak.number}`,
+    });
+  return kpis;
+}
+
+const seasonStatusLabels: Record<SeasonStatus, string> = {
+  current: "En cours",
+  future: "À venir",
+  past: "Terminée",
+};
+
+function seasonLink(
+  seasons: PlanSeason[],
+  season: PlanSeason,
+  today: string,
+): ProgramSeasonLink {
+  return {
+    seasonId: season.id,
+    href: seasonHref(seasons, season.id),
+    letter: season.letter,
+    status: season.status,
+    name: season.name,
+    detail: [
+      ...new Set([
+        seasonStatusLabels[season.status],
+        seasonProgress(season),
+        seasonCountdown(season, today),
+      ]),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  };
+}
+
+function seasonPrograms(
   input: ProgramInput,
   allWeeks: ProgramWeek[],
-): RaceProgram[] {
+  seasons: PlanSeason[],
+): SeasonProgram[] {
   const { state, today } = input;
-  const primary =
-    input.races.find((race) => race.id === state.plan.primaryRaceId) ?? null;
-  const secondary = input.races
-    .filter(
-      (race) =>
-        race.id !== primary?.id &&
-        state.blocks.some((block) => block.raceId === race.id),
-    )
-    .sort((first, second) =>
-      (first.date ?? "").localeCompare(second.date ?? ""),
+  const initial = defaultSeason(seasons);
+  return seasons.map((season, index): SeasonProgram => {
+    const weeks = renumber(
+      allWeeks.filter((week) => season.weekStarts.includes(week.weekStart)),
     );
-  const planWeeksOf = (race: ProgramRace) =>
-    allWeeks.filter((week) => blockOf(state, week)?.raceId === race.id);
-  const nested: ProgramNested[] = secondary.flatMap((race) => {
-    const own = planWeeksOf(race);
-    if (own.length === 0) return [];
-    return [
-      {
-        raceId: race.id,
-        letter: race.priority ?? "C",
-        name: race.name,
-        start: own[0].number - 1,
-        span: own.length,
-      },
-    ];
-  });
-  const tab = (
-    race: ProgramRace,
-    weeks: ProgramWeek[],
-    isPrimary: boolean,
-  ): ProgramTab => {
-    const current = weeks.find((week) => week.status === "current");
-    const first = weeks[0];
+    const race = input.races.find((item) => item.id === season.raceId) ?? null;
+    const past = season.status === "past";
+    const weekOf = (date: string) =>
+      weeks.find(
+        (week) => date >= week.weekStart && date <= addDays(week.weekStart, 6),
+      );
+    const countdown = seasonCountdown(season, today);
+    const raceKpi: ProgramKpi[] = season.raceDate
+      ? [
+          {
+            key: "race",
+            label: "Course",
+            value: formatDayMonthShort(season.raceDate),
+            ...(countdown ? { detail: countdown } : {}),
+          },
+        ]
+      : [];
+    const next = past ? seasons[index + 1] : undefined;
     return {
-      letter: race.priority ?? (isPrimary ? "A" : "C"),
-      name: race.name,
-      when: race.date
-        ? [formatLongDay(race.date), countdown(race, today)]
-            .filter(Boolean)
-            .join(" · ")
-        : null,
-      detail: current
-        ? `S${current.number} / ${weeks.length}`
-        : first && first.daysUntil > 0
-          ? `débute le ${formatDayMonthShort(first.weekStart)}`
-          : null,
-      primary: isPrimary,
-    };
-  };
-  const main: RaceProgram = {
-    raceId: primary?.id ?? null,
-    tab: primary && secondary.length > 0 ? tab(primary, allWeeks, true) : null,
-    eyebrow: eyebrow(allWeeks),
-    title: primary
-      ? primary.targetSeconds !== null
-        ? `${primary.name} · cible ${formatClock(primary.targetSeconds)}`
-        : [countdown(primary, today), primary.name].filter(Boolean).join(" · ")
-      : state.plan.title,
-    summary: input.summary,
-    kpis: programKpis(state, allWeeks, true),
-    weeks: allWeeks,
-    bands: programBands(state, allWeeks),
-    nested,
-    milestones: programMilestones(
-      state,
-      allWeeks,
-      input.races,
-      primary?.id ?? null,
-    ),
-    defaultWeekKey: defaultWeek(allWeeks),
-  };
-  const others = secondary.map((race): RaceProgram => {
-    const planWeeks = planWeeksOf(race);
-    const weeks = renumber(planWeeks);
-    const objective =
-      state.blocks.find((block) => block.raceId === race.id)?.objective ?? null;
-    const planNumbers = planWeeks.map((week) => week.number);
-    const inserted = primary
-      ? `S’insère dans ton programme ${primary.name}, semaines ${planNumbers[0]} à ${planNumbers.at(-1)}.`
-      : null;
-    return {
-      raceId: race.id,
-      tab: tab(race, weeks, false),
-      eyebrow: eyebrow(weeks),
-      title:
-        race.targetSeconds !== null
-          ? `${race.name} · cible ${formatClock(race.targetSeconds)}`
-          : [countdown(race, today), race.name].filter(Boolean).join(" · "),
-      summary: [inserted, objective].filter(Boolean).join(" ") || null,
-      kpis: programKpis(state, weeks, false),
+      id: season.id,
+      raceIds: season.raceIds,
+      startsOn: season.startsOn,
+      endsOn: season.endsOn,
+      raceId: season.raceId,
+      letter: season.letter,
+      name: season.name,
+      status: season.status,
+      href: seasonHref(seasons, season.id),
+      eyebrow: past
+        ? season.letter
+          ? `Saison terminée · objectif ${season.letter}`
+          : "Saison terminée"
+        : eyebrow(weeks),
+      title: race
+        ? past
+          ? race.name
+          : race.targetSeconds !== null
+            ? `${race.name} · cible ${formatClock(race.targetSeconds)}`
+            : [countdown, race.name].filter(Boolean).join(" · ")
+        : seasons.length === 1
+          ? state.plan.title
+          : openSeasonName,
+      summary: season.id === initial?.id ? input.summary : null,
+      kpis: [
+        ...raceKpi,
+        ...(past ? seasonKpis(weeks) : programKpis(state, weeks)),
+      ],
       weeks,
       bands: programBands(state, weeks),
-      nested: [],
-      milestones: programMilestones(state, weeks, input.races, race.id),
-      defaultWeekKey: defaultWeek(weeks),
+      milestones: programMilestones(state, weeks),
+      races: input.races
+        .flatMap((item) => {
+          const week =
+            item.date !== null && season.raceIds.includes(item.id)
+              ? weekOf(item.date)
+              : undefined;
+          return week && item.date
+            ? [{ item, date: item.date, number: week.number }]
+            : [];
+        })
+        .sort((first, second) => first.date.localeCompare(second.date))
+        .map(({ item, date, number }) => ({
+          raceId: item.id,
+          number,
+          name: item.name,
+          detail: [
+            item.priority ? `Course ${item.priority}` : "Course",
+            item.targetSeconds !== null
+              ? `cible ${formatClock(item.targetSeconds)}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          when: formatDayMonthShort(date),
+        })),
+      next: next ? seasonLink(seasons, next, today) : null,
+      defaultWeekKey:
+        (past && season.raceDate ? weekOf(season.raceDate)?.weekKey : null) ??
+        defaultWeek(weeks),
     };
   });
-  return [main, ...others];
 }
 
 export function chartDescription(weeks: ProgramWeek[]) {

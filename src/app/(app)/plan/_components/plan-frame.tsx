@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import {
   AppHeader,
   type AppCrumb,
 } from "@/features/app-shell/components/app-header";
+import { SeasonSheet } from "@/features/app-shell/components/season-menu";
 import { cn } from "@/lib/utils";
 
 export function PlanFrame({
@@ -19,6 +21,13 @@ export function PlanFrame({
     <>
       <AppHeader
         title={back ? crumbs.map((crumb) => crumb.label).join(" / ") : "Plan"}
+        titleAction={
+          back ? undefined : (
+            <Suspense>
+              <SeasonSheet />
+            </Suspense>
+          )
+        }
         crumbs={crumbs}
         back={back}
       />

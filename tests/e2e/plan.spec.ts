@@ -44,16 +44,24 @@ test("the plan shows the stored program with the current week selected", async (
     page.getByText(/^Semaine 2 sur \d+ · Reconstruction$/),
   ).toBeVisible();
   await expect(page.getByText("Brouillon", { exact: true })).toHaveCount(0);
-  for (const label of ["Total prévu", "Plus longue sortie", "Semaine de pic"])
+  for (const label of [
+    "Course",
+    "Total prévu",
+    "Plus longue sortie",
+    "Semaine de pic",
+  ])
     await expect(page.getByText(label, { exact: true })).toBeVisible();
 
-  const programs = page.getByRole("navigation", { name: "Programmes" });
   await expect(
-    programs.getByRole("link", { name: /Marathon de Paris/ }),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(
-    programs.getByRole("link", { name: /10K Vincennes/ }),
-  ).toContainText(/débute le/);
+    page.getByRole("button", {
+      name: /^Saison : Marathon de Paris, S2 \/ \d+$/,
+    }),
+  ).toBeVisible();
+  const races = page.getByRole("region", { name: "Courses de la saison" });
+  await expect(races.getByRole("listitem")).toHaveText([
+    /^S8\s*10K Vincennes\s*Course C · cible 44:30/,
+    /Marathon de Paris\s*Course A/,
+  ]);
 
   const chart = page.getByRole("group", {
     name: /^Volume hebdomadaire prévu sur \d+/,
@@ -120,31 +128,109 @@ test("the plan shows the stored program with the current week selected", async (
   await expect(page.getByText("Brouillon", { exact: true })).toHaveCount(0);
 });
 
-test("a nested race opens its own program", async ({ page }) => {
+const pastSeason = "12121212-0000-4000-8000-000000000009";
+
+test("the header switches between the seasons of the plan", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page, "plan@example.com");
+  await signIn(page, "seasons@example.com");
   await page.goto("/plan");
-  await page.getByRole("link", { name: /Programme 10K Vincennes/ }).click();
-  await expect(page).toHaveURL(/\/plan\?race=/);
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "10K Vincennes · cible 44:30",
+      name: /^J-\d+ · Marathon de Paris$/,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText(/^Semaine 1 sur \d+ · /)).toBeVisible();
+  const trigger = page.getByRole("button", {
+    name: /^Saison : Marathon de Paris, S1 \/ \d+$/,
+  });
+  await tabTo(page, trigger);
+  expect(await outline(trigger)).not.toBe("none");
+  await page.keyboard.press("Enter");
+  const menu = page.getByRole("menu", { name: "Saisons" });
+  await expect(menu.getByText("Saison en cours")).toBeVisible();
+  await expect(menu.getByText("Passées")).toBeVisible();
+  await expect(
+    menu.getByRole("menuitemradio", { name: /Marathon de Paris/ }),
+  ).toHaveAttribute("aria-checked", "true");
+  const past = menu.getByRole("menuitemradio", {
+    name: /Trail d’automne 25K.*Terminée/,
+  });
+  await expect(past).toHaveAttribute("aria-checked", "false");
+  await expect(
+    menu.getByRole("menuitem", { name: "Toutes les courses" }),
+  ).toHaveAttribute("href", "/races");
+  await page.keyboard.press("ArrowDown");
+  await expect(past).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(new RegExp(`/plan\\?season=${pastSeason}$`));
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Trail d’automne 25K" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Saison : Trail d’automne 25K, Terminée",
     }),
   ).toBeVisible();
   await expect(
-    page
-      .getByRole("navigation", { name: "Programmes" })
-      .getByRole("link", { name: /10K Vincennes/ }),
-  ).toHaveAttribute("aria-current", "page");
+    page.getByText("Saison terminée · lecture seule", { exact: true }),
+  ).toBeVisible();
+  const weeks = page
+    .getByRole("group", { name: /^Volume hebdomadaire/ })
+    .getByRole("button");
+  await expect(weeks).toHaveCount(1);
+  await expect(weeks).toHaveAttribute("aria-pressed", "true");
+  await expect(weeks).toHaveAccessibleName(/^Semaine 1, /);
+  for (const label of ["Course", "Séances", "Volume couru"])
+    await expect(page.getByText(label, { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aujourd’hui" })).toHaveCount(
+    0,
+  );
   await expect(
     page
-      .getByRole("group", { name: /^Volume hebdomadaire/ })
-      .getByRole("button", {
-        name: /^Semaine 1, /,
-      }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText(/^dans \d+ j$/)).toBeVisible();
+      .getByRole("region", { name: "Saison suivante" })
+      .getByRole("link", { name: /Marathon de Paris.*En cours · S1/ }),
+  ).toHaveAttribute("href", "/plan");
+  await page
+    .getByRole("link", { name: "Revenir à la saison en cours" })
+    .click();
+  await expect(page).toHaveURL(/\/plan$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Marathon de Paris$/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Revenir à la saison en cours" }),
+  ).toHaveCount(0);
+});
+
+test("the seasons sheet switches season on a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, "seasons@example.com");
+  await page.goto("/plan");
+  const trigger = page.getByRole("button", {
+    name: /^Saison : Marathon de Paris, S1 \/ \d+$/,
+  });
+  await trigger.click();
+  const sheet = page.getByRole("dialog", { name: "Saisons" });
+  await expect(
+    sheet.getByRole("link", { name: /Marathon de Paris/ }),
+  ).toHaveAttribute("aria-current", "true");
+  for (const link of await sheet.getByRole("link").all())
+    expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  await sheet.getByRole("link", { name: /Trail d’automne 25K/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/plan\\?season=${pastSeason}$`));
+  await expect(sheet).toHaveCount(0);
+  await expect(
+    page.getByText("Saison terminée · lecture seule", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /^Saison : Trail d’automne 25K/ }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
 });
 
 test("the whole program is copied as text for another AI", async ({
@@ -190,7 +276,7 @@ test("the program fits a phone and shows the selected week", async ({
   });
   await page.goto("/plan?race=ffffffff-ffff-4fff-8fff-ffffffffffff");
   await expect(
-    page.getByRole("heading", { level: 1, name: /^10K Vincennes/ }),
+    page.getByRole("heading", { level: 1, name: /Marathon de Paris$/ }),
   ).toBeVisible();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),

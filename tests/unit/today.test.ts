@@ -30,6 +30,7 @@ const races: ProgramRace[] = [
     targetSeconds: null,
     distanceKm: 42.195,
     elevationGainM: null,
+    kind: "road",
   },
   {
     id: "race-c",
@@ -39,6 +40,7 @@ const races: ProgramRace[] = [
     targetSeconds: 2_670,
     distanceKm: 10,
     elevationGainM: null,
+    kind: "road",
   },
 ];
 

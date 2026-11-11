@@ -1,99 +1,17 @@
-import { PlusIcon } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
+import { SeasonBadge } from "@/features/app-shell/components/season-menu";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { cn } from "@/lib/utils";
-import type { RaceProgram } from "@/features/plans/view/program";
-
-function programHref(program: RaceProgram, primary: boolean) {
-  return primary || !program.raceId ? "/plan" : `/plan?race=${program.raceId}`;
-}
-
-export function ProgramTabs({
-  programs,
-  active,
-}: {
-  programs: RaceProgram[];
-  active: RaceProgram;
-}) {
-  const tabs = programs.filter((program) => program.tab !== null);
-  if (tabs.length === 0) return null;
-  return (
-    <nav
-      aria-label="Programmes"
-      className="flex min-w-0 gap-1.5 overflow-x-auto"
-    >
-      {tabs.map((program, index) => {
-        const tab = program.tab!;
-        const current = program === active;
-        return (
-          <Link
-            key={program.raceId ?? "plan"}
-            href={programHref(program, index === 0)}
-            aria-current={current ? "page" : undefined}
-            className={cn(
-              "flex min-h-control-auto shrink-0 items-center gap-2 rounded-md border px-2.5 transition-colors duration-150 ease-stride",
-              current
-                ? "border-transparent bg-muted"
-                : "border-control-border hover:border-muted-foreground",
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                "grid size-4.5 shrink-0 place-items-center rounded-sm text-micro font-bold tabular-nums",
-                tab.primary
-                  ? "bg-primary text-primary-foreground"
-                  : "border-[1.5px] border-muted-foreground text-secondary-foreground",
-              )}
-            >
-              {tab.letter}
-            </span>
-            <span className="flex min-w-0 items-baseline gap-2">
-              <span
-                className={cn(
-                  "font-medium whitespace-nowrap",
-                  current ? "text-foreground" : "text-secondary-foreground",
-                )}
-              >
-                <span className="sr-only">Course {tab.letter} · </span>
-                {tab.name}
-              </span>
-              {tab.when && (
-                <span className="text-label whitespace-nowrap text-muted-foreground">
-                  {tab.when}
-                </span>
-              )}
-            </span>
-            {tab.detail && (
-              <span
-                className={cn(
-                  "text-label whitespace-nowrap max-lg:hidden",
-                  current
-                    ? "text-secondary-foreground"
-                    : "text-muted-foreground",
-                )}
-              >
-                {tab.detail}
-              </span>
-            )}
-          </Link>
-        );
-      })}
-      <Link
-        href="/races"
-        aria-label="Nouveau programme"
-        className="grid size-control-auto shrink-0 place-items-center rounded-md border border-dashed border-control-border text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground"
-      >
-        <PlusIcon aria-hidden="true" className="size-4" />
-      </Link>
-    </nav>
-  );
-}
+import type {
+  ProgramSeasonLink,
+  ProgramSeasonRace,
+  SeasonProgram,
+} from "@/features/plans/view/program";
 
 export function ProgramHeader({
   program,
   eyebrow = program.eyebrow,
 }: {
-  program: RaceProgram;
+  program: SeasonProgram;
   eyebrow?: string;
 }) {
   return (
@@ -114,10 +32,80 @@ export function ProgramHeader({
             className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5"
           >
             <dt className="text-muted-foreground">{kpi.label}</dt>
-            <dd className="font-semibold tabular-nums">{kpi.value}</dd>
+            <dd className="flex min-w-0 items-baseline gap-2 tabular-nums">
+              <span className="font-semibold">{kpi.value}</span>
+              {kpi.detail && (
+                <span className="truncate text-muted-foreground">
+                  {kpi.detail}
+                </span>
+              )}
+            </dd>
           </div>
         ))}
       </dl>
+    </section>
+  );
+}
+
+export function SeasonRaces({ races }: { races: ProgramSeasonRace[] }) {
+  return (
+    <section aria-labelledby="season-races" className="flex flex-col gap-1">
+      <h2
+        id="season-races"
+        className="text-label font-medium text-muted-foreground"
+      >
+        Courses de la saison
+      </h2>
+      <ul className="flex flex-col">
+        {races.map((race) => (
+          <li
+            key={race.raceId}
+            className="grid grid-cols-[30px_minmax(0,1fr)_auto] items-baseline gap-2.5 border-t border-border py-2 first:border-0"
+          >
+            <span className="text-label text-muted-foreground tabular-nums">
+              S{race.number}
+            </span>
+            <span className="flex min-w-0 flex-col gap-px">
+              <span className="truncate font-medium">{race.name}</span>
+              <span className="text-label text-muted-foreground tabular-nums">
+                {race.detail}
+              </span>
+            </span>
+            <span className="text-label whitespace-nowrap text-muted-foreground tabular-nums">
+              {race.when}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+export function NextSeason({ season }: { season: ProgramSeasonLink }) {
+  return (
+    <section aria-labelledby="next-season" className="flex flex-col gap-2">
+      <h2
+        id="next-season"
+        className="text-label font-medium text-muted-foreground"
+      >
+        Saison suivante
+      </h2>
+      <Link
+        href={season.href}
+        className="flex min-h-11 items-center gap-2.5 rounded-lg border border-control-border bg-card p-2.5 transition-colors duration-150 ease-stride hover:border-muted-foreground"
+      >
+        <SeasonBadge season={season} />
+        <span className="flex min-w-0 flex-col gap-px">
+          <span className="truncate font-medium">{season.name}</span>
+          <span className="truncate text-label text-muted-foreground tabular-nums">
+            {season.detail}
+          </span>
+        </span>
+        <ChevronRightIcon
+          aria-hidden="true"
+          className="ml-auto size-3.5 shrink-0 text-muted-foreground"
+        />
+      </Link>
     </section>
   );
 }
