@@ -12,7 +12,11 @@ describe("today's move days", () => {
       "2026-10-24",
       "2026-10-25",
     ]);
-    expect(days[0]).toMatchObject({ label: "mercredi 21", sessions: [] });
+    expect(days[0]).toMatchObject({
+      label: "mercredi 21",
+      sessions: [],
+      restKey: null,
+    });
     expect(days[1].sessions).toHaveLength(1);
     expect(days[4].sessions).toHaveLength(1);
   });
@@ -29,5 +33,27 @@ describe("today's move days", () => {
     expect(moveDays(planState(), "s-2026-10-25-1", "2026-10-25")).toEqual([]);
     expect(moveDays(planState(), "s-2026-10-22-1", "2026-10-20")).toEqual([]);
     expect(moveDays(planState(), "missing", "2026-10-20")).toEqual([]);
+  });
+
+  it("offers nothing for a session already matched or a race", () => {
+    expect(
+      moveDays(
+        planState(),
+        "s-2026-10-20-1",
+        "2026-10-20",
+        new Set(["s-2026-10-20-1"]),
+      ),
+    ).toEqual([]);
+    const plan = planState();
+    plan.sessions[2] = { ...plan.sessions[2], kind: "race" };
+    expect(moveDays(plan, "s-2026-10-20-1", "2026-10-20")).toEqual([]);
+  });
+
+  it("never offers a race day", () => {
+    const plan = planState();
+    plan.sessions[3] = { ...plan.sessions[3], kind: "race" };
+    expect(
+      moveDays(plan, "s-2026-10-20-1", "2026-10-20").map((day) => day.date),
+    ).toEqual(["2026-10-21", "2026-10-23", "2026-10-24", "2026-10-25"]);
   });
 });

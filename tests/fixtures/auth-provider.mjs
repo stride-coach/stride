@@ -1865,7 +1865,7 @@ twinPlanAthlete(todayDecisionsUser, todayDecisionsPlanId, "2525");
         },
       },
     ],
-    target_keys: [`session:s-${planToday}-1`],
+    target_keys: [`s-${planToday}-1`],
   });
 }
 tables.athlete_races.push({
@@ -3283,7 +3283,7 @@ createServer(async (request, response) => {
     }
     if (
       request.method === "POST" &&
-      url.pathname === "/rest/v1/rpc/submit_plan_proposal"
+      url.pathname === "/rest/v1/rpc/submit_athlete_session_move"
     ) {
       const owner = currentPlanUser(request);
       const plan = tables.training_plans.find(
@@ -3295,33 +3295,39 @@ createServer(async (request, response) => {
       if (!plan) return send(404, { code: "PT404", message: "not_found" });
       if (body.p_base_version !== plan.active_version)
         return send(409, { code: "PT409", message: "stale_version" });
-      const targets = body.p_target_keys ?? [];
-      for (const row of tables.plan_proposals)
-        if (
-          row.user_id === owner.id &&
-          row.plan_id === plan.id &&
-          row.status === "ready" &&
-          row.target_keys.some((key) =>
-            targets.includes(key.replace(/^session:/, "")),
-          )
-        )
-          row.status = "superseded";
       const now = new Date().toISOString();
       const proposal = {
         ...readyPlanProposal(owner, plan.id, randomUUID()),
         base_version: plan.active_version,
-        scope: body.p_scope,
-        origin: body.p_origin,
+        origin: "schedule",
+        status: "accepted",
         title: body.p_title,
         summary: body.p_summary,
-        rationale: body.p_rationale,
-        operations: body.p_operations,
-        specialist_opinions: body.p_specialist_opinions ?? [],
-        target_keys: targets,
+        operations: [
+          ...(body.p_rest_key
+            ? [{ op: "skip_session", sessionKey: body.p_rest_key }]
+            : []),
+          {
+            op: "move_session",
+            sessionKey: body.p_session_key,
+            toDate: body.p_to_date,
+          },
+        ],
+        target_keys: [body.p_session_key, body.p_rest_key].filter(Boolean),
         created_at: now,
         updated_at: now,
       };
       tables.plan_proposals.push(proposal);
+      tables.plan_decisions.push({
+        id: randomUUID(),
+        user_id: owner.id,
+        proposal_id: proposal.id,
+        decision: "accepted",
+        actor: "athlete",
+        note: null,
+        resulting_version: null,
+        created_at: now,
+      });
       return send(200, proposal);
     }
     if (

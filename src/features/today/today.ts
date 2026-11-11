@@ -397,7 +397,18 @@ function session(input: TodayInput): TodaySession {
       count: panels.length,
       before: panels.slice(0, index).map((item) => daySession(item, summaries)),
       after: panels.slice(index + 1).map((item) => daySession(item, summaries)),
-      moveDays: plan ? moveDays(plan, panel.sessionKey, today) : [],
+      moveDays: plan
+        ? moveDays(
+            plan,
+            panel.sessionKey,
+            today,
+            new Set(
+              input.matches
+                .filter((match) => match.status !== "dismissed")
+                .map((match) => match.sessionKey),
+            ),
+          )
+        : [],
     };
   }
   if (!plan) return { kind: "none" };

@@ -115,12 +115,26 @@ describe("proposal actions", () => {
         move.sessionKey,
         move.toDate,
       );
-      expect(rpc).toHaveBeenCalledWith("accept_plan_proposal", {
-        p_proposal_id: proposalId,
-      });
+      expect(rpc).not.toHaveBeenCalled();
+      expect(applyAcceptedProposal).toHaveBeenCalledWith(
+        expect.anything(),
+        proposalId,
+      );
     });
 
-    it("reports a day the validator blocks", async () => {
+    it("reports a day the validator blocks before anything is recorded", async () => {
+      submitSessionMove.mockResolvedValue({
+        ok: false,
+        reason: "validation_failed",
+      });
+      expect(await moveSession(move)).toEqual({
+        status: "invalid",
+        reason: "validation_failed",
+      });
+      expect(applyAcceptedProposal).not.toHaveBeenCalled();
+    });
+
+    it("reports a move the validator blocks at apply time", async () => {
       submitSessionMove.mockResolvedValue({ ok: true, proposalId });
       applyAcceptedProposal.mockResolvedValue({
         ok: false,

@@ -24,31 +24,42 @@ import type { MoveDay } from "../move";
 const failures: Partial<Record<ProposalActionResult["status"], string>> = {
   error: "Ta décision n’a pas pu être enregistrée. Réessaie dans un instant.",
   pending:
-    "Ta décision est enregistrée. Le plan se met à jour dans un instant.",
+    "Ta décision est enregistrée, mais le plan n’a pas pu être mis à jour. Réessaie depuis Plan.",
   "session-expired": "Ta session a expiré. Reconnecte-toi pour décider.",
   "invalid-request": "Cette séance ne peut plus être modifiée.",
 };
 
+type MoveMessages = { blocked: string; stale: string; pending: string };
+
 function report(
   result: ProposalActionResult,
   success: string,
-  blocked?: string,
+  move?: MoveMessages,
 ) {
   if (result.status === "applied" || result.status === "rejected") {
     toast.success(success, { id: "today-decision" });
     return;
   }
-  const text =
-    result.status === "invalid" && result.reason === "validation_failed"
-      ? (blocked ?? reasonText(result.reason))
-      : result.status === "stale" || result.status === "invalid"
-        ? reasonText(result.reason)
-        : failures[result.status];
+  const text = !(result.status === "stale" || result.status === "invalid")
+    ? failures[result.status]
+    : !move
+      ? reasonText(result.reason)
+      : result.reason === "proposal_pending"
+        ? move.pending
+        : result.status === "invalid"
+          ? move.blocked
+          : move.stale;
   if (text) toast.error(text, { id: "today-decision" });
 }
 
-const moveBlocked =
-  "Ce jour-là, la séance ne respecte pas les règles de sécurité de Stride. Elle reste aujourd’hui.";
+const moveMessages: MoveMessages = {
+  blocked:
+    "Ce jour-là, la séance ne respecte pas les règles de Stride. Elle reste aujourd’hui.",
+  stale:
+    "Ton plan a changé entre-temps : la séance reste aujourd’hui. Recharge la page pour voir la version à jour.",
+  pending:
+    "Le coach propose déjà un ajustement pour cette séance : décide-le d’abord.",
+};
 
 export function TodayDecisions({
   sessionKey,
@@ -67,13 +78,13 @@ export function TodayDecisions({
   const run = (
     action: () => Promise<ProposalActionResult>,
     success: string,
-    blocked?: string,
+    move?: MoveMessages,
   ) =>
     startTransition(async () => {
       const result = await action().catch((): ProposalActionResult => ({
         status: "error",
       }));
-      report(result, success, blocked);
+      report(result, success, move);
     });
 
   return (
@@ -135,14 +146,18 @@ export function TodayDecisions({
                 onSelect={() =>
                   run(
                     () => moveSession({ sessionKey, toDate: day.date }),
-                    `Séance déplacée à ${day.label}.`,
-                    moveBlocked,
+                    `Séance déplacée : ${day.label}.`,
+                    moveMessages,
                   )
                 }
               >
                 <span className="first-letter:uppercase">{day.label}</span>
                 <span className="ml-auto pl-3 text-muted-foreground">
-                  {day.sessions.length > 0 ? day.sessions.join(" · ") : "Libre"}
+                  {day.sessions.length > 0
+                    ? day.sessions.join(" · ")
+                    : day.restKey
+                      ? "Repos"
+                      : "Libre"}
                 </span>
               </DropdownMenuItem>
             ))}

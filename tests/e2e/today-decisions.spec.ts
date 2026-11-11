@@ -86,11 +86,17 @@ test("moving today's session places it on another day of the week", async ({
   }).format(new Date());
   test.skip(weekday === "Sunday", "No day is left in the week on Sunday.");
   const session = await openToday(page);
+  await expect(session.getByRole("button", { name: "Déplacer" })).toHaveCount(
+    0,
+  );
+  await session.getByRole("button", { name: "Garder Footing" }).click();
+  await expect(page.getByText("Tu gardes Footing.")).toBeVisible();
+
   await session.getByRole("button", { name: "Déplacer" }).click();
   const tomorrow = page.getByRole("menuitem").first();
   await expect(tomorrow).toContainText("Libre");
   await tomorrow.click();
-  await expect(page.getByText(/^Séance déplacée à /)).toBeVisible();
+  await expect(page.getByText(/^Séance déplacée : /)).toBeVisible();
   await expect(session.getByRole("heading", { level: 2 })).toHaveText(
     "Jour de repos",
   );

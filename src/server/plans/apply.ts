@@ -32,7 +32,7 @@ function failureReason(errors: OperationError[]) {
   return "validation_failed";
 }
 
-async function changesetFor(
+export async function planChangeset(
   context: OnboardingContext,
   proposal: {
     scope: string;
@@ -127,7 +127,7 @@ export async function applyAcceptedProposal(
   if (!proposal) return { ok: false, reason: "not_found" };
   if (proposal.status !== "accepted")
     return { ok: false, reason: "not_accepted" };
-  const changeset = await changesetFor(context, proposal);
+  const changeset = await planChangeset(context, proposal);
   if (typeof changeset === "string") {
     await recordOutcome(context, proposal.id, changeset);
     return { ok: false, reason: changeset };
