@@ -6,6 +6,7 @@ const rpc = vi.hoisted(() => vi.fn());
 const applyAcceptedProposal = vi.hoisted(() => vi.fn());
 const getOnboardingContext = vi.hoisted(() => vi.fn());
 const syncWatchAfterResponse = vi.hoisted(() => vi.fn());
+const submitSessionMove = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("../../src/server/plans/apply", () => ({
@@ -15,9 +16,11 @@ vi.mock("../../src/server/onboarding/context", () => ({
   getOnboardingContext,
 }));
 vi.mock("../../src/server/garmin/watch", () => ({ syncWatchAfterResponse }));
+vi.mock("../../src/server/plans/move", () => ({ submitSessionMove }));
 
 import {
   acceptProposal,
+  moveSession,
   rejectProposal,
   retryProposal,
 } from "../../src/server/plans/actions";
@@ -95,5 +98,49 @@ describe("proposal actions", () => {
       status: "session-expired",
     });
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  describe("moving today's session", () => {
+    const move = { sessionKey: "s-2026-10-20-1", toDate: "2026-10-22" };
+
+    it("submits the move, accepts it and applies it through the validator", async () => {
+      submitSessionMove.mockResolvedValue({ ok: true, proposalId });
+      applyAcceptedProposal.mockResolvedValue({ ok: true, version: 6 });
+      expect(await moveSession(move)).toEqual({
+        status: "applied",
+        version: 6,
+      });
+      expect(submitSessionMove).toHaveBeenCalledWith(
+        expect.anything(),
+        move.sessionKey,
+        move.toDate,
+      );
+      expect(rpc).toHaveBeenCalledWith("accept_plan_proposal", {
+        p_proposal_id: proposalId,
+      });
+    });
+
+    it("reports a day the validator blocks", async () => {
+      submitSessionMove.mockResolvedValue({ ok: true, proposalId });
+      applyAcceptedProposal.mockResolvedValue({
+        ok: false,
+        reason: "validation_failed",
+      });
+      expect(await moveSession(move)).toEqual({
+        status: "invalid",
+        reason: "validation_failed",
+      });
+      expect(syncWatchAfterResponse).not.toHaveBeenCalled();
+    });
+
+    it("never accepts a day outside the rest of the week", async () => {
+      submitSessionMove.mockResolvedValue({ ok: false, reason: "not_allowed" });
+      expect(await moveSession(move)).toEqual({ status: "invalid-request" });
+      expect(await moveSession({ ...move, toDate: "demain" })).toEqual({
+        status: "invalid-request",
+      });
+      expect(rpc).not.toHaveBeenCalled();
+      expect(applyAcceptedProposal).not.toHaveBeenCalled();
+    });
   });
 });

@@ -15,6 +15,7 @@ import { coachRequestHref } from "@/features/coach/request";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SyncNowButton } from "@/features/data-activity/components/sync-request";
+import { TodayDecisions } from "./today-decisions";
 import {
   TodayShoeChip,
   TodayShoeRow,
@@ -147,13 +148,15 @@ function PlannedSession({
 }) {
   const { panel } = session;
   const done = panel.status === "done" || panel.status === "partial";
-  const waiting = !done && verdict?.waiting === true;
+  const proposal = done ? null : panel.proposal;
+  const waiting = !done && !proposal && verdict?.waiting === true;
   const stepsInVerdict =
     !done && verdict?.actions.some((action) => action.key === "steps");
   return (
     <>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
         <h2 className="text-title font-semibold">{panel.title}</h2>
+        {proposal && <Chip proposal>Proposition</Chip>}
         {waiting && <Chip>{verdict.label}</Chip>}
         {session.terrain && <Chip>{session.terrain}</Chip>}
       </div>
@@ -196,7 +199,22 @@ function PlannedSession({
           className="h-5.5"
         />
       )}
-      {verdict && !done && !waiting && <VerdictBlock verdict={verdict} />}
+      {proposal && (
+        <p className="max-w-160 text-body-lg text-secondary-foreground motion-safe:animate-in motion-safe:duration-150 motion-safe:fade-in-0">
+          {proposal.text}
+        </p>
+      )}
+      {verdict && !done && !waiting && !proposal && (
+        <VerdictBlock verdict={verdict} />
+      )}
+      {!done && (
+        <TodayDecisions
+          sessionKey={panel.sessionKey}
+          plannedTitle={panel.title}
+          proposal={proposal}
+          moveDays={session.moveDays}
+        />
+      )}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {!done && panel.shoes && (
           <TodayShoeChip shoes={panel.shoes} href={session.href} />

@@ -31,13 +31,14 @@
       "plan-session",
       "session-matching",
       "watch-workouts",
-      "session-panel"
+      "session-panel",
+      "today-decisions"
     ],
     "progress": ["progress", "session-panel"],
     "push": ["settings-notifications"],
     "races": ["races", "races-course"],
     "settings": ["settings", "garmin-sync", "settings-notifications"],
     "theme": ["theme"],
-    "today": ["today", "session-panel"]
+    "today": ["today", "today-decisions", "session-panel"]
   }
 }
