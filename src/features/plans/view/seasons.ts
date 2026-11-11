@@ -85,11 +85,12 @@ export function planSeasons({
   const objectives = objectivesOf(state, dated, weekStarts[0]).map(
     (race, index, all) => {
       const next = all[index + 1];
-      const recovery = recoveryEndsOn(race);
-      const cap = next ? addDays(mondayOf(next.date), -1) : recovery;
       return {
         race,
-        endsOn: cap < race.date || recovery < cap ? recovery : cap,
+        endsOn:
+          next && mondayOf(next.date) > mondayOf(race.date)
+            ? addDays(mondayOf(race.date), 6)
+            : recoveryEndsOn(race),
       };
     },
   );
