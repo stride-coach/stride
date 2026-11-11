@@ -8,7 +8,10 @@ test("signed-out visitors land on the public page and reach legal pages", async 
   await expect(page).toHaveURL("/");
   await expect(page).toHaveTitle("Stride · Progresse sans te blesser");
   await expect(
-    page.getByRole("heading", { level: 1, name: /Progresse sans te blesser/ }),
+    page.getByRole("heading", {
+      level: 1,
+      name: /Un staff qui lit ton corps avant de décider ta séance/,
+    }),
   ).toBeVisible();
 
   const legal = page.getByRole("navigation", { name: "Informations légales" });
