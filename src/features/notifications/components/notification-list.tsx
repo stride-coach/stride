@@ -7,7 +7,6 @@ import {
   NavGearIcon,
   NavPlanIcon,
 } from "@/components/stride/nav-icons";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
 import { openNotification } from "@/server/notifications/actions";
@@ -23,45 +22,25 @@ import {
 
 const familyIcons: Record<
   Exclude<NotificationFamily, "staff">,
-  { icon: ComponentType<{ className?: string }>; className: string }
+  ComponentType<{ className?: string }>
 > = {
-  plan: {
-    icon: NavPlanIcon,
-    className: "border-primary/30 bg-primary/14 text-primary",
-  },
-  activity: {
-    icon: NavActivitiesIcon,
-    className: "border-foreground/30 bg-foreground/14 text-foreground",
-  },
-  sync: {
-    icon: RefreshCwIcon,
-    className: "border-destructive/30 bg-destructive/14 text-destructive",
-  },
-  watch: {
-    icon: WatchIcon,
-    className:
-      "border-secondary-foreground/30 bg-secondary-foreground/14 text-secondary-foreground",
-  },
-  shoe: {
-    icon: NavGearIcon,
-    className: "border-warning/30 bg-warning/14 text-warning",
-  },
+  plan: NavPlanIcon,
+  activity: NavActivitiesIcon,
+  sync: RefreshCwIcon,
+  watch: WatchIcon,
+  shoe: NavGearIcon,
 };
 
 function NotificationIcon({ view }: { view: NotificationView }) {
   if (view.agent)
     return <StaffAvatar agent={view.agent} size={30} decorative />;
-  const { icon: Icon, className } =
-    familyIcons[view.family === "staff" ? "plan" : view.family];
+  const Icon = familyIcons[view.family === "staff" ? "plan" : view.family];
   return (
     <span
       aria-hidden="true"
-      className={cn(
-        "grid size-8 place-items-center rounded-lg border",
-        className,
-      )}
+      className="grid size-7.5 place-items-center rounded-md border border-border bg-card text-secondary-foreground"
     >
-      <Icon className="size-4" />
+      <Icon className="size-3.5" />
     </span>
   );
 }
@@ -70,7 +49,7 @@ function StatusMark({ status }: { status: NotificationStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-label",
+        "inline-flex items-center gap-1.5 text-label font-medium",
         status.tone === "warning" && "text-warning",
         status.tone === "success" && "text-primary",
         status.tone === "muted" && "text-muted-foreground",
@@ -81,10 +60,7 @@ function StatusMark({ status }: { status: NotificationStatus }) {
       ) : (
         <span
           aria-hidden="true"
-          className={cn(
-            "size-1.5 shrink-0 rounded-full",
-            status.tone === "warning" ? "bg-warning" : "bg-data-1",
-          )}
+          className="size-1.5 shrink-0 rounded-full bg-current"
         />
       )}
       {status.label}
@@ -92,58 +68,60 @@ function StatusMark({ status }: { status: NotificationStatus }) {
   );
 }
 
+const actionClass =
+  "inline-flex min-h-control-touch items-center justify-center rounded-md border border-control-border bg-card px-2.5 font-medium whitespace-nowrap text-foreground transition-colors duration-150 ease-stride hover:border-muted-foreground md:min-h-control";
+
 function NotificationRow({ view }: { view: NotificationView }) {
   return (
-    <li
-      className={cn(
-        "border-t border-border first:border-t-0",
-        view.unread && "bg-card",
-      )}
-    >
+    <li className="border-b border-border last:border-b-0">
       <form
         action={openNotification}
-        className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 px-3.5 py-3 hover:bg-muted/50"
+        className="grid grid-cols-[6px_30px_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 px-4 py-3 transition-colors duration-150 ease-stride hover:bg-muted md:px-5"
       >
         <input type="hidden" name="id" value={view.id} />
+        <span className="flex h-7.5 items-center">
+          {view.unread && (
+            <span className="size-1.5 shrink-0 rounded-full bg-primary">
+              <span className="sr-only">Non lue</span>
+            </span>
+          )}
+        </span>
         <NotificationIcon view={view} />
         <button
           type="submit"
-          className="flex min-w-0 flex-col gap-0.75 rounded-md text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="flex min-w-0 flex-col gap-0.5 rounded-md text-left"
         >
           <span
             className={cn(
-              "text-body leading-[1.35]",
-              view.unread
-                ? "font-semibold text-foreground"
-                : "font-medium text-secondary-foreground",
+              "font-medium",
+              view.unread ? "text-foreground" : "text-secondary-foreground",
             )}
           >
             {view.title}
           </span>
           {view.body && (
-            <span className="line-clamp-3 text-[12.5px] leading-[1.45] text-muted-foreground">
+            <span className="line-clamp-3 text-label text-secondary-foreground">
               {view.body}
             </span>
           )}
         </button>
-        <MonoLabel
-          size="micro"
-          className="flex items-center gap-1.5 pt-0.75 whitespace-nowrap"
-        >
-          <time dateTime={view.occurredAt}>{view.time}</time>
-          {view.unread && (
-            <span className="size-2 shrink-0 rounded-full bg-primary">
-              <span className="sr-only">Non lue</span>
-            </span>
+        <span className="flex items-center gap-2.5 pt-0.5">
+          <time
+            dateTime={view.occurredAt}
+            className="text-label whitespace-nowrap text-muted-foreground tabular-nums"
+          >
+            {view.time}
+          </time>
+          {view.action && (
+            <button type="submit" className={cn(actionClass, "max-md:hidden")}>
+              {view.action}
+            </button>
           )}
-        </MonoLabel>
+        </span>
         {(view.action || view.status) && (
-          <span className="col-span-2 col-start-2 flex flex-wrap items-center gap-2.5 pt-1.5">
+          <span className="col-span-2 col-start-3 flex flex-wrap items-center gap-2.5">
             {view.action && (
-              <button
-                type="submit"
-                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-control-border px-3 text-[12.5px] whitespace-nowrap text-foreground hover:border-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:min-h-8"
-              >
+              <button type="submit" className={cn(actionClass, "md:hidden")}>
                 {view.action}
               </button>
             )}
@@ -174,10 +152,10 @@ export function NotificationList({
     <div>
       {days.map((day) => (
         <section key={day.key} aria-label={day.label}>
-          <h3 className="px-3.5 pt-3.5 pb-2 text-label font-normal text-muted-foreground tabular-nums">
+          <h3 className="border-b border-border bg-muted px-4 py-2 text-label font-medium text-secondary-foreground tabular-nums md:px-5">
             {day.label}
           </h3>
-          <ul className="border-t border-border">
+          <ul>
             {day.items.map((view) => (
               <NotificationRow key={view.id} view={view} />
             ))}

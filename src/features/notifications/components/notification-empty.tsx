@@ -11,17 +11,17 @@ export function NotificationEmpty({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3.5 px-10 py-12 text-center",
+        "flex flex-col items-center justify-center gap-2 px-10 py-12 text-center",
         className,
       )}
     >
-      <span className="grid size-14 place-items-center rounded-2xl border border-dashed border-control-border text-muted-foreground">
-        <BellIcon className="size-5.5" />
+      <span className="grid size-10 place-items-center rounded-lg border border-border bg-card text-secondary-foreground">
+        <BellIcon className="size-4" />
       </span>
-      <h2 className="text-title font-semibold">
+      <h2 className="text-body-lg font-semibold">
         {filtered ? "Rien dans ce filtre" : "Tu es à jour"}
       </h2>
-      <p className="max-w-80 text-body leading-normal text-muted-foreground">
+      <p className="max-w-80 text-secondary-foreground">
         {filtered
           ? "Aucune notification de ce type sur les 30 derniers jours."
           : "Les messages du staff, les imports Garmin et les changements de ton plan arriveront ici."}
