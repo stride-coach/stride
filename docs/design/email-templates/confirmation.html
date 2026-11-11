@@ -1,21 +1,101 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="supported-color-schemes" content="dark" />
-    <title>Confirm your email | Stride</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>Confirme ton adresse e-mail · Stride</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        supported-color-schemes: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        .s-shell {
+          background-color: #070809 !important;
+        }
+        .s-panel {
+          background-color: #121316 !important;
+          border-color: #1e2025 !important;
+        }
+        .s-fg {
+          color: #edeef0 !important;
+        }
+        .s-sub {
+          color: #b3b6bd !important;
+        }
+        .s-mut {
+          color: #868a94 !important;
+        }
+        .s-rule {
+          border-color: #1e2025 !important;
+        }
+        .s-bar-fg {
+          background-color: #edeef0 !important;
+        }
+        .s-bar-acc {
+          background-color: #6e9bff !important;
+        }
+        .s-btn {
+          background-color: #6e9bff !important;
+        }
+        .s-btn-text {
+          color: #06102a !important;
+        }
+        .s-link {
+          color: #6e9bff !important;
+        }
+      }
+      [data-ogsc] .s-shell,
+      [data-ogsb] .s-shell {
+        background-color: #070809 !important;
+      }
+      [data-ogsc] .s-panel,
+      [data-ogsb] .s-panel {
+        background-color: #121316 !important;
+        border-color: #1e2025 !important;
+      }
+      [data-ogsc] .s-fg {
+        color: #edeef0 !important;
+      }
+      [data-ogsc] .s-sub {
+        color: #b3b6bd !important;
+      }
+      [data-ogsc] .s-mut {
+        color: #868a94 !important;
+      }
+      [data-ogsc] .s-rule {
+        border-color: #1e2025 !important;
+      }
+      [data-ogsc] .s-bar-fg,
+      [data-ogsb] .s-bar-fg {
+        background-color: #edeef0 !important;
+      }
+      [data-ogsc] .s-bar-acc,
+      [data-ogsb] .s-bar-acc {
+        background-color: #6e9bff !important;
+      }
+      [data-ogsc] .s-btn,
+      [data-ogsb] .s-btn {
+        background-color: #6e9bff !important;
+      }
+      [data-ogsc] .s-btn-text {
+        color: #06102a !important;
+      }
+      [data-ogsc] .s-link {
+        color: #6e9bff !important;
+      }
+    </style>
   </head>
   <body
+    class="s-shell"
     style="
       margin: 0;
       padding: 0;
-      background-color: #080907;
-      color: #edece6;
-      font-family:
-        &quot;Instrument Sans&quot;, &quot;Segoe UI&quot;, Arial, Helvetica,
-        sans-serif;
+      background-color: #efefec;
+      color: #17181a;
+      font-family: Inter, &quot;Segoe UI&quot;, Arial, Helvetica, sans-serif;
     "
   >
     <div
@@ -23,23 +103,23 @@
         display: none;
         font-size: 1px;
         line-height: 1px;
-        color: #080907;
         max-height: 0;
         max-width: 0;
         opacity: 0;
         overflow: hidden;
       "
     >
-      Confirm your email address to finish creating your Stride account.
+      Confirme ton adresse e-mail pour finir de créer ton compte Stride.
     </div>
     <table
+      class="s-shell"
       role="presentation"
       cellpadding="0"
       cellspacing="0"
       border="0"
       width="100%"
-      bgcolor="#080907"
-      style="border-collapse: collapse; background-color: #080907"
+      bgcolor="#EFEFEC"
+      style="border-collapse: collapse; background-color: #efefec"
     >
       <tr>
         <td align="center" style="padding: 40px 16px 48px">
@@ -52,7 +132,7 @@
             style="border-collapse: collapse; max-width: 560px"
           >
             <tr>
-              <td style="padding: 0 0 24px 0">
+              <td style="padding: 0 0 20px 4px">
                 <table
                   role="presentation"
                   cellpadding="0"
@@ -61,44 +141,97 @@
                   style="border-collapse: collapse"
                 >
                   <tr>
-                    <td
-                      style="
-                        color: #d5ff3f;
-                        font-family: Arial, Helvetica, sans-serif;
-                        font-size: 30px;
-                        line-height: 30px;
-                        font-weight: 900;
-                      "
-                    >
-                      /
+                    <td style="width: 20px; padding: 0">
+                      <table
+                        role="presentation"
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        style="border-collapse: collapse"
+                      >
+                        <tr>
+                          <td
+                            style="
+                              width: 5px;
+                              height: 6px;
+                              font-size: 0;
+                              line-height: 0;
+                            "
+                          >
+                            &nbsp;
+                          </td>
+                          <td
+                            class="s-bar-fg"
+                            bgcolor="#17181A"
+                            style="
+                              width: 14px;
+                              height: 6px;
+                              font-size: 0;
+                              line-height: 0;
+                              background-color: #17181a;
+                              border-radius: 2px;
+                            "
+                          >
+                            &nbsp;
+                          </td>
+                          <td style="width: 1px; font-size: 0; line-height: 0">
+                            &nbsp;
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colspan="3"
+                            style="height: 2px; font-size: 0; line-height: 0"
+                          >
+                            &nbsp;
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="padding: 0">
+                            <table
+                              role="presentation"
+                              cellpadding="0"
+                              cellspacing="0"
+                              border="0"
+                              style="border-collapse: collapse"
+                            >
+                              <tr>
+                                <td
+                                  class="s-bar-acc"
+                                  bgcolor="#2456E6"
+                                  style="
+                                    width: 14px;
+                                    height: 6px;
+                                    font-size: 0;
+                                    line-height: 0;
+                                    background-color: #2456e6;
+                                    border-radius: 2px;
+                                  "
+                                >
+                                  &nbsp;
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                          <td style="font-size: 0; line-height: 0">&nbsp;</td>
+                        </tr>
+                      </table>
                     </td>
                     <td
+                      class="s-fg"
                       style="
-                        padding-left: 1px;
-                        color: #d5ff3f;
-                        font-family: Arial, Helvetica, sans-serif;
-                        font-size: 30px;
-                        line-height: 30px;
-                        font-weight: 900;
-                      "
-                    >
-                      /
-                    </td>
-                    <td
-                      style="
-                        padding-left: 12px;
-                        color: #edece6;
+                        padding-left: 6px;
+                        color: #17181a;
                         font-family:
-                          &quot;Barlow Condensed&quot;,
-                          &quot;Arial Narrow&quot;, Impact, sans-serif;
-                        font-size: 27px;
-                        line-height: 30px;
-                        font-weight: 700;
-                        font-style: italic;
-                        letter-spacing: 1px;
+                          Inter, &quot;Segoe UI&quot;, Arial, Helvetica,
+                          sans-serif;
+                        font-size: 17px;
+                        line-height: 20px;
+                        font-weight: 600;
+                        letter-spacing: -0.045em;
                       "
                     >
-                      STRIDE
+                      Stride
                     </td>
                   </tr>
                 </table>
@@ -106,11 +239,12 @@
             </tr>
             <tr>
               <td
-                bgcolor="#131411"
+                class="s-panel"
+                bgcolor="#FFFFFF"
                 style="
-                  background-color: #131411;
-                  border: 1px solid #34352f;
-                  border-radius: 8px;
+                  background-color: #ffffff;
+                  border: 1px solid #e6e6e2;
+                  border-radius: 12px;
                 "
               >
                 <table
@@ -124,57 +258,39 @@
                   <tr>
                     <td
                       style="
-                        height: 3px;
-                        font-size: 0;
-                        line-height: 3px;
-                        background-color: #d5ff3f;
+                        padding: 32px 32px 28px;
+                        font-family:
+                          Inter, &quot;Segoe UI&quot;, Arial, Helvetica,
+                          sans-serif;
                       "
                     >
-                      &nbsp;
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 40px 40px 36px">
-                      <p
-                        style="
-                          margin: 0 0 20px;
-                          color: #d5ff3f;
-                          font-family:
-                            &quot;IBM Plex Mono&quot;, &quot;Courier New&quot;,
-                            Courier, monospace;
-                          font-size: 11px;
-                          line-height: 16px;
-                          font-weight: 700;
-                          letter-spacing: 1.6px;
-                        "
-                      >
-                        ACCOUNT / 01
-                      </p>
                       <h1
+                        class="s-fg"
                         style="
-                          margin: 0 0 16px;
-                          color: #edece6;
+                          margin: 0 0 10px;
+                          color: #17181a;
                           font-family:
-                            &quot;Instrument Sans&quot;, &quot;Segoe UI&quot;,
-                            Arial, Helvetica, sans-serif;
-                          font-size: 30px;
-                          line-height: 36px;
+                            Inter, &quot;Segoe UI&quot;, Arial, Helvetica,
+                            sans-serif;
+                          font-size: 22px;
+                          line-height: 28px;
                           font-weight: 600;
-                          letter-spacing: -0.75px;
+                          letter-spacing: -0.02em;
                         "
                       >
-                        Confirm your email.
+                        Confirme ton adresse e-mail
                       </h1>
                       <p
+                        class="s-sub"
                         style="
-                          margin: 0 0 30px;
-                          color: #b3b2aa;
+                          margin: 0 0 24px;
+                          color: #44464c;
                           font-size: 15px;
-                          line-height: 24px;
+                          line-height: 23px;
                         "
                       >
-                        One more step and your Stride account is ready. Confirm
-                        this email address to continue.
+                        Encore une étape et ton compte Stride est prêt. Confirme
+                        cette adresse pour continuer.
                       </p>
                       <table
                         role="presentation"
@@ -185,50 +301,58 @@
                       >
                         <tr>
                           <td
-                            bgcolor="#D5FF3F"
+                            class="s-btn"
+                            bgcolor="#2456E6"
                             style="
-                              background-color: #d5ff3f;
-                              border-radius: 6px;
+                              background-color: #2456e6;
+                              border-radius: 8px;
                             "
                           >
                             <a
+                              class="s-btn-text"
                               href="{{ .ConfirmationURL }}"
                               style="
                                 display: inline-block;
-                                padding: 15px 24px;
-                                color: #080907;
-                                font-size: 15px;
+                                padding: 12px 20px;
+                                color: #ffffff;
+                                font-family:
+                                  Inter, &quot;Segoe UI&quot;, Arial, Helvetica,
+                                  sans-serif;
+                                font-size: 14px;
                                 line-height: 20px;
-                                font-weight: 700;
+                                font-weight: 600;
                                 text-decoration: none;
                               "
-                              >Confirm email&nbsp;&rarr;</a
+                              >Confirmer mon adresse</a
                             >
                           </td>
                         </tr>
                       </table>
                       <p
+                        class="s-mut"
                         style="
-                          margin: 28px 0 0;
-                          color: #8a8981;
+                          margin: 20px 0 0;
+                          color: #666970;
                           font-size: 13px;
-                          line-height: 21px;
+                          line-height: 20px;
                         "
                       >
-                        Button not working?
+                        Le bouton ne fonctionne pas&nbsp;?
                         <a
+                          class="s-link"
                           href="{{ .ConfirmationURL }}"
-                          style="color: #edece6; text-decoration: underline"
-                          >Open confirmation link</a
+                          style="color: #2456e6; text-decoration: underline"
+                          >Ouvrir le lien de confirmation</a
                         >.
                       </p>
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding: 0 40px">
+                    <td style="padding: 0 32px">
                       <div
+                        class="s-rule"
                         style="
-                          border-top: 1px solid #34352f;
+                          border-top: 1px solid #e6e6e2;
                           font-size: 0;
                           line-height: 0;
                         "
@@ -238,28 +362,37 @@
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding: 24px 40px 32px">
+                    <td
+                      style="
+                        padding: 20px 32px 28px;
+                        font-family:
+                          Inter, &quot;Segoe UI&quot;, Arial, Helvetica,
+                          sans-serif;
+                      "
+                    >
                       <p
+                        class="s-sub"
                         style="
-                          margin: 0 0 12px;
-                          color: #b3b2aa;
+                          margin: 0 0 8px;
+                          color: #44464c;
                           font-size: 13px;
-                          line-height: 21px;
+                          line-height: 20px;
                         "
                       >
-                        Open this link in the same browser and profile where you
-                        requested it.
+                        Ouvre ce lien dans le même navigateur et le même profil
+                        que ceux où tu l’as demandé.
                       </p>
                       <p
+                        class="s-mut"
                         style="
                           margin: 0;
-                          color: #8a8981;
+                          color: #666970;
                           font-size: 13px;
-                          line-height: 21px;
+                          line-height: 20px;
                         "
                       >
-                        If you did not create a Stride account, you can ignore
-                        this email.
+                        Si tu n’as pas créé de compte Stride, tu peux ignorer
+                        cet e-mail.
                       </p>
                     </td>
                   </tr>
@@ -268,18 +401,17 @@
             </tr>
             <tr>
               <td
+                class="s-mut"
                 style="
-                  padding: 24px 0 0;
-                  color: #8a8981;
+                  padding: 20px 4px 0;
+                  color: #666970;
                   font-family:
-                    &quot;IBM Plex Mono&quot;, &quot;Courier New&quot;, Courier,
-                    monospace;
-                  font-size: 10px;
-                  line-height: 16px;
-                  letter-spacing: 1px;
+                    Inter, &quot;Segoe UI&quot;, Arial, Helvetica, sans-serif;
+                  font-size: 12px;
+                  line-height: 18px;
                 "
               >
-                STRIDE &nbsp;/&nbsp; ROAD &amp; TRAIL
+                Stride · Le coach qui lit ton corps avant ton plan.
               </td>
             </tr>
           </table>

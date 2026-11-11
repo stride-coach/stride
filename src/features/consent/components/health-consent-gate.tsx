@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Status } from "@/components/stride/status";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 import { signOut } from "@/server/auth/actions";
 import { giveHealthConsent } from "@/server/consent/actions";
 import { HealthConsentField } from "./health-consent-field";
@@ -48,7 +48,7 @@ export function HealthConsentGate({
   return (
     <div className="flex min-h-svh flex-col bg-background">
       <header className="flex min-h-14 items-center gap-2.5 px-5 pt-4 pb-1.5 md:px-6 md:py-4.5">
-        <StrideMark className="size-4.5 stroke-primary" />
+        <StrideLogo />
         <span className="font-semibold">Stride</span>
         {email && (
           <span className="ml-auto hidden text-body text-muted-foreground md:inline">

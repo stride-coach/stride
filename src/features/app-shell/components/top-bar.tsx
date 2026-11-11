@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import type { ShellAthlete, ShellGoal } from "../shell";
 import { AccountAvatarMenu } from "./account-menu";
@@ -57,7 +57,7 @@ export function TopBar({
         href="/today"
         className="flex items-center gap-2 rounded-md px-1 font-semibold tracking-[-0.02em]"
       >
-        <StrideMark className="size-4.5 stroke-primary" />
+        <StrideLogo className="size-4.5" />
         <span className="text-body-lg">Stride</span>
       </Link>
       <Suspense fallback={fallback}>

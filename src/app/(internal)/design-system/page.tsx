@@ -96,6 +96,7 @@ import {
   StepperSegments,
 } from "@/components/stride/stepper";
 import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 import { SyncStatus } from "@/components/stride/sync-status";
 import { VerdictList, VerdictRow } from "@/components/stride/verdict-row";
 import { Chip } from "@/components/stride/chip";
@@ -207,9 +208,9 @@ export default function DesignSystemPage() {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-5 py-12 sm:px-10 lg:px-20 lg:py-18">
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 text-metric font-bold tracking-wider italic tabular-nums">
-            <StrideMark className="size-5" strokeWidth="2.4" />
-            STRIDE
+          <span className="inline-flex items-center gap-2 text-metric font-semibold tracking-[-0.045em]">
+            <StrideLogo className="size-6" />
+            Stride
           </span>
           <MonoLabel>Design system · internal</MonoLabel>
         </div>

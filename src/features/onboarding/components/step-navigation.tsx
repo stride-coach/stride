@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Relief } from "@/components/stride/relief";
 import { StepperSegments } from "@/components/stride/stepper";
 import { Status } from "@/components/stride/status";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 import type { StepStatus } from "@/components/stride/steps";
 import {
   connectionNotice,
@@ -95,7 +95,7 @@ export function StepNavigation({
         className="sticky top-0 hidden h-svh w-66 shrink-0 flex-col gap-6 overflow-y-auto px-4 py-5 lg:flex"
       >
         <span className="flex items-center gap-2 font-semibold">
-          <StrideMark /> Stride
+          <StrideLogo /> Stride
         </span>
         <p className="flex flex-col gap-0.5 text-label text-muted-foreground">
           <span>Configuration de ton coach</span>
@@ -182,7 +182,7 @@ export function StepNavigation({
           )}
           <div className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-2 font-semibold lg:hidden">
-              <StrideMark /> Stride
+              <StrideLogo /> Stride
             </span>
             <span className="text-label text-muted-foreground tabular-nums max-lg:hidden">
               Étape {position + 1} sur 6
