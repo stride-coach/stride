@@ -1568,6 +1568,14 @@ const coachRace = {
 };
 tables.athlete_races.push(coachRace);
 tables.coach_thread_items = [
+  coachItem(coachMainThread, "04:30:00", "athlete", {
+    text: "Mon tendon va mieux, je peux reprendre les descentes ?",
+    consult: null,
+    attachments: [],
+  }),
+  coachItem(coachMainThread, "04:31:00", "coach", {
+    text: "Oui, à allure facile. Je garde un œil sur ton tendon.",
+  }),
   coachItem(coachMainThread, "05:00:00", "athlete", {
     text: "Comment s’est passée ma semaine ?",
     consult: null,
@@ -2271,6 +2279,14 @@ function selectRows(table, params) {
       rows = rows.filter((row) => row.kind === kind.slice(3));
     const kinds = kind?.match(/^in\.\((.*)\)$/)?.[1].split(",");
     if (kinds) rows = rows.filter((row) => kinds.includes(row.kind));
+    const sessionKind = params.get("coach_sessions.kind");
+    if (sessionKind?.startsWith("eq."))
+      rows = rows.filter(
+        (row) =>
+          tables.coach_sessions.find(
+            (session) => session.id === row.coach_session_id,
+          )?.kind === sessionKind.slice(3),
+      );
     const threadId = params.get("coach_session_id");
     if (threadId?.startsWith("eq."))
       rows = rows.filter((row) => row.coach_session_id === threadId.slice(3));

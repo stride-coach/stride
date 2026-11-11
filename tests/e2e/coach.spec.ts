@@ -854,6 +854,177 @@ test("a prefilled request starts the composer with its text", async ({
   ).toHaveValue("a".repeat(500));
 });
 
+async function watchFind(page: Page) {
+  await page.evaluate(() => {
+    const state = window as unknown as { findPrevented?: boolean | null };
+    state.findPrevented = null;
+    function watch(event: KeyboardEvent) {
+      if (event.key.toLowerCase() !== "f") return;
+      window.removeEventListener("keydown", watch);
+      window.setTimeout(() => {
+        state.findPrevented = event.defaultPrevented;
+      });
+    }
+    window.addEventListener("keydown", watch);
+  });
+  await page.keyboard.press("ControlOrMeta+f");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { findPrevented?: boolean | null })
+            .findPrevented,
+      ),
+    )
+    .not.toBeNull();
+  return page.evaluate(
+    () =>
+      (window as unknown as { findPrevented?: boolean | null }).findPrevented,
+  );
+}
+
+test("search walks the main thread and a closed topic at 1440", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto("/today");
+  expect(await watchFind(page)).toBe(false);
+
+  await page.goto("/coach");
+  const log = page.getByRole("log", { name: "Messages" });
+  await expect(log.getByText("Belle semaine")).toBeVisible();
+  await expect.poll(() => watchFind(page)).toBe(true);
+  const input = page.getByRole("searchbox", {
+    name: "Rechercher dans la conversation",
+  });
+  await expect(input).toBeFocused();
+  await input.fill("TENDON");
+  await expect(page).toHaveURL(/\/coach\?q=TENDON&at=\d+$/, {
+    timeout: 20_000,
+  });
+  const bar = page.getByRole("search", {
+    name: "Rechercher dans la conversation",
+  });
+  const counter = bar.getByRole("status");
+  await expect(counter).toHaveText("3 sur 3");
+  const current = log.locator('[data-search-current="true"]');
+  await expect(current).toContainText("Je garde un œil sur ton tendon.");
+  await expect(current).toBeInViewport();
+  await expect(log.locator("mark")).toHaveText(["tendon", "tendon"]);
+  await expect(
+    bar.getByRole("button", { name: "Résultat suivant" }),
+  ).toBeDisabled();
+
+  const panel = page.getByRole("complementary", {
+    name: "Résultats de la recherche",
+  });
+  await expect(
+    panel.getByRole("heading", { name: "3 résultats pour « TENDON »" }),
+  ).toBeVisible();
+  const rows = panel.getByRole("list").getByRole("link");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(0)).toContainText("Coach");
+  await expect(rows.nth(0)).toHaveAttribute("aria-current", "true");
+  await expect(rows.nth(1)).toContainText("Toi");
+  await expect(rows.nth(2)).toContainText(
+    "Sujet clos · Tendon d’Achille en descente",
+  );
+  await expect(rows.nth(2)).toContainText("2 messages");
+  await expect(panel).toContainText(
+    "La recherche couvre tout ce que tu as échangé avec le staff, y compris les sujets clos.",
+  );
+
+  await bar.getByRole("button", { name: "Résultat précédent" }).click();
+  await expect(counter).toHaveText("2 sur 3");
+  await expect(current).toContainText("Mon tendon va mieux");
+
+  await bar.getByRole("button", { name: "Aller à une date" }).click();
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+  }).format(new Date());
+  await page.getByLabel("Aller à une date").fill(today);
+  await page.getByRole("button", { name: "Aller", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`date=${today}`), {
+    timeout: 20_000,
+  });
+  await expect(log.getByText("Mon tendon va mieux")).toBeInViewport();
+  await expect(counter).toHaveText("2 sur 3");
+
+  await bar.getByRole("button", { name: "Résultat précédent" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/coach/${closedTopic}\\?q=TENDON&at=\\d+$`),
+    { timeout: 20_000 },
+  );
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Tendon d’Achille en descente",
+    }),
+  ).toBeVisible();
+  await expect(counter).toHaveText("1 sur 3");
+  await expect(current).toContainText("Mon tendon tire en descente.");
+  await expect(
+    bar.getByRole("button", { name: "Résultat précédent" }),
+  ).toBeDisabled();
+  await expect(rows.nth(2)).toHaveAttribute("aria-current", "true");
+
+  await panel.getByRole("button", { name: "Fil principal" }).click();
+  await expect(
+    panel.getByRole("heading", { name: "1 résultat pour « TENDON »" }),
+  ).toBeVisible();
+  await expect(counter).toHaveText("1 sur 1");
+  await expect(page).toHaveURL(/scope=topics/);
+  await expect(rows).toHaveCount(1);
+
+  await input.press("Escape");
+  await expect(page).toHaveURL(`/coach/${closedTopic}`, { timeout: 20_000 });
+  await expect(bar).toHaveCount(0);
+  await expect(log.locator("mark")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Rechercher/ })).toBeFocused();
+});
+
+test("search keeps only its bar on a phone at 390", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page);
+  await page.goto("/coach");
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  const bar = page.getByRole("search", {
+    name: "Rechercher dans la conversation",
+  });
+  await bar
+    .getByRole("searchbox", { name: "Rechercher dans la conversation" })
+    .fill("tendon");
+  await expect(bar.getByRole("status")).toHaveText("3 sur 3", {
+    timeout: 20_000,
+  });
+  await expect(
+    bar.getByRole("button", { name: "Résultat précédent" }),
+  ).toBeVisible();
+  await expect(
+    bar.getByRole("button", { name: "Résultat suivant" }),
+  ).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Fermer" })).toBeVisible();
+  await expect(
+    bar.getByRole("button", { name: "Aller à une date" }),
+  ).toBeHidden();
+  await expect(
+    page.getByRole("complementary", { name: "Résultats de la recherche" }),
+  ).toBeHidden();
+  await expect(
+    page
+      .getByRole("log", { name: "Messages" })
+      .locator('[data-search-current="true"]'),
+  ).toBeInViewport();
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(390);
+  await bar.getByRole("button", { name: "Fermer" }).click();
+  await expect(page).toHaveURL("/coach", { timeout: 20_000 });
+  await expect(
+    page.getByRole("button", { name: "Rechercher", exact: true }),
+  ).toBeFocused();
+});
+
 test("mobile shows the main thread, the topics sheet and a topic at 390", async ({
   page,
 }) => {

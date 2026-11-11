@@ -1,17 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   ListIcon,
   PlusIcon,
+  SearchIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { cn } from "@/lib/utils";
 import {
   InputGroup,
   InputGroupAddon,
@@ -54,6 +64,17 @@ import {
 } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
 import { refusalText, splitFrames, turnFailure } from "@/features/coach/stream";
+import {
+  currentResultIndex,
+  filterResults,
+  resultHref,
+  searchHref,
+  searchQuery,
+  stepResult,
+  type SearchParams,
+  type SearchResult,
+  type SearchScope,
+} from "@/features/coach/search";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
 import { buildThread, retryableMessage } from "@/features/coach/thread";
 import {
@@ -67,13 +88,14 @@ import {
 import { markCoachThreadsRead } from "@/server/coaching/actions";
 import type { CoachMainData, CoachTopicData } from "@/server/coaching/threads";
 import { CoachHeaderNav } from "./coach-tabs";
+import { SearchBar, SearchPanel, type CoachSearchState } from "./coach-search";
 import { ContextPicker } from "./context-picker";
 import { NewTopicDialog, type DraftTopic } from "./new-topic-dialog";
 import { SuiviPanel } from "./suivi-panel";
 import { TopicAside } from "./topic-aside";
 import { CloseTopicDialog, TopicActions } from "./topic-actions";
 import { TopicList } from "./topic-list";
-import { StaffWorking, ThreadLog } from "./thread-view";
+import { StaffWorking, ThreadLog, type ThreadSearch } from "./thread-view";
 
 type Target =
   | { kind: "main" }
@@ -112,6 +134,7 @@ const noStatuses: Record<string, string> = {};
 
 function mergeLive(live: Live, base: ThreadItem[]): Live {
   if (live.base === base) return live;
+  if (live.base[0]?.id !== base[0]?.id) return { base, items: [] };
   const grown = base.length - live.base.length;
   return {
     base,
@@ -449,7 +472,15 @@ function ConversationPane({
   now,
   timeZone,
   topicsBar,
+  searchBar,
+  searchPanel,
+  threadSearch,
+  focusId,
 }: {
+  searchBar: React.ReactNode;
+  searchPanel: React.ReactNode;
+  threadSearch: ThreadSearch;
+  focusId: string | null;
   conversation: Conversation;
   draftText: string;
   initialAttachments: AttachmentOption[];
@@ -494,6 +525,7 @@ function ConversationPane({
   } | null>(null);
   const [asideOpen, setAsideOpen] = useState(false);
   const logEnd = useRef<HTMLDivElement>(null);
+  const scroller = useRef<HTMLDivElement>(null);
 
   const items = useMemo(
     () => [...live.base, ...live.items],
@@ -546,9 +578,17 @@ function ConversationPane({
     if (readIds.length) void markCoachThreadsRead({ threadIds: readIds });
   }, [readIds]);
 
+  const firstId = items[0]?.id;
+  const lastId = items.at(-1)?.id;
   useEffect(() => {
+    if (focusId && !sending) {
+      scroller.current
+        ?.querySelector(`[data-item-id="${focusId}"]`)
+        ?.scrollIntoView({ block: "center" });
+      return;
+    }
     logEnd.current?.scrollIntoView({ block: "end" });
-  }, [items.length, sending]);
+  }, [items.length, firstId, lastId, sending, focusId]);
 
   useEffect(() => {
     if (!working) return;
@@ -730,7 +770,7 @@ function ConversationPane({
       closed={conversation.closedAt !== null}
     />
   );
-  const showAside = !main || !empty;
+  const showAside = !main || !empty || searchPanel !== null;
   const asideButton = showAside ? (
     <Button
       variant="outline"
@@ -754,17 +794,19 @@ function ConversationPane({
 
   return (
     <>
-      {topicsBar(
-        <>
-          {asideButton}
-          {topicMenu && <span className="md:hidden">{topicMenu}</span>}
-        </>,
-      )}
+      {searchBar === null &&
+        topicsBar(
+          <>
+            {asideButton}
+            {topicMenu && <span className="md:hidden">{topicMenu}</span>}
+          </>,
+        )}
       <div className="flex min-h-0 flex-1">
         <section
           aria-label={main ? "Fil principal" : (conversation.title ?? "Sujet")}
           className="flex min-h-0 min-w-0 flex-1 flex-col"
         >
+          {searchBar}
           {!main && (
             <div className="flex min-h-header shrink-0 items-center gap-3 border-b border-border px-5 py-2 max-md:hidden">
               <StaffAvatar agent={lead} size={22} decorative />
@@ -783,12 +825,16 @@ function ConversationPane({
               {topicMenu}
             </div>
           )}
-          <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
+          <div
+            ref={scroller}
+            className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
+          >
             {empty ? (
               <EmptyConversation conversation={conversation} />
             ) : (
               <ThreadLog
                 entries={entries}
+                search={threadSearch}
                 pending={sending}
                 timeZone={timeZone}
                 now={now}
@@ -828,10 +874,10 @@ function ConversationPane({
         </section>
         {showAside && (
           <aside
-            aria-label={asideTitle}
+            aria-label={searchPanel ? "Résultats de la recherche" : asideTitle}
             className="hidden w-panel shrink-0 overflow-y-auto border-l border-border px-5 py-4.5 xl:block"
           >
-            {aside}
+            {searchPanel ?? aside}
           </aside>
         )}
       </div>
@@ -885,6 +931,7 @@ export function CoachScreen({
   timeZone,
   attachmentOptions,
   initialAttachments = [],
+  search,
 }: {
   view: CoachView;
   topics: TopicSummary[];
@@ -894,8 +941,160 @@ export function CoachScreen({
   timeZone: string;
   attachmentOptions: AttachmentOptions;
   initialAttachments?: AttachmentOption[];
+  search: SearchParams & { results: SearchResult[] };
 }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
+  const router = useRouter();
+  const [, startSearchTransition] = useTransition();
+  const searchTopicId = view.kind === "topic" ? view.data.id : null;
+  const urlKey = [
+    searchTopicId,
+    search.open,
+    search.query,
+    search.at,
+    search.scopes.join(","),
+    search.date,
+  ].join("|");
+  const [localOpen, setLocalOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [focusTick, setFocusTick] = useState(0);
+  const [pending, setPending] = useState<{
+    at?: string;
+    scopes?: SearchScope[];
+  } | null>(null);
+  const [seenKey, setSeenKey] = useState(urlKey);
+  if (seenKey !== urlKey) {
+    setSeenKey(urlKey);
+    setPending(null);
+    if (!search.open) setClosing(false);
+  }
+  const lastHref = useRef<string | null>(null);
+  const restoreFocus = useRef(false);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const desktopTrigger = useRef<HTMLButtonElement>(null);
+  const mobileTrigger = useRef<HTMLButtonElement>(null);
+  const searchOpen = (search.open && !closing) || localOpen;
+  const searchScopes = pending?.scopes ?? search.scopes;
+  const highlightQuery = searchQuery(search.query);
+  const searchResults = useMemo(
+    () => filterResults(search.results, searchScopes),
+    [search.results, searchScopes],
+  );
+  const searchIndex = currentResultIndex(
+    searchResults,
+    pending?.at ?? search.at,
+  );
+  const currentResult = searchResults[searchIndex] ?? null;
+
+  const go = useCallback(
+    (href: string) => {
+      if (lastHref.current === href) return;
+      lastHref.current = href;
+      startSearchTransition(() => router.replace(href, { scroll: false }));
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    lastHref.current = null;
+  }, [urlKey]);
+
+  useEffect(() => {
+    if (
+      !searchOpen ||
+      !currentResult ||
+      (currentResult.id === search.at &&
+        currentResult.topicId === searchTopicId)
+    )
+      return;
+    go(resultHref(currentResult, search.query, searchScopes));
+  }, [
+    searchOpen,
+    currentResult,
+    search.at,
+    search.query,
+    searchScopes,
+    searchTopicId,
+    go,
+  ]);
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (
+        !(event.metaKey || event.ctrlKey) ||
+        event.altKey ||
+        event.shiftKey ||
+        event.key.toLowerCase() !== "f"
+      )
+        return;
+      event.preventDefault();
+      setLocalOpen(true);
+      setClosing(false);
+      setFocusTick((tick) => tick + 1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (focusTick === 0) return;
+    searchInput.current?.focus();
+    searchInput.current?.select();
+  }, [focusTick]);
+
+  useEffect(() => {
+    if (!restoreFocus.current || searchOpen) return;
+    restoreFocus.current = false;
+    [desktopTrigger.current, mobileTrigger.current]
+      .find((trigger) => trigger && trigger.offsetParent !== null)
+      ?.focus();
+  }, [searchOpen]);
+
+  function openSearch() {
+    setLocalOpen(true);
+    setClosing(false);
+    setFocusTick((tick) => tick + 1);
+  }
+
+  function closeSearch() {
+    setLocalOpen(false);
+    restoreFocus.current = true;
+    if (search.open) {
+      setClosing(true);
+      go(searchTopicId ? `/coach/${searchTopicId}` : "/coach");
+    }
+  }
+
+  function stepSearch(direction: "older" | "newer") {
+    const target = stepResult(searchResults, searchIndex, direction);
+    if (!target) return;
+    setPending((current) => ({ ...current, at: target.id }));
+    go(resultHref(target, search.query, searchScopes));
+  }
+
+  const searchState: CoachSearchState = {
+    query: search.query,
+    valid: highlightQuery !== null,
+    scopes: searchScopes,
+    results: highlightQuery ? searchResults : [],
+    index: highlightQuery ? searchIndex : -1,
+    date: search.date,
+  };
+  const threadSearch: ThreadSearch =
+    searchOpen && highlightQuery
+      ? {
+          query: highlightQuery,
+          currentId: currentResult?.id ?? null,
+          matchIds: new Set(searchResults.map((result) => result.id)),
+        }
+      : null;
+  const focusId = !searchOpen
+    ? null
+    : search.date
+      ? view.data.anchorId
+      : currentResult && currentResult.topicId === searchTopicId
+        ? currentResult.id
+        : null;
   const [draftTopic, setDraftTopic] = useState<DraftTopic | null>(null);
   const [creating, setCreating] = useState(false);
   const [listOpen, setListOpen] = useState(false);
@@ -971,6 +1170,16 @@ export function CoachScreen({
         }
         actions={
           <div className="flex items-center gap-2 max-md:hidden">
+            <Button
+              ref={desktopTrigger}
+              variant="ghost"
+              aria-keyshortcuts="Meta+F Control+F"
+              onClick={openSearch}
+              className={cn(searchOpen && "bg-muted text-foreground")}
+            >
+              Rechercher
+              <Kbd aria-hidden="true">⌘F</Kbd>
+            </Button>
             <Popover open={listOpen} onOpenChange={setListOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline">
@@ -1008,6 +1217,64 @@ export function CoachScreen({
         race={race}
         now={now}
         timeZone={timeZone}
+        threadSearch={threadSearch}
+        focusId={focusId}
+        searchBar={
+          searchOpen ? (
+            <SearchBar
+              search={searchState}
+              inputRef={searchInput}
+              today={localToday(now)}
+              onQuery={(query) =>
+                go(
+                  searchHref({
+                    topicId: searchTopicId,
+                    query,
+                    scopes: searchScopes,
+                  }),
+                )
+              }
+              onStep={stepSearch}
+              onDate={(date) =>
+                go(
+                  searchHref({
+                    topicId: searchTopicId,
+                    query: search.query,
+                    scopes: searchScopes,
+                    at: search.at,
+                    date,
+                  }),
+                )
+              }
+              onClose={closeSearch}
+            />
+          ) : null
+        }
+        searchPanel={
+          searchOpen ? (
+            <SearchPanel
+              search={searchState}
+              topics={topics}
+              now={now}
+              timeZone={timeZone}
+              onScopes={(scopes) => {
+                setPending((current) => ({ ...current, scopes }));
+                go(
+                  searchHref({
+                    topicId: searchTopicId,
+                    query: search.query,
+                    scopes,
+                    at: search.at,
+                  }),
+                );
+              }}
+              onOpen={(result) =>
+                setPending((current) => ({ ...current, at: result.id }))
+              }
+              onClose={closeSearch}
+            />
+          ) : null
+        }
         topicsBar={(extra) => (
           <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2 md:hidden">
             <Button
@@ -1021,6 +1288,16 @@ export function CoachScreen({
                 {topicsCountLabel(openTopics)}
                 <ChevronDownIcon aria-hidden="true" />
               </span>
+            </Button>
+            <Button
+              ref={mobileTrigger}
+              variant="outline"
+              size="icon"
+              aria-label="Rechercher"
+              onClick={openSearch}
+              className="max-md:size-control-touch"
+            >
+              <SearchIcon aria-hidden="true" />
             </Button>
             {extra}
           </div>

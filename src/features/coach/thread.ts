@@ -12,7 +12,7 @@ export type ProposalCardStatus =
 
 export type QuestionState = "pending" | "answered" | "closed";
 
-export type StaffBlock =
+export type StaffBlock = { itemId?: string } & (
   | { type: "text"; text: string }
   | {
       type: "question";
@@ -34,12 +34,14 @@ export type StaffBlock =
       opinions: ProposalOpinion[];
       status: ProposalCardStatus;
     }
-  | { type: "error"; text: string };
+  | { type: "error"; text: string }
+);
 
 export type ThreadEntry =
   | {
       type: "athlete";
       key: string;
+      itemId?: string;
       at: string;
       text: string;
       consult: StaffAgent | null;
@@ -162,6 +164,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         entries.push({
           type: "athlete",
           key: `athlete-${index}`,
+          itemId: item.id,
           at: item.at,
           text: item.text,
           consult: item.kind === "athlete" ? item.consult : null,
@@ -174,6 +177,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         if (item.text.trim())
           speak("coach", item.at, index).blocks.push({
             type: "text",
+            itemId: item.id,
             text: item.text,
           });
         return;
@@ -189,6 +193,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         handoff.spoke = true;
         speak(item.agent, item.at, index).blocks.push({
           type: "text",
+          itemId: item.id,
           text: item.text,
         });
         return;
@@ -208,6 +213,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         if (!handoff.spoke && item.text.trim())
           speak(item.agent, item.at, index).blocks.push({
             type: "text",
+            itemId: item.id,
             text: item.text,
           });
         return;
@@ -219,6 +225,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         const answer = answers.get(item.toolUseId) ?? null;
         speak(item.askedFor, item.at, index).blocks.push({
           type: "question",
+          itemId: item.id,
           toolUseId: item.toolUseId,
           question: item.question,
           options: item.options,
@@ -236,6 +243,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
       case "proposal":
         speak(item.agent ?? "coach", item.at, index).blocks.push({
           type: "proposal",
+          itemId: item.id,
           proposalId: item.proposalId,
           scope: item.scope,
           raceId: item.raceId ?? null,
@@ -248,6 +256,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
       case "error":
         speak("coach", item.at, index).blocks.push({
           type: "error",
+          itemId: item.id,
           text: item.text,
         });
         return;

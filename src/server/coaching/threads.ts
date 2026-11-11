@@ -2,6 +2,8 @@ import "server-only";
 import { displayTimeZone } from "@/features/app-shell/shell";
 import { isUnread } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
+import { messageKinds, type ThreadAnchor } from "@/features/coach/search";
+import { zonedEpoch } from "@/features/races/sun";
 import {
   mainSessionReusable,
   topicDecisions,
@@ -11,14 +13,17 @@ import {
 } from "@/features/coach/topics";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import {
+  findFirstItemSince,
+  findItemInSessions,
   findLatestMainSession,
   findOwnThread,
   listMainSessions,
   listOwnTopics,
+  readItemsAround,
   readSessionsItems,
-  readThreadItems,
   readThreadProposalStatuses,
   type CoachSessionRecord,
+  type ItemScope,
 } from "./managed/store";
 
 export const coachTimeZone = displayTimeZone;
@@ -33,6 +38,7 @@ export type CoachMainData = {
   unreadIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
+  anchorId: string | null;
 };
 
 export type CoachTopicData = {
@@ -49,7 +55,32 @@ export type CoachTopicData = {
   unread: boolean;
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
+  anchorId: string | null;
 };
+
+const threadWindow = 500;
+
+async function readAnchoredItems(
+  context: OnboardingContext,
+  ids: ItemScope,
+  anchor: ThreadAnchor | null,
+) {
+  const rows = await readSessionsItems(context, ids, threadWindow);
+  if (!anchor) return { rows, anchorId: null };
+  const target =
+    anchor.kind === "item"
+      ? await findItemInSessions(context, ids, anchor.id)
+      : await findFirstItemSince(
+          context,
+          ids,
+          new Date(zonedEpoch(anchor.date, 0, coachTimeZone)).toISOString(),
+          messageKinds,
+        );
+  const anchorId = target?.item.id ?? null;
+  if (!anchorId || rows.some((row) => row.item.id === anchorId))
+    return { rows, anchorId };
+  return { rows: await readItemsAround(context, ids, anchorId), anchorId };
+}
 
 function mergedStatuses(statuses: Map<string, Record<string, string>>) {
   return Object.assign({}, ...statuses.values()) as Record<string, string>;
@@ -58,13 +89,24 @@ function mergedStatuses(statuses: Map<string, Record<string, string>>) {
 export async function loadMainThread(
   context: OnboardingContext,
   now: Date,
+  anchor: ThreadAnchor | null = null,
 ): Promise<CoachMainData> {
   const sessions = await listMainSessions(context);
   const ids = sessions.map((session) => session.id);
-  const [rows, statuses] = await Promise.all([
-    readSessionsItems(context, ids),
-    readThreadProposalStatuses(context, ids),
-  ]);
+  const [{ rows, anchorId }, statuses] = anchor
+    ? await readAnchoredItems(context, "main", anchor).then(
+        async (read) =>
+          [
+            read,
+            await readThreadProposalStatuses(context, [
+              ...new Set(read.rows.map((row) => row.threadId)),
+            ]),
+          ] as const,
+      )
+    : await Promise.all([
+        readAnchoredItems(context, ids, null),
+        readThreadProposalStatuses(context, ids),
+      ]);
   const latest = sessions[0] ?? null;
   const live =
     latest && mainSessionReusable(latest, now, coachTimeZone) ? latest : null;
@@ -80,6 +122,7 @@ export async function loadMainThread(
       .map((session) => session.id),
     items: rows.map((row) => row.item),
     proposalStatuses: mergedStatuses(statuses),
+    anchorId,
   };
 }
 
@@ -130,14 +173,16 @@ export type TopicLookup =
 export async function loadTopic(
   context: OnboardingContext,
   threadId: string,
+  anchor: ThreadAnchor | null = null,
 ): Promise<TopicLookup> {
   const thread = await findOwnThread(context, threadId);
   if (!thread) return null;
   if (thread.kind === "main") return { kind: "main" };
-  const [items, proposals] = await Promise.all([
-    readThreadItems(context, thread.id),
+  const [{ rows, anchorId }, proposals] = await Promise.all([
+    readAnchoredItems(context, [thread.id], anchor),
     readThreadProposalStatuses(context, [thread.id]),
   ]);
+  const items = rows.map((row) => row.item);
   if (thread.title === null && items.length === 0) return null;
   return {
     kind: "topic",
@@ -155,6 +200,7 @@ export async function loadTopic(
       unread: isUnread(thread.lastActivityAt, thread.readAt),
       items,
       proposalStatuses: proposals.get(thread.id) ?? {},
+      anchorId,
     },
   };
 }

@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { localToday } from "@/features/app-shell/shell";
+import { threadAnchor, type SearchParams } from "@/features/coach/search";
 import { requireAthlete } from "@/server/app/session";
 import {
   loadActivityOption,
@@ -14,6 +15,7 @@ import {
   loadTopic,
   loadTopics,
 } from "@/server/coaching/threads";
+import { searchCoachConversation } from "@/server/coaching/search";
 import { CoachScreen } from "./coach-screen";
 
 const planRequest = "Construis-moi un plan d’entraînement pour mon objectif.";
@@ -24,19 +26,22 @@ export async function CoachMainPage({
   raceId = null,
   activityId = null,
   text = null,
+  search,
 }: {
   request?: string | null;
   sessionKey?: string | null;
   raceId?: string | null;
   activityId?: string | null;
   text?: string | null;
+  search: SearchParams;
 }) {
   const context = await requireAthlete();
   const now = new Date();
-  const [main, topics, attachmentOptions] = await Promise.all([
-    loadMainThread(context, now),
+  const [main, topics, attachmentOptions, results] = await Promise.all([
+    loadMainThread(context, now, threadAnchor(search)),
     loadTopics(context),
     loadAttachmentOptions(context, localToday(now)),
+    search.open ? searchCoachConversation(context, search.query) : [],
   ]);
   const plan = request === "plan";
   const preselected = [
@@ -57,21 +62,28 @@ export async function CoachMainPage({
       timeZone={coachTimeZone}
       attachmentOptions={attachmentOptions}
       initialAttachments={preselected}
+      search={{ ...search, results }}
     />
   );
 }
 
-export async function CoachTopicPage({ threadId }: { threadId: string }) {
+export async function CoachTopicPage({
+  threadId,
+  search,
+}: {
+  threadId: string;
+  search: SearchParams;
+}) {
   const context = await requireAthlete();
   const now = new Date();
-  const [lookup, mainActivityAt, topics, attachmentOptions] = await Promise.all(
-    [
-      loadTopic(context, threadId),
+  const [lookup, mainActivityAt, topics, attachmentOptions, results] =
+    await Promise.all([
+      loadTopic(context, threadId, threadAnchor(search)),
       loadMainActivity(context),
       loadTopics(context),
       loadAttachmentOptions(context, localToday(now)),
-    ],
-  );
+      search.open ? searchCoachConversation(context, search.query) : [],
+    ]);
   if (!lookup) notFound();
   if (lookup.kind === "main") redirect("/coach");
   return (
@@ -83,6 +95,7 @@ export async function CoachTopicPage({ threadId }: { threadId: string }) {
       now={now.toISOString()}
       timeZone={coachTimeZone}
       attachmentOptions={attachmentOptions}
+      search={{ ...search, results }}
     />
   );
 }
