@@ -82,6 +82,11 @@ const seasonsUser = {
   id: "12121212-1212-4212-8212-121212121212",
   email: "seasons@example.com",
 };
+const todayDecisionsUser = {
+  ...user,
+  id: "25252525-2525-4525-8525-252525252525",
+  email: "today-decisions@example.com",
+};
 const consentUser = {
   ...user,
   id: "efefefef-efef-4fef-8fef-efefefefefef",
@@ -100,6 +105,7 @@ const recordsSessions = [
   planReviewUser,
   planHistoryUser,
   seasonsUser,
+  todayDecisionsUser,
 ].map((identity) => ({
   ...session,
   user: identity,
@@ -1806,6 +1812,62 @@ twinPlanAthlete(
 );
 twinPlanAthlete(watchUser, "dddddddd-dddd-4ddd-8ddd-abababababab", "abab");
 twinPlanAthlete(seasonsUser, "dddddddd-dddd-4ddd-8ddd-121212121212", "1212");
+const todayDecisionsPlanId = "dddddddd-dddd-4ddd-8ddd-252525252525";
+const todayDecisionsProposalId = "25252525-0000-4000-8000-0000000000aa";
+twinPlanAthlete(todayDecisionsUser, todayDecisionsPlanId, "2525");
+{
+  const own = (row) => row.user_id === todayDecisionsUser.id;
+  const tomorrow = shiftDay(planToday, 1);
+  const template = tables.plan_sessions.find(own);
+  const easy = planSessionTemplates.easy(45);
+  tables.plan_sessions = tables.plan_sessions.filter(
+    (row) =>
+      !own(row) ||
+      (row.scheduled_on !== planToday && row.scheduled_on !== tomorrow),
+  );
+  tables.plan_sessions.push({
+    ...template,
+    session_key: `s-${planToday}-1`,
+    scheduled_on: planToday,
+    sport: easy.sport,
+    kind: easy.kind,
+    title: easy.title,
+    purpose: easy.purpose,
+    is_key: false,
+    priority: "normal",
+    targets: {
+      durationSeconds: easy.durationSeconds,
+      distanceMeters: easy.distanceMeters,
+      elevationGainMeters: easy.elevationGainMeters,
+    },
+    structure: easy.structure,
+    terrain: easy.terrain,
+  });
+  tables.plan_proposals = tables.plan_proposals.filter((row) => !own(row));
+  tables.plan_decisions = tables.plan_decisions.filter((row) => !own(row));
+  tables.plan_proposals.push({
+    ...readyPlanProposal(
+      todayDecisionsUser,
+      todayDecisionsPlanId,
+      todayDecisionsProposalId,
+    ),
+    title: "Raccourcir la séance",
+    summary: "Un footing de 30 min à la place des 45 min prévues.",
+    rationale:
+      "Ton sommeil baisse depuis trois nuits. Je garde la sortie, plus courte.",
+    operations: [
+      {
+        op: "replace_session",
+        sessionKey: `s-${planToday}-1`,
+        content: {
+          ...placedContent(planSessionTemplates.easy(30)),
+          title: "Footing court",
+        },
+      },
+    ],
+    target_keys: [`session:s-${planToday}-1`],
+  });
+}
 tables.athlete_races.push({
   id: "12121212-0000-4000-8000-000000000009",
   user_id: seasonsUser.id,
@@ -2382,6 +2444,14 @@ const planMatchesSnapshot = {
 };
 
 const reviewTables = [...planTables, "plan_proposals", "plan_decisions"];
+const todayDecisionsSnapshot = structuredClone(
+  Object.fromEntries(
+    reviewTables.map((table) => [
+      table,
+      tables[table].filter((row) => row.user_id === todayDecisionsUser.id),
+    ]),
+  ),
+);
 const planReviewSnapshot = structuredClone(
   Object.fromEntries(
     reviewTables.map((table) => [
@@ -2457,6 +2527,13 @@ function applyPlanProposal(request, proposalId) {
           item.plan_id === plan.id && item.session_key === operation.sessionKey,
       );
       if (session) session.title = operation.content.title;
+    }
+    if (operation.op === "move_session") {
+      const session = tables.plan_sessions.find(
+        (item) =>
+          item.plan_id === plan.id && item.session_key === operation.sessionKey,
+      );
+      if (session) session.scheduled_on = operation.toDate;
     }
   }
   const version = plan.active_version + 1;
@@ -2585,6 +2662,17 @@ createServer(async (request, response) => {
       access_token: accessToken(Math.floor(Date.now() / 1000) - 60),
       expires_at: Math.floor(Date.now() / 1000) - 60,
     });
+  if (
+    url.pathname === "/__test__/today-decisions" &&
+    request.method === "DELETE"
+  ) {
+    const snapshot = structuredClone(todayDecisionsSnapshot);
+    for (const table of reviewTables)
+      tables[table] = tables[table]
+        .filter((row) => row.user_id !== todayDecisionsUser.id)
+        .concat(snapshot[table]);
+    return send(200, { reset: true });
+  }
   if (
     url.pathname === "/__test__/plan-proposals" &&
     request.method === "DELETE"
@@ -3192,6 +3280,49 @@ createServer(async (request, response) => {
         url.pathname.endsWith("accept_plan_proposal") ? "accepted" : "rejected",
       );
       return send(status, value);
+    }
+    if (
+      request.method === "POST" &&
+      url.pathname === "/rest/v1/rpc/submit_plan_proposal"
+    ) {
+      const owner = currentPlanUser(request);
+      const plan = tables.training_plans.find(
+        (item) =>
+          item.id === body.p_plan_id &&
+          item.user_id === owner?.id &&
+          item.status === "active",
+      );
+      if (!plan) return send(404, { code: "PT404", message: "not_found" });
+      if (body.p_base_version !== plan.active_version)
+        return send(409, { code: "PT409", message: "stale_version" });
+      const targets = body.p_target_keys ?? [];
+      for (const row of tables.plan_proposals)
+        if (
+          row.user_id === owner.id &&
+          row.plan_id === plan.id &&
+          row.status === "ready" &&
+          row.target_keys.some((key) =>
+            targets.includes(key.replace(/^session:/, "")),
+          )
+        )
+          row.status = "superseded";
+      const now = new Date().toISOString();
+      const proposal = {
+        ...readyPlanProposal(owner, plan.id, randomUUID()),
+        base_version: plan.active_version,
+        scope: body.p_scope,
+        origin: body.p_origin,
+        title: body.p_title,
+        summary: body.p_summary,
+        rationale: body.p_rationale,
+        operations: body.p_operations,
+        specialist_opinions: body.p_specialist_opinions ?? [],
+        target_keys: targets,
+        created_at: now,
+        updated_at: now,
+      };
+      tables.plan_proposals.push(proposal);
+      return send(200, proposal);
     }
     if (
       request.method === "POST" &&

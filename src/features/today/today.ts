@@ -10,6 +10,7 @@ import {
 import type { PairQuestion } from "@/features/gear/check-view";
 import type { MatchStatus } from "@/features/plans/matching/adherence";
 import { addDays } from "@/features/plans/model/dates";
+import { moveDays, type MoveDay } from "./move";
 import type { PlanState } from "@/features/plans/model/plan";
 import { isQuality } from "@/features/plans/validation/input";
 import {
@@ -73,6 +74,7 @@ export type TodaySession =
       count: number;
       before: TodayDaySession[];
       after: TodayDaySession[];
+      moveDays: MoveDay[];
     }
   | {
       kind: "rest";
@@ -395,6 +397,7 @@ function session(input: TodayInput): TodaySession {
       count: panels.length,
       before: panels.slice(0, index).map((item) => daySession(item, summaries)),
       after: panels.slice(index + 1).map((item) => daySession(item, summaries)),
+      moveDays: plan ? moveDays(plan, panel.sessionKey, today) : [],
     };
   }
   if (!plan) return { kind: "none" };

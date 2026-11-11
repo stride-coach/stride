@@ -9,6 +9,7 @@ import {
   type OnboardingContext,
 } from "@/server/onboarding/context";
 import { applyAcceptedProposal } from "@/server/plans/apply";
+import { submitSessionMove } from "@/server/plans/move";
 
 export type ProposalActionResult =
   | { status: "applied"; version: number | null }
@@ -85,4 +86,38 @@ export async function rejectProposal(
     });
     return error ? { status: "error" } : { status: "rejected" };
   });
+}
+
+const moveSchema = z.strictObject({
+  sessionKey: z.string().min(1).max(64),
+  toDate: z.iso.date(),
+});
+
+export async function moveSession(
+  input: unknown,
+): Promise<ProposalActionResult> {
+  const parsed = moveSchema.safeParse(input);
+  if (!parsed.success) return { status: "invalid-request" };
+  const context = await getOnboardingContext({ writable: true });
+  if (!context) return { status: "session-expired" };
+  const submitted = await submitSessionMove(
+    context,
+    parsed.data.sessionKey,
+    parsed.data.toDate,
+  ).catch(() => null);
+  if (!submitted) return { status: "error" };
+  if (!submitted.ok) {
+    refresh();
+    return submitted.reason === "stale_version"
+      ? { status: "stale", reason: submitted.reason }
+      : { status: "invalid-request" };
+  }
+  const { error } = await context.client.rpc("accept_plan_proposal", {
+    p_proposal_id: submitted.proposalId,
+  });
+  const result: ProposalActionResult = error
+    ? { status: "error" }
+    : await apply(context, submitted.proposalId);
+  refresh();
+  return result;
 }
