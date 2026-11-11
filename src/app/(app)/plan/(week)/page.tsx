@@ -5,11 +5,26 @@ import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { mondayOf } from "@/features/plans/model/dates";
 import { proposalsByWeek } from "@/features/plans/review/proposal";
-import { buildProgram } from "@/features/plans/view/program";
+import {
+  archivedProgram,
+  buildProgram,
+  seasonLink,
+  type SeasonProgram,
+} from "@/features/plans/view/program";
 import { programText } from "@/features/plans/view/program-text";
-import { seasonFor } from "@/features/plans/view/seasons";
+import {
+  archivedSeasonPlanId,
+  isArchivedSeason,
+  seasonFor,
+} from "@/features/plans/view/seasons";
 import { requireAthlete } from "@/server/app/session";
-import { loadPlanOverview, programInput } from "@/server/plans/overview";
+import {
+  loadArchivedPlanOverview,
+  loadArchivedSeasons,
+  loadPlanOverview,
+  programInput,
+  type PlanOverview,
+} from "@/server/plans/overview";
 import { loadIntensityPaces } from "@/server/plans/paces";
 import { loadProposalReview } from "@/server/plans/proposals";
 import { loadSessionSheet } from "@/server/plans/session-sheet";
@@ -24,21 +39,86 @@ import { SessionSheet } from "../_components/session-sheet";
 
 export const metadata: Metadata = { title: "Plan" };
 
+function CurrentSeasonLink({ href }: { href: string }) {
+  return (
+    <Button asChild variant="outline" size="md">
+      <Link href={href} aria-label="Revenir à la saison en cours">
+        <span className="max-md:hidden">Revenir à la saison en cours</span>
+        <span className="md:hidden">Saison en cours</span>
+      </Link>
+    </Button>
+  );
+}
+
 export default async function PlanPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const [context, query] = await Promise.all([requireAthlete(), searchParams]);
-  const proposalId = typeof query.proposal === "string" ? query.proposal : null;
+  const param = (name: string) => {
+    const value = query[name];
+    return typeof value === "string" ? value : null;
+  };
+  const archivedPlanId = archivedSeasonPlanId(param("season"));
+  const proposalId =
+    typeof query.proposal === "string" && !archivedPlanId
+      ? query.proposal
+      : null;
   const sessionKey =
     typeof query.session === "string" && !proposalId ? query.session : null;
-  const [overview, sheet, paces, review] = await Promise.all([
-    loadPlanOverview(context),
-    sessionKey ? loadSessionSheet(context, sessionKey) : null,
-    loadIntensityPaces(context),
-    proposalId ? loadProposalReview(context, proposalId) : null,
-  ]);
+  const [overview, archived, archivedSeasons, sheet, paces, review] =
+    await Promise.all([
+      loadPlanOverview(context),
+      archivedPlanId ? loadArchivedPlanOverview(context, archivedPlanId) : null,
+      archivedPlanId ? loadArchivedSeasons(context) : [],
+      sessionKey ? loadSessionSheet(context, sessionKey, archivedPlanId) : null,
+      loadIntensityPaces(context),
+      proposalId ? loadProposalReview(context, proposalId) : null,
+    ]);
+  const seasons = overview
+    ? buildProgram(programInput(overview, paces)).seasons
+    : [];
+  const archivedIndex = archivedSeasons.findIndex(
+    (item) => item.id === param("season"),
+  );
+  if (archived && archivedIndex >= 0) {
+    const season = archivedSeasons[archivedIndex];
+    const newer = archivedSeasons[archivedIndex - 1];
+    const program = archivedProgram(
+      programInput(archived, paces),
+      season,
+      newer
+        ? seasonLink(archivedSeasons, newer, archived.today)
+        : (seasons[0]?.link ?? null),
+    );
+    const opened = archived.plan.state.sessions.find(
+      (item) => item.sessionKey === sessionKey,
+    );
+    const requested =
+      param("week") ?? (opened ? mondayOf(opened.scheduledOn) : null);
+    return (
+      <ArchivedSeasonPage
+        overview={archived}
+        program={program}
+        replaced={season.replacedOn !== null}
+        initialWeekKey={
+          program.weeks.find((week) => week.weekStart === requested)?.weekKey ??
+          null
+        }
+        current={seasons.find((item) => item.status === "current") ?? null}
+        sheet={sheet}
+        text={programText({
+          state: archived.plan.state,
+          version: archived.plan.version,
+          summary: archived.plan.versionSummary,
+          races: archived.races,
+          today: archived.today,
+          paces,
+        })}
+      />
+    );
+  }
   const reviewSheet = review && (
     <ProposalSheet key={review.id} review={review} />
   );
@@ -51,11 +131,7 @@ export default async function PlanPage({
     );
   const watch = await loadWatchView(context, overview.plan);
   const { planId, state } = overview.plan;
-  const { seasons } = buildProgram(programInput(overview, paces));
-  const param = (name: string) => {
-    const value = query[name];
-    return typeof value === "string" ? value : null;
-  };
+  const activeSheet = isArchivedSeason(param("season")) ? null : sheet;
   const session = state.sessions.find((item) => item.sessionKey === sessionKey);
   const program = seasonFor(seasons, {
     season: param("season"),
@@ -89,17 +165,7 @@ export default async function PlanPage({
         )}
         <div className="ml-auto flex min-w-0 flex-wrap justify-end gap-1.5">
           {current && current.id !== program.id && (
-            <Button asChild variant="outline" size="md">
-              <Link
-                href={current.href}
-                aria-label="Revenir à la saison en cours"
-              >
-                <span className="max-md:hidden">
-                  Revenir à la saison en cours
-                </span>
-                <span className="md:hidden">Saison en cours</span>
-              </Link>
-            </Button>
+            <CurrentSeasonLink href={current.href} />
           )}
           <CopyProgramButton
             text={programText({
@@ -132,15 +198,65 @@ export default async function PlanPage({
           today: overview.today,
         })}
       />
-      {sheet && (
+      {activeSheet && (
         <SessionSheet
-          key={sheet.panel.sessionKey}
-          planId={sheet.planId}
-          panel={sheet.panel}
-          watch={sheet.watch}
+          key={activeSheet.panel.sessionKey}
+          planId={activeSheet.planId}
+          panel={activeSheet.panel}
+          watch={activeSheet.watch}
         />
       )}
       {reviewSheet}
+    </PlanFrame>
+  );
+}
+
+function ArchivedSeasonPage({
+  overview,
+  program,
+  replaced,
+  initialWeekKey,
+  current,
+  sheet,
+  text,
+}: {
+  overview: PlanOverview;
+  program: SeasonProgram;
+  replaced: boolean;
+  initialWeekKey: string | null;
+  current: SeasonProgram | null;
+  sheet: Awaited<ReturnType<typeof loadSessionSheet>>;
+  text: string;
+}) {
+  return (
+    <PlanFrame
+      crumbs={[{ label: "Plan", href: "/plan" }, { label: program.name }]}
+      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
+    >
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
+        <Chip>
+          <LockIcon aria-hidden="true" className="size-3" />
+          {replaced
+            ? "Plan remplacé · lecture seule"
+            : "Saison terminée · lecture seule"}
+        </Chip>
+        <div className="ml-auto flex min-w-0 flex-wrap justify-end gap-1.5">
+          {current && <CurrentSeasonLink href={current.href} />}
+          <CopyProgramButton text={text} />
+        </div>
+      </div>
+      <ProgramExplorer
+        key={program.id}
+        program={program}
+        initialWeekKey={initialWeekKey}
+      />
+      {sheet && (
+        <SessionSheet
+          key={sheet.panel.sessionKey}
+          planId={overview.plan.planId}
+          panel={sheet.panel}
+        />
+      )}
     </PlanFrame>
   );
 }

@@ -205,6 +205,73 @@ test("the header switches between the seasons of the plan", async ({
   ).toHaveCount(0);
 });
 
+const archivedSeason = "plan-dddddddd-dddd-4ddd-8ddd-121212120001";
+
+test("an archived plan opens read-only as a past season", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page, "seasons@example.com");
+  await page.goto("/plan");
+  await page
+    .getByRole("button", { name: /^Saison : Marathon de Paris, S1 \/ \d+$/ })
+    .click();
+  const menu = page.getByRole("menu", { name: "Saisons" });
+  const items = menu.getByRole("menuitemradio");
+  await expect(items).toHaveCount(3);
+  await expect(items.nth(1)).toHaveAccessibleName(/^Course A, Trail d’automne/);
+  await expect(items.nth(2)).toHaveAccessibleName(
+    /^Course A, Trail des Lacs 30K, .*Terminée$/,
+  );
+  await items.nth(2).click();
+  await expect(page).toHaveURL(new RegExp(`/plan\\?season=${archivedSeason}$`));
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Trail des Lacs 30K" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Saison : Trail des Lacs 30K, Terminée" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Saison terminée · lecture seule", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("group", { name: /^Volume hebdomadaire/ })
+      .getByRole("button"),
+  ).toHaveCount(6);
+  await expect(
+    page.getByRole("main").getByRole("link", { name: "Historique" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("main").getByText(/proposé/i)).toHaveCount(0);
+  await expect(
+    page
+      .getByRole("region", { name: "Saison suivante" })
+      .getByRole("link", { name: /Trail d’automne 25K/ }),
+  ).toHaveAttribute("href", `/plan?season=${pastSeason}`);
+
+  await page
+    .locator('a[href*="session="]')
+    .filter({ hasText: "Footing vallonné", visible: true })
+    .first()
+    .click();
+  await expect(page).toHaveURL(
+    new RegExp(`season=${archivedSeason}&week=[\\d-]+&session=s-`),
+  );
+  const panel = page.getByRole("dialog");
+  await expect(panel.getByRole("heading", { level: 2 })).toHaveText(
+    "Footing vallonné",
+  );
+  await expect(panel.getByText("Fait", { exact: true })).toBeVisible();
+  await expect(
+    panel.getByRole("link", { name: "Voir l’activité Garmin" }),
+  ).toHaveAttribute("href", "/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000005200");
+  await expect(panel.getByRole("region", { name: "Ton ressenti" })).toHaveCount(
+    0,
+  );
+  await expect(panel.getByRole("button")).toHaveCount(3);
+  await expect(
+    panel.getByRole("link", { name: "En parler au coach" }),
+  ).toHaveCount(0);
+});
+
 test("the seasons sheet switches season on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, "seasons@example.com");

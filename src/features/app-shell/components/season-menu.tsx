@@ -34,7 +34,7 @@ const groups = [
   { status: "past", label: "Passées" },
 ] as const;
 
-const hint = "une par course A, jusqu’à la fin de sa récupération";
+const hint = "une par course A, et tes anciens plans";
 
 export function useSeasonSelection() {
   const promise = useShellIdentity()?.seasons;
@@ -136,7 +136,16 @@ function grouped(seasons: ShellSeason[]) {
     const items = seasons.filter((season) => season.status === status);
     if (items.length === 0) return [];
     return [
-      { status, label, items: status === "past" ? items.reverse() : items },
+      {
+        status,
+        label,
+        items:
+          status === "past"
+            ? items.sort((first, second) =>
+                second.endsOn.localeCompare(first.endsOn),
+              )
+            : items,
+      },
     ];
   });
 }
@@ -148,21 +157,31 @@ export function SeasonMenu({
   fallback: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { seasons, selected } = useSeasonSelection();
-  if (!selected) return fallback;
+  const { seasons, selected, onPlan } = useSeasonSelection();
+  if (seasons.length === 0 || (!selected && !onPlan)) return fallback;
   return (
     <>
       {children}
       <DropdownMenu>
         <DropdownMenuTrigger
-          aria-label={`Saison : ${selected.name}, ${selected.progress}`}
+          aria-label={
+            selected
+              ? `Saison : ${selected.name}, ${selected.progress}`
+              : "Saisons"
+          }
           className="flex h-control min-w-0 items-center gap-2 rounded-md px-2 font-medium transition-colors duration-150 ease-stride hover:bg-muted aria-expanded:bg-muted"
         >
-          <SeasonBadge season={selected} />
-          <span className="truncate">{selected.name}</span>
-          <span className="shrink-0 font-normal text-muted-foreground tabular-nums">
-            {selected.progress}
-          </span>
+          {selected ? (
+            <>
+              <SeasonBadge season={selected} />
+              <span className="truncate">{selected.name}</span>
+              <span className="shrink-0 font-normal text-muted-foreground tabular-nums">
+                {selected.progress}
+              </span>
+            </>
+          ) : (
+            <span className="truncate">Saisons</span>
+          )}
           <ChevronsUpDownIcon
             aria-hidden="true"
             className="size-3 shrink-0 text-muted-foreground"
@@ -188,7 +207,7 @@ export function SeasonMenu({
                 {group.label}
               </DropdownMenuLabel>
               {group.items.map((season) => {
-                const active = season.id === selected.id;
+                const active = season.id === selected?.id;
                 return (
                   <DropdownMenuItem
                     key={season.id}
@@ -233,14 +252,18 @@ export function SeasonMenu({
 export function SeasonSheet() {
   const { seasons, selected } = useSeasonSelection();
   const [open, setOpen] = useState(false);
-  if (!selected) return null;
+  if (seasons.length === 0) return null;
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
-        aria-label={`Saison : ${selected.name}, ${selected.progress}`}
+        aria-label={
+          selected
+            ? `Saison : ${selected.name}, ${selected.progress}`
+            : "Saisons"
+        }
         className="relative flex h-9 min-w-0 items-center gap-1 rounded-md px-1.5 text-secondary-foreground after:absolute after:inset-x-0 after:-inset-y-1 aria-expanded:bg-muted"
       >
-        <span className="truncate">{selected.name}</span>
+        <span className="truncate">{selected?.name ?? "Saisons"}</span>
         <ChevronsUpDownIcon
           aria-hidden="true"
           className="size-3 shrink-0 text-muted-foreground"
@@ -258,7 +281,7 @@ export function SeasonSheet() {
         <div className="flex flex-col gap-0.5 px-2.5 pt-1 pb-0.5">
           <SheetTitle className="text-body-lg">Saisons</SheetTitle>
           <SheetDescription className="text-label">
-            Une par course A, jusqu’à la fin de sa récupération.
+            Une par course A, et tes anciens plans.
           </SheetDescription>
         </div>
         {grouped(seasons).map((group) => {
@@ -273,7 +296,7 @@ export function SeasonSheet() {
               </h3>
               <ul className="flex flex-col">
                 {group.items.map((season) => {
-                  const active = season.id === selected.id;
+                  const active = season.id === selected?.id;
                   return (
                     <li key={season.id}>
                       <SheetClose asChild>

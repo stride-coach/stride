@@ -2,13 +2,23 @@ import "server-only";
 import { watchCopy, watchRowFor, watchState } from "@/features/garmin/watch";
 import { loadWatchView } from "@/server/garmin/watch";
 import type { OnboardingContext } from "@/server/onboarding/context";
-import { loadPlanOverview } from "./overview";
+import { loadArchivedPlanOverview, loadPlanOverview } from "./overview";
 import { loadSessionPanel } from "./session-panel";
 
 export async function loadSessionSheet(
   context: OnboardingContext,
   sessionKey: string,
+  archivedPlanId: string | null = null,
 ) {
+  if (archivedPlanId) {
+    const [overview, panel] = await Promise.all([
+      loadArchivedPlanOverview(context, archivedPlanId),
+      loadSessionPanel(context, sessionKey, archivedPlanId),
+    ]);
+    return overview && panel
+      ? { planId: overview.plan.planId, panel, watch: null }
+      : null;
+  }
   const [overview, panel] = await Promise.all([
     loadPlanOverview(context),
     loadSessionPanel(context, sessionKey),

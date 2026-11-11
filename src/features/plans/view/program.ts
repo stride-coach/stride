@@ -34,6 +34,7 @@ import { sessionBlocks } from "./plan-view";
 import type { RaceKind } from "@/features/races/calendar";
 import {
   defaultSeason,
+  isArchivedSeason,
   openSeasonName,
   planSeasons,
   seasonCountdown,
@@ -272,6 +273,7 @@ export type SeasonProgram = Pick<
   bands: ProgramBand[];
   milestones: ProgramMilestone[];
   races: ProgramSeasonRace[];
+  link: ProgramSeasonLink;
   next: ProgramSeasonLink | null;
   defaultWeekKey: string | null;
 };
@@ -389,7 +391,14 @@ export function withRaceValues(
   };
 }
 
-export function buildProgram(input: ProgramInput): ProgramOverview {
+export function buildProgram(
+  input: ProgramInput,
+  seasons = planSeasons({
+    state: input.state,
+    races: input.races,
+    today: input.today,
+  }),
+): ProgramOverview {
   const { state, today } = input;
   const paces = input.paces ?? null;
   const statuses = sessionStatuses(input.matches);
@@ -410,7 +419,6 @@ export function buildProgram(input: ProgramInput): ProgramOverview {
     }),
   );
   const planRaceIds = planRaceIdsOf(state);
-  const seasons = planSeasons({ state, races: input.races, today });
   const objectiveIds = new Set([
     state.plan.primaryRaceId,
     ...seasons.map((season) => season.raceId),
@@ -1024,7 +1032,7 @@ const seasonStatusLabels: Record<SeasonStatus, string> = {
   past: "Terminée",
 };
 
-function seasonLink(
+export function seasonLink(
   seasons: PlanSeason[],
   season: PlanSeason,
   today: string,
@@ -1037,9 +1045,9 @@ function seasonLink(
     name: season.name,
     detail: [
       ...new Set([
-        seasonStatusLabels[season.status],
+        season.replacedOn === null ? seasonStatusLabels[season.status] : null,
         seasonProgress(season),
-        seasonCountdown(season, today),
+        season.status === "past" ? null : seasonCountdown(season, today),
       ]),
     ]
       .filter(Boolean)
@@ -1064,7 +1072,7 @@ function seasonPrograms(
       weeks.find(
         (week) => date >= week.weekStart && date <= addDays(week.weekStart, 6),
       );
-    const countdown = seasonCountdown(season, today);
+    const countdown = past ? null : seasonCountdown(season, today);
     const raceKpi: ProgramKpi[] = season.raceDate
       ? [
           {
@@ -1087,9 +1095,11 @@ function seasonPrograms(
       status: season.status,
       href: seasonHref(seasons, season.id),
       eyebrow: past
-        ? season.letter
-          ? `Saison terminée · objectif ${season.letter}`
-          : "Saison terminée"
+        ? season.replacedOn !== null
+          ? `Plan remplacé le ${formatDayMonthShort(season.replacedOn)}`
+          : season.letter
+            ? `Saison terminée · objectif ${season.letter}`
+            : "Saison terminée"
         : eyebrow(weeks),
       title: race
         ? past
@@ -1097,9 +1107,11 @@ function seasonPrograms(
           : race.targetSeconds !== null
             ? `${race.name} · cible ${formatClock(race.targetSeconds)}`
             : [countdown, race.name].filter(Boolean).join(" · ")
-        : seasons.length === 1
-          ? state.plan.title
-          : openSeasonName,
+        : isArchivedSeason(season.id)
+          ? season.name
+          : seasons.length === 1
+            ? state.plan.title
+            : openSeasonName,
       summary: season.id === initial?.id ? input.summary : null,
       kpis: [
         ...raceKpi,
@@ -1133,12 +1145,30 @@ function seasonPrograms(
             .join(" · "),
           when: formatDayMonthShort(date),
         })),
+      link: seasonLink(seasons, season, today),
       next: next ? seasonLink(seasons, next, today) : null,
       defaultWeekKey:
         (past && season.raceDate ? weekOf(season.raceDate)?.weekKey : null) ??
         defaultWeek(weeks),
     };
   });
+}
+
+export function archivedProgram(
+  input: ProgramInput,
+  season: PlanSeason,
+  next: ProgramSeasonLink | null,
+): SeasonProgram {
+  const [program] = buildProgram(input, [season]).seasons;
+  return {
+    ...program,
+    weeks: program.weeks.map((week) => ({
+      ...week,
+      status: week.status === "current" ? "past" : week.status,
+      days: week.days.map((day) => ({ ...day, isToday: false })),
+    })),
+    next,
+  };
 }
 
 export function chartDescription(weeks: ProgramWeek[]) {

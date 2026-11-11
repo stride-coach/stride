@@ -3,11 +3,13 @@ import {
   kmEffort,
   type RaceKind,
 } from "@/features/races/calendar";
+import { formatDayMonthShort } from "@/features/progress/format";
 import { addDays, daysBetween, mondayOf } from "../model/dates";
 import type { PlanState } from "../model/plan";
 
 export const openSeasonId = "open";
 export const openSeasonName = "Hors objectif";
+const archivedSeasonPrefix = "plan-";
 
 export type SeasonStatus = "past" | "current" | "future";
 
@@ -33,6 +35,15 @@ export type PlanSeason = {
   weekStarts: string[];
   raceIds: string[];
   currentWeek: number | null;
+  replacedOn: string | null;
+};
+
+export type ArchivedPlan = {
+  planId: string;
+  title: string;
+  primaryRaceId: string | null;
+  archivedOn: string;
+  weekStarts: string[];
 };
 
 type DatedRace = SeasonRace & { date: string };
@@ -113,8 +124,83 @@ export function planSeasons({
         .filter((item) => item.date >= startsOn && item.date <= endsOn)
         .map((item) => item.id),
       currentWeek,
+      replacedOn: null,
     };
   });
+}
+
+export function archivedSeasonPlanId(id: string | null) {
+  return id?.startsWith(archivedSeasonPrefix)
+    ? id.slice(archivedSeasonPrefix.length)
+    : null;
+}
+
+export function isArchivedSeason(id: string | null) {
+  return archivedSeasonPlanId(id) !== null;
+}
+
+export function archivedState(state: PlanState, archivedOn: string): PlanState {
+  const weeks = state.weeks.filter((week) => week.weekStart <= archivedOn);
+  const last = weeks
+    .map((week) => week.weekStart)
+    .sort()
+    .at(-1);
+  const endsOn = last === undefined ? null : addDays(last, 6);
+  const blockKeys = new Set(weeks.map((week) => week.blockKey));
+  return {
+    ...state,
+    plan: {
+      ...state.plan,
+      endsOn:
+        endsOn !== null && endsOn < state.plan.endsOn
+          ? endsOn
+          : state.plan.endsOn,
+    },
+    blocks: state.blocks.filter((block) => blockKeys.has(block.blockKey)),
+    weeks,
+    sessions: state.sessions.filter(
+      (session) => endsOn !== null && session.scheduledOn <= endsOn,
+    ),
+  };
+}
+
+export function archivedSeason(
+  plan: ArchivedPlan,
+  races: SeasonRace[],
+): PlanSeason | null {
+  const weekStarts = plan.weekStarts
+    .filter((weekStart) => weekStart <= plan.archivedOn)
+    .sort();
+  if (weekStarts.length === 0) return null;
+  const startsOn = weekStarts[0];
+  const endsOn = addDays(weekStarts.at(-1)!, 6);
+  const race = races.find((item) => item.id === plan.primaryRaceId) ?? null;
+  const run =
+    race !== null && race.date !== null && race.date <= plan.archivedOn
+      ? { id: race.id, date: race.date }
+      : null;
+  return {
+    id: `${archivedSeasonPrefix}${plan.planId}`,
+    raceId: run?.id ?? null,
+    name: race?.name ?? plan.title,
+    letter: race ? (race.priority ?? "A") : null,
+    startsOn,
+    endsOn,
+    raceDate: run?.date ?? null,
+    status: "past",
+    weekStarts,
+    raceIds: races
+      .filter(
+        (item) =>
+          item.date !== null &&
+          item.date >= startsOn &&
+          item.date <= endsOn &&
+          item.date <= plan.archivedOn,
+      )
+      .map((item) => item.id),
+    currentWeek: null,
+    replacedOn: run === null ? plan.archivedOn : null,
+  };
 }
 
 type SeasonRange = Pick<
@@ -125,10 +211,11 @@ type SeasonRange = Pick<
 export function defaultSeason<Season extends SeasonRange>(
   seasons: Season[],
 ): Season | null {
+  const own = seasons.filter((season) => !isArchivedSeason(season.id));
   return (
-    seasons.find((season) => season.status === "current") ??
-    seasons.find((season) => season.status === "future") ??
-    seasons.at(-1) ??
+    own.find((season) => season.status === "current") ??
+    own.find((season) => season.status === "future") ??
+    own.at(-1) ??
     null
   );
 }
@@ -147,14 +234,15 @@ export function seasonFor<Season extends SeasonRange>(
     session?: string | null;
   },
 ): Season | null {
+  const own = seasons.filter((item) => !isArchivedSeason(item.id));
   const containing = (date: string | null) =>
     date === null
       ? undefined
-      : seasons.find((item) => item.startsOn <= date && date <= item.endsOn);
+      : own.find((item) => item.startsOn <= date && date <= item.endsOn);
   return (
     seasons.find((item) => season !== null && item.id === season) ??
-    seasons.find((item) => race !== null && item.id === race) ??
-    seasons.find((item) => race !== null && item.raceIds.includes(race)) ??
+    own.find((item) => race !== null && item.id === race) ??
+    own.find((item) => race !== null && item.raceIds.includes(race)) ??
     containing(week) ??
     containing(session) ??
     defaultSeason(seasons)
@@ -166,8 +254,13 @@ export function seasonHref(seasons: SeasonRange[], id: string) {
 }
 
 export function seasonProgress(
-  season: Pick<PlanSeason, "raceId" | "status" | "weekStarts" | "currentWeek">,
+  season: Pick<
+    PlanSeason,
+    "raceId" | "status" | "weekStarts" | "currentWeek" | "replacedOn"
+  >,
 ) {
+  if (season.replacedOn !== null)
+    return `Remplacé le ${formatDayMonthShort(season.replacedOn)}`;
   const count = season.weekStarts.length;
   if (season.currentWeek !== null) return `S${season.currentWeek} / ${count}`;
   return season.status === "past" && season.raceId !== null

@@ -28,6 +28,7 @@ import type {
   ProgramNav,
   ProgramNavBlock,
 } from "@/features/plans/view/program";
+import { isArchivedSeason } from "@/features/plans/view/seasons";
 
 function weekHref(weekStart: string) {
   return `/plan?week=${weekStart}`;
@@ -152,7 +153,10 @@ export function PlanSidebarGroup({
     !week &&
     !params.get("season") &&
     !params.get("race");
-  const selected = pathname === "/plan" ? week : null;
+  const selected =
+    pathname === "/plan" && !isArchivedSeason(params.get("season"))
+      ? week
+      : null;
   const history = pathname === "/plan/history";
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">

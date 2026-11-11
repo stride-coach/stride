@@ -15,6 +15,7 @@ import { buildProgram, programNavigation } from "@/features/plans/view/program";
 import { planSeasons } from "@/features/plans/view/seasons";
 import { localToday as planToday } from "@/features/plans/constraints";
 import {
+  loadArchivedSeasons,
   loadPlanOverview,
   programInput,
   readPlanRaces,
@@ -48,13 +49,16 @@ async function readTodayReadiness(context: OnboardingContext, now: Date) {
 async function readShellSeasons(
   context: OnboardingContext,
 ): Promise<ShellSeason[]> {
-  const [plan, races] = await Promise.all([
+  const [plan, races, archived] = await Promise.all([
     readActivePlan(context),
     readPlanRaces(context),
+    loadArchivedSeasons(context).catch(() => []),
   ]);
-  if (!plan) return [];
-  const today = planToday(plan.state.plan.timeZone);
-  return shellSeasons(planSeasons({ state: plan.state, races, today }), today);
+  const today = plan
+    ? planToday(plan.state.plan.timeZone)
+    : localToday(new Date());
+  const own = plan ? planSeasons({ state: plan.state, races, today }) : [];
+  return shellSeasons([...own, ...archived], today);
 }
 
 export async function loadShellIdentity(context: OnboardingContext, now: Date) {
