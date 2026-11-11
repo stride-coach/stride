@@ -13,7 +13,6 @@ playwright.config.ts
 scripts
 docs
 supabase
-evals
 *.tsbuildinfo
 .env*
 !.env.example
