@@ -130,7 +130,11 @@ test("the list scrolls inside a fixed-height shell and keeps its place after an 
   expect(scrollable).toBeGreaterThan(1500);
 
   await list.evaluate((element) => {
-    element.scrollTop = 1500;
+    const origin = element.getBoundingClientRect().top - element.scrollTop;
+    const week = Array.from(element.querySelectorAll("h2"))
+      .map((heading) => heading.getBoundingClientRect().top - origin)
+      .find((offset) => offset >= 1500);
+    element.scrollTop = (week ?? 1500) + 8;
   });
   await expect
     .poll(() => list.evaluate((element) => element.scrollTop))

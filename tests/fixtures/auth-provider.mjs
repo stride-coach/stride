@@ -919,6 +919,32 @@ planBlockDefinitions.forEach(([blockKey], blockIndex) => {
     planWeekIndex += 1;
   }
 });
+if (!planSessions.some((session) => session.scheduled_on === planToday)) {
+  const content = planSessionTemplates.mobility();
+  planSessions.push({
+    plan_id: planId,
+    user_id: planUser.id,
+    valid_from_version: 1,
+    valid_to_version: null,
+    session_key: `s-${planToday}-1`,
+    scheduled_on: planToday,
+    sport: content.sport,
+    kind: content.kind,
+    title: content.title,
+    purpose: content.purpose,
+    is_key: false,
+    priority: "normal",
+    targets: {
+      durationSeconds: content.durationSeconds,
+      distanceMeters: content.distanceMeters,
+      elevationGainMeters: content.elevationGainMeters,
+    },
+    structure: content.structure,
+    terrain: content.terrain,
+    origin: "coach",
+    contingencies: [],
+  });
+}
 let planWeekCursor = 0;
 const planBlocks = planBlockDefinitions.map(
   ([blockKey, kind, name, objective], blockIndex) => {
@@ -977,26 +1003,50 @@ const planDoneSession = planMatchedSessions.findLast(
   (session) => session.kind === "easy",
 );
 const planDoneActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005000";
-const planDebriefSession = planMatchedSessions.find(
-  (session) =>
-    session.kind === "threshold" &&
-    session.scheduled_on < planDoneSession.scheduled_on,
-);
+const planDebriefSession =
+  planMatchedSessions.find(
+    (session) =>
+      session.kind === "threshold" &&
+      session.scheduled_on < planDoneSession.scheduled_on,
+  ) ?? planMatchedSessions.find((session) => session.kind === "threshold");
 const planDebriefActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005002";
 const planMissedSession = pastPlanSessions[2];
 const planImportedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005001";
-const planStrengthSession = planMatchedSessions.findLast(
-  (session) =>
-    session.kind === "strength" &&
-    session.scheduled_on < planDoneSession.scheduled_on,
-);
+const planStrengthSession =
+  planMatchedSessions.findLast(
+    (session) =>
+      session.kind === "strength" &&
+      session.scheduled_on < planDoneSession.scheduled_on,
+  ) ?? planMatchedSessions.findLast((session) => session.kind === "strength");
 const planStrengthActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005003";
+const beforeDone = (session, fallback) =>
+  session && session.scheduled_on < planDoneSession.scheduled_on
+    ? session.scheduled_on
+    : fallback;
+const planDebriefDay = beforeDone(planDebriefSession, shiftDay(planStart, -4));
+const planStrengthDay = beforeDone(
+  planStrengthSession,
+  shiftDay(planStart, -3),
+);
 const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
 const planDoneStart = Date.parse(`${planDoneSession.scheduled_on}T17:12:00Z`);
 tables.provider_activities = tables.provider_activities.filter(
   (row) =>
     row.user_id !== planUser.id || Date.parse(row.started_at) < planDoneStart,
 );
+const planReferenceDay = shiftDay(planStart, -2);
+tables.provider_activities.push({
+  ...activity(5004, 0, {
+    activity_name: "Sortie longue",
+    distance_meters: 21400,
+    duration_seconds: 7500,
+    elevation_gain_meters: 80,
+    average_heart_rate: 146,
+  }),
+  user_id: planUser.id,
+  started_at: `${planReferenceDay}T07:12:00Z`,
+  local_started_at: `${planReferenceDay} 09:12:00`,
+});
 tables.provider_activities.push({
   ...activity(5000, 0, {
     distance_meters: 8320,
@@ -1034,8 +1084,8 @@ if (planDebriefSession) {
     }),
     user_id: planUser.id,
     provider_activity_id: "21894515002",
-    started_at: `${planDebriefSession.scheduled_on}T16:40:00Z`,
-    local_started_at: `${planDebriefSession.scheduled_on} 18:40:00`,
+    started_at: `${planDebriefDay}T16:40:00Z`,
+    local_started_at: `${planDebriefDay} 18:40:00`,
   });
   tables.provider_activity_segments.push(
     ...laps.map(([seconds, meters, heartRate], index) => ({
@@ -1079,8 +1129,8 @@ if (planStrengthSession) {
     }),
     user_id: planUser.id,
     provider_activity_id: "21894515003",
-    started_at: `${planStrengthSession.scheduled_on}T10:30:00Z`,
-    local_started_at: `${planStrengthSession.scheduled_on} 12:30:00`,
+    started_at: `${planStrengthDay}T10:30:00Z`,
+    local_started_at: `${planStrengthDay} 12:30:00`,
   });
   tables.provider_activity_tracks.push({
     activity_id: planStrengthActivityId,
