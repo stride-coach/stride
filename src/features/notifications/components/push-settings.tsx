@@ -97,10 +97,12 @@ export function PushSettings({
   publicKey,
   preferences,
   endpoints,
+  title = "Notifications",
 }: {
   publicKey: string | null;
   preferences: PushPreferences;
   endpoints: string[];
+  title?: string;
 }) {
   const configured = publicKey !== null;
   const [device, setDevice] = useState<Device | null>(null);
@@ -210,7 +212,7 @@ export function PushSettings({
   const categoriesEnabled = state === "on";
 
   return (
-    <PreferenceSection id="notifications" title="Notifications" grouped={false}>
+    <PreferenceSection id="notifications" title={title} grouped={false}>
       {state === "install" ? (
         <InstallSteps label={device?.label ?? null} />
       ) : (
