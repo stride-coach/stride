@@ -3,7 +3,7 @@
 import { Share } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideAppIcon } from "@/components/stride/stride-logo";
 import { Switch } from "@/components/ui/switch";
 import {
   applicationServerKey,
@@ -404,9 +404,7 @@ function InstallSteps({ label }: { label: DeviceLabel | null }) {
   return (
     <PreferenceGroup className="gap-3.5 p-4 md:rounded-xl md:border md:bg-card">
       <div className="flex items-center gap-3">
-        <span className="grid size-9.5 shrink-0 place-items-center rounded-lg bg-primary">
-          <StrideMark className="size-5 stroke-background" />
-        </span>
+        <StrideAppIcon />
         <div className="flex flex-col gap-0.5">
           <span className="text-body font-semibold">
             Installe Stride sur ton {device}

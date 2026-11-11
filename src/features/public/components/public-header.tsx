@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 import { cn } from "@/lib/utils";
 
 const sections = [
@@ -18,7 +18,7 @@ function PublicWordmark({ className }: { className?: string }) {
         className,
       )}
     >
-      <StrideMark className="size-4.5 stroke-primary" />
+      <StrideLogo />
       Stride
     </Link>
   );

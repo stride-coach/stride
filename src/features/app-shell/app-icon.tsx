@@ -1,29 +1,23 @@
 import { ImageResponse } from "next/og";
+import { appIconColors } from "@/components/stride/stride-logo";
 
-const shell = "#080907";
-const volt = "#D5FF3F";
+const { tile, upper, lower } = appIconColors;
 
 export function appIcon(size: number) {
-  const mark = Math.round(size * 0.56);
   return new ImageResponse(
     <div
       style={{
         width: "100%",
         height: "100%",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: volt,
+        background: tile,
       }}
     >
-      <svg width={mark} height={mark} viewBox="0 0 16 16">
-        <path
-          d="M4.5 13.5 8.5 2.5M9 13.5l4-11"
-          fill="none"
-          stroke={shell}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+      <svg width={size} height={size} viewBox="0 0 64 64">
+        <g transform="translate(11.5 11.5) scale(1.28)">
+          <rect x="10" y="7" width="18" height="7.5" rx="1.5" fill={upper} />
+          <rect x="4" y="17.5" width="18" height="7.5" rx="1.5" fill={lower} />
+        </g>
       </svg>
     </div>,
     { width: size, height: size },

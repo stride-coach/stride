@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Relief } from "@/components/stride/relief";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 
 function Wordmark() {
   return (
@@ -9,7 +9,7 @@ function Wordmark() {
       aria-label="Stride, accueil"
       className="relative z-10 inline-flex min-h-control-touch w-fit items-center gap-2 rounded-md font-semibold text-foreground md:min-h-0"
     >
-      <StrideMark className="size-4.5 stroke-primary" />
+      <StrideLogo />
       Stride
     </Link>
   );

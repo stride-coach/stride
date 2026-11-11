@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Relief } from "@/components/stride/relief";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StrideLogo } from "@/components/stride/stride-logo";
 import { cn } from "@/lib/utils";
 
 export function Wordmark({
@@ -15,11 +15,8 @@ export function Wordmark({
       aria-label="Stride, se connecter"
       className="relative inline-flex w-fit items-center gap-2 rounded-md font-semibold text-foreground"
     >
-      <StrideMark
-        className={cn(
-          "stroke-primary",
-          compactOnMobile ? "size-4 md:size-4.5" : "size-4.5",
-        )}
+      <StrideLogo
+        className={compactOnMobile ? "size-4.5 md:size-5" : "size-5"}
       />
       <span className="text-body-lg">Stride</span>
     </Link>
