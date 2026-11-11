@@ -6,6 +6,7 @@ import {
   garminConnectionTone,
   dataActivitySchema,
   freshCategories,
+  reliefBusy,
   threadActive,
   threadDelay,
   type DataActivityObservation,
@@ -174,5 +175,27 @@ describe("data activity", () => {
     expect(garminConnectionTone("expired")).toBe("danger");
     expect(garminConnectionTone("rate_limited")).toBe("warning");
     expect(garminConnectionTone(null)).toBe("warning");
+  });
+});
+
+describe("relief activity", () => {
+  const idle = {
+    offline: false,
+    syncing: false,
+    navigations: 0,
+    skeletons: 0,
+    refreshing: false,
+    thinking: 0,
+  };
+  it("breathes faster while a screen loads, data syncs or the coach thinks", () => {
+    expect(reliefBusy(idle)).toBe(false);
+    expect(reliefBusy({ ...idle, skeletons: 1 })).toBe(true);
+    expect(reliefBusy({ ...idle, navigations: 1 })).toBe(true);
+    expect(reliefBusy({ ...idle, syncing: true })).toBe(true);
+    expect(reliefBusy({ ...idle, refreshing: true })).toBe(true);
+    expect(reliefBusy({ ...idle, thinking: 1 })).toBe(true);
+  });
+  it("rests while offline", () => {
+    expect(reliefBusy({ ...idle, offline: true, thinking: 1 })).toBe(false);
   });
 });

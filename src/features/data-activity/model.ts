@@ -56,6 +56,17 @@ export function threadActive(signals: ThreadSignals) {
   return signals.navigations > 0 && signals.skeletons === 0;
 }
 
+export function reliefBusy(signals: ThreadSignals & { thinking: number }) {
+  if (signals.offline) return false;
+  return (
+    signals.syncing ||
+    signals.refreshing ||
+    signals.navigations > 0 ||
+    signals.skeletons > 0 ||
+    signals.thinking > 0
+  );
+}
+
 export function activityState(
   observation: DataActivityObservation | null,
   offline: boolean,
