@@ -1499,7 +1499,7 @@ tables.coach_thread_items = [
     ],
   }),
   coachItem(coachKneeThread, "08:01:00", "coach", {
-    text: "@Inès, tu peux regarder ton genou avec Jules ?",
+    text: "@Santé, tu peux regarder ton genou avec Jules ?",
   }),
   coachItem(coachKneeThread, "08:01:00", "consult_request", {
     thread: "sthr_knee",
@@ -2632,7 +2632,7 @@ createServer(async (request, response) => {
       race_id: race.id,
       kind: "nutrition",
       base_revision: 0,
-      title: "Plan nutrition de Léa",
+      title: "Plan nutrition de course",
       summary: "70 g/h et une compote sur le deuxième tronçon.",
       payload: {
         targets: { carbsPerHourG: 70 },

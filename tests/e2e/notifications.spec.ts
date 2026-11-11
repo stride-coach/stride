@@ -35,7 +35,7 @@ test("the desktop bell opens the panel and marks everything read", async ({
   ).toBeVisible();
   await expect(
     panel.getByRole("button", {
-      name: /Claire propose : Raccourcir ton seuil/,
+      name: /Le Coach propose : Raccourcir ton seuil/,
     }),
   ).toBeVisible();
   await expect(panel.getByText("Réponse attendue")).toBeVisible();
@@ -43,9 +43,9 @@ test("the desktop bell opens the panel and marks everything read", async ({
   await page.screenshot({ path: "test-results/notifications-panel.png" });
 
   await panel.getByRole("button", { name: "À traiter · 3" }).click();
-  await expect(panel.getByText("Claire a répondu")).toHaveCount(0);
+  await expect(panel.getByText("Le Coach a répondu")).toHaveCount(0);
   await panel.getByRole("button", { name: "Staff" }).click();
-  await expect(panel.getByText(/Claire a répondu/)).toBeVisible();
+  await expect(panel.getByText(/Le Coach a répondu/)).toBeVisible();
   await expect(panel.getByText(/Raccourcir ton seuil/)).toHaveCount(0);
 
   await panel.getByRole("button", { name: "Tout marquer comme lu" }).click();
@@ -100,7 +100,7 @@ test("the history page groups the last 30 days with filters", async ({
   await expect(page.getByText("Envoyée", { exact: true })).toBeVisible();
   await expect(page.getByText("Rétablie", { exact: true })).toBeVisible();
   await expect(page.getByText(/Raccourcir ton seuil/)).toHaveCount(0);
-  await expect(page.getByText(/Claire a répondu/)).toHaveCount(0);
+  await expect(page.getByText(/Le Coach a répondu/)).toHaveCount(0);
   await page.screenshot({ path: "test-results/notifications-garmin.png" });
 });
 
