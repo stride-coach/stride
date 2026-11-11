@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.0](https://github.com/stride-coach/stride/compare/v2.0.1...v2.1.0) (2026-11-11)
+
+
+### Features
+
+* **design:** draw the load chart once on first display ([#479](https://github.com/stride-coach/stride/issues/479)) ([baef1ff](https://github.com/stride-coach/stride/commit/baef1ff6e63d683c5afb890ae1652d9785480859))
+* **design:** let the relief breathe and quicken while Stride works ([#476](https://github.com/stride-coach/stride/issues/476)) ([672284a](https://github.com/stride-coach/stride/commit/672284a8761cfa23485e3f69992aead5ee521996))
+* **design:** slide range points into place and count key figures up ([#478](https://github.com/stride-coach/stride/issues/478)) ([3927b54](https://github.com/stride-coach/stride/commit/3927b546315535d148456e92adaab6ca8b9a5257))
+* **today:** accept, keep or move today's session from Aujourd'hui ([#481](https://github.com/stride-coach/stride/issues/481)) ([484d199](https://github.com/stride-coach/stride/commit/484d199eff158a2cf7eb1123a05c3dc9e1b2a7c7))
+* **today:** show the planned session while the Coach waits for the night's data ([#480](https://github.com/stride-coach/stride/issues/480)) ([b56a453](https://github.com/stride-coach/stride/commit/b56a453ef478d777a5891753300d5eaa27184692))
+
+
+### Bug Fixes
+
+* **races:** compute the course elevation gain without flattening short climbs ([#484](https://github.com/stride-coach/stride/issues/484)) ([0f319d8](https://github.com/stride-coach/stride/commit/0f319d8c984663aa574c19c941bb6d8742918a52)), closes [#483](https://github.com/stride-coach/stride/issues/483)
+* **races:** skip the recorded gain backfill when Garmin activities are absent ([#485](https://github.com/stride-coach/stride/issues/485)) ([2e36f1a](https://github.com/stride-coach/stride/commit/2e36f1acf86004b5ddfb67cc1fbf8758c83a0cc8)), closes [#483](https://github.com/stride-coach/stride/issues/483)
+* **today:** move today's session without losing coach proposals or notifying ([#482](https://github.com/stride-coach/stride/issues/482)) ([a62438d](https://github.com/stride-coach/stride/commit/a62438d0ee70427ea63c6b05b87a1355d1efb517))
+
 ## [2.0.1](https://github.com/stride-coach/stride/compare/v2.0.0...v2.0.1) (2026-11-11)
 
 
