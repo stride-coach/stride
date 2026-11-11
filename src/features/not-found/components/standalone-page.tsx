@@ -6,7 +6,7 @@ function Wordmark() {
   return (
     <Link
       href="/"
-      aria-label="Accueil Stride"
+      aria-label="Stride, accueil"
       className="relative z-10 inline-flex min-h-control-touch w-fit items-center gap-2 rounded-md font-semibold text-foreground md:min-h-0"
     >
       <StrideMark className="size-4.5 stroke-primary" />

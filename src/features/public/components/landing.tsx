@@ -8,7 +8,7 @@ import {
 } from "@/components/stride/nav-icons";
 import { Relief } from "@/components/stride/relief";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
-import type { StaffAgent } from "@/features/coach/staff";
+import { staff, type StaffAgent } from "@/features/coach/staff";
 import { TodayPreview } from "./landing-previews";
 
 const pillars = [
@@ -29,26 +29,22 @@ const pillars = [
   },
 ] as const;
 
-const roles: readonly { agent: StaffAgent; name: string; text: string }[] = [
-  { agent: "coach", name: "Coach", text: "Ton entraînement au quotidien" },
+const roles: readonly { agent: StaffAgent; text: string }[] = [
+  { agent: "coach", text: "Ton entraînement au quotidien" },
   {
     agent: "medical",
-    name: "Santé",
     text: "Ta récupération et les signaux de ton corps",
   },
   {
     agent: "director",
-    name: "Directeur sportif",
     text: "Ta saison dans son ensemble",
   },
   {
     agent: "strategist",
-    name: "Stratège de course",
     text: "Le parcours, ton objectif sur ce parcours et ta gestion de course",
   },
   {
     agent: "nutritionist",
-    name: "Nutrition",
     text: "Ce que tu manges autour de tes séances et en course",
   },
 ];
@@ -139,7 +135,7 @@ export function Landing() {
                 className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4"
               >
                 <StaffAvatar agent={role.agent} size={30} decorative />
-                <h3 className="font-semibold">{role.name}</h3>
+                <h3 className="font-semibold">{staff[role.agent].name}</h3>
                 <p className="text-label text-secondary-foreground">
                   {role.text}
                 </p>

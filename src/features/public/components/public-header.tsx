@@ -8,7 +8,7 @@ const sections = [
   { href: "#staff", label: "Le staff" },
 ] as const;
 
-export function PublicWordmark({ className }: { className?: string }) {
+function PublicWordmark({ className }: { className?: string }) {
   return (
     <Link
       href="/"
@@ -49,11 +49,9 @@ export function PublicHeader({ withSections = false }) {
           <Button asChild variant="outline">
             <Link href="/sign-in">Se connecter</Link>
           </Button>
-          {withSections && (
-            <Button asChild className="max-md:hidden">
-              <Link href="/sign-up">Créer un compte</Link>
-            </Button>
-          )}
+          <Button asChild className="max-md:hidden">
+            <Link href="/sign-up">Créer un compte</Link>
+          </Button>
         </div>
       </div>
     </header>

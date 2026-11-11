@@ -367,6 +367,7 @@ export function DataActivityFeedback() {
       )}
       {activity.state === "reconnect" && (
         <FeedbackBanner
+          role="status"
           level="watch"
           verdict="Garmin déconnecté"
           className="mx-4 mt-2 shrink-0 md:mx-2"

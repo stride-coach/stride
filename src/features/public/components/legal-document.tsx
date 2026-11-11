@@ -73,9 +73,9 @@ export function LegalDocument({
             <p className="px-2 text-label font-medium text-muted-foreground">
               Sommaire
             </p>
-            <ol>
+            <ul>
               <Contents sections={sections} />
-            </ol>
+            </ul>
           </nav>
         </div>
 
@@ -99,9 +99,9 @@ export function LegalDocument({
                 className="size-3.5 text-secondary-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
               />
             </summary>
-            <ol className="px-1.5 pb-2">
+            <ul className="px-1.5 pb-2">
               <Contents sections={sections} />
-            </ol>
+            </ul>
           </details>
           <article className="flex flex-col gap-8">
             {sections.map((section, index) => (

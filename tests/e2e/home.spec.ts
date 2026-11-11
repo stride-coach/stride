@@ -6,7 +6,7 @@ test("signed-out visitors land on the public page and reach legal pages", async 
   await page.goto("/");
 
   await expect(page).toHaveURL("/");
-  await expect(page).toHaveTitle("Stride · Progresse sans te blesser");
+  await expect(page).toHaveTitle("Stride · Un staff qui lit ton corps");
   await expect(
     page.getByRole("heading", {
       level: 1,
