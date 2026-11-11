@@ -232,7 +232,10 @@ describe("today view", () => {
       }),
     );
     expect(view.form).toMatchObject({ score: null, indicators: [] });
-    expect(view.verdict?.label).toBe("Forme inconnue");
+    expect(view.verdict).toMatchObject({
+      label: "Prévue au plan",
+      waiting: true,
+    });
     expect(view.queue).toEqual([
       {
         kind: "legs",

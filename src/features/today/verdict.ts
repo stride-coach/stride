@@ -43,7 +43,7 @@ export type TodayVerdict = {
   text: string;
   motif: string | null;
   actions: VerdictAction[];
-  sync: boolean;
+  waiting: boolean;
   compat: {
     question: string;
     answer: string;
@@ -332,7 +332,7 @@ export function todayVerdict(input: VerdictInput): TodayVerdict | null {
         : "Pas de séance prévue aujourd’hui. Récupère, c’est aussi de l’entraînement.",
       motif: null,
       actions: [],
-      sync: false,
+      waiting: false,
       compat: null,
     };
   const alerts = [
@@ -362,17 +362,12 @@ export function todayVerdict(input: VerdictInput): TodayVerdict | null {
   if (fit === null)
     return {
       tone: "muted",
-      label: "Forme inconnue",
-      text: "Pas de données Garmin ce matin. Synchronise ta montre pour compléter ta forme du jour.",
+      label: "Prévue au plan",
+      text: "Le Coach attend tes données de la nuit pour confirmer la séance. En attendant, voici ce que prévoit le plan.",
       motif: null,
-      actions: [steps],
-      sync: true,
-      compat: {
-        question,
-        answer: "Inconnue",
-        tone: "muted",
-        detail: "Pas de forme Garmin ce matin.",
-      },
+      actions: [],
+      waiting: true,
+      compat: null,
     };
 
   const scoreReview =
@@ -455,7 +450,7 @@ export function todayVerdict(input: VerdictInput): TodayVerdict | null {
     text,
     motif,
     actions,
-    sync: false,
+    waiting: false,
     compat: {
       question,
       answer,

@@ -205,13 +205,20 @@ describe("today verdict", () => {
     );
   });
 
-  it("says the form is unknown without a Garmin readiness", () => {
+  it("waits for the night's data and shows the planned session meanwhile", () => {
     expect(verdict({ readiness: null, indicators: [] })).toMatchObject({
       tone: "muted",
-      label: "Forme inconnue",
-      sync: true,
-      compat: { answer: "Inconnue" },
+      label: "Prévue au plan",
+      waiting: true,
+      actions: [],
+      compat: null,
     });
+    expect(verdict({ readiness: readiness(68) })?.waiting).toBe(false);
+    expect(verdict({ readiness: null, pain: true })).toMatchObject({
+      label: "À revoir",
+      waiting: false,
+    });
+    expect(verdict({ session: { kind: "rest" } })?.waiting).toBe(false);
   });
 
   it("recovers on a rest day and has no verdict without a plan", () => {
