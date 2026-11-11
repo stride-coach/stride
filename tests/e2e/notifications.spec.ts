@@ -126,8 +126,9 @@ test("a fresh Garmin run reaches the bell on the next load", async ({
 }) => {
   await page.setViewportSize({ width: 1440, height: 1020 });
   await signIn(page);
+  const topBar = page.locator('[data-slot="top-bar"]');
   await expect(
-    page.getByRole("button", { name: "Notifications, 3 non lues" }),
+    topBar.getByRole("button", { name: "Notifications, 3 non lues" }),
   ).toBeVisible();
   await fetch(`http://127.0.0.1:${authPort}/__test__/garmin-import`, {
     method: "POST",
@@ -136,7 +137,7 @@ test("a fresh Garmin run reaches the bell on the next load", async ({
   await expect(async () => {
     await page.reload();
     await expect(
-      page.getByRole("button", { name: "Notifications, 4 non lues" }),
+      topBar.getByRole("button", { name: "Notifications, 4 non lues" }),
     ).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout: 20_000 });
   await page.goto("/notifications?filter=data");
