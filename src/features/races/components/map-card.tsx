@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Toggle } from "@/components/ui/toggle";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { formatKm } from "../format";
 import { fullscreenMapParam, raceWorkspaceId, type MapData } from "../map";
 import { RaceMap, type MapLayers } from "./race-map";
@@ -27,7 +26,7 @@ function LayerChip({
       pressed={pressed}
       onPressedChange={onPressedChange}
       className={cn(
-        "min-h-8.5 rounded-full border border-control-border bg-background px-3 text-body text-secondary-foreground hover:bg-muted data-[state=on]:border-muted-foreground data-[state=on]:bg-background data-[state=on]:font-semibold data-[state=on]:text-foreground",
+        "min-h-control-touch rounded-md border border-border bg-card px-2.5 text-label text-secondary-foreground hover:bg-muted data-[state=on]:border-control-border data-[state=on]:bg-muted data-[state=on]:font-medium data-[state=on]:text-foreground md:min-h-7",
         className,
       )}
     >
@@ -73,7 +72,7 @@ function subscribeNever() {
 
 function SegmentBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-md border border-control-border bg-muted px-1 text-label font-semibold tabular-nums">
+    <span className="inline-flex h-5.5 min-w-7 items-center justify-center rounded-sm border border-control-border bg-muted px-1 text-label font-semibold tabular-nums">
       {label}
     </span>
   );
@@ -136,21 +135,21 @@ function FullscreenMap({
       {rows.length > 0 && (
         <aside
           aria-label="Tronçons"
-          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-[1rem] border-t border-border bg-background/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-2xl md:border md:bg-background md:p-4"
+          className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1.5 rounded-t-2xl border-t border-border bg-card/95 px-4 pt-2.5 pb-[max(1.875rem,env(safe-area-inset-bottom))] md:inset-x-auto md:top-16 md:bottom-auto md:left-5 md:max-h-[calc(100%-6rem)] md:w-83 md:gap-0 md:overflow-y-auto md:rounded-xl md:border md:bg-card md:p-4 md:shadow-float"
         >
           <span
             aria-hidden="true"
             className="h-1 w-9 self-center rounded-mark bg-control-border md:hidden"
           />
-          <MonoLabel size="nano" className="md:pb-2.5">
+          <span className="text-label font-medium text-muted-foreground md:pb-2.5">
             <span className="md:hidden">Tronçons · glisse pour voir</span>
             <span className="max-md:hidden">Tronçons · scénario cible</span>
-          </MonoLabel>
+          </span>
           <ol className="flex gap-2 max-md:[scrollbar-width:none] max-md:overflow-x-auto md:flex-col md:gap-0">
             {rows.map((row) => (
               <li
                 key={row.key}
-                className="flex w-37.5 shrink-0 flex-col gap-1 rounded-[10px] border border-border p-2.5 md:grid md:w-auto md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-x-2.5 md:gap-y-0.5 md:rounded-none md:border-0 md:border-t md:px-0 md:py-3"
+                className="flex w-37.5 shrink-0 flex-col gap-1 rounded-lg border border-border p-2.5 md:grid md:w-auto md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-x-2.5 md:gap-y-0.5 md:rounded-none md:border-0 md:border-t md:px-0 md:py-3"
               >
                 <span className="self-start md:row-span-2">
                   <SegmentBadge label={row.label} />
@@ -161,10 +160,10 @@ function FullscreenMap({
                     <span className="md:hidden"> · {row.clock}</span>
                   )}
                 </span>
-                <span className="text-[15px] leading-none font-semibold tabular-nums max-md:hidden">
+                <span className="font-semibold tabular-nums max-md:hidden">
                   {row.clock ?? ""}
                 </span>
-                <span className="text-[11px] text-muted-foreground md:col-start-2">
+                <span className="text-label text-muted-foreground md:col-start-2">
                   {row.detail}
                 </span>
               </li>
@@ -240,7 +239,7 @@ export function MapCard({
   return (
     <section
       aria-label="Carte du parcours"
-      className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card"
+      className="min-w-0 overflow-hidden rounded-xl border border-border bg-card"
     >
       <RaceMap
         data={data}

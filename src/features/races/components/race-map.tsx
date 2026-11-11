@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/features/theme/components/theme-store";
 import type { ResolvedTheme } from "@/features/theme/model";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { formatKm } from "../format";
 import {
   nearestRouteDistance,
@@ -69,7 +68,7 @@ function markerElement(marker: MapMarker, active: boolean) {
   const { mark } = marker;
   const root = "group focus-visible:outline-2 focus-visible:outline-ring";
   const base =
-    "grid size-full place-items-center tabular-nums text-label leading-none font-bold transition-transform duration-150 ease-stride group-hover:scale-110";
+    "grid size-full place-items-center tabular-nums text-label leading-none font-semibold transition-transform duration-150 ease-stride group-hover:scale-110";
   if (mark.shape === "circle") {
     const filled = mark.tone !== "station" || active;
     element.className = cn(root, "size-5.5 rounded-full");
@@ -80,7 +79,7 @@ function markerElement(marker: MapMarker, active: boolean) {
         ? "bg-primary text-primary-foreground"
         : mark.tone === "start"
           ? "bg-foreground text-background"
-          : "border-[1.6px] border-foreground bg-background text-foreground",
+          : "border-2 border-foreground bg-card text-foreground",
       filled && "border-0",
     );
     visual.textContent = mark.label;
@@ -91,14 +90,14 @@ function markerElement(marker: MapMarker, active: boolean) {
       "rounded-sm",
       active
         ? "bg-primary text-primary-foreground"
-        : "border-[1.6px] border-data-2 bg-background text-foreground",
+        : "border-2 border-data-2 bg-card text-foreground",
     );
     visual.textContent = mark.label;
   } else {
     element.className = cn(root, "size-3.5");
     visual.className = cn(
       base,
-      "rotate-45 border-[1.6px] bg-background",
+      "rotate-45 border-2 bg-card",
       mark.shape === "triangle"
         ? "border-secondary-foreground"
         : mark.tone === "caution"
@@ -478,7 +477,7 @@ function RaceMapView({
               ref={closeRef}
               aria-label="Quitter le plein écran"
               onClick={onClose}
-              className="size-10 bg-background md:size-9"
+              className="size-control-touch bg-card md:size-9"
             >
               <XIcon className="size-4" />
             </Button>
@@ -490,7 +489,7 @@ function RaceMapView({
               ref={fullscreenRef}
               aria-label="Plein écran"
               onClick={onFullscreen}
-              className="size-9 bg-background max-md:size-11"
+              className="size-9 bg-card max-md:size-control-touch"
             >
               <ExpandIcon className="size-3.5" />
             </Button>
@@ -503,7 +502,7 @@ function RaceMapView({
                 type="button"
                 aria-label="Zoom avant"
                 onClick={() => mapRef.current?.zoomIn()}
-                className="size-9 bg-background max-md:hidden"
+                className="size-9 bg-card max-md:hidden"
               >
                 <PlusIcon className="size-3.5" />
               </Button>
@@ -513,7 +512,7 @@ function RaceMapView({
                 type="button"
                 aria-label="Zoom arrière"
                 onClick={() => mapRef.current?.zoomOut()}
-                className="size-9 bg-background max-md:hidden"
+                className="size-9 bg-card max-md:hidden"
               >
                 <MinusIcon className="size-3.5" />
               </Button>
@@ -523,18 +522,18 @@ function RaceMapView({
       )}
       {tooltip && tooltipPoint && (
         <div
-          className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-lg border border-control-border bg-card/95 px-3 py-2"
+          className="pointer-events-none absolute z-10 flex min-w-40 flex-col gap-1 rounded-lg border border-control-border bg-card/95 px-3 py-2 shadow-float"
           style={{
             left: Math.min(tooltipPoint.x + 14, tooltipPoint.width - 190),
             top: Math.max(8, tooltipPoint.y - 64),
           }}
         >
-          <MonoLabel size="nano">
+          <span className="text-label text-muted-foreground">
             {tooltip.name} · km {formatKm(tooltip.distanceM)}
-          </MonoLabel>
+          </span>
           <span className="flex items-baseline justify-between gap-4">
             {tooltip.clock ? (
-              <span className="text-title leading-none font-semibold tabular-nums">
+              <span className="font-semibold tabular-nums">
                 Passage {tooltip.clock}
               </span>
             ) : (
@@ -543,9 +542,9 @@ function RaceMapView({
               </span>
             )}
             {tooltip.cutoff && (
-              <MonoLabel size="micro" tone="warning">
+              <span className="text-label font-medium text-warning">
                 BH {tooltip.cutoff}
-              </MonoLabel>
+              </span>
             )}
           </span>
         </div>

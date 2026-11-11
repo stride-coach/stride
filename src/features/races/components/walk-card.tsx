@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { formatDecimal, formatPace } from "../format";
 import { actionMessage } from "../messages";
 import { saveRacePlan } from "@/server/races/actions";
@@ -67,11 +66,10 @@ export function WalkCard({
         <Button
           type="button"
           variant="outline"
-          size="md"
           aria-expanded={open}
           aria-controls="walk-settings"
           onClick={() => setOpen((current) => !current)}
-          className="rounded-lg text-body max-md:min-h-11 md:ml-auto"
+          className="md:ml-auto"
         >
           Régler la marche
         </Button>
@@ -88,7 +86,7 @@ export function WalkCard({
         </div>
         <label htmlFor="walk-grade" className="text-body">
           Je marche dès{" "}
-          <b className="text-[1.375rem] font-semibold text-primary tabular-nums">
+          <b className="text-title font-semibold text-primary tabular-nums">
             {value} %
           </b>{" "}
           de pente
@@ -105,8 +103,8 @@ export function WalkCard({
           disabled={pending}
         />
         <div className="flex justify-between">
-          <MonoLabel size="nano">5 %</MonoLabel>
-          <MonoLabel size="nano">20 %</MonoLabel>
+          <span className="text-label text-muted-foreground">5 %</span>
+          <span className="text-label text-muted-foreground">20 %</span>
         </div>
         <div className="flex gap-6">
           <Figure
@@ -130,16 +128,16 @@ export function WalkCard({
                 "grid grid-cols-[52px_1fr_auto] gap-2.5 border-t border-border py-1.5 text-body",
                 row.threshold === value
                   ? "text-foreground"
-                  : "text-muted-foreground",
+                  : "text-secondary-foreground",
               )}
             >
-              <span className="text-body-lg tabular-nums">
+              <span className="font-medium tabular-nums">
                 {row.threshold} %
               </span>
               <span>
                 {row.count} {row.count > 1 ? "portions" : "portion"}
               </span>
-              <span className="text-body-lg tabular-nums">
+              <span className="font-medium tabular-nums">
                 {formatDecimal(row.distanceM / 1000)} km
               </span>
             </div>

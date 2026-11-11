@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { StrideMark } from "@/components/stride/stride-mark";
+import { Widget } from "@/components/stride/widget";
 import { formatInteger, formatKm } from "../format";
 import { actionMessage, importMessage } from "../messages";
 import {
@@ -33,7 +34,7 @@ import {
   importCourseFromActivity,
   showImportedRace,
 } from "@/server/races/actions";
-import { CardLabel, RaceCard } from "./race-ui";
+import { RaceCard } from "./race-ui";
 
 const benefits = [
   ["La carte et le profil altimétrique", "Carte et profil"],
@@ -181,8 +182,8 @@ export function CourseImport({
   ];
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <RaceCard className="gap-0 overflow-hidden p-0 sm:p-0">
+    <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <RaceCard className="gap-0 overflow-hidden p-0">
         <div
           onDragOver={(event) => {
             event.preventDefault();
@@ -195,20 +196,20 @@ export function CourseImport({
             sendFile(event.dataTransfer.files[0]);
           }}
           className={cn(
-            "m-5 flex flex-col items-center gap-3.5 rounded-2xl border-[1.5px] border-dashed border-control-border bg-background px-6 py-8 text-center transition-colors sm:m-6 sm:py-12",
-            dragging && "border-primary bg-muted",
+            "m-4 flex flex-col items-center gap-3 rounded-lg border border-dashed border-control-border bg-muted px-6 py-8 text-center transition-colors sm:py-12",
+            dragging && "border-primary bg-card",
           )}
           aria-busy={pending}
         >
-          <span className="grid size-13 place-items-center rounded-2xl border border-control-border bg-muted text-primary">
+          <span className="grid size-10 place-items-center rounded-lg border border-control-border bg-card text-secondary-foreground">
             <UploadIcon className="size-4.5" />
           </span>
-          <h2 className="text-title font-semibold tracking-[-0.02em]">
+          <h2 className="text-body-lg font-semibold">
             {replacing
               ? "Remplace le GPX de la course"
               : "Ajoute le GPX de la course"}
           </h2>
-          <p className="max-w-105 text-body leading-[1.55] text-secondary-foreground">
+          <p className="max-w-105 text-body text-secondary-foreground">
             <span className="max-sm:hidden">
               Glisse ici le fichier .gpx fourni par l’organisation. Un seul
               fichier, 20 Mo maximum.
@@ -239,8 +240,6 @@ export function CourseImport({
           <div className="flex w-full flex-col gap-2 sm:w-auto">
             <Button
               type="button"
-              size="md"
-              className="min-h-10.5 rounded-lg"
               onClick={() => input.current?.click()}
               disabled={pending}
               aria-busy={pending}
@@ -250,16 +249,17 @@ export function CourseImport({
             <Button
               type="button"
               variant="outline"
-              size="md"
-              className="min-h-10.5 rounded-lg sm:hidden"
+              className="sm:hidden"
               onClick={() => setDialog("link")}
             >
               Coller un lien
             </Button>
           </div>
         </div>
-        <div className="px-6 pb-5 max-sm:hidden">
-          <MonoLabel>Autres façons de l’ajouter</MonoLabel>
+        <div className="px-4 pb-3.5 max-sm:hidden">
+          <span className="text-label font-medium text-muted-foreground">
+            Autres façons de l’ajouter
+          </span>
           {others.map((option) => (
             <button
               key={option.key}
@@ -269,14 +269,14 @@ export function CourseImport({
                 else setDialog(option.key === "link" ? "link" : "activity");
               }}
               disabled={option.disabled || pending}
-              className="flex w-full items-start gap-3 border-t border-border py-3 text-left transition-colors first-of-type:mt-2 focus-visible:outline-2 focus-visible:outline-ring enabled:hover:bg-muted/40 disabled:opacity-50"
+              className="flex w-full items-start gap-3 border-t border-border py-3 text-left transition-colors first-of-type:mt-2 focus-visible:outline-2 focus-visible:outline-ring enabled:hover:bg-muted disabled:opacity-50"
             >
               <span className="grid size-7 shrink-0 place-items-center rounded-md border border-control-border text-secondary-foreground">
                 {option.icon}
               </span>
               <span className="flex flex-col gap-0.5">
                 <span className="text-body font-medium">{option.title}</span>
-                <span className="text-body leading-[1.45] text-muted-foreground">
+                <span className="text-body text-muted-foreground">
                   {option.detail}
                 </span>
               </span>
@@ -284,14 +284,17 @@ export function CourseImport({
           ))}
         </div>
       </RaceCard>
-      <div className="flex flex-col gap-5">
-        <RaceCard>
-          <CardLabel>Ce que Stride en tire</CardLabel>
+      <div className="flex flex-col gap-3">
+        <Widget
+          headingLevel={2}
+          aria-labelledby="course-benefits"
+          title={<span id="course-benefits">Ce que Stride en tire</span>}
+        >
           <ul>
             {benefits.map(([long, short]) => (
               <li
                 key={long}
-                className="flex gap-2.5 py-2 text-body text-secondary-foreground max-sm:border-t max-sm:border-border"
+                className="flex gap-2.5 border-b border-border py-2 text-body last:border-b-0"
               >
                 <CheckIcon className="mt-0.5 size-3.5 shrink-0 text-primary" />
                 <span className="max-sm:hidden">{long}</span>
@@ -299,11 +302,15 @@ export function CourseImport({
               </li>
             ))}
           </ul>
-        </RaceCard>
+        </Widget>
         {!replacing && (
-          <RaceCard>
-            <CardLabel coach>En attendant</CardLabel>
-            <p className="text-body leading-[1.55] text-secondary-foreground">
+          <Widget
+            headingLevel={2}
+            aria-labelledby="course-waiting"
+            icon={<StrideMark />}
+            title={<span id="course-waiting">En attendant</span>}
+          >
+            <p className="text-body text-secondary-foreground">
               Sans GPX, Stride ne connaît que{" "}
               {race.distanceKm
                 ? `les ${formatInteger(race.distanceKm)} km`
@@ -314,7 +321,7 @@ export function CourseImport({
               annoncés : pas encore de passages par ravito, ni de nuit ou de
               météo le long du parcours.
             </p>
-          </RaceCard>
+          </Widget>
         )}
       </div>
       <Dialog
@@ -348,12 +355,7 @@ export function CourseImport({
               </p>
             )}
             <DialogFooter>
-              <Button
-                type="submit"
-                size="md"
-                disabled={pending}
-                aria-busy={pending}
-              >
+              <Button type="submit" disabled={pending} aria-busy={pending}>
                 {pending ? "Récupération…" : "Importer"}
               </Button>
             </DialogFooter>
@@ -382,11 +384,11 @@ export function CourseImport({
                 >
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate text-body">{activity.title}</span>
-                    <MonoLabel size="nano">
+                    <span className="text-label text-muted-foreground">
                       {formatShortDate(activity.date)}
-                    </MonoLabel>
+                    </span>
                   </span>
-                  <span className="shrink-0 text-body-lg tabular-nums">
+                  <span className="shrink-0 font-medium tabular-nums">
                     {activity.distanceM
                       ? `${formatKm(activity.distanceM)} km`
                       : ""}
