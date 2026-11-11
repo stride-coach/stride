@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { ProfileChart } from "./profile-chart";
 import { RaceMap, type MapLayers } from "./race-map";
@@ -55,7 +54,7 @@ const mapLayers: MapLayers = {
 };
 
 const chipClass =
-  "min-h-10 rounded-full border border-control-border px-3 text-body font-normal text-secondary-foreground hover:border-muted-foreground hover:text-foreground data-[state=on]:border-muted-foreground data-[state=on]:bg-muted data-[state=on]:text-foreground lg:min-h-8";
+  "min-h-control-touch rounded-md border border-border px-2.5 font-normal text-secondary-foreground hover:text-foreground data-[state=on]:border-control-border data-[state=on]:bg-muted data-[state=on]:font-medium data-[state=on]:text-foreground lg:min-h-control";
 
 function counted(count: number, singular: string, plural: string) {
   return `${count.toLocaleString("fr-FR")} ${count > 1 ? plural : singular}`;
@@ -101,7 +100,7 @@ function WaypointBadge({
       >
         <span
           className={cn(
-            "size-2.75 rotate-45 border-[1.6px]",
+            "size-2.5 rotate-45 border-[1.5px]",
             mark.shape === "triangle"
               ? "border-secondary-foreground"
               : mark.tone === "caution"
@@ -115,7 +114,7 @@ function WaypointBadge({
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-5.5 items-center justify-center border-[1.4px] text-label leading-none font-bold tabular-nums",
+        "flex size-5 items-center justify-center border text-label leading-none font-semibold tabular-nums",
         mark.shape === "square" ? "rounded-md" : "rounded-full",
         active
           ? "border-primary bg-primary text-primary-foreground"
@@ -162,7 +161,7 @@ function WaypointRow({
       <span className="flex min-w-0 flex-col">
         <span
           className={cn(
-            "truncate text-body",
+            "truncate",
             active ? "font-semibold" : "font-medium",
             point.kind === "caution" && "text-warning",
             point.kind === "instruction" && "text-muted-foreground",
@@ -174,11 +173,11 @@ function WaypointRow({
           {details.join(" · ")}
         </span>
       </span>
-      <MonoLabel size="nano">{signal}</MonoLabel>
+      <span className="text-label text-muted-foreground">{signal}</span>
     </>
   );
   const rowClass =
-    "grid w-full grid-cols-[26px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg px-2.5 py-2.25 text-left";
+    "grid min-h-row-touch w-full grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-md px-2 py-1.5 text-left lg:min-h-row";
   if (point.kind === "start" || point.kind === "finish")
     return <div className={rowClass}>{content}</div>;
   return (
@@ -208,14 +207,14 @@ function WatchPreview({
   return (
     <div
       aria-hidden="true"
-      className="flex size-33 shrink-0 flex-col items-center justify-center gap-1 rounded-full border-6 border-border bg-background px-3 text-center"
+      className="flex size-33 shrink-0 flex-col items-center justify-center gap-1 rounded-full border-6 border-muted bg-background px-3 text-center"
     >
-      <span className="text-[0.5rem] text-muted-foreground tabular-nums">
+      <span className="text-micro text-muted-foreground tabular-nums">
         {alertDistanceM === 0
           ? "Au point"
           : `Dans ${alertDistanceM.toLocaleString("fr-FR")} m`}
       </span>
-      <span className="text-[1.0625rem] leading-none font-bold break-all text-foreground tabular-nums">
+      <span className="text-body-lg leading-none font-semibold break-all text-foreground tabular-nums">
         {label}
       </span>
       <span className="text-label text-primary tabular-nums">
@@ -302,20 +301,23 @@ function WaypointEditor({
   return (
     <section
       aria-label={point ? `Modifier ${point.name}` : "Ajouter un point"}
-      className="flex min-w-0 flex-col gap-3.5 rounded-2xl border border-muted-foreground bg-card px-4 py-4.5 lg:rounded-none lg:border-0 lg:border-t lg:border-control-border lg:bg-transparent lg:px-0 lg:pt-4 lg:pb-0"
+      className="flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5 lg:rounded-none lg:border-0 lg:border-t lg:bg-transparent lg:px-0 lg:pt-4 lg:pb-0"
     >
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-body-lg font-semibold lg:text-body-lg">
+        <h3 className="text-body-lg font-semibold">
           {point ? `Modifier · ${point.name}` : "Ajouter un point"}
         </h3>
-        <MonoLabel size="nano" className="lg:hidden">
+        <span className="text-label text-muted-foreground tabular-nums lg:hidden">
           km {formatKm(previewDistance)}
-        </MonoLabel>
+        </span>
       </div>
       <div className="flex flex-col gap-1.5">
-        <MonoLabel size="micro" id="waypoint-kind">
+        <span
+          id="waypoint-kind"
+          className="text-label text-secondary-foreground"
+        >
           Type
-        </MonoLabel>
+        </span>
         <div
           role="group"
           aria-labelledby="waypoint-kind"
@@ -336,39 +338,41 @@ function WaypointEditor({
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         <label className="col-span-full flex flex-col gap-1.5">
-          <MonoLabel size="micro">Nom</MonoLabel>
+          <span className="text-label text-secondary-foreground">Nom</span>
           <Input
             value={input.name}
             maxLength={60}
-            className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
+            className="h-control-touch rounded-lg bg-card lg:h-control"
             onChange={(event) => set("name", event.target.value)}
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <MonoLabel size="micro">Km</MonoLabel>
+          <span className="text-label text-secondary-foreground">Km</span>
           <Input
             value={km}
             inputMode="decimal"
-            className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
+            className="h-control-touch rounded-lg bg-card lg:h-control"
             onChange={(event) => setKm(event.target.value)}
           />
-          <span className="text-[0.6875rem] text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             Accroché au tracé
           </span>
         </label>
         <label className="flex flex-col gap-1.5">
-          <MonoLabel size="micro">Barrière horaire</MonoLabel>
+          <span className="text-label text-secondary-foreground">
+            Barrière horaire
+          </span>
           <Input
             value={cutoff}
             placeholder="HH:MM"
             inputMode="numeric"
-            className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
+            className="h-control-touch rounded-lg bg-card lg:h-control"
             onChange={(event) => setCutoff(event.target.value)}
           />
           {passage?.marginSeconds != null && (
             <span
               className={cn(
-                "text-[0.6875rem]",
+                "text-label",
                 passage.marginSeconds < 0 ? "text-destructive" : "text-primary",
               )}
             >
@@ -378,14 +382,14 @@ function WaypointEditor({
         </label>
       </div>
       <fieldset className="flex flex-col gap-1">
-        <MonoLabel size="micro" asChild>
-          <legend>Services</legend>
-        </MonoLabel>
+        <legend className="text-label text-secondary-foreground">
+          Services
+        </legend>
         <div className="flex flex-wrap gap-x-3.5">
           {services.map((service) => (
             <label
               key={service}
-              className="inline-flex min-h-11 items-center gap-1.5 text-body text-secondary-foreground lg:min-h-7.5"
+              className="inline-flex min-h-control-touch items-center gap-1.5 text-secondary-foreground lg:min-h-control"
             >
               <Checkbox
                 checked={input.services.includes(service)}
@@ -404,29 +408,35 @@ function WaypointEditor({
         </div>
       </fieldset>
       <div className="flex flex-col gap-2.5 border-t border-border pt-3.5">
-        <MonoLabel size="micro">Sur la montre</MonoLabel>
+        <span className="text-label text-secondary-foreground">
+          Sur la montre
+        </span>
         <div className="flex items-center gap-3.5">
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
             <label className="flex flex-col gap-1.5">
-              <MonoLabel size="micro">Nom affiché</MonoLabel>
+              <span className="text-label text-secondary-foreground">
+                Nom affiché
+              </span>
               <Input
                 value={input.watchLabel ?? ""}
                 maxLength={24}
                 placeholder={fallbackLabel}
-                className="h-10 rounded-lg bg-background text-body md:h-10 md:text-body"
+                className="h-control-touch rounded-lg bg-card lg:h-control"
                 onChange={(event) =>
                   set("watchLabel", event.target.value || null)
                 }
               />
-              <span className="text-[0.6875rem] text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {counted(watchLabel.length, "caractère", "caractères")} · reste
                 court, la montre coupe les noms longs
               </span>
             </label>
             <label className="flex flex-col gap-1.5">
-              <MonoLabel size="micro">Prévenir</MonoLabel>
+              <span className="text-label text-secondary-foreground">
+                Prévenir
+              </span>
               <select
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-body"
+                className="h-control-touch w-full rounded-lg border border-input bg-card px-2.5 lg:h-control"
                 value={input.alertDistanceM}
                 onChange={(event) =>
                   set(
@@ -454,25 +464,27 @@ function WaypointEditor({
           />
         </div>
         <label className="flex flex-col gap-1.5">
-          <MonoLabel size="micro">Consigne vocale</MonoLabel>
+          <span className="text-label text-secondary-foreground">
+            Consigne vocale
+          </span>
           <Textarea
             value={input.voiceNote ?? ""}
             maxLength={280}
-            className="min-h-16 rounded-lg bg-background text-body"
+            className="min-h-16 rounded-lg bg-card"
             onChange={(event) => set("voiceNote", event.target.value || null)}
           />
-          <span className="text-[0.6875rem] text-muted-foreground">
+          <span className="text-label text-muted-foreground">
             Lue à voix haute sur les montres et téléphones qui le permettent,
             affichée sinon.
           </span>
         </label>
       </div>
       <label className="flex flex-col gap-1.5">
-        <MonoLabel size="micro">À faire</MonoLabel>
+        <span className="text-label text-secondary-foreground">À faire</span>
         <Textarea
           value={input.todo ?? ""}
           maxLength={400}
-          className="min-h-16 rounded-lg bg-background text-body"
+          className="min-h-16 rounded-lg bg-card"
           onChange={(event) => set("todo", event.target.value || null)}
         />
       </label>
@@ -486,20 +498,18 @@ function WaypointEditor({
           <Button
             type="button"
             variant="outline"
-            size="md"
             disabled={pending}
             onClick={remove}
-            className="min-h-11 flex-1 text-destructive lg:min-h-9.5 lg:flex-none"
+            className="flex-1 text-destructive lg:flex-none"
           >
             Supprimer
           </Button>
         )}
         <Button
           type="button"
-          size="md"
           disabled={pending}
           onClick={save}
-          className="min-h-11 flex-1 lg:ml-auto lg:min-h-9.5 lg:flex-none"
+          className="flex-1 lg:ml-auto lg:flex-none"
         >
           Enregistrer
         </Button>
@@ -553,19 +563,13 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
   return (
     <RaceCard
       id="import-roadbook"
-      className="gap-2.5 border-muted-foreground px-4 py-4.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-5 lg:px-6 lg:py-5.5"
+      className="gap-2.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-5"
     >
-      <MonoLabel
-        size="nano"
-        className="lg:tracking-label flex items-center gap-2 lg:text-label"
-        asChild
-      >
-        <h2>
-          <StrideMark className="size-3.5 shrink-0" />
-          GPX importé
-        </h2>
-      </MonoLabel>
-      <p className="text-body/[1.55] text-secondary-foreground lg:flex-[1_1_420px]">
+      <h2 className="flex items-center gap-2 text-label font-medium text-secondary-foreground">
+        <StrideMark className="size-3 shrink-0" />
+        GPX importé
+      </h2>
+      <p className="text-secondary-foreground lg:flex-[1_1_420px]">
         {count ? (
           <>
             <b className="font-semibold text-foreground">
@@ -609,13 +613,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
       />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="md"
-            disabled={pending}
-            aria-busy={pending}
-            className="min-h-11 text-body lg:min-h-9.5"
-          >
+          <Button variant="outline" disabled={pending} aria-busy={pending}>
             Importer le roadbook (PDF ou lien)
           </Button>
         </DialogTrigger>
@@ -652,7 +650,7 @@ function RoadbookImport({ raceId, count }: { raceId: string; count: number }) {
               placeholder="Lien https vers le roadbook"
               aria-label="Lien vers le roadbook"
               value={link}
-              className="h-10 text-body md:h-10 md:text-body"
+              className="h-control-touch lg:h-control"
               onChange={(event) => setLink(event.target.value)}
             />
             <Button type="submit" variant="outline" size="md">
@@ -691,14 +689,14 @@ function WatchExport({
       : "le point";
   if (compact)
     return (
-      <RaceCard className="gap-2.5 px-4 py-4.5 lg:hidden">
+      <RaceCard className="gap-2.5 lg:hidden">
         <h2 className="text-body font-semibold">Envoyer à ta montre</h2>
         <p className="text-body text-muted-foreground">
           Course .fit avec les points, les consignes et leurs alertes, à
           importer dans Garmin Connect. Stride n’écrit jamais sur ton compte
           Garmin.
         </p>
-        <Button asChild size="md" className="min-h-12">
+        <Button asChild>
           <a href={`/api/races/${raceId}/export?format=fit`}>
             <DownloadIcon />
             Télécharger la course .fit
@@ -717,13 +715,13 @@ function WatchExport({
         </p>
       </div>
       <div className="flex gap-2">
-        <Button asChild size="md" variant="outline" className="text-body">
+        <Button asChild variant="outline">
           <a href={`/api/races/${raceId}/export?format=gpx`}>
             <DownloadIcon />
             GPX enrichi
           </a>
         </Button>
-        <Button asChild size="md" className="text-body">
+        <Button asChild>
           <a href={`/api/races/${raceId}/export?format=fit`}>
             <DownloadIcon />
             Course .fit
@@ -777,14 +775,18 @@ export function WaypointWorkspace({
   const editing = selected !== null || newDistance !== null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       <RoadbookImport raceId={raceId} count={stations} />
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <section className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="flex items-center justify-between gap-3 border-b border-border px-4.5 py-3.5 max-lg:hidden">
-              <MonoLabel>Clique sur le tracé pour ajouter un point</MonoLabel>
-              <MonoLabel size="micro">{summary}</MonoLabel>
+      <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-w-0 flex-col gap-3">
+          <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-muted p-1 lg:pt-0">
+            <div className="flex min-h-row items-center justify-between gap-3 px-2.5 max-lg:hidden">
+              <span className="font-medium text-secondary-foreground">
+                Clique sur le tracé pour ajouter un point
+              </span>
+              <span className="text-label text-muted-foreground">
+                {summary}
+              </span>
             </div>
             <RaceMap
               data={map}
@@ -793,7 +795,7 @@ export function WaypointWorkspace({
               onSelect={select}
               onPick={pick}
               label={`Carte du parcours, ${formatKm(map.distanceM)} km, ${map.markers.length} points de passage`}
-              className="h-50 lg:h-62.5"
+              className="h-50 overflow-hidden rounded-lg border border-border lg:h-62.5"
             />
           </section>
           <RaceCard className="relative max-md:hidden">
@@ -813,15 +815,13 @@ export function WaypointWorkspace({
             compact={false}
           />
         </div>
-        <aside className="flex min-w-0 flex-col gap-5 lg:gap-3.5 lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-4">
-          <section className="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-card p-3 lg:gap-3.5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0">
+        <aside className="flex min-w-0 flex-col gap-3 lg:rounded-xl lg:border lg:border-border lg:bg-card lg:px-4 lg:py-3.5">
+          <section className="flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card p-3 lg:gap-2.5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0">
             <div className="flex items-center justify-between gap-3 px-1 pb-1.5 lg:p-0">
-              <MonoLabel size="nano" className="lg:text-label" asChild>
-                <h2>
-                  <span className="max-lg:sr-only">Points de passage</span>
-                  <span className="lg:hidden"> {summary}</span>
-                </h2>
-              </MonoLabel>
+              <h2 className="text-label font-medium text-secondary-foreground">
+                <span className="max-lg:sr-only">Points de passage</span>
+                <span className="lg:hidden"> {summary}</span>
+              </h2>
               <Toggle
                 variant="segment"
                 pressed={newDistance !== null}

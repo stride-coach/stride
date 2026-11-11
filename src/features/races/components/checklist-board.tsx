@@ -48,12 +48,12 @@ const errors = {
 } as const;
 
 const chipTones: Record<ChipStatus, string> = {
-  ready: "text-primary border-primary/35",
-  check: "text-warning border-warning/35",
-  buy: "text-destructive border-destructive/35",
-  test: "text-data-2 border-data-2/35",
-  todo: "text-muted-foreground border-muted-foreground/35",
-  weather: "text-data-2 border-data-2/35",
+  ready: "text-primary",
+  check: "text-warning",
+  buy: "text-destructive",
+  test: "text-data-2",
+  todo: "text-muted-foreground",
+  weather: "text-data-2",
 };
 
 export function GroupCard({
@@ -69,20 +69,24 @@ export function GroupCard({
   return (
     <section
       className={cn(
-        "flex min-w-0 flex-col gap-0.5 rounded-2xl border border-border bg-card p-4 md:gap-1 md:px-6 md:py-5.5 print:break-inside-avoid print:border-0 print:p-0",
+        "min-w-0 rounded-xl border border-border bg-muted px-1 pb-1 print:break-inside-avoid print:border-0 print:bg-transparent print:p-0",
         className,
       )}
       {...props}
     >
-      <div className="flex items-baseline gap-3 pb-1.5">
-        <h2 className="text-[15px] font-semibold md:text-body-lg">{title}</h2>
+      <div className="flex min-h-row items-center gap-3 px-2.5 py-1.5">
+        <h2 className="min-w-0 font-medium text-secondary-foreground">
+          {title}
+        </h2>
         {aside && (
           <div className="ml-auto text-label text-muted-foreground">
             {aside}
           </div>
         )}
       </div>
-      {children}
+      <div className="flex min-w-0 flex-col rounded-lg border border-border bg-card px-4 py-1.5 print:border-0 print:p-0">
+        {children}
+      </div>
     </section>
   );
 }
@@ -110,10 +114,11 @@ function StatusChip({
         disabled={disabled}
         aria-label={`Statut de ${name} : ${chipLabels[chip]}`}
         className={cn(
-          "inline-flex min-h-6 items-center rounded-full border px-2.25 py-0.5 text-[11px] whitespace-nowrap hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-70 md:text-label",
+          "inline-flex min-h-control-touch items-center gap-1.5 rounded-md px-1.5 text-label font-medium whitespace-nowrap hover:bg-muted disabled:opacity-70 md:min-h-6",
           chipTones[chip],
         )}
       >
+        <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
         {chipLabels[chip]}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="w-44">
@@ -162,7 +167,7 @@ function AddForm({
         type="button"
         aria-label={`Ajouter un élément à ${label}`}
         onClick={() => setOpen(true)}
-        className="mt-1 flex min-h-8 items-center gap-1.5 self-start rounded-md text-body text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+        className="flex min-h-control-touch items-center gap-1.5 self-start rounded-md text-body text-muted-foreground hover:text-foreground md:min-h-row print:hidden"
       >
         <PlusIcon aria-hidden="true" className="size-3.5" />
         Ajouter
@@ -177,7 +182,7 @@ function AddForm({
           setDetail("");
         }
       }}
-      className="flex flex-col gap-2 border-t border-border pt-3 print:hidden"
+      className="flex flex-col gap-2 border-t border-border py-2.5 print:hidden"
     >
       <div className="flex gap-2">
         <Input
@@ -332,7 +337,23 @@ export function ChecklistGroup({
   }
 
   return (
-    <GroupCard title={title} aside={aside} aria-label={label}>
+    <GroupCard
+      title={title}
+      aside={
+        (aside || (list !== "gear_forbidden" && items.length > 0)) && (
+          <span className="flex items-center gap-3">
+            {aside}
+            {list !== "gear_forbidden" && items.length > 0 && (
+              <span className="tabular-nums">
+                {items.filter((item) => itemChip(item) === "ready").length} /{" "}
+                {items.length}
+              </span>
+            )}
+          </span>
+        )
+      }
+      aria-label={label}
+    >
       {lead}
       {items.length === 0 && hasTemplate && (
         <Button
@@ -340,22 +361,20 @@ export function ChecklistGroup({
           size="sm"
           disabled={pending}
           onClick={applyTemplate}
-          className="my-1 self-start print:hidden"
+          className="my-2 self-start print:hidden"
         >
           Utiliser la liste type
         </Button>
       )}
       {items.length === 0 && !hasTemplate && empty && (
-        <p className="border-t border-border py-2.5 text-body text-muted-foreground">
-          {empty}
-        </p>
+        <p className="py-2.5 text-body text-muted-foreground">{empty}</p>
       )}
       {items.map((item) => {
         if (list === "gear_forbidden")
           return (
             <div
               key={item.id}
-              className="flex items-center gap-2.5 border-t border-border py-1.5 text-body"
+              className="flex min-h-row items-center gap-2.5 border-b border-border py-1"
             >
               <span aria-hidden="true" className="text-destructive">
                 ✕
@@ -373,7 +392,7 @@ export function ChecklistGroup({
                 aria-label={`Supprimer ${item.label}`}
                 disabled={pending}
                 onClick={() => remove(item)}
-                className="grid size-8 place-items-center rounded-md text-muted-foreground hover:text-destructive focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+                className="grid size-control-auto place-items-center rounded-md text-muted-foreground hover:text-destructive print:hidden"
               >
                 <Trash2Icon aria-hidden="true" className="size-3.5" />
               </button>
@@ -385,17 +404,17 @@ export function ChecklistGroup({
         return (
           <div
             key={item.id}
-            className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-border py-2.5"
+            className="grid min-h-row grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-border py-1.5"
           >
             <Checkbox
               aria-label={name}
               checked={item.checked}
               disabled={pending}
               onCheckedChange={(value) => toggle(item, value === true)}
-              className="size-4.5"
+              className="size-4"
             />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-body">{name}</span>
+              <span className={cn(!item.checked && "font-medium")}>{name}</span>
               {detail && (
                 <span className="text-label text-muted-foreground">
                   {detail}
@@ -415,7 +434,7 @@ export function ChecklistGroup({
                         : "Paire retirée de la ligne.",
                     )
                   }
-                  className="mt-1 max-w-full self-start rounded-md border border-border bg-muted px-1.5 py-1 text-label text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+                  className="mt-1 h-control-auto max-w-full self-start rounded-lg border border-input bg-card px-2 text-label text-secondary-foreground print:hidden"
                 >
                   <option value="">Aucune paire liée</option>
                   {pairs.map((option) => (
@@ -485,7 +504,7 @@ export function DropBagCard({
       }
     >
       {nutrition && (
-        <div className="flex justify-between gap-2.5 border-t border-border py-2 text-body md:text-body">
+        <div className="flex min-h-row items-center justify-between gap-2.5 border-b border-border py-1.5">
           <span>{nutrition}</span>
           <span className="shrink-0 text-muted-foreground">
             <span className="max-md:hidden">depuis le </span>plan nutrition
@@ -495,7 +514,7 @@ export function DropBagCard({
       {extras.map((extra, index) => (
         <div
           key={`${extra}-${index}`}
-          className="flex items-center justify-between gap-2.5 border-t border-border py-1 text-body md:text-body"
+          className="flex min-h-row items-center justify-between gap-2.5 border-b border-border py-1"
         >
           <span>{extra}</span>
           <button
@@ -508,14 +527,14 @@ export function DropBagCard({
                 "Retiré du sac d’allègement.",
               )
             }
-            className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-destructive focus-visible:outline-2 focus-visible:outline-ring print:hidden"
+            className="grid size-control-auto shrink-0 place-items-center rounded-md text-muted-foreground hover:text-destructive print:hidden"
           >
             <XIcon aria-hidden="true" className="size-3.5" />
           </button>
         </div>
       ))}
       {!nutrition && extras.length === 0 && (
-        <p className="border-t border-border py-2.5 text-body text-muted-foreground">
+        <p className="py-2.5 text-body text-muted-foreground">
           Rien dans le sac pour le moment.
         </p>
       )}
