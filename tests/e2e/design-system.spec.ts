@@ -24,20 +24,6 @@ test("choice groups are keyboard operable and expose their state", async ({
   ).toBeDisabled();
 });
 
-test("a provider value becomes the athlete's once edited", async ({ page }) => {
-  await page.goto("/design-system");
-  const weight = page.getByLabel("Weight", { exact: true });
-  await expect(weight).toHaveValue("68");
-  await expect(weight).toHaveAccessibleDescription("From Garmin · 3 days ago");
-  const frame = page.locator('[data-slot="input-group"]').filter({
-    has: weight,
-  });
-  await expect(frame).toHaveCSS("border-top-style", "dashed");
-  await weight.fill("67.5");
-  await expect(weight).toHaveAccessibleDescription("Entered manually");
-  await expect(frame).toHaveCSS("border-top-style", "solid");
-});
-
 test("tabs, menus and dialogs keep Radix keyboard behaviour", async ({
   page,
 }) => {
@@ -82,30 +68,11 @@ test("status patterns announce state without relying on colour", async ({
     page.getByRole("status").filter({ hasText: "Sign-in expired" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("progressbar", { name: "Onboarding progress" }),
-  ).toHaveAttribute("aria-valuetext", "Step 4 of 6");
-  await expect(page.locator('li[aria-current="step"]')).toContainText(
-    "About you",
-  );
+    page.getByRole("progressbar", { name: "Progression", exact: true }),
+  ).toHaveAttribute("aria-valuetext", "Étape 4 sur 6");
   await expect(
     page.getByRole("img", { name: /Structure de la séance : .*1 bloc retiré/ }),
   ).toBeVisible();
-  await expect(page.getByText("Change from").first()).toBeAttached();
-});
-
-test("the coach reading trace resolves to a static state with reduced motion", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/design-system");
-  const reading = page.locator(
-    '[data-slot="coach-activity"][data-state="reading"]',
-  );
-  await expect(reading.locator("span[aria-hidden] > span")).toBeHidden();
-  await expect(page.locator('[data-slot="recommendation"]').first()).toHaveCSS(
-    "animation-name",
-    "none",
-  );
 });
 
 for (const width of [320, 390, 768, 1440]) {

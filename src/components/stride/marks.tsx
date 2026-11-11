@@ -1,14 +1,6 @@
-import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type Trend = "improving" | "stable" | "watch" | "investigate";
-
-export const trendLabels: Record<Trend, string> = {
-  improving: "Improving",
-  stable: "Stable",
-  watch: "Watch",
-  investigate: "Investigate",
-};
 
 export function TrendMark({
   trend,
@@ -47,26 +39,6 @@ export function TrendMark({
         />
       )}
     </svg>
-  );
-}
-
-export function TrendLabel({
-  trend,
-  children,
-  className,
-}: {
-  trend: Trend;
-  children?: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <span
-      data-slot="trend-label"
-      className={cn("inline-flex items-center gap-1.5 text-label", className)}
-    >
-      <TrendMark trend={trend} />
-      <span>{children ?? trendLabels[trend]}</span>
-    </span>
   );
 }
 
@@ -122,53 +94,6 @@ export function SourceMark({
         className,
       )}
     />
-  );
-}
-
-export type DecisionStatus = "open" | "accepted" | "declined" | "automatic";
-
-export const decisionLabels: Record<DecisionStatus, string> = {
-  open: "Open",
-  accepted: "Accepted",
-  declined: "Declined",
-  automatic: "Automatic",
-};
-
-export function DecisionMark({
-  status,
-  className,
-}: {
-  status: DecisionStatus;
-  className?: string;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      data-status={status}
-      className={cn(
-        "inline-block size-2.5 shrink-0 rounded-full",
-        status === "open" && "border-[1.5px] border-warning",
-        status === "accepted" && "bg-primary",
-        status === "declined" && "bg-data-1",
-        status === "automatic" &&
-          "border border-dashed border-muted-foreground",
-        className,
-      )}
-    />
-  );
-}
-
-export function DoneMark({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "grid size-6.5 shrink-0 place-items-center rounded-full bg-accent text-primary",
-        className,
-      )}
-    >
-      <CheckIcon className="size-3" strokeWidth={3} />
-    </span>
   );
 }
 

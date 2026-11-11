@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { MonoLabel } from "@/components/stride/mono-label";
-import { SectionHeader } from "@/components/stride/section-header";
 
 export function GallerySection({
   id,
@@ -50,7 +49,14 @@ export function Specimen({
 }) {
   return (
     <div className={cn("flex min-w-0 flex-col gap-3.5", className)}>
-      <SectionHeader as="h3" title={title} meta={meta} />
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-body-lg font-semibold text-balance">{title}</h3>
+        {meta && (
+          <span className="shrink-0 text-right text-label text-muted-foreground max-sm:hidden">
+            {meta}
+          </span>
+        )}
+      </div>
       {children}
     </div>
   );

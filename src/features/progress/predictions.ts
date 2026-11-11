@@ -1,6 +1,7 @@
-import type { Confidence } from "@/components/stride/confidence-meter";
 import type { DayValue, ProgressRace } from "./history";
 import { daysBetween } from "./period";
+
+export type Confidence = "low" | "moderate" | "high";
 
 export type Prediction = {
   key: "10k" | "half" | "marathon";

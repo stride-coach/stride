@@ -73,18 +73,6 @@ export function NavGearIcon(props: NavIconProps) {
   );
 }
 
-export function NavNutritionIcon(props: NavIconProps) {
-  return (
-    <NavSvg size={16} {...props}>
-      <path
-        d="M6 2H10 M7 2V6L3.6 12.4C3.3 13 3.7 14 4.4 14H11.6C12.3 14 12.7 13 12.4 12.4L9 6V2"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-    </NavSvg>
-  );
-}
-
 export function NavRacesIcon(props: NavIconProps) {
   return (
     <NavSvg size={16} {...props}>

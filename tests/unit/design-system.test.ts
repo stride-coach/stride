@@ -37,13 +37,13 @@ describe("onboarding progress", () => {
         "upcoming",
         "upcoming",
       ]),
-    ).toEqual({ position: 4, total: 6, label: "Step 4 of 6" });
+    ).toEqual({ position: 4, total: 6, label: "Étape 4 sur 6" });
   });
 
   it("falls back to the step after the completed ones", () => {
     expect(describeProgress(["done", "upcoming", "upcoming"]).label).toBe(
-      "Step 2 of 3",
+      "Étape 2 sur 3",
     );
-    expect(describeProgress(["done", "done"]).label).toBe("Step 2 of 2");
+    expect(describeProgress(["done", "done"]).label).toBe("Étape 2 sur 2");
   });
 });

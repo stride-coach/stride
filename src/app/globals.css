@@ -42,15 +42,6 @@
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
-  --halo: var(--relief-strong);
-  --halo-core: var(--relief-strong);
-  --halo-spark: var(--relief-strong);
-  --halo-trace: var(--relief-strong);
-  --halo-point: var(--primary);
-  --halo-pool-opacity: 0.18;
-  --halo-ribbon-opacity: 0.32;
-  --halo-ribbon-core-opacity: 0;
-  --halo-spark-opacity: 0;
   --stride-radius-mark: 2px;
   --stride-radius-sm: 5px;
   --stride-radius-md: 6px;
@@ -137,11 +128,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-halo: var(--halo);
-  --color-halo-core: var(--halo-core);
-  --color-halo-spark: var(--halo-spark);
-  --color-halo-trace: var(--halo-trace);
-  --color-halo-point: var(--halo-point);
   --font-sans: var(--stride-font-ui);
   --radius-mark: var(--stride-radius-mark);
   --radius-sm: var(--stride-radius-sm);
@@ -185,9 +171,6 @@
   --animate-trace: trace 1.6s var(--stride-ease) infinite;
   --animate-sheen: sheen 1.8s linear infinite;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
-  --animate-data-sheen: data-sheen 1.6s linear infinite;
-  --animate-halo-breathe: halo-breathe 8s ease-in-out infinite;
-  --animate-halo-draw: halo-draw 2s var(--stride-ease) 300ms both;
   --animate-relief-drift: relief-drift 60s ease-in-out infinite alternate;
 
   @keyframes rise {
@@ -215,28 +198,9 @@
     }
   }
 
-  @keyframes data-sheen {
-    from {
-      background-position: 100% 0;
-    }
-    to {
-      background-position: -100% 0;
-    }
-  }
-
   @keyframes breathe {
     50% {
       opacity: 0.35;
-    }
-  }
-
-  @keyframes halo-breathe {
-    0%,
-    100% {
-      opacity: 0.85;
-    }
-    50% {
-      opacity: 1;
     }
   }
 
@@ -246,15 +210,6 @@
     }
     to {
       transform: translate3d(-18px, 12px, 0);
-    }
-  }
-
-  @keyframes halo-draw {
-    from {
-      stroke-dashoffset: 1;
-    }
-    to {
-      stroke-dashoffset: 0;
     }
   }
 }

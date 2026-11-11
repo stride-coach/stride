@@ -8,24 +8,17 @@ import {
   NavRacesIcon,
   NavTodayIcon,
   TabActivitiesIcon,
+  TabCoachIcon,
   TabPlanIcon,
   TabProgressIcon,
   TabTodayIcon,
 } from "@/components/stride/nav-icons";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarInset,
   SidebarMenu,
   SidebarProvider,
@@ -34,18 +27,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { MonoLabel } from "@/components/stride/mono-label";
-import {
-  MobileAskAction,
-  MobileTab,
-  MobileTabBar,
-} from "@/components/stride/mobile-tab-bar";
-import {
-  NavBadge,
-  NavDayRow,
-  NavGoalSwitcher,
-  NavItem,
-  NavUser,
-} from "@/components/stride/navigation";
+import { MobileTab, MobileTabBar } from "@/components/stride/mobile-tab-bar";
+import { NavBadge, NavItem } from "@/components/stride/navigation";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { SyncStatus } from "@/components/stride/sync-status";
 
@@ -60,18 +43,6 @@ export default async function ShellPage() {
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <Sidebar variant="inset" collapsible="icon">
-        <SidebarHeader>
-          <NavGoalSwitcher
-            name="EcoTrail Paris 120K"
-            detail="A race · 164 days"
-          >
-            <DropdownMenuContent className="w-60" align="start">
-              <DropdownMenuLabel>Goals</DropdownMenuLabel>
-              <DropdownMenuItem>EcoTrail Paris 120K</DropdownMenuItem>
-              <DropdownMenuItem>10K tune-up</DropdownMenuItem>
-            </DropdownMenuContent>
-          </NavGoalSwitcher>
-        </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>Training</SidebarGroupLabel>
@@ -119,57 +90,7 @@ export default async function ShellPage() {
               />
             </SidebarMenu>
           </SidebarGroup>
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-            <SidebarGroupLabel>This week</SidebarGroupLabel>
-            <SidebarMenu className="gap-0.5">
-              <NavDayRow
-                href={`${shell}#tue`}
-                day="Tue 6"
-                label="Easy 50'"
-                zone={2}
-                status="done"
-              />
-              <NavDayRow
-                href={`${shell}#wed`}
-                day="Wed 7"
-                label="Threshold 52'"
-                zone={4}
-                isToday
-                status="attention"
-              />
-              <NavDayRow
-                href={`${shell}#thu`}
-                day="Thu 8"
-                label="Easy 45'"
-                zone={2}
-              />
-              <NavDayRow
-                href={`${shell}#sun`}
-                day="Sun 11"
-                label="Long trail 2h20"
-                zone={1}
-              />
-            </SidebarMenu>
-          </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          <NavUser
-            name="Jules"
-            detail="Profile 72% · 2 questions"
-            initials="JT"
-            sync="Garmin synced 06:12"
-          >
-            <DropdownMenuContent className="w-56" side="top" align="start">
-              <DropdownMenuLabel>Account</DropdownMenuLabel>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Answer 2 questions</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </NavUser>
-        </SidebarFooter>
         <SidebarRail />
       </Sidebar>
       <SidebarInset className="min-h-svh pb-24 md:min-h-[calc(100svh-1rem)] md:pb-0">
@@ -220,9 +141,11 @@ export default async function ShellPage() {
       <MobileTabBar className="fixed inset-x-0 bottom-0 z-20 md:hidden">
         <MobileTab href={shell} icon={<TabTodayIcon />} label="Aujourd’hui" />
         <MobileTab href={`${shell}#plan`} icon={<TabPlanIcon />} label="Plan" />
-        <MobileAskAction
+        <MobileTab
           href={`${shell}#coach`}
-          label="Coach, 2 questions en attente"
+          icon={<TabCoachIcon />}
+          label="Coach"
+          accessibleLabel="Coach, 2 questions en attente"
           isActive
           badge={
             <NavBadge
