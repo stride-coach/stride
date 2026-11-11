@@ -249,7 +249,7 @@ describe("attachment resolution", () => {
         },
       ],
       feeling: feelingView({ source: "athlete", effort: 8, feel: 25 }),
-      coachHref: "/coach/new?session=w02-thu",
+      coachHref: "/coach?session=w02-thu",
       planHref: "/plan/sessions/w02-thu",
     };
     reads.loadSessionDebrief.mockResolvedValue(debrief);

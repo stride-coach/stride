@@ -59,6 +59,19 @@ const bodies = {
     code: z.enum(["timeout", "budget_reached", "failed"]),
     text,
   }),
+  topic_summary: z.object({
+    topicId: z.uuid(),
+    title: z.string().max(120),
+    openedAt: z.string(),
+    closedAt: z.string(),
+    lead: agent.catch("coach"),
+    messages: z.number().int().min(0).catch(0),
+    decisions: z
+      .array(z.object({ proposalId: z.uuid(), title: z.string().max(200) }))
+      .max(20)
+      .catch([]),
+    summary: text.nullable().catch(null),
+  }),
 } as const;
 
 export type ThreadItemKind = keyof typeof bodies;

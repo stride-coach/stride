@@ -277,7 +277,7 @@ export const loadActivityPanel = cache(async function loadActivityPanel(
       planHref: debrief?.planHref ?? sessionPanelHref(session.sessionKey),
       coachHref:
         debrief?.coachHref ??
-        `/coach/new?session=${encodeURIComponent(session.sessionKey)}`,
+        `/coach?session=${encodeURIComponent(session.sessionKey)}`,
       feelingActivityId: debrief?.activityId ?? activity.id,
       feeling: debrief
         ? debrief.feeling

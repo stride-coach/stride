@@ -415,7 +415,7 @@ describe("unplanned activity card", () => {
 
   it("opens the coach with the activity attached", () => {
     expect(activityCoachHref("aaaaaaaa-aaaa-4aaa-8aaa-000000000001")).toBe(
-      "/coach/new?activity=aaaaaaaa-aaaa-4aaa-8aaa-000000000001",
+      "/coach?activity=aaaaaaaa-aaaa-4aaa-8aaa-000000000001",
     );
   });
 });

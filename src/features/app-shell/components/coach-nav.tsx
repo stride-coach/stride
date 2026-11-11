@@ -48,7 +48,7 @@ export function CoachNavItem({
           <SidebarMenuSubItem>
             <SidebarMenuSubButton asChild isActive={!team} className={subClass}>
               <Link href="/coach" aria-current={team ? undefined : "page"}>
-                Conversations
+                Conversation
               </Link>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>

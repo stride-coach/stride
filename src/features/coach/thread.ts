@@ -1,5 +1,10 @@
 import type { SentAttachment } from "./attachments";
-import type { ProposalOpinion, ProposalScope, ThreadItem } from "./items";
+import type {
+  ItemOf,
+  ProposalOpinion,
+  ProposalScope,
+  ThreadItem,
+} from "./items";
 import type { StaffAgent, StaffMember } from "./staff";
 
 export type ProposalCardStatus =
@@ -55,6 +60,12 @@ export type ThreadEntry =
       at: string;
       agent: StaffAgent;
       read: string | null;
+    }
+  | {
+      type: "topic_summary";
+      key: string;
+      at: string;
+      item: ItemOf<"topic_summary">;
     };
 
 export type ThreadInput = {
@@ -238,6 +249,15 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         speak("coach", item.at, index).blocks.push({
           type: "error",
           text: item.text,
+        });
+        return;
+      case "topic_summary":
+        current = null;
+        entries.push({
+          type: "topic_summary",
+          key: `topic-${index}`,
+          at: item.at,
+          item,
         });
         return;
     }

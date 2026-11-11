@@ -65,7 +65,7 @@ export function TopBar({
       </Suspense>
       <span className="ml-auto flex items-center gap-2">
         <Button asChild size="sm" variant="outline">
-          <Link href="/coach/new">Demander au coach</Link>
+          <Link href="/coach">Demander au coach</Link>
         </Button>
         <NotificationBell />
         <AccountAvatarMenu athlete={athlete} modelDetail={modelDetail} />

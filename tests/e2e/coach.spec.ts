@@ -5,6 +5,8 @@ const authPort = Number(process.env.PLAYWRIGHT_AUTH_PORT ?? 3200);
 const kneeThread = "c0c0c0c0-0000-4000-8000-000000000001";
 const planThread = "c0c0c0c0-0000-4000-8000-000000000002";
 const spikeThread = "c0c0c0c0-0000-4000-8000-000000000003";
+const mainThread = "c0c0c0c0-0000-4000-8000-000000000004";
+const closedTopic = "c0c0c0c0-0000-4000-8000-000000000005";
 const newThread = "c0c0c0c0-0000-4000-8000-0000000000aa";
 const newPlanProposal = "eeeeeeee-eeee-4eee-8eee-900000000001";
 const coachActivity = "aaaaaaaa-aaaa-4aaa-8aaa-000000009101";
@@ -20,6 +22,7 @@ async function resetCoach() {
 }
 
 async function coachTurn(update: {
+  threadId?: string;
   session: Record<string, unknown>;
   items?: { kind: string; body: Record<string, unknown> }[];
 }) {
@@ -61,14 +64,14 @@ function item(kind: string, body: Record<string, unknown>) {
 
 async function expectNotFound(page: Page) {
   await expect(
-    page.getByRole("heading", { level: 1, name: "Conversation introuvable" }),
+    page.getByRole("heading", { level: 1, name: "Sujet introuvable" }),
   ).toBeVisible();
   await expect(
     page.locator('meta[name="robots"][content*="noindex"]'),
   ).not.toHaveCount(0);
 }
 
-test("the conversations list, consult, question and Suivi at 1440", async ({
+test("the main thread, the topics list and a topic question at 1440", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -79,43 +82,52 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   await expect(coachItem).toContainText(
     "1 question et 1 proposition en attente",
   );
-  await expect(coachItem.getByText("Conversations")).toHaveCount(0);
   await coachLink.click();
   await expect(page).toHaveURL("/coach", { timeout: 20_000 });
-  const sidebarConversations = coachItem.getByRole("link", {
-    name: "Conversations",
-  });
-  await expect(sidebarConversations).toHaveAttribute("aria-current", "page");
   await expect(
-    coachItem.getByRole("link", { name: "Le staff" }),
-  ).not.toHaveAttribute("aria-current");
+    coachItem.getByRole("link", { name: "Conversation" }),
+  ).toHaveAttribute("aria-current", "page");
+  const sections = page
+    .getByRole("navigation", { name: "Sections du Coach" })
+    .filter({ visible: true });
+  await expect(sections.getByRole("link")).toHaveText([
+    "Conversation",
+    "Le staff",
+  ]);
+  const thread = page.getByRole("region", { name: "Fil principal" });
+  await expect(
+    thread.getByRole("log", { name: "Messages" }).getByText("Belle semaine"),
+  ).toBeVisible();
 
-  const filters = page.getByRole("group", { name: "Filtrer" });
-  const all = filters.getByRole("button", { name: "Toutes" });
-  const mine = filters.getByRole("button", { name: "À toi · 2" });
-  await expect(all).toHaveAttribute("aria-pressed", "true");
-  const filterStyle = await mine.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return [style.minHeight, style.fontSize, style.borderTopWidth];
+  const topics = page.getByRole("button", { name: "Sujets 2" });
+  await topics.click();
+  const list = page.getByRole("navigation", {
+    name: "Fil principal et sujets",
   });
-  expect(filterStyle).toEqual(["24px", "13px", "1px"]);
-  await mine.click();
-  await expect(mine).toHaveAttribute("aria-pressed", "true");
-  await expect(all).toHaveAttribute("aria-pressed", "false");
-  await all.click();
-
-  const list = page.getByRole("region", { name: "Conversations" });
-  await expect(list.getByText("En cours")).toBeVisible();
   await expect(
-    list.getByRole("link", { name: /Genou en descente/ }),
-  ).toContainText("Question pour toi");
+    list.getByRole("link", { name: /Fil principal/ }),
+  ).toHaveAttribute("aria-current", "page");
+  const open = list.getByRole("region", { name: "Sujets ouverts" });
+  await expect(open.getByRole("link")).toHaveCount(2);
   await expect(
-    list.getByRole("link", { name: /Mon premier plan/ }),
-  ).toContainText("Proposition à valider");
-  await expect(list.getByRole("link")).toHaveCount(3);
-  await expect(list.getByText("Conversation", { exact: true })).toHaveCount(0);
-  await list.getByRole("link", { name: /Genou en descente/ }).click();
+    open.getByRole("link", { name: /Genou en descente/ }),
+  ).toContainText("Santé");
+  await expect(
+    list
+      .getByRole("region", { name: "Sujets clos" })
+      .getByRole("link", { name: /Tendon d’Achille en descente/ }),
+  ).toContainText("clos le");
+  await expect(
+    list.getByRole("link", { name: /Tendon d’Achille en descente/ }),
+  ).toHaveAttribute("href", `/coach/${closedTopic}`);
+  await open.getByRole("link", { name: /Genou en descente/ }).click();
   await expect(page).toHaveURL(`/coach/${kneeThread}`, { timeout: 20_000 });
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Genou en descente" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Clore le sujet" }),
+  ).toBeVisible();
 
   const log = page.getByRole("log", { name: "Messages" });
   await expect(log.getByText("@Santé", { exact: true })).toHaveCount(2);
@@ -143,20 +155,12 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   await expect(log.getByText("A lu")).toBeVisible();
   await expect(log.getByText("Signalements · 14 jours")).toBeVisible();
 
-  const suivi = page.getByRole("complementary", {
-    name: "Suivi de la conversation",
-  });
-  await expect(suivi.getByText("Question pour toi")).toBeVisible();
+  const aside = page.getByRole("complementary", { name: "Ce sujet" });
+  await expect(aside).toContainText("Mené parSanté");
+  await expect(aside).toContainText("AvecCoach");
   await expect(
-    suivi
-      .getByRole("region", { name: "Participants" })
-      .getByRole("listitem")
-      .filter({ hasText: "Santé" }),
-  ).toContainText("Consulté");
-  await expect(suivi.getByText("Signalements · 14 jours")).toBeVisible();
-  await expect(suivi.locator('[aria-current="step"]')).toHaveText(
-    /Question de Santé/,
-  );
+    aside.getByRole("link", { name: "Revenir au fil principal" }),
+  ).toHaveAttribute("href", "/coach");
   await page.screenshot({ path: "test-results/coach-desktop.png" });
 
   let posted: unknown = null;
@@ -196,34 +200,27 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   await expect(
     question.getByRole("button", { name: "Aucune gêne" }),
   ).toHaveAttribute("aria-pressed", "true");
-  await expect(suivi.locator('[aria-current="step"]')).toHaveCount(1);
-  await expect(suivi.locator('[aria-current="step"]')).toContainText(
-    "Dernière étape",
-  );
-  await expect(
-    suivi.getByText("Ta réponse à Santé", { exact: true }),
-  ).toBeVisible();
   expect(posted).toEqual({
-    sessionId: "sesn_01Genou",
+    target: { kind: "topic", threadId: kneeThread },
     mode: "conversation",
     input: { kind: "answer", toolUseId: "sevt_knee", text: "Aucune gêne" },
   });
 });
 
-test("a new conversation asks Santé and keeps the thread after the turn", async ({
+test("a main-thread message asks Santé and stays in the main thread", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
-  await page.goto("/coach/new");
+  await page.goto("/coach");
   let posted: unknown = null;
   await page.route("**/api/coach/turns", async (route) => {
     posted = route.request().postDataJSON();
     await stream([
       {
         type: "session",
-        sessionId: "sesn_01Nouveau",
-        threadId: newThread,
+        sessionId: "sesn_01Fil",
+        threadId: mainThread,
         consoleUrl: "https://console.test",
       },
       item("athlete", { text: "Mon mollet est tendu", consult: "medical" }),
@@ -256,11 +253,12 @@ test("a new conversation asks Santé and keeps the thread after the turn", async
   await page.getByRole("button", { name: "Mentionner Santé" }).click();
   await page.getByRole("button", { name: "Envoyer" }).click();
 
-  await expect(page).toHaveURL(`/coach/${newThread}`);
   const log = page.getByRole("log", { name: "Messages" });
   await expect(
     log.locator("strong", { hasText: "Santé est rassurante" }),
   ).toBeVisible();
+  await expect(page).toHaveURL("/coach");
+  await expect(log.getByText("Belle semaine")).toBeVisible();
   await expect(
     log.getByRole("listitem").filter({ hasText: "footing" }),
   ).toBeVisible();
@@ -269,6 +267,7 @@ test("a new conversation asks Santé and keeps the thread after the turn", async
   await expect(log.getByText("Garmin · VFC")).toBeVisible();
   await expect(log).not.toContainText("Calf tightness");
   expect(posted).toEqual({
+    target: { kind: "main" },
     mode: "conversation",
     input: {
       kind: "message",
@@ -276,16 +275,141 @@ test("a new conversation asks Santé and keeps the thread after the turn", async
       consult: "medical",
     },
   });
+});
+
+test("a new topic keeps its messages apart and closes into a summary card", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto("/coach");
+  await page.getByRole("button", { name: "Nouveau sujet" }).click();
+  const dialog = page.getByRole("dialog", { name: "Nouveau sujet" });
+  await dialog.getByRole("button", { name: "Préparer une course" }).click();
   await expect(
-    page
-      .getByRole("region", { name: "Conversations" })
-      .getByRole("link", { name: /Mon mollet est tendu/ }),
-  ).toContainText(
-    "Coach : Santé est rassurante : on reste en facile. footing étirements",
-  );
+    dialog.getByRole("textbox", { name: "De quoi veux-tu parler ?" }),
+  ).toHaveValue("Préparer une course");
+  await dialog.getByRole("radio", { name: "Course · Trail des Lacs" }).click();
+  await dialog.getByRole("button", { name: "Ouvrir le sujet" }).click();
   await expect(
-    page.getByRole("heading", { name: "Mon mollet est tendu" }),
+    page.getByRole("heading", { level: 1, name: "Préparer une course" }),
   ).toBeVisible();
+  const aside = page.getByRole("complementary", { name: "Ce sujet" });
+  await expect(aside).toContainText("Lié àTrail des Lacs");
+  await expect(aside).toContainText("Mené parCoach");
+
+  let posted: unknown = null;
+  await page.route("**/api/coach/turns", async (route) => {
+    posted = route.request().postDataJSON();
+    await fetch(`http://127.0.0.1:${authPort}/__test__/coach-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session: {
+          id: newThread,
+          managed_session_id: "sesn_01Sujet",
+          title: "Préparer une course",
+          race_id: coachRace,
+          last_turn_at: at(),
+          last_activity_at: at(),
+          read_at: at(),
+          created_at: at(),
+        },
+      }),
+    });
+    await coachTurn({
+      threadId: newThread,
+      session: {},
+      items: [
+        {
+          kind: "athlete",
+          body: {
+            text: "Quelle allure viser ?",
+            consult: null,
+            attachments: [],
+          },
+        },
+        {
+          kind: "staff_message",
+          body: {
+            thread: "sthr_pace",
+            agent: "strategist",
+            text: "Pars à 6:10 par kilomètre sur le plat.",
+          },
+        },
+        { kind: "coach", body: { text: "On en reparle après ta sortie." } },
+      ],
+    });
+    await stream([
+      {
+        type: "session",
+        sessionId: "sesn_01Sujet",
+        threadId: newThread,
+        consoleUrl: "https://console.test",
+      },
+      item("athlete", {
+        text: "Quelle allure viser ?",
+        consult: null,
+        attachments: [],
+      }),
+      item("staff_message", {
+        thread: "sthr_pace",
+        agent: "strategist",
+        text: "Pars à 6:10 par kilomètre sur le plat.",
+      }),
+      item("coach", { text: "On en reparle après ta sortie." }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+  const composer = page.getByRole("textbox", { name: "Écrire au staff" });
+  await composer.fill("Quelle allure viser ?");
+  await composer.press("Enter");
+  await expect(page).toHaveURL(`/coach/${newThread}`, { timeout: 20_000 });
+  expect(posted).toEqual({
+    target: {
+      kind: "new_topic",
+      title: "Préparer une course",
+      raceId: coachRace,
+    },
+    mode: "conversation",
+    input: { kind: "message", text: "Quelle allure viser ?" },
+  });
+  await expect(aside).toContainText("Mené parStratège de course");
+  await expect(aside).toContainText("AvecCoach");
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+
+  await page.getByRole("button", { name: "Clore le sujet" }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Clore le sujet" })
+    .click();
+  await expect(page.getByText(/^Ce sujet est clos\./)).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(
+    page.getByRole("textbox", { name: "Écrire au staff" }),
+  ).toHaveCount(0);
+
+  await page.goto("/coach");
+  const log = page.getByRole("log", { name: "Messages" });
+  const card = log.locator('[data-slot="widget"]', {
+    hasText: "Sujet clos · Préparer une course",
+  });
+  await expect(card).toContainText("Aucune décision");
+  await expect(card).toContainText("3 messages");
+  await expect(
+    card.getByRole("link", { name: "Relire le sujet" }),
+  ).toHaveAttribute("href", `/coach/${newThread}`);
+  await expect(log).not.toContainText("Quelle allure viser ?");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await expect(card).toBeVisible();
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(390);
+  await card.getByRole("link", { name: "Relire le sujet" }).click();
+  await expect(page).toHaveURL(`/coach/${newThread}`, { timeout: 20_000 });
+  await expect(page.getByText(/^Ce sujet est clos\./)).toBeVisible();
 });
 
 test("a refused turn shows a French message and keeps the draft", async ({
@@ -371,7 +495,7 @@ test("suggested replies send from the keyboard and hide while the staff works", 
   await expect(row).toHaveCount(0);
   await expect(composer).toHaveValue("");
   expect(posted).toEqual({
-    sessionId: expect.any(String),
+    target: { kind: "topic", threadId: planThread },
     mode: "plan",
     input: { kind: "message", text: "Propose une autre option" },
   });
@@ -435,7 +559,7 @@ test("context chips are picked with the keyboard, survive a failed send and reac
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
-  await page.goto("/coach/new");
+  await page.goto("/coach");
   const trigger = page.getByRole("button", { name: addContext });
   await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
   await trigger.click();
@@ -533,8 +657,8 @@ test("context chips are picked with the keyboard, survive a failed send and reac
     await stream([
       {
         type: "session",
-        sessionId: "sesn_01Contexte",
-        threadId: newThread,
+        sessionId: "sesn_01Fil",
+        threadId: mainThread,
         consoleUrl: "https://console.test",
       },
       item("athlete", {
@@ -560,6 +684,7 @@ test("context chips are picked with the keyboard, survive a failed send and reac
   await page.getByRole("button", { name: "Envoyer" }).click();
   await expect(chips).toBeHidden();
   expect(posted).toEqual({
+    target: { kind: "main" },
     mode: "conversation",
     input: { kind: "message", text: "Analyse ça", attachments },
   });
@@ -596,7 +721,7 @@ test("a stored message keeps its chips and answer mode hides the context control
 test("mobile picks context from a bottom sheet at 390", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
-  await page.goto("/coach/new");
+  await page.goto("/coach");
   const trigger = page.getByRole("button", { name: addContext });
   const triggerBox = await trigger.boundingBox();
   expect(Math.round(triggerBox!.height)).toBeGreaterThanOrEqual(40);
@@ -659,23 +784,28 @@ test("a new-plan proposal opens the review sheet and activates without an active
   ).toBeVisible();
 });
 
-test("a reload keeps the list and the thread", async ({ page }) => {
+test("a reload keeps the topic", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto(`/coach/${kneeThread}`);
   const log = page.getByRole("log", { name: "Messages" });
   const before = (await log.textContent()) ?? "";
-  const list =
-    (await page.getByRole("region", { name: "Conversations" }).textContent()) ??
-    "";
   await page.reload();
   await expect(log).toHaveText(before);
-  await expect(page.getByRole("region", { name: "Conversations" })).toHaveText(
-    list,
-  );
   await expect(
     log.getByRole("button", { name: "Aucune gêne", exact: true }),
   ).toBeEnabled();
+});
+
+test("a main-thread link from a notification opens the main thread", async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.goto(`/coach/${mainThread}`);
+  await expect(page).toHaveURL("/coach", { timeout: 20_000 });
+  await expect(
+    page.getByRole("log", { name: "Messages" }).getByText("Belle semaine"),
+  ).toBeVisible();
 });
 
 test("another athlete's thread is not found", async ({ page }) => {
@@ -695,10 +825,12 @@ test("the Plan empty state asks the Coach for a plan", async ({ page }) => {
   await signIn(page);
   await page.goto("/plan");
   await page.getByRole("link", { name: "Demander un plan" }).click();
-  await expect(page).toHaveURL("/coach/new?request=plan");
+  await expect(page).toHaveURL("/coach?request=plan");
   await expect(
-    page.getByRole("heading", { name: "Demande ton plan au Coach" }),
-  ).toBeVisible();
+    page.getByRole("textbox", { name: "Écrire au staff" }),
+  ).toHaveValue("Construis-moi un plan d’entraînement pour mon objectif.");
+  await page.goto("/coach/new?request=plan");
+  await expect(page).toHaveURL("/coach?request=plan");
   await expect(
     page.getByRole("textbox", { name: "Écrire au staff" }),
   ).toHaveValue("Construis-moi un plan d’entraînement pour mon objectif.");
@@ -722,49 +854,35 @@ test("a prefilled request starts the composer with its text", async ({
   ).toHaveValue("a".repeat(500));
 });
 
-test("mobile shows the list, the thread and the Suivi sheet at 390", async ({
+test("mobile shows the main thread, the topics sheet and a topic at 390", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto("/coach");
   await expect(
-    page.getByRole("heading", { name: "Coach", level: 1 }),
+    page.getByRole("log", { name: "Messages" }).getByText("Belle semaine"),
   ).toBeVisible();
-  await expect(page.getByRole("log")).toBeHidden();
   await expect(
-    page
-      .getByRole("region", { name: "Ton staff" })
-      .getByRole("link", { name: "Coach, voir le staff" })
-      .locator('[data-slot="staff-avatar"]'),
+    page.getByRole("navigation", { name: "Navigation principale" }),
   ).toBeVisible();
-  await page.screenshot({ path: "test-results/coach-mobile-list.png" });
-  await page
-    .getByRole("region", { name: "Conversations" })
-    .getByRole("link", { name: /Genou en descente/ })
-    .click();
+  await page.getByRole("button", { name: /^Fil principal\s*2 sujets/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Sujets" });
+  await expect(sheet.getByRole("link", { name: /Tendon/ })).toBeVisible();
+  await expect(
+    sheet.getByRole("button", { name: "Nouveau sujet" }),
+  ).toBeVisible();
+  await sheet.getByRole("link", { name: /Genou en descente/ }).click();
   await expect(page).toHaveURL(`/coach/${kneeThread}`, { timeout: 20_000 });
-  await expect(
-    page.getByRole("region", { name: "Conversations" }),
-  ).toBeHidden();
-  await expect(
-    page.getByRole("link", { name: "Retour aux conversations" }),
-  ).toBeVisible();
   const log = page.getByRole("log", { name: "Messages" });
   await expect(log.getByText("Question de Santé")).toBeVisible();
   await expect(
     log.getByRole("button", { name: "Aucune gêne", exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: "test-results/coach-mobile.png" });
-  await page.getByRole("button", { name: "Suivi de la conversation" }).click();
-  const sheet = page.getByRole("dialog");
-  await expect(sheet.getByText("Participants")).toBeVisible();
-  await expect(
-    sheet
-      .getByRole("region", { name: "Participants" })
-      .getByRole("listitem")
-      .filter({ hasText: "Santé" }),
-  ).toContainText("Consulté");
+  await page.getByRole("button", { name: "Ce sujet" }).click();
+  const aside = page.getByRole("dialog", { name: "Ce sujet" });
+  await expect(aside).toContainText("Mené parSanté");
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(390);
   await page.keyboard.press("Escape");
@@ -780,7 +898,7 @@ test("mobile shows the list, the thread and the Suivi sheet at 390", async ({
   expect(cardWidth).toBeLessThanOrEqual(390);
 });
 
-test("mobile tab bar reaches the main screens and hides in a conversation", async ({
+test("mobile tab bar reaches the main screens and stays in a topic", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -819,7 +937,7 @@ test("mobile tab bar reaches the main screens and hides in a conversation", asyn
 
   await page.goto(`/coach/${kneeThread}`);
   await expect(page.getByRole("log", { name: "Messages" })).toBeVisible();
-  await expect(tabs).toHaveCount(0);
+  await expect(tabs).toBeVisible();
 
   await page.goto("/coach/team");
   await expect(tabs.getByRole("link", { name: /^Coach/ })).toHaveAttribute(
@@ -845,35 +963,33 @@ test("reduced motion stops the live indicators", async ({ page }) => {
   expect(animated).toBe(0);
 });
 
-test("deleting a conversation asks for confirmation and refreshes the badge", async ({
+test("deleting a topic asks for confirmation and refreshes the badge", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto(`/coach/${kneeThread}`);
   await page.getByRole("button", { name: "Plus d’options" }).click();
-  await page
-    .getByRole("menuitem", { name: "Supprimer la conversation" })
-    .click();
+  await page.getByRole("menuitem", { name: "Supprimer le sujet" }).click();
   const dialog = page.getByRole("alertdialog");
-  await expect(dialog).toContainText("Supprimer la conversation ?");
+  await expect(dialog).toContainText("Supprimer le sujet ?");
   await dialog.getByRole("button", { name: "Annuler" }).click();
   await expect(page).toHaveURL(`/coach/${kneeThread}`);
 
   await page.getByRole("button", { name: "Plus d’options" }).click();
-  await page
-    .getByRole("menuitem", { name: "Supprimer la conversation" })
-    .click();
+  await page.getByRole("menuitem", { name: "Supprimer le sujet" }).click();
   await page
     .getByRole("alertdialog")
     .getByRole("button", { name: "Supprimer" })
     .click();
   await expect(page).toHaveURL("/coach", { timeout: 20_000 });
+  await page.getByRole("button", { name: /^Sujets/ }).click();
   await expect(
     page
-      .getByRole("region", { name: "Conversations" })
+      .getByRole("navigation", { name: "Fil principal et sujets" })
       .getByRole("link", { name: /Genou en descente/ }),
   ).toHaveCount(0);
+  await page.keyboard.press("Escape");
   const coachLink = page.getByRole("link", { name: "Coach", exact: true });
   await expect(
     page.locator("li", { has: coachLink }).first(),
@@ -882,14 +998,15 @@ test("deleting a conversation asks for confirmation and refreshes the badge", as
   await expectNotFound(page);
 });
 
-test("the thread menu offers deletion on mobile", async ({ page }) => {
+test("the topic menu offers renaming, closing and deletion on mobile", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto(`/coach/${planThread}`);
   await page.getByRole("button", { name: "Plus d’options" }).click();
-  await expect(
-    page.getByRole("menuitem", { name: "Supprimer la conversation" }),
-  ).toBeVisible();
+  for (const name of ["Renommer", "Clore le sujet", "Supprimer le sujet"])
+    await expect(page.getByRole("menuitem", { name })).toBeVisible();
 });
 
 test("the staff page shows five roles without faces and names them everywhere", async ({
@@ -921,7 +1038,7 @@ test("the staff page shows five roles without faces and names them everywhere", 
   await expect(page.getByRole("article")).toHaveCount(5);
   const coach = page.getByRole("article", { name: "Coach" });
   await expect(coach).toContainText("Ton entraînement au quotidien");
-  await expect(coach).toContainText("2 conversations ce mois");
+  await expect(coach).toContainText("3 conversations ce mois");
   await expect(coach.locator('[data-slot="staff-avatar"]')).toBeVisible();
   await expect(
     coach.getByRole("link", { name: "Écrire au Coach" }),
@@ -946,18 +1063,21 @@ test("the staff page shows five roles without faces and names them everywhere", 
   });
 
   await page.goto(`/coach/${kneeThread}`);
-  await expect(page.getByText("Coach, avec Santé").first()).toBeVisible();
+  await expect(
+    page.getByRole("complementary", { name: "Ce sujet" }),
+  ).toContainText("Mené parSanté");
   await expect(
     page.getByRole("log", { name: "Messages" }).getByText("Question de Santé"),
   ).toBeVisible();
 });
 
-test("mobile reaches the staff page from the conversations list at 390", async ({
+test("mobile reaches the staff page from the topics sheet at 390", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto("/coach");
+  await page.getByRole("button", { name: /^Fil principal/ }).click();
   await page.getByRole("link", { name: "Voir le staff", exact: true }).click();
   await expect(page).toHaveURL("/coach/team", { timeout: 20_000 });
   await expect(
@@ -974,7 +1094,7 @@ test("mobile reaches the staff page from the conversations list at 390", async (
     path: "test-results/coach-team-mobile.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Retour aux conversations" }).click();
+  await page.getByRole("link", { name: "Retour au fil principal" }).click();
   await expect(page).toHaveURL("/coach", { timeout: 20_000 });
 });
 

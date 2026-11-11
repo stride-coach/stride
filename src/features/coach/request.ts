@@ -24,5 +24,5 @@ export function coachRequestHref(
   if (text) params.set("text", text.slice(0, maximumRequestLength));
   if (sessionKey) params.set("session", sessionKey);
   if (raceId) params.set("race", raceId);
-  return `/coach/new?${params.toString()}`;
+  return `/coach?${params.toString()}`;
 }

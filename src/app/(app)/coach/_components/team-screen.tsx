@@ -85,7 +85,7 @@ function RoleCard({ agent, usage }: { agent: StaffAgent; usage: StaffUsage }) {
       </div>
       {agent === "coach" && (
         <Button asChild className="self-start">
-          <Link href="/coach/new">Écrire au Coach</Link>
+          <Link href="/coach">Écrire au Coach</Link>
         </Button>
       )}
     </article>
@@ -230,7 +230,7 @@ export function TeamScreen({
     <>
       <AppHeader
         title="Coach"
-        back={{ href: "/coach", label: "Retour aux conversations" }}
+        back={{ href: "/coach", label: "Retour au fil principal" }}
         breadcrumb={<CoachHeaderNav />}
       />
       <CoachTabs className="border-b border-border px-4 py-2.5" />

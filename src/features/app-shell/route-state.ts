@@ -41,9 +41,9 @@ export const missingItems: Record<
     action: { href: "/activities/gear", label: "Voir mon matériel" },
   },
   conversation: {
-    title: "Conversation introuvable",
-    message: "Cette conversation n’existe pas ou a été supprimée.",
-    action: { href: "/coach", label: "Voir mes conversations" },
+    title: "Sujet introuvable",
+    message: "Ce sujet n’existe pas ou a été supprimé.",
+    action: { href: "/coach", label: "Revenir au fil principal" },
   },
   page: {
     title: "Page introuvable",

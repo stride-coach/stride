@@ -1,165 +1,12 @@
 "use client";
 
-import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
-import { ChevronLeftIcon, PlusIcon } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+import { ChevronDownIcon } from "lucide-react";
 import { LoadingScope } from "@/features/data-activity/components/loading";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import { participantsLine } from "@/features/coach/conversations";
-import {
-  StaffAvatar,
-  StaffStack,
-} from "@/features/coach/components/staff-avatar";
-import { staff as allStaff } from "@/features/coach/staff";
 import { staffAgents } from "@/features/coach/staff";
 import { CoachHeaderNav, CoachTabs } from "./coach-tabs";
-
-function ConversationListLoading() {
-  const staff = allStaff;
-  return (
-    <section
-      aria-label="Conversations"
-      className="flex min-h-0 flex-1 flex-col"
-    >
-      <div className="flex flex-col gap-2.5 px-4 pt-4 pb-2.5 min-[980px]:px-3">
-        <div className="flex flex-col gap-3 min-[980px]:hidden">
-          <div className="flex min-h-11 items-center gap-2.5">
-            <h1 className="text-body-lg font-semibold">Coach</h1>
-            <span className="text-muted-foreground">ton staff</span>
-            <Button
-              asChild
-              variant="outline"
-              size="icon-lg"
-              className="ml-auto"
-            >
-              <Link href="/coach/new" aria-label="Nouvelle conversation">
-                <PlusIcon aria-hidden="true" />
-              </Link>
-            </Button>
-            <MobileHeaderActions />
-          </div>
-          <CoachTabs className="md:flex" />
-          <section aria-label="Ton staff" className="flex flex-col gap-2.5">
-            <span className="text-label font-medium text-muted-foreground">
-              Ton staff
-            </span>
-            <div className="flex gap-2 overflow-x-auto">
-              {staffAgents.map((agent) => (
-                <span
-                  key={agent}
-                  className="flex w-16 shrink-0 flex-col items-center gap-1.5 text-center text-label text-secondary-foreground"
-                >
-                  <StaffAvatar agent={agent} size={30} decorative />
-                  <span aria-hidden="true">{staff[agent].name}</span>
-                </span>
-              ))}
-            </div>
-          </section>
-        </div>
-        <div className="flex items-center gap-2 max-[980px]:hidden">
-          <h2 className="font-medium">Conversations</h2>
-          <Button asChild variant="outline" className="ml-auto">
-            <Link href="/coach/new">
-              <PlusIcon aria-hidden="true" />
-              Nouvelle
-            </Link>
-          </Button>
-        </div>
-        <div aria-hidden="true" className="flex flex-col gap-2.5">
-          <Skeleton className="h-control-touch w-full rounded-lg md:h-control" />
-          <div className="flex gap-1.5">
-            <Skeleton className="h-6 w-16 rounded-md" />
-            <Skeleton className="h-6 w-20 rounded-md" />
-          </div>
-        </div>
-      </div>
-      <div
-        aria-hidden="true"
-        className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden px-1.5 pb-3"
-      >
-        <div className="px-3 pt-2.5 pb-0.5">
-          <Skeleton className="h-2.5 w-20" />
-        </div>
-        {Array.from({ length: 6 }, (_, item) => (
-          <div
-            key={item}
-            className="grid grid-cols-[36px_minmax(0,1fr)] items-start gap-x-3 px-3 py-2.5"
-          >
-            <Skeleton className="size-7.5 rounded-full" />
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <Skeleton className="h-4 w-3/5" />
-                <Skeleton className="h-2.5 w-10" />
-              </div>
-              <Skeleton className="h-3 w-full" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ThreadHeader({ title }: { title: string | null }) {
-  const staff = allStaff;
-  return (
-    <div className="flex min-h-13 shrink-0 items-center gap-2.5 border-b border-border py-1.5 pr-2.5 pl-1.5 min-[980px]:min-h-header min-[980px]:gap-3 min-[980px]:px-5">
-      <Button
-        asChild
-        variant="ghost"
-        size="icon-lg"
-        className="text-secondary-foreground min-[980px]:hidden"
-      >
-        <Link href="/coach" aria-label="Retour aux conversations">
-          <ChevronLeftIcon aria-hidden="true" />
-        </Link>
-      </Button>
-      {title ? (
-        <>
-          <StaffStack agents={["coach"]} size={22} />
-          <span className="flex min-w-0 flex-1 flex-col">
-            <h1 className="truncate font-medium">{title}</h1>
-            <span className="truncate text-label text-muted-foreground">
-              {participantsLine(staff, ["coach"])}
-            </span>
-          </span>
-        </>
-      ) : (
-        <span
-          aria-hidden="true"
-          className="flex min-w-0 flex-1 items-center gap-2.5 min-[980px]:gap-3"
-        >
-          <Skeleton className="size-5.5 shrink-0 rounded-full" />
-          <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-3 w-1/3" />
-          </span>
-        </span>
-      )}
-    </div>
-  );
-}
-
-function EmptyThread({ plan }: { plan: boolean }) {
-  const staff = allStaff;
-  return (
-    <div className="mx-auto flex w-full max-w-180 flex-col gap-3 px-4 pt-8 md:px-5 md:pt-12">
-      <StaffAvatar agent="coach" size={48} />
-      <h2 className="text-verdict font-semibold">
-        {plan ? `Demande ton plan ${staff.coach.to}` : "Écris à ton staff"}
-      </h2>
-      <p className="max-w-140 text-body-lg text-secondary-foreground">
-        {plan
-          ? `${staff.coach.subject} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
-          : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.subject} te répond ou passe la main ${staff.medical.to}, qui te parle directement quand c’est utile.`}
-      </p>
-    </div>
-  );
-}
 
 function ThreadLogLoading() {
   return (
@@ -192,7 +39,7 @@ function ThreadLogLoading() {
 
 function ComposerLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:bg-transparent md:px-5 md:pb-4">
+    <div className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-3 md:bg-transparent md:px-5 md:pb-4">
       <Skeleton aria-hidden="true" className="h-12 w-full rounded-lg" />
       <p className="text-label text-muted-foreground max-sm:hidden">
         Le Coach lit chaque message et passe la main au bon spécialiste, deux au
@@ -203,62 +50,83 @@ function ComposerLoading() {
   );
 }
 
-export function CoachLoading({
-  view,
-}: {
-  view: "conversations" | "thread" | "new";
-}) {
-  const plan = useSearchParams().get("request") === "plan";
-  const current = view !== "conversations";
+export function CoachLoading({ view }: { view: "main" | "topic" }) {
+  const main = view === "main";
   return (
     <LoadingScope
-      label={
-        view === "thread"
-          ? "Chargement de la conversation"
-          : "Chargement des conversations"
-      }
+      label={main ? "Chargement du fil principal" : "Chargement du sujet"}
       className="flex min-h-0 flex-1 flex-col"
     >
       <AppHeader
         title="Coach"
-        breadcrumb={<CoachHeaderNav />}
-        actions={
-          <Button asChild variant="ghost" className="max-md:hidden">
-            <Link href="/coach/new">Nouvelle conversation</Link>
-          </Button>
+        detail={main ? "ton staff" : "sujet"}
+        breadcrumb={
+          main ? (
+            <CoachHeaderNav />
+          ) : (
+            <span aria-hidden="true" className="flex items-center gap-2">
+              <span className="text-muted-foreground">Coach</span>
+              <Skeleton className="h-4 w-40" />
+            </span>
+          )
         }
-        className="max-[980px]:hidden"
+        actions={
+          <div className="flex items-center gap-2 max-md:hidden">
+            <Button variant="outline" disabled>
+              Sujets
+            </Button>
+            <Button variant="ghost" disabled>
+              Nouveau sujet
+            </Button>
+          </div>
+        }
       />
+      <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2 md:hidden">
+        <Button
+          variant="outline"
+          disabled
+          className="min-w-0 flex-1 justify-between font-normal"
+        >
+          {main ? (
+            <span className="font-medium">Fil principal</span>
+          ) : (
+            <Skeleton aria-hidden="true" className="h-4 w-32" />
+          )}
+          <span className="flex items-center gap-1 text-muted-foreground">
+            Sujets
+            <ChevronDownIcon aria-hidden="true" />
+          </span>
+        </Button>
+      </div>
       <div className="flex min-h-0 flex-1">
-        <div
-          className={cn(
-            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-72 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border min-[980px]:bg-transparent",
-            current ? "hidden" : "flex",
-          )}
-        >
-          <ConversationListLoading />
-        </div>
         <section
-          aria-label={
-            view === "thread" ? "Conversation" : "Nouvelle conversation"
-          }
-          className={cn(
-            "min-h-0 min-w-0 flex-[999_1_520px] flex-col min-[980px]:flex",
-            current ? "flex" : "hidden",
-          )}
+          aria-label={main ? "Fil principal" : "Sujet"}
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
         >
-          <ThreadHeader
-            title={view === "thread" ? null : "Nouvelle conversation"}
-          />
+          {!main && (
+            <div
+              aria-hidden="true"
+              className="flex min-h-header shrink-0 items-center gap-3 border-b border-border px-5 py-2 max-md:hidden"
+            >
+              <Skeleton className="size-5.5 shrink-0 rounded-full" />
+              <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/4" />
+              </span>
+            </div>
+          )}
           <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-            {view === "thread" ? (
-              <ThreadLogLoading />
-            ) : (
-              <EmptyThread plan={view === "new" && plan} />
-            )}
+            <ThreadLogLoading />
           </div>
           <ComposerLoading />
         </section>
+        <div
+          aria-hidden="true"
+          className="hidden w-panel shrink-0 flex-col gap-3 border-l border-border px-5 py-4.5 xl:flex"
+        >
+          <Skeleton className="h-3 w-1/2" />
+          <Skeleton className="h-40 w-full" />
+        </div>
       </div>
     </LoadingScope>
   );
@@ -272,7 +140,7 @@ export function TeamLoading() {
     >
       <AppHeader
         title="Coach"
-        back={{ href: "/coach", label: "Retour aux conversations" }}
+        back={{ href: "/coach", label: "Retour au fil principal" }}
         breadcrumb={<CoachHeaderNav />}
       />
       <CoachTabs className="border-b border-border px-4 py-2.5" />

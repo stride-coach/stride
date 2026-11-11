@@ -57,7 +57,7 @@ export function weekLoadSentence({
 }
 
 export function activityCoachHref(activityId: string) {
-  return `/coach/new?activity=${encodeURIComponent(activityId)}`;
+  return `/coach?activity=${encodeURIComponent(activityId)}`;
 }
 
 export type ActivityPanelView = {

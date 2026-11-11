@@ -63,7 +63,7 @@ export const turnRefusals: Record<string, string> = {
   "session-expired": "Ta session a expiré. Reconnecte-toi pour continuer.",
   "invalid-request": "Ton message n’a pas pu être envoyé.",
   session_closed:
-    "Cette conversation est terminée. Démarre une nouvelle conversation pour continuer.",
+    "Ce sujet est clos. Écris dans le fil principal pour continuer.",
   turn_in_progress: "Le staff travaille déjà sur ta demande.",
   answer_required: "Réponds d’abord à la question du staff.",
   no_pending_question: "Cette question n’attend plus de réponse.",
@@ -79,9 +79,20 @@ export function refusalText(code: unknown) {
 }
 
 export const deleteFailures: Record<string, string> = {
+  closed: "Un sujet clos reste lisible et ne peut pas être supprimé.",
   turn_in_progress:
-    "Le staff travaille encore sur cette conversation. Réessaie quand il a terminé.",
-  "not-found": "Cette conversation est introuvable.",
+    "Le staff travaille encore sur ce sujet. Réessaie quand il a terminé.",
+  "not-found": "Ce sujet est introuvable.",
   "session-expired": "Ta session a expiré. Reconnecte-toi pour continuer.",
-  error: "La conversation n’a pas pu être supprimée. Réessaie dans un instant.",
+  error: "Le sujet n’a pas pu être supprimé. Réessaie dans un instant.",
+};
+
+export const topicFailures: Record<string, string> = {
+  closed: "Ce sujet est déjà clos.",
+  invalid: "Donne un nom à ce sujet.",
+  turn_in_progress:
+    "Le staff travaille encore sur ce sujet. Réessaie quand il a terminé.",
+  "not-found": "Ce sujet est introuvable.",
+  "session-expired": "Ta session a expiré. Reconnecte-toi pour continuer.",
+  error: "Le sujet n’a pas pu être mis à jour. Réessaie dans un instant.",
 };

@@ -12,7 +12,7 @@ describe("coach request prefill", () => {
       "2026-10-15:threshold",
     );
     const url = new URL(href, "https://stride.test");
-    expect(url.pathname).toBe("/coach/new");
+    expect(url.pathname).toBe("/coach");
     expect(parseRequestText(url.searchParams.get("text"))).toBe(
       "Allège le seuil de jeudi, mes jambes sont lourdes.",
     );
@@ -25,7 +25,7 @@ describe("coach request prefill", () => {
       coachRequestHref(null, null, raceId),
       "https://stride.test",
     );
-    expect(url.pathname).toBe("/coach/new");
+    expect(url.pathname).toBe("/coach");
     expect(url.searchParams.get("race")).toBe(raceId);
     expect(url.searchParams.has("text")).toBe(false);
     expect(url.searchParams.has("session")).toBe(false);

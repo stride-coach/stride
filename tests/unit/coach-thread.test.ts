@@ -1,16 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  conversationSections,
   dayLabel,
   listDateLabel,
-  participantsLine,
   staffReads,
   suiviParticipants,
   suiviTimeline,
   threadParticipants,
-  threadPreview,
   threadStatus,
-  threadTitle,
 } from "../../src/features/coach/conversations";
 import {
   itemBody,
@@ -242,9 +238,6 @@ describe("thread view model", () => {
       blocks: [{ type: "text", text: "@Jules Tu peux courir à plat." }],
     });
     expect(JSON.stringify(entries)).not.toContain("Limites");
-    expect(threadPreview(defaultStaff, items)).toBe(
-      "Santé : @Jules Tu peux courir à plat.",
-    );
     expect(suiviParticipants(defaultStaff, items)[1]).toMatchObject({
       messages: 2,
     });
@@ -463,19 +456,6 @@ describe("thread view model", () => {
 describe("conversations", () => {
   const now = new Date("2026-10-16T14:00:00Z");
 
-  it("titles a thread from the first message", () => {
-    expect(threadTitle("  Mon   genou  ")).toBe("Mon genou");
-    expect(threadTitle("Peux-tu regarder ma semaine prochaine ? Merci")).toBe(
-      "Peux-tu regarder ma semaine prochaine",
-    );
-    expect(
-      threadTitle(
-        "J’ai vu le Trail des Lacs, 50 km et 2 400 m D+ fin juin. Ça te paraît jouable ?",
-      ),
-    ).toBe("J’ai vu le Trail des Lacs, 50 km et 2 400 m D+ fin juin");
-    expect(threadTitle("")).toBe("Nouvelle conversation");
-  });
-
   it("derives the status shown in the list", () => {
     const base = { lastTurnAt: now.toISOString(), now, proposalStatuses: [] };
     expect(threadStatus({ ...base, state: "running" })).toBe("working");
@@ -498,64 +478,6 @@ describe("conversations", () => {
     expect(threadStatus({ ...base, state: "budget_reached" })).toBe("closed");
   });
 
-  it("groups rows and keeps unread state", () => {
-    const sections = conversationSections(
-      [
-        {
-          id: "a",
-          title: "Genou",
-          lastActivityAt: "2026-10-16T12:09:00Z",
-          readAt: null,
-          state: "awaiting_athlete",
-          lastTurnAt: null,
-          preview: "Question",
-          participants: ["coach", "medical"],
-          proposalStatuses: [],
-        },
-        {
-          id: "b",
-          title: "Plan",
-          lastActivityAt: "2026-10-15T08:00:00Z",
-          readAt: "2026-10-15T09:00:00Z",
-          state: "idle",
-          lastTurnAt: null,
-          preview: "",
-          participants: ["coach"],
-          proposalStatuses: ["applied"],
-        },
-        {
-          id: "c",
-          title: "Vieux",
-          lastActivityAt: "2026-09-28T08:00:00Z",
-          readAt: "2026-09-28T09:00:00Z",
-          state: "idle",
-          lastTurnAt: null,
-          preview: "",
-          participants: ["coach"],
-          proposalStatuses: [],
-        },
-      ],
-      now,
-      tz,
-    );
-    expect(sections.map((section) => section.label)).toEqual([
-      "En cours",
-      "Cette semaine",
-      "Plus ancien",
-    ]);
-    expect(sections[0].rows[0]).toMatchObject({
-      date: "14:09",
-      unread: true,
-      status: "question",
-    });
-    expect(sections[1].rows[0]).toMatchObject({
-      date: "Hier",
-      unread: false,
-      status: "applied",
-    });
-    expect(sections[2].rows[0].date).toBe("28/09/2026");
-  });
-
   it("formats French dates", () => {
     expect(listDateLabel("2026-10-12T08:00:00Z", now, tz)).toBe("lun.");
     expect(dayLabel("2026-10-16T08:00:00Z", now, tz)).toBe(
@@ -565,19 +487,10 @@ describe("conversations", () => {
 
   it("summarizes participants, reads, preview and timeline for Suivi", () => {
     expect(threadParticipants(consultDone)).toEqual(["coach", "medical"]);
-    expect(participantsLine(defaultStaff, ["coach", "medical"])).toBe(
-      "Coach, avec Santé",
-    );
     expect(staffReads(consultDone)).toEqual([
       "Signalements · 14 jours",
       "Profil et contexte",
     ]);
-    expect(threadPreview(defaultStaff, consultDone)).toBe(
-      "Comment réagit ton genou en descente ?",
-    );
-    expect(threadPreview(defaultStaff, answered.slice(0, -1))).toBe(
-      "Santé : @Jules Alors c’est compatible.",
-    );
     expect(suiviParticipants(defaultStaff, answered)).toEqual([
       { agent: "coach", role: "Mène", messages: 0 },
       { agent: "medical", role: "Consulté", messages: 2 },
@@ -673,9 +586,6 @@ describe("conversations", () => {
       ["Réponse du Coach", "upcoming"],
     ]);
     expect(working.filter(([, state]) => state === "current")).toHaveLength(1);
-    expect(threadPreview(defaultStaff, items.slice(0, -1))).toBe(
-      "Coach : Verdict : on continue.",
-    );
   });
 });
 
@@ -710,9 +620,6 @@ describe("staff roles", () => {
     });
     expect(questionAttribution(defaultStaff.strategist)).toBe(
       "Question du Stratège de course",
-    );
-    expect(participantsLine(defaultStaff, ["coach", "medical"])).toBe(
-      "Coach, avec Santé",
     );
   });
 

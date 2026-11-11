@@ -38,6 +38,7 @@ export async function loadStaffUsage(
       .from("coach_sessions")
       .select("id", { count: "exact", head: true })
       .eq("user_id", context.userId)
+      .eq("kind", "topic")
       .not("title", "is", null)
       .gte("created_at", since),
     context.client

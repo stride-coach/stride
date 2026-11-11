@@ -18,6 +18,8 @@ import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
 import { dayLabel, sameDay, timeLabel } from "@/features/coach/conversations";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { Markdown } from "@/features/coach/components/markdown";
+import { StrideMark } from "@/components/stride/stride-mark";
+import { summaryCard } from "@/features/coach/topics";
 import { staff as allStaff } from "@/features/coach/staff";
 import type { StaffAgent } from "@/features/coach/staff";
 import {
@@ -316,6 +318,46 @@ function StaffMessage({
   );
 }
 
+function TopicSummaryMessage({
+  entry,
+  timeZone,
+}: {
+  entry: Extract<ThreadEntry, { type: "topic_summary" }>;
+  timeZone: string;
+}) {
+  const card = summaryCard(entry.item, timeZone);
+  return (
+    <StaffRow agent={card.lead} time={timeLabel(entry.at, timeZone)}>
+      <Widget
+        title={card.heading}
+        icon={<StrideMark />}
+        verdict={
+          <span className="text-label font-normal text-muted-foreground tabular-nums">
+            {card.range}
+          </span>
+        }
+        className="max-w-150"
+      >
+        <div className="flex flex-col gap-3">
+          {card.summary ? (
+            <p className="text-secondary-foreground">{card.summary}</p>
+          ) : null}
+          <div className="flex flex-wrap gap-1.5">
+            {card.chips.map((chip) => (
+              <Chip key={chip}>{chip}</Chip>
+            ))}
+          </div>
+          <Button asChild variant="outline" className="self-start">
+            <Link href={card.href} prefetch={false}>
+              Relire le sujet
+            </Link>
+          </Button>
+        </div>
+      </Widget>
+    </StaffRow>
+  );
+}
+
 function TypingMessage({
   entry,
 }: {
@@ -429,6 +471,8 @@ export function ThreadLog({
             )}
             {entry.type === "athlete" ? (
               <AthleteMessage entry={entry} timeZone={timeZone} />
+            ) : entry.type === "topic_summary" ? (
+              <TopicSummaryMessage entry={entry} timeZone={timeZone} />
             ) : entry.type === "typing" ? (
               <TypingMessage entry={entry} />
             ) : (

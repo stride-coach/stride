@@ -261,7 +261,7 @@ test("a matched structured run shows its debrief and takes a feeling", async ({
   await expect(panel.getByRole("button", { name: "Modifier" })).toBeVisible();
 
   await panel.getByRole("link", { name: "En parler au coach" }).click();
-  await expect(page).toHaveURL(/\/coach\/new\?session=s-/, {
+  await expect(page).toHaveURL(/\/coach\?session=s-/, {
     timeout: 20_000,
   });
   await expect(

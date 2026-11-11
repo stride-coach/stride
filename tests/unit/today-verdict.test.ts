@@ -137,9 +137,7 @@ describe("today verdict", () => {
       key: "lighter",
       label: "Demander une version allégée",
     });
-    expect(result?.actions[1].href).toMatch(
-      /^\/coach\/new\?text=.*session=s-1$/,
-    );
+    expect(result?.actions[1].href).toMatch(/^\/coach\?text=.*session=s-1$/);
   });
 
   it("keeps an easy session on a moderate form", () => {

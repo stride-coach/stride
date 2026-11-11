@@ -1,6 +1,5 @@
 import type { ThreadItem } from "./items";
-import { markdownPlainText } from "./markdown";
-import { staffJoin, type Staff, type StaffAgent } from "./staff";
+import type { Staff, StaffAgent } from "./staff";
 import { proposalCardStatus } from "./thread";
 
 export const turnStaleMs = 15 * 60 * 1000;
@@ -21,28 +20,6 @@ export const closedStates: readonly SessionState[] = [
   "budget_reached",
   "terminated",
 ];
-
-export const statusLabels: Record<
-  Exclude<ThreadStatus, null>,
-  { label: string; tone: "accent" | "warning" | "success" | "muted" }
-> = {
-  working: { label: "Le staff travaille", tone: "accent" },
-  question: { label: "Question pour toi", tone: "warning" },
-  proposal: { label: "Proposition à valider", tone: "warning" },
-  applied: { label: "Appliqué", tone: "success" },
-  closed: { label: "Terminée", tone: "muted" },
-};
-
-export function threadTitle(text: string) {
-  const clean = text.replace(/\s+/g, " ").trim();
-  if (!clean) return "Nouvelle conversation";
-  const sentence = /^(.{12,60}?)[.!?…](\s|$)/u.exec(clean);
-  if (sentence) return sentence[1].trim();
-  if (clean.length <= 60) return clean;
-  const cut = clean.slice(0, 60);
-  const space = cut.lastIndexOf(" ");
-  return `${(space > 30 ? cut.slice(0, space) : cut).replace(/[\s,;:.]+$/, "")}…`;
-}
 
 export function threadStatus(input: {
   state: SessionState;
@@ -96,32 +73,6 @@ export function threadParticipants(items: readonly ThreadItem[]) {
     if (agent && !agents.includes(agent)) agents.push(agent);
   }
   return agents;
-}
-
-export function participantsLine(staff: Staff, agents: readonly StaffAgent[]) {
-  const others = agents.filter((agent) => agent !== "coach");
-  return others.length
-    ? `${staff.coach.name}, avec ${staffJoin(staff, others)}`
-    : staff.coach.name;
-}
-
-export function threadPreview(staff: Staff, items: readonly ThreadItem[]) {
-  const shown = staffMessages(items);
-  for (const item of [...items].reverse()) {
-    if (item.kind === "coach" && item.text.trim())
-      return `${staff.coach.name} : ${markdownPlainText(item.text)}`;
-    if (
-      (item.kind === "consult_reply" || item.kind === "staff_message") &&
-      shown.has(item) &&
-      item.text.trim()
-    )
-      return `${staff[item.agent].name} : ${markdownPlainText(item.text)}`;
-    if (item.kind === "question") return item.question;
-    if (item.kind === "athlete" || item.kind === "answer")
-      return `Toi : ${item.text.replace(/\s+/g, " ").trim()}`;
-    if (item.kind === "error") return item.text;
-  }
-  return "";
 }
 
 export function isUnread(lastActivityAt: string, readAt: string | null) {
@@ -194,67 +145,6 @@ export function sameDay(first: string, second: string, timeZone: string) {
   );
 }
 
-export type ConversationSummary = {
-  id: string;
-  title: string;
-  lastActivityAt: string;
-  readAt: string | null;
-  state: SessionState;
-  lastTurnAt: string | null;
-  preview: string;
-  participants: StaffAgent[];
-  proposalStatuses: string[];
-};
-
-export type ConversationRow = {
-  id: string;
-  title: string;
-  preview: string;
-  date: string;
-  unread: boolean;
-  status: ThreadStatus;
-  participants: StaffAgent[];
-};
-
-export type ConversationSection = { label: string; rows: ConversationRow[] };
-
-export function conversationSections(
-  conversations: readonly ConversationSummary[],
-  now: Date,
-  timeZone: string,
-): ConversationSection[] {
-  const sections: ConversationSection[] = [
-    { label: "En cours", rows: [] },
-    { label: "Cette semaine", rows: [] },
-    { label: "Plus ancien", rows: [] },
-  ];
-  for (const conversation of [...conversations].sort((a, b) =>
-    b.lastActivityAt.localeCompare(a.lastActivityAt),
-  )) {
-    const status = threadStatus({
-      state: conversation.state,
-      lastTurnAt: conversation.lastTurnAt,
-      now,
-      proposalStatuses: conversation.proposalStatuses,
-    });
-    const row: ConversationRow = {
-      id: conversation.id,
-      title: conversation.title,
-      preview: conversation.preview,
-      date: listDateLabel(conversation.lastActivityAt, now, timeZone),
-      unread: isUnread(conversation.lastActivityAt, conversation.readAt),
-      status,
-      participants: conversation.participants,
-    };
-    const ongoing =
-      status === "working" || status === "question" || status === "proposal";
-    const recent =
-      daysBetween(new Date(conversation.lastActivityAt), now, timeZone) < 7;
-    sections[ongoing ? 0 : recent ? 1 : 2].rows.push(row);
-  }
-  return sections.filter((section) => section.rows.length > 0);
-}
-
 export type SuiviCard = {
   tone: "accent" | "warning" | "success" | "muted";
   title: string;
@@ -290,8 +180,8 @@ export function suiviCard(staff: Staff, status: ThreadStatus): SuiviCard {
     case "closed":
       return {
         tone: "muted",
-        title: "Conversation terminée",
-        detail: "Démarre une nouvelle conversation pour continuer.",
+        title: "Sujet clos",
+        detail: "Il reste lisible. Écris dans le fil principal pour continuer.",
       };
     default:
       return {

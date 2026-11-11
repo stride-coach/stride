@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { z } from "zod";
 import { coachAttachmentsSchema } from "@/features/coach/attachments";
 import { specialistAgents } from "@/features/coach/staff";
+import { topicTitleSchema } from "@/features/coach/topics";
 import { AttachmentAccessError } from "@/server/coaching/attachments";
 import {
   SessionAccessError,
@@ -17,26 +18,39 @@ import { getOnboardingContext } from "@/server/onboarding/context";
 
 export const maxDuration = 960;
 
-const requestSchema = z.strictObject({
-  sessionId: z
-    .string()
-    .regex(/^sesn_[A-Za-z0-9]{1,64}$/)
-    .optional(),
-  mode: z.enum(sessionModes),
-  input: z.discriminatedUnion("kind", [
-    z.strictObject({
-      kind: z.literal("message"),
-      text: z.string().trim().min(1).max(2000),
-      consult: z.enum(specialistAgents).optional(),
-      attachments: coachAttachmentsSchema.optional(),
-    }),
-    z.strictObject({
-      kind: z.literal("answer"),
-      toolUseId: z.string().min(1).max(64),
-      text: z.string().trim().min(1).max(2000),
-    }),
-  ]),
-});
+const requestSchema = z
+  .strictObject({
+    sessionId: z
+      .string()
+      .regex(/^sesn_[A-Za-z0-9]{1,64}$/)
+      .optional(),
+    target: z
+      .discriminatedUnion("kind", [
+        z.strictObject({ kind: z.literal("main") }),
+        z.strictObject({ kind: z.literal("topic"), threadId: z.uuid() }),
+        z.strictObject({
+          kind: z.literal("new_topic"),
+          title: topicTitleSchema,
+          raceId: z.uuid().nullable(),
+        }),
+      ])
+      .optional(),
+    mode: z.enum(sessionModes),
+    input: z.discriminatedUnion("kind", [
+      z.strictObject({
+        kind: z.literal("message"),
+        text: z.string().trim().min(1).max(2000),
+        consult: z.enum(specialistAgents).optional(),
+        attachments: coachAttachmentsSchema.optional(),
+      }),
+      z.strictObject({
+        kind: z.literal("answer"),
+        toolUseId: z.string().min(1).max(64),
+        text: z.string().trim().min(1).max(2000),
+      }),
+    ]),
+  })
+  .refine((request) => !(request.sessionId && request.target));
 
 const jsonHeaders = { "Cache-Control": "private, no-store" };
 
