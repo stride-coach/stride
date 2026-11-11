@@ -8,7 +8,6 @@ export function HistoryBackButton() {
 
   return (
     <Button
-      className="w-full"
       variant="outline"
       onClick={() => {
         if (window.history.length > 1) {

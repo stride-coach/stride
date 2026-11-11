@@ -1,230 +1,79 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { cn } from "@/lib/utils";
-import { HealthPreview, ProposalPreview } from "./landing-previews";
+import { Chip } from "@/components/stride/chip";
+import {
+  NavPlanIcon,
+  NavProgressIcon,
+  NavRacesIcon,
+} from "@/components/stride/nav-icons";
+import { Relief } from "@/components/stride/relief";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
+import { staff, type StaffAgent } from "@/features/coach/staff";
+import { TodayPreview } from "./landing-previews";
 
 const pillars = [
   {
-    title: "Lire tes signaux",
-    text: "Sommeil, VFC, fréquence cardiaque au repos, Body Battery et disponibilité Garmin chaque matin. Un check-in de dix secondes ajoute tes jambes, tes courbatures et tes douleurs.",
+    icon: NavProgressIcon,
+    title: "Tes plages, pas des moyennes",
+    text: "Sommeil, VFC, FC au repos, charge : chaque signal est lu par rapport à ce qui est normal pour toi, calculé sur tes 28 derniers jours.",
   },
   {
-    title: "Doser la charge",
-    text: "Montée progressive, semaines d’assimilation, alerte quand la charge grimpe trop vite. Stride suit aussi le kilométrage de tes chaussures pour que tu les changes à temps.",
+    icon: NavPlanIcon,
+    title: "Un plan qui bouge avec toi",
+    text: "Une nuit courte, une douleur, une semaine chargée : le staff propose un ajustement, avec sa raison. Tu acceptes ou tu refuses.",
   },
   {
-    title: "Adapter, pas forcer",
-    text: "Une douleur signalée, une nuit courte, une semaine chargée : le plan bouge. Chaque changement est expliqué, avec les signaux qui l’ont motivé, et attend ton accord.",
+    icon: NavRacesIcon,
+    title: "Une course préparée de bout en bout",
+    text: "Programme à rebours depuis ta date, stratégie par section, alimentation testée en sortie longue, équipement prêt.",
   },
 ] as const;
 
-const staff = [
-  ["Coach", "Construit ton plan et décide de la séance du jour."],
-  [
-    "Médecin",
-    "Suit tes douleurs et ta récupération, et freine quand il le faut.",
-  ],
-  [
-    "Directeur sportif",
-    "Garde le cap de ta saison et arbitre entre tes objectifs.",
-  ],
-  [
-    "Stratège de course",
-    "Prépare l’allure, le dénivelé et la météo du jour J.",
-  ],
-  ["Nutritionniste", "Planifie tes apports et tes ravitaillements."],
-] as const;
-
-const features = [
-  [
-    "Plan adaptatif route et trail",
-    "Du 10 km à l’ultra, construit autour de tes disponibilités et de tes courses.",
-  ],
-  [
-    "Séances envoyées sur ta montre",
-    "Tes fractionnés arrivent dans Garmin Connect, prêts à lancer.",
-  ],
-  [
-    "Analyse de chaque sortie",
-    "Prévu contre réalisé, zones, allure, débrief et ressenti.",
-  ],
-  [
-    "Préparation de course",
-    "Parcours GPX, stratégie d’allure, météo et plan de ravitaillement.",
-  ],
-  [
-    "Suivi du matériel",
-    "Kilométrage et usure de chaque paire, séance par séance.",
-  ],
-  [
-    "Historique complet",
-    "Ton passé Garmin est importé dès la connexion : le coach te connaît dès le premier jour.",
-  ],
-] as const;
-
-const steps = [
-  ["Crée ton compte", "Un e-mail et un mot de passe."],
-  [
-    "Connecte Garmin",
-    "Tu choisis ce que tu partages. Ton historique s’importe en arrière-plan.",
-  ],
-  [
-    "Complète ce que Garmin ne sait pas",
-    "Disponibilités, objectifs, blessures passées.",
-  ],
-  ["Reçois ton plan", "Ton coach te propose ta première semaine. Tu valides."],
-] as const;
-
-const privacy = [
-  "Base de données hébergée en Europe.",
-  "Données de santé traitées uniquement avec ton consentement explicite.",
-  "Jamais vendues, jamais utilisées pour de la publicité.",
-  "Export et suppression de tes données sur simple demande.",
-] as const;
-
-function Section({
-  id,
-  className,
-  children,
-}: {
-  id?: string;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      id={id}
-      className="scroll-mt-17 border-b border-border py-14 md:py-28"
-    >
-      <div
-        className={cn(
-          "mx-auto flex max-w-300 flex-col gap-5.5 px-4 md:px-10",
-          className,
-        )}
-      >
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function Kicker({ children }: { children: ReactNode }) {
-  return <MonoLabel tone="accent">{children}</MonoLabel>;
-}
-
-function Heading({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <h2
-      className={cn(
-        "text-[30px] leading-[1.08] font-semibold tracking-[-0.03em] md:text-[clamp(30px,3.4vw,44px)] md:leading-[1.06]",
-        className,
-      )}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function Lead({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <p
-      className={cn(
-        "text-body-lg leading-relaxed text-secondary-foreground md:text-body-lg md:leading-relaxed",
-        className,
-      )}
-    >
-      {children}
-    </p>
-  );
-}
-
-function Dash() {
-  return (
-    <span aria-hidden="true" className="text-primary">
-      —
-    </span>
-  );
-}
-
-function Terrain() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 1440 760"
-      preserveAspectRatio="xMidYMid slice"
-      className="absolute inset-0 h-full w-full fill-none"
-    >
-      <g className="stroke-muted" strokeWidth="1.2">
-        {Array.from({ length: 6 }, (_, index) => (
-          <path
-            key={index}
-            d={`M-50 ${480 + index * 40}C${180 + index * 10} ${420 + index * 40} ${340 + index * 10} ${480 + index * 40} ${540 + index * 10} ${420 + index * 40}S${880 + index * 10} ${300 + index * 40} ${1080 + index * 10} ${350 + index * 40}S1380 ${400 + index * 40} 1500 ${360 + index * 40}`}
-          />
-        ))}
-      </g>
-      <path
-        d="M-20 720C140 680 260 640 380 630S560 580 640 520 780 450 900 430 1080 400 1180 330 1340 260 1460 240"
-        className="hidden stroke-primary md:block"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
+const roles: readonly { agent: StaffAgent; text: string }[] = [
+  { agent: "coach", text: "Ton entraînement au quotidien" },
+  {
+    agent: "medical",
+    text: "Ta récupération et les signaux de ton corps",
+  },
+  {
+    agent: "director",
+    text: "Ta saison dans son ensemble",
+  },
+  {
+    agent: "strategist",
+    text: "Le parcours, ton objectif sur ce parcours et ta gestion de course",
+  },
+  {
+    agent: "nutritionist",
+    text: "Ce que tu manges autour de tes séances et en course",
+  },
+];
 
 function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border">
-      <Terrain />
-      <div className="relative mx-auto grid max-w-300 gap-14 px-4 pt-12 pb-14 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-center md:px-10 md:pt-24 md:pb-26">
-        <div className="flex flex-col gap-5.5 md:gap-6.5">
-          <MonoLabel>
-            Coach running · Route &amp; trail ·{" "}
-            <span className="md:hidden">Garmin</span>
-            <span className="hidden md:inline">Connecté à Garmin</span>
-          </MonoLabel>
-          <h1 className="text-[42px] leading-none font-semibold tracking-[-0.04em] md:text-[clamp(44px,5.6vw,76px)] md:leading-[0.98]">
-            Progresse
-            <br />
-            sans te blesser.
+      <Relief corner="top-right" className="max-md:hidden" />
+      <div className="relative mx-auto grid max-w-300 gap-10 px-4 pt-10 pb-12 md:px-10 md:pt-16 md:pb-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-14">
+        <div className="flex flex-col items-start gap-5">
+          <Chip proposal>Route, trail et ultra · avec Garmin</Chip>
+          <h1 className="text-display font-semibold text-balance">
+            Un staff qui lit ton corps avant de décider ta séance.
           </h1>
-          <Lead className="max-w-125">
-            Stride lit ton sommeil, ta VFC, ta charge et tes douleurs avant
-            chaque séance, puis ajuste ton plan. Tu enchaînes les saisons
-            <span className="hidden md:inline"> de route et de trail</span>, pas
-            les arrêts.
-          </Lead>
-          <div className="flex flex-col gap-2.5 md:flex-row md:flex-wrap md:gap-3">
-            <Button asChild size="lg" className="md:h-11.5">
+          <p className="max-w-130 text-body-lg text-pretty text-secondary-foreground">
+            Chaque matin, Stride compare ton sommeil, ta VFC et ta charge à tes
+            propres plages, puis ajuste ton plan. Pour arriver au départ en
+            forme, et pas blessé.
+          </p>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <Button asChild size="lg">
               <Link href="/sign-up">Créer un compte</Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-12 md:h-11.5"
-            >
-              <a href="#prevention">Voir l’approche prévention</a>
-            </Button>
+            <span className="text-label text-secondary-foreground max-sm:text-center">
+              Garmin requis · environ 6 minutes
+            </span>
           </div>
-          <p className="text-body text-muted-foreground">
-            Garmin aujourd’hui. Coros et Suunto à l’étude.
-          </p>
         </div>
-        <ProposalPreview />
+        <TodayPreview />
       </div>
     </section>
   );
@@ -235,189 +84,64 @@ export function Landing() {
     <main>
       <Hero />
 
-      <Section id="prevention" className="md:gap-14">
-        <div className="flex max-w-190 flex-col gap-5.5 md:gap-4.5">
-          <Kicker>01 · Prévention</Kicker>
-          <Heading>
-            Un plan, tout le monde en fait. Le tenir sans se blesser, c’est le
-            vrai sujet.
-          </Heading>
-          <Lead>
-            <span className="hidden md:inline">
-              La plupart des apps te donnent un programme et te laissent
-              l’appliquer.{" "}
-            </span>
-            Stride regarde d’abord dans quel état tu es, puis décide de ce que
-            tu peux encaisser aujourd’hui.
-          </Lead>
-        </div>
-        <ol className="grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3 md:rounded-2xl">
-          {pillars.map((pillar, index) => (
-            <li
-              key={pillar.title}
-              className="flex flex-col gap-2 bg-background p-5 md:gap-3.5 md:p-7.5"
-            >
-              <span className="text-[30px] leading-none font-semibold text-primary tabular-nums md:text-[44px]">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <h3 className="text-title font-semibold md:text-[21px] md:tracking-[-0.015em]">
-                {pillar.title}
-              </h3>
-              <p className="text-body leading-normal text-secondary-foreground md:leading-relaxed">
-                {pillar.text}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </Section>
-
-      <Section
-        id="sante"
-        className="md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-center md:gap-16"
+      <section
+        id="comment"
+        aria-labelledby="comment-title"
+        className="scroll-mt-15 border-b border-border"
       >
-        <div className="flex flex-col gap-5.5 md:gap-4.5">
-          <Kicker>02 · Données santé</Kicker>
-          <Heading>
-            Garmin mesure.
-            <br className="hidden md:block" /> Stride explique.
-          </Heading>
-          <Lead>
-            Tes tendances de VFC, de sommeil et de fréquence cardiaque au repos
-            sont comparées à ta propre référence, pas à une moyenne. Chaque
-            chiffre affiche sa source, sa tendance et ce qu’il change pour ta
-            prochaine séance.
-          </Lead>
-          <ul className="hidden flex-col gap-2.5 text-body text-secondary-foreground md:flex">
-            {[
-              "Forme, fatigue et charge sur 6 semaines",
-              "Récupération nuit après nuit",
-              "Douleurs suivies jusqu’à leur résolution",
-            ].map((item) => (
-              <li key={item} className="flex gap-2.5">
-                <Dash />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <HealthPreview />
-      </Section>
-
-      <Section id="staff" className="md:gap-12">
-        <div className="flex max-w-190 flex-col gap-5.5 md:gap-4.5">
-          <Kicker>03 · Le staff</Kicker>
-          <Heading>Un staff complet, pas un chatbot.</Heading>
-          <Lead className="hidden md:block">
-            Cinq spécialistes lisent le même dossier d’athlète et parlent d’une
-            seule voix. Tu peux écrire à chacun d’eux.
-          </Lead>
-        </div>
-        <ul className="flex flex-col border-b border-border md:grid md:grid-cols-5 md:gap-3 md:border-0">
-          {staff.map(([role, text]) => (
-            <li
-              key={role}
-              className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2.5 md:rounded-xl md:border md:bg-background md:p-5.5"
-            >
-              <MonoLabel tone="accent">{role}</MonoLabel>
-              <p className="text-body text-secondary-foreground md:text-body md:leading-normal">
-                {text}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section className="md:gap-10">
-        <Heading className="max-w-190">
-          Et tout ce qu’on attend d’un coach.
-        </Heading>
-        <ul className="grid border-b border-border md:grid-cols-3 md:gap-x-12 md:border-0">
-          {features.map(([title, text]) => (
-            <li
-              key={title}
-              className="flex flex-col gap-1 border-t border-border py-3.5 md:gap-2 md:py-5.5"
-            >
-              <h3 className="text-body-lg font-semibold md:text-[17px]">
-                {title}
-              </h3>
-              <p className="text-body leading-normal text-secondary-foreground">
-                {text}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section id="comment" className="md:grid md:grid-cols-2 md:gap-16">
-        <div className="flex flex-col gap-5.5 md:gap-4.5">
-          <Kicker>04 · Comment ça marche</Kicker>
-          <Heading>Six minutes pour démarrer.</Heading>
-        </div>
-        <ol className="flex flex-col border-b border-border">
-          {steps.map(([title, text], index) => (
-            <li
-              key={title}
-              className="grid grid-cols-[36px_1fr] gap-2 border-t border-border py-3.5 md:grid-cols-[56px_1fr] md:gap-3 md:py-5"
-            >
-              <span className="text-metric leading-none font-semibold text-primary tabular-nums md:text-[30px]">
-                {index + 1}
+        <h2 id="comment-title" className="sr-only">
+          Comment ça marche
+        </h2>
+        <ul className="mx-auto grid max-w-300 gap-8 px-4 py-12 md:grid-cols-3 md:gap-10 md:px-10 md:py-16">
+          {pillars.map(({ icon: Icon, title, text }) => (
+            <li key={title} className="flex flex-col items-start gap-3">
+              <span
+                aria-hidden="true"
+                className="grid size-control-touch place-items-center rounded-md border border-control-border bg-card text-secondary-foreground"
+              >
+                <Icon className="size-4" />
               </span>
-              <div className="flex flex-col md:gap-1.5">
-                <h3 className="text-body-lg font-semibold md:text-[17px]">
-                  {title}
-                </h3>
-                <p className="text-body text-secondary-foreground">{text}</p>
-              </div>
+              <h3 className="text-title font-semibold">{title}</h3>
+              <p className="text-body-lg text-pretty text-secondary-foreground">
+                {text}
+              </p>
             </li>
           ))}
-        </ol>
-      </Section>
+        </ul>
+      </section>
 
-      <Section className="md:grid md:grid-cols-2 md:items-start md:gap-16">
-        <div className="flex flex-col gap-5.5 md:gap-4.5">
-          <Kicker>05 · Confidentialité</Kicker>
-          <Heading>Tes données santé restent les tiennes.</Heading>
-        </div>
-        <div className="flex flex-col gap-2 md:gap-5.5">
-          <ul className="flex flex-col gap-2.5 text-body leading-normal text-secondary-foreground md:gap-3.5">
-            {privacy.map((item) => (
-              <li key={item} className="flex gap-2.5 md:gap-3">
-                <Dash />
-                {item}
+      <section
+        id="staff"
+        aria-labelledby="staff-title"
+        className="scroll-mt-15"
+      >
+        <div className="mx-auto flex max-w-300 flex-col gap-6 px-4 py-12 md:px-10 md:py-16">
+          <div className="flex flex-col gap-2">
+            <h2
+              id="staff-title"
+              className="text-metric font-semibold text-balance"
+            >
+              Cinq rôles, une seule conversation.
+            </h2>
+            <p className="text-body-lg text-secondary-foreground">
+              Tu écris au même endroit. Le bon spécialiste répond, avec tes
+              données sous les yeux.
+            </p>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {roles.map((role) => (
+              <li
+                key={role.agent}
+                className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4"
+              >
+                <StaffAvatar agent={role.agent} size={30} decorative />
+                <h3 className="font-semibold">{staff[role.agent].name}</h3>
+                <p className="text-label text-secondary-foreground">
+                  {role.text}
+                </p>
               </li>
             ))}
           </ul>
-          <Link
-            href="/privacy"
-            className="w-fit rounded-md py-2.5 text-body text-primary hover:text-foreground"
-          >
-            Lire la politique de confidentialité
-          </Link>
-        </div>
-      </Section>
-
-      <section className="px-4 py-16 text-center md:py-30">
-        <div className="mx-auto flex max-w-300 flex-col items-center gap-4.5 md:gap-6">
-          <h2 className="max-w-205 text-[38px] leading-none font-semibold tracking-[-0.035em] md:text-[clamp(36px,4.4vw,60px)]">
-            Cours encore dans dix ans.
-          </h2>
-          <Lead className="max-w-130">
-            Crée ton compte, connecte ta montre, et laisse le staff faire le
-            tri.
-          </Lead>
-          <div className="flex w-full flex-col gap-2.5 md:w-auto md:flex-row md:gap-3">
-            <Button asChild size="lg" className="md:h-11.5">
-              <Link href="/sign-up">Créer un compte</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-12 md:h-11.5"
-            >
-              <Link href="/sign-in">Se connecter</Link>
-            </Button>
-          </div>
         </div>
       </section>
     </main>

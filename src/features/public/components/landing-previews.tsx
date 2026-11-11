@@ -1,202 +1,165 @@
-import { Metric } from "@/components/stride/metric";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { cn } from "@/lib/utils";
+import { Chip } from "@/components/stride/chip";
+import { Plage } from "@/components/stride/plage";
+import type { SessionBlock } from "@/components/stride/session-blocks";
+import { SessionStateMark } from "@/components/stride/session-row";
+import { SessionShape } from "@/components/stride/session-shape";
+import { Status } from "@/components/stride/status";
+import { NavProgressIcon } from "@/components/stride/nav-icons";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
+
+const blocks: SessionBlock[] = [
+  { minutes: 15, zone: 2 },
+  { minutes: 6, zone: 4 },
+  { minutes: 2, zone: 1 },
+  { minutes: 6, zone: 4 },
+  { minutes: 2, zone: 1 },
+  { minutes: 6, zone: 4 },
+  { minutes: 2, zone: 1 },
+  { minutes: 6, zone: 4 },
+  { minutes: 2, zone: 1, removed: true },
+  { minutes: 6, zone: 4, removed: true },
+  { minutes: 10, zone: 2 },
+];
+
+const figures = [
+  { value: "52 min", unit: "durée" },
+  { value: "9,6 km", unit: "distance" },
+  { value: "4:38–4:42", unit: "/km" },
+  { value: "161–170", unit: "bpm" },
+] as const;
 
 const signals = [
   {
-    label: "Sommeil",
-    value: "6 h 10",
-    context: "· score 58",
-    source: "Garmin",
-    compact: false,
+    name: "Sommeil",
+    range: "7h00–7h45",
+    value: "5h52",
+    level: "watch",
+    verdict: "Sous ta plage",
+    scale: { min: 300, max: 540, low: 420, high: 465, value: 352 },
   },
   {
-    label: "VFC nuit",
-    value: "48 ms",
-    context: "· moy. 7 j 55",
-    source: "Garmin",
-    compact: true,
+    name: "VFC",
+    range: "52–64 ms",
+    value: "46 ms",
+    level: "watch",
+    verdict: "Sous ta plage",
+    scale: { min: 36, max: 76, low: 52, high: 64, value: 46 },
   },
   {
-    label: "Charge 7 j",
-    value: "+18 %",
-    context: "· vs 4 semaines",
-    source: "Stride",
-    compact: true,
-    warning: true,
+    name: "FC repos",
+    range: "43–46 bpm",
+    value: "47 bpm",
+    level: "watch",
+    verdict: "Au-dessus",
+    scale: { min: 36, max: 52, low: 43, high: 46, value: 47 },
   },
   {
-    label: "Mollet G.",
-    value: "Gêne 3/10",
-    context: "· depuis 2 jours",
-    source: "Check-in",
-    compact: true,
+    name: "Charge 7 j",
+    range: "0,8–1,3",
+    value: "1,24",
+    level: "ok",
+    verdict: "Dans ta plage",
+    scale: { min: 0.4, max: 1.7, low: 0.8, high: 1.3, value: 1.24 },
   },
 ] as const;
 
-export function ProposalPreview() {
+function SessionPreview() {
   return (
-    <figure
-      aria-label="Exemple de proposition du coach"
-      className="flex flex-col gap-3.5 rounded-xl border border-border bg-background p-4.5 md:gap-4.5 md:rounded-2xl md:p-6"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <MonoLabel size="micro" className="md:text-label">
-          Aujourd’hui · mar. 28/10
-        </MonoLabel>
-        <MonoLabel
-          size="micro"
-          tone="warning"
-          className="rounded-sm border border-border px-1.75 py-0.75"
-        >
-          À surveiller
-        </MonoLabel>
+    <div className="flex flex-col gap-3 px-4 py-3.5">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <SessionStateMark state="today" />
+        <span className="text-title font-semibold">Seuil 4 × 6’</span>
+        <Chip proposal>Proposition</Chip>
+        <Chip intensity={4}>Seuil</Chip>
+        <Chip className="max-md:hidden">Route · plat</Chip>
+        <span className="ml-auto text-label text-muted-foreground max-md:hidden">
+          Meilleur créneau : après 17:00
+        </span>
       </div>
-      <div className="flex flex-col gap-2.5">
-        <p className="text-verdict leading-tight font-semibold tracking-[-0.02em] md:text-metric">
-          Le seuil attend. Endurance 45 min à la place.
-        </p>
-        <p className="text-body leading-normal text-secondary-foreground md:text-body">
-          Ta VFC est 12 % sous ta moyenne et tu as signalé une gêne au mollet
-          gauche hier.
-          <span className="hidden md:inline"> Je décale le seuil à jeudi.</span>
-        </p>
-      </div>
-      <dl className="border-b border-border">
-        {signals.map((signal) => (
-          <div
-            key={signal.label}
-            className={cn(
-              "grid grid-cols-[96px_1fr_auto] items-baseline gap-2 border-t border-border py-2.25 text-body md:grid-cols-[120px_1fr_auto] md:gap-3 md:py-2.5 md:text-body",
-              !signal.compact && "hidden md:grid",
-            )}
-          >
-            <MonoLabel asChild size="micro" className="md:text-label">
-              <dt>{signal.label}</dt>
-            </MonoLabel>
-            <dd>
-              <Metric
-                size="sm"
-                value={signal.value}
-                className={cn(
-                  "md:text-verdict",
-                  "warning" in signal && "text-warning",
-                )}
-              />{" "}
-              <span className="hidden text-muted-foreground md:inline">
-                {signal.context}
-              </span>
+      <p className="flex items-start gap-2.5 text-secondary-foreground">
+        <StaffAvatar agent="coach" size={22} decorative />
+        <span>
+          Une répétition en moins qu’au plan (5 × 6’) : sommeil et VFC sont sous
+          ta plage, tes jambes sont fraîches. L’allure ne change pas.
+        </span>
+      </p>
+      <dl className="flex flex-wrap gap-x-5 gap-y-1">
+        {figures.map((figure) => (
+          <div key={figure.unit} className="flex items-baseline gap-1">
+            <dt className="sr-only">{figure.unit}</dt>
+            <dd className="font-semibold tabular-nums">{figure.value}</dd>
+            <dd aria-hidden="true" className="text-label text-muted-foreground">
+              {figure.unit}
             </dd>
-            <MonoLabel size="nano" className="md:text-label">
-              {signal.source}
-            </MonoLabel>
           </div>
         ))}
       </dl>
-      <div className="flex items-center gap-2 md:gap-2.5" aria-hidden="true">
-        <span className="flex h-11 flex-1 items-center justify-center rounded-lg bg-primary text-[15px] font-semibold text-primary-foreground md:h-10 md:flex-none md:px-5.5 md:text-body">
+      <SessionShape blocks={blocks} />
+      <div aria-hidden="true" className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex h-control items-center rounded-md bg-primary px-3 font-semibold text-primary-foreground">
           Accepter
         </span>
-        <span className="flex h-11 flex-1 items-center justify-center rounded-lg border border-control-border text-body text-foreground md:h-10 md:flex-none md:px-5">
-          Garder le seuil
+        <span className="inline-flex h-control items-center rounded-md border border-control-border bg-card px-3 font-medium">
+          Garder 5 × 6’
         </span>
-        <MonoLabel size="micro" className="ml-auto hidden md:inline">
-          Médecin + Coach
-        </MonoLabel>
+        <span className="inline-flex h-control items-center px-2 font-medium text-secondary-foreground max-md:hidden">
+          Déplacer
+        </span>
       </div>
-    </figure>
+    </div>
   );
 }
 
-const hrvTrace = [
-  46, 40, 44, 36, 42, 38, 34, 40, 44, 38, 36, 42, 48, 58, 64, 60, 52, 46, 40,
-  42, 36, 38, 34, 40, 36, 42, 38, 40, 36,
-];
-const sleep = [46, 50, 42, 52, 48, 30, 44, 54, 48, 50, 46, 52, 48, 50];
-
-export function HealthPreview() {
-  const step = 560 / (hrvTrace.length - 1);
-  const points = hrvTrace
-    .map((value, index) => `${Math.round(index * step)},${value}`)
-    .join(" ");
-  const dip = hrvTrace.indexOf(Math.max(...hrvTrace));
+function BodyPreview() {
   return (
-    <figure
-      aria-label="Exemple de tendances de récupération"
-      className="flex flex-col gap-3.5 rounded-xl border border-border bg-background p-4.5 md:gap-5.5 md:rounded-2xl md:p-6.5"
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-body font-semibold md:text-body-lg">
-          <span className="md:hidden">VFC nuit · 28 jours</span>
-          <span className="hidden md:inline">Récupération · 28 jours</span>
-        </span>
-        <MonoLabel size="micro" className="hidden md:inline">
-          Garmin · référence 60 j
-        </MonoLabel>
-        <Metric size="md" value="52" unit="ms" className="md:hidden" />
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="hidden items-baseline justify-between md:flex">
-          <MonoLabel>VFC nuit</MonoLabel>
-          <span>
-            <Metric size="lg" value="52" />{" "}
-            <span className="text-body text-muted-foreground">ms · stable</span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 560 90"
-          preserveAspectRatio="none"
-          className="h-20 w-full md:h-22.5"
-        >
-          <rect x="0" y="28" width="560" height="28" className="fill-muted" />
-          <polyline
-            points={points}
-            className="fill-none stroke-foreground"
-            strokeWidth="1.8"
-            vectorEffect="non-scaling-stroke"
-          />
-          <circle
-            cx={Math.round(dip * step)}
-            cy={hrvTrace[dip]}
-            r="3.5"
-            className="fill-warning"
-          />
-        </svg>
-      </div>
-      <div className="hidden flex-col gap-2 md:flex">
-        <div className="flex items-baseline justify-between">
-          <MonoLabel>Sommeil</MonoLabel>
-          <span>
-            <Metric size="lg" value="7 h 05" />{" "}
-            <span className="text-body text-muted-foreground">
-              moyenne 14 nuits
-            </span>
-          </span>
-        </div>
-        <div aria-hidden="true" className="flex h-15 items-end gap-2.5">
-          {sleep.map((value, index) => (
-            <span
-              key={index}
-              style={{ height: `${(value / 54) * 100}%` }}
-              className={cn(
-                "flex-1 rounded-mark",
-                value < 40 ? "bg-warning" : "bg-control-border",
-              )}
+    <div className="rounded-xl border border-border bg-muted px-1 pb-1">
+      <p className="flex h-row items-center gap-2 px-2.5 font-medium text-secondary-foreground">
+        <NavProgressIcon aria-hidden="true" className="size-4" />
+        Ton corps ce matin
+        <Status level="watch" className="ml-auto">
+          Forme modérée
+        </Status>
+      </p>
+      <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-4 py-3.5">
+        <p className="text-title font-semibold">
+          3 signaux sur 4 hors de ta plage
+        </p>
+        <p className="text-label text-secondary-foreground">
+          Forme 58 · ta moyenne sur 14 jours : 69 · jambes fraîches
+        </p>
+        <div className="mt-1 grid border-t border-border sm:grid-cols-2 sm:gap-x-6">
+          {signals.map((signal) => (
+            <Plage
+              key={signal.name}
+              name={signal.name}
+              range={signal.range}
+              value={signal.value}
+              level={signal.level}
+              verdict={signal.verdict}
+              scale={signal.scale}
+              className="border-b border-border last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0"
             />
           ))}
         </div>
       </div>
-      <p className="border-t border-border pt-3 text-body leading-normal text-secondary-foreground md:pt-4">
-        <span className="text-primary">Lecture du coach ·</span> Le creux du
-        14/10 suit ta sortie longue de 28 km. Ta VFC est revenue à ta référence
-        en trois nuits
-        <span className="hidden md:inline">
-          {" "}
-          : la charge actuelle passe bien
-        </span>
-        .
-      </p>
+    </div>
+  );
+}
+
+export function TodayPreview() {
+  return (
+    <figure
+      aria-label="Exemple d’une matinée avec Stride"
+      className="flex flex-col overflow-hidden rounded-2xl border border-control-border bg-card shadow-float"
+    >
+      <div className="flex items-baseline gap-2 border-b border-border px-4 py-2.5">
+        <span className="font-semibold">Aujourd’hui</span>
+        <span className="text-label text-muted-foreground">mer. 7 oct.</span>
+      </div>
+      <SessionPreview />
+      <div className="border-t border-border p-3">
+        <BodyPreview />
+      </div>
     </figure>
   );
 }

@@ -4,59 +4,52 @@ import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
 
 const sections = [
-  { href: "#prevention", label: "Prévention" },
-  { href: "#sante", label: "Données santé" },
-  { href: "#staff", label: "Le staff" },
   { href: "#comment", label: "Comment ça marche" },
+  { href: "#staff", label: "Le staff" },
 ] as const;
 
-export function PublicWordmark({ className }: { className?: string }) {
+function PublicWordmark({ className }: { className?: string }) {
   return (
     <Link
       href="/"
       aria-label="Stride, accueil"
       className={cn(
-        "inline-flex w-fit items-center gap-2 rounded-md text-foreground md:gap-2.5",
+        "inline-flex min-h-control-touch w-fit items-center gap-2 rounded-md font-semibold text-foreground md:min-h-control",
         className,
       )}
     >
-      <StrideMark className="size-5 md:size-5.5" strokeWidth="2.2" />
-      <span className="text-verdict font-bold tracking-wider italic tabular-nums md:text-[22px]">
-        STRIDE
-      </span>
+      <StrideMark className="size-4.5 stroke-primary" />
+      Stride
     </Link>
   );
 }
 
 export function PublicHeader({ withSections = false }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background">
-      <div className="mx-auto flex h-15 max-w-300 items-center gap-8 pr-2 pl-4 md:h-17 md:px-10">
+    <header className="sticky top-0 z-20 bg-background/90 backdrop-blur-sm">
+      <div className="mx-auto flex h-15 max-w-300 items-center gap-6 px-4 md:px-10">
         <PublicWordmark />
-        {withSections && (
-          <nav
-            aria-label="Sections"
-            className="hidden gap-6.5 text-body lg:flex"
-          >
-            {sections.map((section) => (
-              <a
-                key={section.href}
-                href={section.href}
-                className="rounded-md text-secondary-foreground hover:text-foreground"
-              >
-                {section.label}
-              </a>
-            ))}
-          </nav>
-        )}
-        <div className="ml-auto flex items-center gap-2.5">
-          <Link
-            href="/sign-in"
-            className="rounded-md p-3 text-[15px] text-foreground hover:text-primary md:px-2.5 md:text-body"
-          >
-            Se connecter
-          </Link>
-          <Button asChild size="md" className="hidden md:inline-flex">
+        <div className="ml-auto flex items-center gap-2">
+          {withSections && (
+            <nav
+              aria-label="Sections"
+              className="mr-2 hidden items-center gap-6 lg:flex"
+            >
+              {sections.map((section) => (
+                <a
+                  key={section.href}
+                  href={section.href}
+                  className="rounded-md font-medium text-secondary-foreground hover:text-foreground"
+                >
+                  {section.label}
+                </a>
+              ))}
+            </nav>
+          )}
+          <Button asChild variant="outline">
+            <Link href="/sign-in">Se connecter</Link>
+          </Button>
+          <Button asChild className="max-md:hidden">
             <Link href="/sign-up">Créer un compte</Link>
           </Button>
         </div>

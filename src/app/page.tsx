@@ -9,7 +9,7 @@ import { getCurrentUser } from "@/server/auth/session";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: { absolute: "Stride · Progresse sans te blesser" },
+  title: { absolute: "Stride · Un staff qui lit ton corps" },
   description:
     "Coach running pour la route et le trail. Stride lit ton sommeil, ta VFC, ta charge et tes douleurs avant chaque séance, puis ajuste ton plan.",
 };
