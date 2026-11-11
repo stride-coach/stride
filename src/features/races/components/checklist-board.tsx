@@ -23,6 +23,7 @@ import {
   chipLabels,
   chipStatuses,
   checklistTemplateFor,
+  gearReadiness,
   isPrepList,
   itemChip,
   listTitles,
@@ -182,7 +183,7 @@ function AddForm({
           setDetail("");
         }
       }}
-      className="flex flex-col gap-2 border-t border-border py-2.5 print:hidden"
+      className="flex flex-col gap-2 py-2.5 print:hidden"
     >
       <div className="flex gap-2">
         <Input
@@ -336,17 +337,17 @@ export function ChecklistGroup({
     });
   }
 
+  const readiness = gearReadiness(items);
   return (
     <GroupCard
       title={title}
       aside={
-        (aside || (list !== "gear_forbidden" && items.length > 0)) && (
+        (aside || readiness.total > 0) && (
           <span className="flex items-center gap-3">
             {aside}
-            {list !== "gear_forbidden" && items.length > 0 && (
+            {readiness.total > 0 && (
               <span className="tabular-nums">
-                {items.filter((item) => itemChip(item) === "ready").length} /{" "}
-                {items.length}
+                {readiness.ready} / {readiness.total}
               </span>
             )}
           </span>
@@ -407,14 +408,20 @@ export function ChecklistGroup({
             className="grid min-h-row grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-border py-1.5"
           >
             <Checkbox
+              id={`checklist-${item.id}`}
               aria-label={name}
               checked={item.checked}
               disabled={pending}
               onCheckedChange={(value) => toggle(item, value === true)}
-              className="size-4"
+              className="relative size-4 after:absolute after:-inset-3"
             />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className={cn(!item.checked && "font-medium")}>{name}</span>
+              <label
+                htmlFor={`checklist-${item.id}`}
+                className={cn("cursor-pointer", !item.checked && "font-medium")}
+              >
+                {name}
+              </label>
               {detail && (
                 <span className="text-label text-muted-foreground">
                   {detail}

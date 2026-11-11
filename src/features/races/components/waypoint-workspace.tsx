@@ -100,7 +100,7 @@ function WaypointBadge({
       >
         <span
           className={cn(
-            "size-2.5 rotate-45 border-[1.5px]",
+            "size-2.5 rotate-45 border-2",
             mark.shape === "triangle"
               ? "border-secondary-foreground"
               : mark.tone === "caution"

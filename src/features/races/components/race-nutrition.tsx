@@ -603,7 +603,7 @@ export function NutritionBody({
                     >
                       <span
                         aria-hidden="true"
-                        className="mt-1.5 size-3 shrink-0 rounded-full border-[1.5px] border-muted-foreground"
+                        className="mt-1.5 size-3 shrink-0 rounded-full border border-muted-foreground"
                       />
                       <span className="flex flex-1 flex-col gap-0.5">
                         <Link
@@ -649,7 +649,7 @@ export function NutritionBody({
                         ) : (
                           <span
                             aria-hidden="true"
-                            className="mt-1.5 size-3 shrink-0 rounded-full border-[1.5px] border-warning"
+                            className="mt-1.5 size-3 shrink-0 rounded-full border border-warning"
                           />
                         )}
                         <span className="flex-1">
@@ -679,16 +679,20 @@ export function NutritionBody({
             </div>
           </Widget>
         </div>
-        <div className="xl:hidden">
+        <div className="flex flex-col gap-3 xl:hidden">
           <ShoppingList
             id="liste-courses-mobile"
             rows={shopping}
             note={bagNote}
           />
+          <p className="text-label text-muted-foreground">
+            Repères d’entraînement, pas un avis médical. Adapte si quelque chose
+            ne passe pas en sortie longue.
+          </p>
         </div>
       </div>
       <aside
-        aria-label="Liste de courses"
+        aria-label="Contexte de l’alimentation"
         className="flex flex-col gap-4 max-xl:hidden xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border xl:pl-5"
       >
         <ShoppingList id="liste-courses" rows={shopping} note={bagNote} />

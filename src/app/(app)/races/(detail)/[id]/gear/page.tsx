@@ -18,7 +18,7 @@ import {
   DropBagCard,
 } from "@/features/races/components/checklist-board";
 import { PrintSheetButton } from "@/features/races/components/print-sheet-button";
-import { StatusPill } from "@/features/races/components/race-ui";
+import { Status } from "@/components/stride/status";
 import {
   dropBagView,
   racePairView,
@@ -120,9 +120,7 @@ function PairLead({ pair }: { pair: RacePairView | null }) {
             <span className="max-md:hidden"> · {pair.terrain}</span>
           </span>
         </span>
-        <StatusPill tone="accent" dot>
-          {pair.badge}
-        </StatusPill>
+        <Status level="ok">{pair.badge}</Status>
       </div>
       <p className="text-label text-secondary-foreground max-md:hidden">
         {pair.advice}

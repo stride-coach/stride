@@ -8,7 +8,8 @@ import { Slider } from "@/components/ui/slider";
 import { formatDecimal, formatPace } from "../format";
 import { actionMessage } from "../messages";
 import { saveRacePlan } from "@/server/races/actions";
-import { CardLabel, Figure, RaceCard, StatusPill } from "./race-ui";
+import { Status } from "@/components/stride/status";
+import { CardLabel, Figure, RaceCard } from "./race-ui";
 
 export type WalkRow = { threshold: number; count: number; distanceM: number };
 
@@ -80,9 +81,7 @@ export function WalkCard({
       >
         <div className="flex items-center justify-between">
           <CardLabel>Marche rapide</CardLabel>
-          {applied && (
-            <StatusPill tone="accent">Appliquée à la simulation</StatusPill>
-          )}
+          {applied && <Status level="ok">Appliquée à la simulation</Status>}
         </div>
         <label htmlFor="walk-grade" className="text-body">
           Je marche dès{" "}

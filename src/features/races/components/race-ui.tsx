@@ -64,48 +64,6 @@ export function Figure({
   );
 }
 
-export function StatusPill({
-  tone = "neutral",
-  dot = false,
-  className,
-  children,
-}: {
-  tone?:
-    | "neutral"
-    | "outline"
-    | "accent"
-    | "success"
-    | "warning"
-    | "danger"
-    | "provider";
-  dot?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 text-label font-medium whitespace-nowrap",
-        {
-          neutral: "text-foreground",
-          outline: "text-secondary-foreground",
-          accent: "text-primary",
-          success: "text-primary",
-          warning: "text-warning",
-          danger: "text-destructive",
-          provider: "text-muted-foreground",
-        }[tone],
-        className,
-      )}
-    >
-      {dot && (
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-      )}
-      {children}
-    </span>
-  );
-}
-
 export function LegendItem({
   mark,
   children,

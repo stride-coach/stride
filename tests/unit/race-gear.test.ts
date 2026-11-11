@@ -6,6 +6,7 @@ import {
   type ChecklistItem,
   type ChecklistList,
   checklistTemplateFor,
+  gearReadiness,
   itemChip,
   prepLists,
   raceReadiness,
@@ -99,6 +100,20 @@ describe("race checklist readiness", () => {
     item("prep_eve", { status: "ready", checked: true }),
     item("prep_race_day", { status: "buy" }),
   ];
+
+  it("counts a single list without its forbidden or weather items", () => {
+    expect(
+      gearReadiness([
+        item("gear_weather", { status: "weather" }),
+        item("gear_weather", { checked: true }),
+        item("gear_weather"),
+      ]),
+    ).toEqual({ ready: 1, total: 2 });
+    expect(gearReadiness([item("gear_forbidden")])).toEqual({
+      ready: 0,
+      total: 0,
+    });
+  });
 
   it("counts gear and preparation items, never forbidden or weather ones", () => {
     expect(raceReadiness(items, trailChecklistLists)).toEqual({

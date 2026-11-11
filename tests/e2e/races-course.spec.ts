@@ -269,6 +269,7 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
   await request.post(
     `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
   );
+  await page.setViewportSize({ width: 1440, height: 900 });
   await signInAs(page, "athlete@example.com");
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/nutrition");
 
@@ -289,7 +290,9 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
     "Iso Näak · 1 dose",
   );
   await expect(
-    page.getByRole("complementary", { name: "Liste de courses" }),
+    page
+      .getByRole("complementary", { name: "Contexte de l’alimentation" })
+      .getByRole("region", { name: "Liste de courses" }),
   ).toContainText("Näak Ultra Energy · doses");
   await expect(first.getByText(/^\d+,\d L · \d+ mg$/)).toBeVisible();
   await expect(
