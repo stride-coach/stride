@@ -12,6 +12,7 @@ import { SessionShape } from "@/components/stride/session-shape";
 import { Status, type StatusLevel } from "@/components/stride/status";
 import { Widget } from "@/components/stride/widget";
 import { coachRequestHref } from "@/features/coach/request";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SyncNowButton } from "@/features/data-activity/components/sync-request";
 import {
@@ -69,7 +70,7 @@ function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
     <div
       role="group"
       aria-label="Verdict du jour"
-      className="flex flex-col gap-3"
+      className="flex flex-col gap-3 motion-safe:animate-in motion-safe:duration-150 motion-safe:fade-in-0"
     >
       <p className="flex flex-col gap-1.5">
         <ToneStatus tone={verdict.tone}>{verdict.label}</ToneStatus>
@@ -80,7 +81,7 @@ function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
       {verdict.motif && (
         <p className="text-label text-muted-foreground">{verdict.motif}</p>
       )}
-      {(verdict.actions.length > 0 || verdict.sync) && (
+      {verdict.actions.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
           {verdict.actions.map((action) => (
             <Button
@@ -97,7 +98,6 @@ function VerdictBlock({ verdict }: { verdict: TodayVerdict }) {
               </Link>
             </Button>
           ))}
-          {verdict.sync && <SyncNowButton variant="outline" />}
         </div>
       )}
     </div>
@@ -147,14 +147,22 @@ function PlannedSession({
 }) {
   const { panel } = session;
   const done = panel.status === "done" || panel.status === "partial";
+  const waiting = !done && verdict?.waiting === true;
   const stepsInVerdict =
     !done && verdict?.actions.some((action) => action.key === "steps");
   return (
     <>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
         <h2 className="text-title font-semibold">{panel.title}</h2>
+        {waiting && <Chip>{verdict.label}</Chip>}
         {session.terrain && <Chip>{session.terrain}</Chip>}
       </div>
+      {waiting && (
+        <p className="flex items-center gap-2.5 text-muted-foreground">
+          <StaffAvatar agent="coach" size={22} state="think" decorative />
+          {verdict.text}
+        </p>
+      )}
       {panel.purpose && (
         <p className="max-w-160 text-body-lg text-secondary-foreground">
           {panel.purpose}
@@ -188,7 +196,7 @@ function PlannedSession({
           className="h-5.5"
         />
       )}
-      {verdict && !done && <VerdictBlock verdict={verdict} />}
+      {verdict && !done && !waiting && <VerdictBlock verdict={verdict} />}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {!done && panel.shoes && (
           <TodayShoeChip shoes={panel.shoes} href={session.href} />
@@ -383,6 +391,11 @@ export function BodySection({
                   {form.gap && ` · ${form.gap}`}
                 </p>
               )}
+            </div>
+          ) : verdict?.waiting ? (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <p className="text-muted-foreground">En attente de ta montre</p>
+              <SyncNowButton variant="outline" />
             </div>
           ) : (
             <p className="text-muted-foreground">

@@ -30,19 +30,29 @@ test("today weighs the session against the form and asks one question at a time"
   const session = page.getByRole("region", { name: "Séance du jour" });
   await expect(session.getByRole("heading", { level: 2 })).toBeVisible();
   const verdict = session.getByRole("group", { name: "Verdict du jour" });
-  await expect(verdict).toBeVisible();
-  await expect(
-    verdict.getByText(
-      /^(Séance maintenue|Avec prudence|À revoir|Forme inconnue|Récupère)$/,
-    ),
-  ).toBeVisible();
+  const waiting = session.getByText(
+    "Le Coach attend tes données de la nuit pour confirmer la séance. En attendant, voici ce que prévoit le plan.",
+  );
+  await expect(verdict.or(waiting)).toBeVisible();
 
   const form = page.getByRole("region", { name: "Ton corps ce matin" });
   await expect(form.getByRole("link", { name: "Détail" })).toHaveAttribute(
     "href",
     "/health/recovery",
   );
-  await expect(form.getByText(/^Compatible avec .+ \?$/)).toBeVisible();
+  if (await waiting.isVisible()) {
+    await expect(session.getByText("Prévue au plan")).toBeVisible();
+    await expect(verdict).toHaveCount(0);
+    await expect(form.getByText("En attente de ta montre")).toBeVisible();
+    await expect(
+      form.getByRole("button", { name: /Synchroniser/ }),
+    ).toBeVisible();
+  } else {
+    await expect(
+      verdict.getByText(/^(Séance maintenue|Avec prudence|À revoir|Récupère)$/),
+    ).toBeVisible();
+    await expect(form.getByText(/^Compatible avec .+ \?$/)).toBeVisible();
+  }
 
   const week = page.getByRole("region", {
     name: /^Cette semaine · S\d+ \/ \d+$/,
@@ -141,6 +151,9 @@ test("today stacks the day in reading order on mobile", async ({ page }) => {
   await page.goto("/today");
   await expect(
     page.getByRole("heading", { level: 1, name: "Aujourd’hui" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Séance du jour" }),
   ).toBeVisible();
   const order = await Promise.all(
     [
