@@ -36,8 +36,8 @@ export default async function AppearanceSettingsPage() {
             Raccourcis clavier
           </h2>
           <p className="text-secondary-foreground">
-            Appuie sur ? n’importe où pour ouvrir cette aide. Sur Windows et
-            Linux, ⌘ devient Ctrl.
+            Appuie sur ? n’importe où pour ouvrir l’aide des raccourcis. Sur
+            Windows et Linux, ⌘ devient Ctrl.
           </p>
         </div>
         <div className="grid gap-x-8 md:grid-cols-2">
@@ -67,7 +67,9 @@ export default async function AppearanceSettingsPage() {
                           <Key>{entry.keys.sequence[1]}</Key>
                         </>
                       ) : (
-                        entry.keys.mac.map((key) => <Key key={key}>{key}</Key>)
+                        entry.keys.combo.map((key) => (
+                          <Key key={key}>{key}</Key>
+                        ))
                       )}
                     </span>
                   </li>

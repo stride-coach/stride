@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   parseThemePreference,
   resolveTheme,
-  themeButtonLabel,
   themeScript,
 } from "../../src/features/theme/model";
 
@@ -19,10 +18,6 @@ describe("theme preference", () => {
     expect(resolveTheme("system", false)).toBe("dark");
     expect(resolveTheme("dark", true)).toBe("dark");
     expect(resolveTheme("light", false)).toBe("light");
-  });
-
-  it("names the current choice in French", () => {
-    expect(themeButtonLabel("system")).toBe("Thème : Système");
   });
 
   it("applies every stored preference before first paint", () => {

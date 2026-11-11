@@ -2,6 +2,11 @@
 
 import { useId } from "react";
 import { cn } from "@/lib/utils";
+import {
+  segmentChecked,
+  segmentGroup,
+  segmentItem,
+} from "@/features/settings/components/preferences";
 import { themeLabels, themePreferences } from "../model";
 import { setThemePreference, useThemePreference } from "./theme-store";
 
@@ -23,32 +28,27 @@ export function ThemeChoice() {
         role="radiogroup"
         aria-labelledby={labelId}
         aria-describedby={hintId}
-        className="flex w-fit gap-0.5 rounded-lg border border-border bg-card p-0.5 max-sm:w-full"
+        className={cn(segmentGroup, "max-sm:w-full")}
       >
         {themePreferences
           .toSorted((a, b) =>
             a === "system" ? -1 : b === "system" ? 1 : a === "light" ? -1 : 1,
           )
-          .map((option) => {
-            const checked = preference === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={checked}
-                onClick={() => setThemePreference(option)}
-                className={cn(
-                  "flex min-h-control-touch items-center justify-center rounded-md px-2.5 whitespace-nowrap transition-colors duration-150 ease-stride max-sm:flex-1 md:min-h-6",
-                  checked
-                    ? "bg-muted font-medium text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
+          .map((option) => (
+            <label key={option} className="flex max-sm:flex-1">
+              <input
+                type="radio"
+                name="theme"
+                value={option}
+                checked={preference === option}
+                onChange={() => setThemePreference(option)}
+                className="peer sr-only"
+              />
+              <span className={cn(segmentItem, segmentChecked)}>
                 {themeLabels[option]}
-              </button>
-            );
-          })}
+              </span>
+            </label>
+          ))}
       </div>
     </div>
   );

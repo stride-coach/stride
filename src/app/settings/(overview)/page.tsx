@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { formatLocalDate, localToday } from "@/features/app-shell/shell";
 import {
@@ -17,7 +16,7 @@ import { readProfile } from "@/server/onboarding/profile";
 import { readGoals } from "@/server/onboarding/goals";
 import { requireAthleteAccount } from "@/server/app/session";
 import { getShellIdentity } from "@/server/app/shell";
-import { signOut } from "@/server/auth/actions";
+import { SignOutButton } from "@/features/app-shell/components/sign-out-menu-item";
 import { pushSummary } from "@/features/notifications/push";
 import { readPushSettings } from "@/server/push/preferences";
 import { readProfileMetrics } from "@/server/settings/data";
@@ -73,10 +72,6 @@ export default async function SettingsOverviewPage() {
       className: "bg-primary",
     },
   ];
-  const signOutAction = async () => {
-    "use server";
-    await signOut();
-  };
   const profileDetail =
     [
       profile.values.height_cm && `${profile.values.height_cm} cm`,
@@ -104,11 +99,7 @@ export default async function SettingsOverviewPage() {
             {memberSince && ` · membre depuis ${memberSince}`}
           </p>
         </div>
-        <form action={signOutAction} className="max-sm:w-full">
-          <Button type="submit" variant="outline" className="max-sm:w-full">
-            Se déconnecter
-          </Button>
-        </form>
+        <SignOutButton className="max-sm:w-full" />
       </div>
       <Widget
         headingLevel={2}

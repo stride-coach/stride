@@ -25,7 +25,6 @@ const toneDots = {
   warning: "bg-warning",
   danger: "bg-destructive",
   provider: "bg-muted-foreground",
-  muted: "bg-muted-foreground",
 } as const;
 
 function GarminState() {
@@ -37,10 +36,7 @@ function GarminState() {
       {activity.state !== "checking" && (
         <span
           aria-hidden="true"
-          className={cn(
-            "size-1.5 rounded-full",
-            toneDots[tone as keyof typeof toneDots] ?? toneDots.muted,
-          )}
+          className={cn("size-1.5 rounded-full", toneDots[tone])}
         />
       )}
       Garmin
@@ -130,11 +126,20 @@ export function SettingsShell({
   const label = section?.label ?? "Réglages";
   return (
     <ShellIdentityProvider value={{ athlete, goal, modelDetail }}>
-      <SidebarProvider className="relative h-svh flex-col overflow-hidden bg-background md:bg-shell">
+      <SidebarProvider
+        open
+        onOpenChange={() => {}}
+        className="relative h-svh flex-col overflow-hidden bg-background md:bg-shell"
+      >
         <ShortcutHelp />
         <Relief corner="top-right" className="max-md:hidden print:hidden" />
         <Relief corner="bottom-left" className="max-md:hidden print:hidden" />
-        <TopBar athlete={athlete} goal={goal} modelDetail={modelDetail} />
+        <TopBar
+          athlete={athlete}
+          goal={goal}
+          modelDetail={modelDetail}
+          sidebarToggle={false}
+        />
         <div className="relative flex min-h-0 flex-1">
           <SettingsNav active={section?.slug} />
           <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-background md:mr-2 md:mb-2 md:rounded-xl md:border md:border-border">
@@ -264,21 +269,6 @@ export function SettingsHeading({
   );
 }
 
-export function SettingsGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mb-8">
-      <h2 className="pb-2.5 text-body-lg font-semibold">{title}</h2>
-      <div className="border-t border-border">{children}</div>
-    </section>
-  );
-}
-
 export function SettingsLinkRow({
   href,
   title,
@@ -305,25 +295,5 @@ export function SettingsLinkRow({
         className="col-start-2 row-span-2 row-start-1 size-4 shrink-0 text-muted-foreground md:col-start-3 md:row-span-1"
       />
     </Link>
-  );
-}
-
-export function UnavailableSettingRow({
-  title,
-  detail,
-  value,
-}: {
-  title: string;
-  detail: string;
-  value?: string;
-}) {
-  return (
-    <div className="grid gap-1 border-b border-border py-3.5 md:grid-cols-[12.5rem_minmax(0,1fr)_auto] md:items-center md:gap-5">
-      <strong className="font-medium">{title}</strong>
-      <p className="text-secondary-foreground">{detail}</p>
-      <span className="text-label text-muted-foreground tabular-nums">
-        {value ?? "Indisponible"}
-      </span>
-    </div>
   );
 }

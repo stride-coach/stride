@@ -535,7 +535,12 @@ export function RaceWizard({
                         >
                           <PriorityBadge priority={option.value} />
                           <span className="flex flex-1 flex-col gap-0.5">
-                            <span className="font-medium">{option.title}</span>
+                            <span className="font-medium">
+                              <span className="sr-only">
+                                Course {option.value} ·{" "}
+                              </span>
+                              {option.title}
+                            </span>
                             <span className="text-label text-secondary-foreground">
                               {description}
                             </span>

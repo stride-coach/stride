@@ -1,8 +1,6 @@
-export type ShortcutKeys = { mac: readonly string[]; other: readonly string[] };
-
 export type ShortcutEntry = {
   label: string;
-  keys: ShortcutKeys | { sequence: readonly string[] };
+  keys: { combo: readonly string[] } | { sequence: readonly string[] };
 };
 
 export const shortcutGroups: readonly {
@@ -14,21 +12,9 @@ export const shortcutGroups: readonly {
     entries: [
       { label: "Ouvrir les activités", keys: { sequence: ["G", "A"] } },
       { label: "Ouvrir les réglages", keys: { sequence: ["G", "R"] } },
-      {
-        label: "Réduire la barre latérale",
-        keys: { mac: ["⌘", "B"], other: ["Ctrl", "B"] },
-      },
-      { label: "Réglages", keys: { mac: ["⌘", ","], other: ["Ctrl", ","] } },
-      { label: "Raccourcis clavier", keys: { mac: ["?"], other: ["?"] } },
-    ],
-  },
-  {
-    title: "Commandes",
-    entries: [
-      {
-        label: "Rechercher dans cette aide",
-        keys: { mac: ["/"], other: ["/"] },
-      },
+      { label: "Réduire la barre latérale", keys: { combo: ["⌘", "B"] } },
+      { label: "Réglages", keys: { combo: ["⌘", ","] } },
+      { label: "Raccourcis clavier", keys: { combo: ["?"] } },
     ],
   },
 ];

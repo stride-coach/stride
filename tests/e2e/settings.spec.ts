@@ -278,6 +278,7 @@ test("settings pages keep a centred reading column on every width", async ({
     await expect(content).toBeVisible();
     const bounds = await content.boundingBox();
     expect(bounds?.width).toBeLessThanOrEqual(720);
+    expect(bounds?.width).toBeGreaterThan(600);
     if (route === "/settings") {
       await page.screenshot({
         path: "test-results/settings-laptop-layout.png",

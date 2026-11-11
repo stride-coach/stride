@@ -30,8 +30,4 @@ export function resolveTheme(
   return preference;
 }
 
-export function themeButtonLabel(preference: ThemePreference) {
-  return `Thème : ${themeLabels[preference]}`;
-}
-
 export const themeScript = `(function(){var p;try{p=localStorage.getItem(${JSON.stringify(themeStorageKey)})}catch(e){}if(${JSON.stringify(themePreferences)}.indexOf(p)<0)p=${JSON.stringify(defaultThemePreference)};document.documentElement.dataset.theme=p==="system"?(matchMedia(${JSON.stringify(lightSchemeQuery)}).matches?"light":"dark"):p})()`;
