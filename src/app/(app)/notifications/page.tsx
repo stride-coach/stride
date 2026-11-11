@@ -35,6 +35,9 @@ export default async function NotificationsPage({
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2.5 md:px-5">
               <h1 className="font-semibold max-md:sr-only">Notifications</h1>
+              <span className="text-label text-muted-foreground max-md:hidden xl:hidden">
+                30 derniers jours
+              </span>
               <NotificationFilters current={filter} todo={todo} />
               {unread > 0 && (
                 <>

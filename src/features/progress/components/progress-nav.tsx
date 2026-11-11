@@ -132,12 +132,7 @@ export function ProgressSidebarGroup() {
   const onNutrition =
     pathname === "/health/nutrition" ||
     pathname.startsWith("/health/nutrition/");
-  if (
-    !onNutrition &&
-    pathname !== "/health" &&
-    !pathname.startsWith("/health/")
-  )
-    return null;
+  if (pathname !== "/health" && !pathname.startsWith("/health/")) return null;
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Santé</SidebarGroupLabel>

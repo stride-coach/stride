@@ -29,6 +29,7 @@ export default async function ShoeRoute({
       ]}
       back={{ href: "/activities/gear", label: "Retour au matériel" }}
       aside={<GearDetailPanel shoe={shoe} />}
+      asideFirst
     >
       <GearDetail shoe={shoe} today={today} />
     </GearFrame>

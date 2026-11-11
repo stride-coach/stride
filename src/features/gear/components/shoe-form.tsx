@@ -391,7 +391,6 @@ export function ShoeForm({
               <Button
                 type="button"
                 variant="outline"
-
                 disabled={suggesting || name.trim().length < 3}
                 onClick={complete}
               >
@@ -590,12 +589,7 @@ export function ShoeForm({
         </p>
       )}
       <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-
-          onClick={() => router.back()}
-        >
+        <Button type="button" variant="outline" onClick={() => router.back()}>
           Annuler
         </Button>
         <Button type="submit" disabled={pending}>

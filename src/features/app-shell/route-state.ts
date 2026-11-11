@@ -5,8 +5,6 @@ const sectionLabels: Record<string, string> = {
   activities: "Activités",
   health: "Santé",
   races: "Courses",
-  gear: "Matériel",
-  nutrition: "Nutrition",
   notifications: "Notifications",
   settings: "Réglages",
 };

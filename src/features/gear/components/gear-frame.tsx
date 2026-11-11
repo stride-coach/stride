@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   AppHeader,
   type AppCrumb,
@@ -14,12 +15,14 @@ export function GearFrame({
   breadcrumb,
   back,
   aside,
+  asideFirst = false,
   children,
 }: {
   crumbs: AppCrumb[];
   breadcrumb?: React.ReactNode;
   back?: { href: string; label: string };
   aside?: React.ReactNode;
+  asideFirst?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -30,7 +33,9 @@ export function GearFrame({
         breadcrumb={breadcrumb}
         back={back}
       />
-      <GearScroll aside={aside}>{children}</GearScroll>
+      <GearScroll aside={aside} asideFirst={asideFirst}>
+        {children}
+      </GearScroll>
     </>
   );
 }
@@ -69,9 +74,11 @@ export function GearListFrame({
 
 function GearScroll({
   aside,
+  asideFirst = false,
   children,
 }: {
   aside?: React.ReactNode;
+  asideFirst?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -83,7 +90,11 @@ function GearScroll({
         {aside && (
           <aside
             aria-label="Repères du matériel"
-            className="flex flex-col px-4 md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border"
+            className={cn(
+              "flex flex-col px-4 md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border",
+              asideFirst &&
+                "max-xl:order-first max-xl:border-b max-xl:border-border",
+            )}
           >
             {aside}
           </aside>

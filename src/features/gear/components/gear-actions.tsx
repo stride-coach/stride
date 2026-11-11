@@ -153,7 +153,6 @@ export function CurrentKmButton({
               <Button
                 type="button"
                 variant="outline"
-
                 onClick={() => setOpen(false)}
               >
                 Annuler
