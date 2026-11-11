@@ -21,10 +21,10 @@ export default async function ShoeRoute({
   return (
     <GearFrame
       crumbs={[
-        { label: "Matériel", href: "/gear" },
+        { label: "Matériel", href: "/activities/gear" },
         { label: modelName(shoe.spec) },
       ]}
-      back={{ href: "/gear", label: "Retour au matériel" }}
+      back={{ href: "/activities/gear", label: "Retour au matériel" }}
     >
       <GearDetail shoe={shoe} today={today} />
     </GearFrame>

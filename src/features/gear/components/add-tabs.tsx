@@ -2,8 +2,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { key: "name", label: "Par son nom", href: "/gear/new" },
-  { key: "garmin", label: "Depuis Garmin", href: "/gear/import" },
+  { key: "name", label: "Par son nom", href: "/activities/gear/new" },
+  { key: "garmin", label: "Depuis Garmin", href: "/activities/gear/import" },
 ] as const;
 
 export function AddTabs({

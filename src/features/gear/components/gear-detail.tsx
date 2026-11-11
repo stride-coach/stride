@@ -97,7 +97,9 @@ export function GearDetail({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" size="md">
-            <Link href={`/gear/${shoe.id}/edit`}>Modifier la fiche</Link>
+            <Link href={`/activities/gear/${shoe.id}/edit`}>
+              Modifier la fiche
+            </Link>
           </Button>
           <RetireShoeButton id={shoe.id} retired={retired} />
         </div>

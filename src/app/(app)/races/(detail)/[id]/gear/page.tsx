@@ -110,7 +110,7 @@ function PairLead({ pair }: { pair: RacePairView | null }) {
         />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <Link
-            href={`/gear/${pair.id}`}
+            href={`/activities/gear/${pair.id}`}
             className="self-start font-semibold hover:text-primary"
           >
             {pair.name}
@@ -252,7 +252,7 @@ export default async function RaceGearPage({
             lead: <PairLead pair={pair} />,
             aside: (
               <Link
-                href="/gear"
+                href="/activities/gear"
                 className="text-label text-primary hover:text-foreground max-md:hidden print:hidden"
               >
                 Matériel

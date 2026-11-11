@@ -85,7 +85,7 @@ test("Matériel lists this week's pairs and the recent rotation", async ({
 }) => {
   await page.setViewportSize({ width: 1440, height: 1310 });
   await signIn(page);
-  await page.goto("/gear");
+  await page.goto("/activities/gear");
   await expect(
     page.getByRole("heading", { name: "Paires prévues cette semaine" }),
   ).toBeVisible();
@@ -148,7 +148,7 @@ test("a run with another pair in Garmin asks which one was worn", async ({
   ).toBeVisible();
   await page.screenshot({ path: "test-results/gear-check-today.png" });
 
-  await page.goto("/gear");
+  await page.goto("/activities/gear");
   const watch = page.getByRole("region", { name: "À surveiller" });
   await expect(watch.getByText(/^Paire à confirmer · /)).toBeVisible();
   await watch.getByRole("link", { name: "Répondre" }).click();
@@ -193,7 +193,7 @@ test("the race gear list links the shoe line to a real pair", async ({
   const pair = page.getByRole("link", { name: "Nike ACG Zegama" });
   await expect(pair).toHaveAttribute(
     "href",
-    "/gear/d1000000-0000-4000-8000-000000000004",
+    "/activities/gear/d1000000-0000-4000-8000-000000000004",
   );
   await expect(
     page.getByText(
@@ -208,4 +208,16 @@ test("the race gear list links the shoe line to a real pair", async ({
   await expect(
     page.getByRole("link", { name: "Nike ACG Zegama" }),
   ).toBeVisible();
+});
+
+test("old Matériel and Nutrition links land on their new tab", async ({
+  page,
+}) => {
+  await signInAs(page, "athlete@example.com");
+  await page.goto("/gear");
+  await expect(page).toHaveURL("/activities/gear");
+  await page.goto("/gear/new");
+  await expect(page).toHaveURL("/activities/gear/new");
+  await page.goto("/nutrition");
+  await expect(page).toHaveURL("/health/nutrition");
 });

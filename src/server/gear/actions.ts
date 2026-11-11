@@ -57,8 +57,8 @@ function garminFailure(failure: GarminFailure): GearActionResult {
 }
 
 function refresh(id?: string) {
-  revalidatePath("/gear");
-  if (id) revalidatePath(`/gear/${id}`);
+  revalidatePath("/activities/gear");
+  if (id) revalidatePath(`/activities/gear/${id}`);
 }
 
 async function context() {

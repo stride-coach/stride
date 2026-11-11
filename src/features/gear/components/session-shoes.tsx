@@ -208,7 +208,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           Chaussures
         </MonoLabel>
         <Link
-          href="/gear"
+          href="/activities/gear"
           className="ml-auto text-label text-muted-foreground hover:text-foreground"
         >
           Matériel ›
@@ -216,7 +216,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
       </div>
       {shoes.chosen && (
         <Link
-          href={`/gear/${shoes.chosen.id}`}
+          href={`/activities/gear/${shoes.chosen.id}`}
           className="flex items-center gap-3 text-foreground"
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] border border-control-border bg-muted">
@@ -243,7 +243,7 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
           size="md"
           className="self-start max-sm:h-11 max-sm:w-full"
         >
-          <Link href="/gear/new">Ajouter une paire</Link>
+          <Link href="/activities/gear/new">Ajouter une paire</Link>
         </Button>
       ) : (
         <>

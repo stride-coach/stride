@@ -10,7 +10,7 @@ import { WearGauge } from "./wear-gauge";
 function PairCard({ pair }: { pair: PairCardView }) {
   return (
     <Link
-      href={`/gear/${pair.id}`}
+      href={`/activities/gear/${pair.id}`}
       className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-foreground transition-colors hover:border-control-border focus-visible:outline-2 focus-visible:outline-ring"
     >
       <div className="flex flex-wrap items-center gap-2">
@@ -111,11 +111,11 @@ export function GearList({
         <div className="flex flex-wrap gap-2">
           {importable > 0 && (
             <Button asChild variant="outline" size="md">
-              <Link href="/gear/import">Importer depuis Garmin</Link>
+              <Link href="/activities/gear/import">Importer depuis Garmin</Link>
             </Button>
           )}
           <Button asChild size="md">
-            <Link href="/gear/new">
+            <Link href="/activities/gear/new">
               <PlusIcon data-icon="inline-start" aria-hidden="true" />
               Ajouter une paire
             </Link>
@@ -157,7 +157,7 @@ export function GearList({
             {view.retired.map((pair) => (
               <li key={pair.id} className="border-t border-border">
                 <Link
-                  href={`/gear/${pair.id}`}
+                  href={`/activities/gear/${pair.id}`}
                   className="grid grid-cols-[minmax(0,1fr)_90px_120px] gap-3 py-2.5 text-body text-secondary-foreground hover:text-foreground"
                 >
                   <span className="truncate">{pair.name}</span>

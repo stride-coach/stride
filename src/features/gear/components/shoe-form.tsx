@@ -358,7 +358,7 @@ export function ShoeForm({
         toast.success(
           mode === "create" ? "Paire ajoutée." : "Paire enregistrée.",
         );
-        startTransition(() => router.push(`/gear/${response.id}`));
+        startTransition(() => router.push(`/activities/gear/${response.id}`));
       } else toast.error(gearErrorMessage(response));
     });
   };

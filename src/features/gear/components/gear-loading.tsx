@@ -25,7 +25,7 @@ function ShoeBreadcrumb({ current }: { current?: string }) {
       className="flex min-w-0 items-center gap-2 text-body"
     >
       <Link
-        href="/gear"
+        href="/activities/gear"
         className="truncate text-muted-foreground hover:text-foreground"
       >
         Matériel
@@ -89,7 +89,7 @@ export function GearListLoading() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild size="md">
-              <Link href="/gear/new">
+              <Link href="/activities/gear/new">
                 <PlusIcon data-icon="inline-start" aria-hidden="true" />
                 Ajouter une paire
               </Link>
@@ -119,9 +119,9 @@ export function GearListLoading() {
 export function GearDetailLoading() {
   return (
     <GearFrame
-      crumbs={[{ label: "Matériel", href: "/gear" }]}
+      crumbs={[{ label: "Matériel", href: "/activities/gear" }]}
       breadcrumb={<ShoeBreadcrumb />}
-      back={{ href: "/gear", label: "Retour au matériel" }}
+      back={{ href: "/activities/gear", label: "Retour au matériel" }}
     >
       <LoadingScope
         label="Chargement de la paire"
@@ -167,10 +167,10 @@ export function GearEditLoading() {
   const id = useShoeId();
   return (
     <GearFrame
-      crumbs={[{ label: "Matériel", href: "/gear" }]}
+      crumbs={[{ label: "Matériel", href: "/activities/gear" }]}
       breadcrumb={<ShoeBreadcrumb current="Modifier" />}
       back={{
-        href: id ? `/gear/${id}` : "/gear",
+        href: id ? `/activities/gear/${id}` : "/activities/gear",
         label: id ? "Retour à la paire" : "Retour au matériel",
       }}
     >
@@ -189,10 +189,10 @@ export function GearNewLoading() {
   return (
     <GearFrame
       crumbs={[
-        { label: "Matériel", href: "/gear" },
+        { label: "Matériel", href: "/activities/gear" },
         { label: "Ajouter une paire" },
       ]}
-      back={{ href: "/gear", label: "Retour au matériel" }}
+      back={{ href: "/activities/gear", label: "Retour au matériel" }}
     >
       <LoadingScope
         label="Chargement du formulaire"
@@ -216,10 +216,10 @@ export function GearImportLoading() {
   return (
     <GearFrame
       crumbs={[
-        { label: "Matériel", href: "/gear" },
+        { label: "Matériel", href: "/activities/gear" },
         { label: "Importer depuis Garmin" },
       ]}
-      back={{ href: "/gear", label: "Retour au matériel" }}
+      back={{ href: "/activities/gear", label: "Retour au matériel" }}
     >
       <LoadingScope
         label="Chargement des paires Garmin"

@@ -40,7 +40,7 @@ export const missingItems: Record<
   pair: {
     title: "Paire introuvable",
     message: "Cette paire n’existe pas ou a été retirée de ton matériel.",
-    action: { href: "/gear", label: "Voir mon matériel" },
+    action: { href: "/activities/gear", label: "Voir mon matériel" },
   },
   conversation: {
     title: "Conversation introuvable",

@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
     return [
       { source: "/coach/equipe", destination: "/coach/team", permanent: true },
       { source: "/health", destination: "/health/fitness", permanent: false },
+      {
+        source: "/nutrition",
+        destination: "/health/nutrition",
+        permanent: true,
+      },
+      {
+        source: "/gear/:path*",
+        destination: "/activities/gear/:path*",
+        permanent: true,
+      },
       { source: "/progress", destination: "/health/fitness", permanent: true },
       {
         source: "/progress/:section(body|recovery|health)",

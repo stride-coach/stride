@@ -99,7 +99,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
             ? `${selected.length} paires importées.`
             : "Paire importée.",
         );
-        startTransition(() => router.push("/gear"));
+        startTransition(() => router.push("/activities/gear"));
       } else toast.error(gearErrorMessage(result));
     });
   };
@@ -114,7 +114,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
           Garmin.
         </p>
         <Button asChild size="md">
-          <Link href="/gear/new">Ajouter une paire</Link>
+          <Link href="/activities/gear/new">Ajouter une paire</Link>
         </Button>
       </section>
     );
@@ -256,7 +256,7 @@ export function ImportForm({ gear }: { gear: ImportableGear[] }) {
       )}
       <div className="flex flex-wrap justify-end gap-2">
         <Button asChild variant="outline" size="md">
-          <Link href="/gear">Annuler</Link>
+          <Link href="/activities/gear">Annuler</Link>
         </Button>
         <Button
           size="md"

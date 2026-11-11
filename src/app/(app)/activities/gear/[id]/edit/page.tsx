@@ -21,11 +21,11 @@ export default async function EditShoeRoute({
   return (
     <GearFrame
       crumbs={[
-        { label: "Matériel", href: "/gear" },
-        { label: modelName(shoe.spec), href: `/gear/${shoe.id}` },
+        { label: "Matériel", href: "/activities/gear" },
+        { label: modelName(shoe.spec), href: `/activities/gear/${shoe.id}` },
         { label: "Modifier" },
       ]}
-      back={{ href: `/gear/${shoe.id}`, label: "Retour à la paire" }}
+      back={{ href: `/activities/gear/${shoe.id}`, label: "Retour à la paire" }}
     >
       <h1 className="text-[clamp(30px,3.2vw,40px)] leading-none font-semibold tracking-[-0.03em]">
         Modifier la fiche

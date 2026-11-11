@@ -12,10 +12,10 @@ export default async function NewShoeRoute() {
   return (
     <GearFrame
       crumbs={[
-        { label: "Matériel", href: "/gear" },
+        { label: "Matériel", href: "/activities/gear" },
         { label: "Ajouter une paire" },
       ]}
-      back={{ href: "/gear", label: "Retour au matériel" }}
+      back={{ href: "/activities/gear", label: "Retour au matériel" }}
     >
       <section className="flex flex-col gap-2.5">
         <h1 className="text-[clamp(30px,3.2vw,40px)] leading-none font-semibold tracking-[-0.03em]">

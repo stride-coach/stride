@@ -34,7 +34,7 @@ function ActivityTabs() {
         Sorties
       </span>
       <Link
-        href="/gear"
+        href="/activities/gear"
         className={cn(
           tabClass,
           "border-border text-muted-foreground hover:text-foreground md:border-transparent",

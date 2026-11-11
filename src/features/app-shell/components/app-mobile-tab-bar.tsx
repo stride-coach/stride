@@ -59,11 +59,8 @@ export function AppMobileTabBar({
           ) : undefined
         }
       />
-      {tab("/activities", <TabActivitiesIcon />, "Activités", ["/gear"])}
-      {tab("/health/fitness", <TabProgressIcon />, "Santé", [
-        "/health",
-        "/nutrition",
-      ])}
+      {tab("/activities", <TabActivitiesIcon />, "Activités")}
+      {tab("/health/fitness", <TabProgressIcon />, "Santé", ["/health"])}
     </MobileTabBar>
   );
 }
