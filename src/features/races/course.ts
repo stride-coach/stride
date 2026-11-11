@@ -17,7 +17,7 @@ const earthRadiusM = 6_371_008.8;
 const maximumPoints = 12_000;
 const minimumStepM = 20;
 const smoothingRadiusM = 60;
-const elevationHysteresisM = 2;
+const trackHysteresisM = 1;
 
 function radians(degrees: number) {
   return (degrees * Math.PI) / 180;
@@ -93,7 +93,10 @@ export function smoothElevation(values: (number | null)[], stepM: number) {
   });
 }
 
-export function elevationTotals(values: (number | null)[]) {
+export function elevationTotals(
+  values: (number | null)[],
+  hysteresisM: number,
+) {
   if (values.length === 0 || values.some((value) => value === null))
     return { gain: null, loss: null };
   let gain = 0;
@@ -101,10 +104,10 @@ export function elevationTotals(values: (number | null)[]) {
   let anchor = values[0]!;
   for (const value of values as number[]) {
     const delta = value - anchor;
-    if (delta >= elevationHysteresisM) {
+    if (delta >= hysteresisM) {
       gain += delta;
       anchor = value;
-    } else if (delta <= -elevationHysteresisM) {
+    } else if (delta <= -hysteresisM) {
       loss -= delta;
       anchor = value;
     }
@@ -152,7 +155,7 @@ export function buildCourse(raw: RawPoint[]): Course | null {
     samples.map((point) => point.ele),
     stepM,
   );
-  const totals = elevationTotals(smoothed);
+  const totals = elevationTotals(elevation ?? [], trackHysteresisM);
   return {
     stepM,
     distanceM: Math.round(total * 10) / 10,
@@ -198,11 +201,25 @@ export function nearestDistance(course: Course, lat: number, lon: number) {
   return { distanceM: pointDistance(course, best), offsetM: bestDistance };
 }
 
+function scaled(
+  value: number | null,
+  total: number | null,
+  profile: number | null,
+) {
+  if (value === null || total === null || !profile) return value;
+  return Math.round((value * total) / profile);
+}
+
 export function elevationBetween(course: Course, fromM: number, toM: number) {
   const from = indexAt(course, fromM);
   const to = indexAt(course, toM);
-  const values = course.points.slice(from, to + 1).map((point) => point[2]);
-  return elevationTotals(values);
+  const elevations = course.points.map((point) => point[2]);
+  const section = elevationTotals(elevations.slice(from, to + 1), 0);
+  const profile = elevationTotals(elevations, 0);
+  return {
+    gain: scaled(section.gain, course.elevationGainM, profile.gain),
+    loss: scaled(section.loss, course.elevationLossM, profile.loss),
+  };
 }
 
 export function courseBounds(course: Course) {

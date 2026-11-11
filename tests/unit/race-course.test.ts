@@ -43,6 +43,32 @@ describe("course building", () => {
     );
   });
 
+  it("keeps the short climbs of a rolling course", () => {
+    const course = buildCourse(
+      line(20_000, (d) => 100 + 6 * Math.sin((2 * Math.PI * d) / 200), 25),
+    )!;
+    expect(course.elevationGainM).toBeGreaterThan(1_150);
+    expect(course.elevationGainM).toBeLessThan(1_250);
+    expect(course.elevationLossM).toBeGreaterThan(1_150);
+  });
+
+  it("adds the section climbs up to the course total", () => {
+    const course = buildCourse(
+      line(20_000, (d) => 100 + 6 * Math.sin((2 * Math.PI * d) / 200), 25),
+    )!;
+    const sections = [0, 5_000, 12_000, 20_000];
+    const total = sections
+      .slice(1)
+      .reduce(
+        (sum, toM, index) =>
+          sum + (elevationBetween(course, sections[index], toM).gain ?? 0),
+        0,
+      );
+    expect(Math.abs(total - course.elevationGainM!)).toBeLessThanOrEqual(
+      course.elevationGainM! * 0.02,
+    );
+  });
+
   it("ignores GPS noise below the hysteresis on flat ground", () => {
     const course = buildCourse(line(5000, (d) => 50 + ((d / 10) % 2) * 0.8))!;
     expect(course.elevationGainM).toBeLessThan(5);

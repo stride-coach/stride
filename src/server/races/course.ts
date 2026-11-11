@@ -144,7 +144,7 @@ export async function importActivity(
   const [activity, track] = await Promise.all([
     context.client
       .from("provider_activities")
-      .select("id, activity_name")
+      .select("id, activity_name, elevation_gain_meters")
       .eq("user_id", context.userId)
       .eq("id", activityId)
       .maybeSingle(),
@@ -167,8 +167,13 @@ export async function importActivity(
     lon,
     ele: view.elevation[index],
   }));
-  const course = buildCourse(raw);
-  if (!course) return { status: "no-track" };
+  const built = buildCourse(raw);
+  if (!built) return { status: "no-track" };
+  const recordedGainM = activity.data.elevation_gain_meters;
+  const course =
+    recordedGainM !== null && recordedGainM > 0
+      ? { ...built, elevationGainM: Math.round(recordedGainM) }
+      : built;
   return storeCourse(context, raceId, course, {
     kind: "activity",
     activityId,
