@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/stride-coach/stride/compare/v2.0.0...v2.0.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **plans:** end a season with its A race week when another A race follows ([#469](https://github.com/stride-coach/stride/issues/469)) ([d725491](https://github.com/stride-coach/stride/commit/d725491044d9fcbf888a27d5445b1b60310c454d)), closes [#468](https://github.com/stride-coach/stride/issues/468)
+
 ## [2.0.0](https://github.com/stride-coach/stride/compare/v1.4.0...v2.0.0) (2026-11-11)
 
 
