@@ -11,7 +11,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import {
@@ -106,7 +105,7 @@ export function ContextPicker({
         className={cn(
           "gap-0 border-border bg-background",
           mobile
-            ? "max-h-[85svh] rounded-t-[18px]"
+            ? "max-h-[85svh] rounded-t-2xl"
             : "data-[side=right]:w-110 data-[side=right]:sm:max-w-110",
         )}
       >
@@ -127,7 +126,7 @@ export function ContextPicker({
                 <SheetTitle className="text-title font-semibold">
                   Ajouter du contexte
                 </SheetTitle>
-                <SheetDescription className="text-body leading-[1.45] text-muted-foreground">
+                <SheetDescription className="text-secondary-foreground">
                   Le staff reçoit la fiche complète de chaque élément joint.
                   Trois au plus par message.
                 </SheetDescription>
@@ -137,7 +136,7 @@ export function ContextPicker({
                   variant="outline"
                   size="icon"
                   aria-label="Fermer"
-                  className="size-11 shrink-0 rounded-lg md:size-10"
+                  className="shrink-0 max-md:size-control-touch"
                 >
                   <XIcon aria-hidden="true" className="size-3" />
                 </Button>
@@ -145,13 +144,13 @@ export function ContextPicker({
             </div>
             <TabsList
               aria-label="Type de contexte"
-              className="w-full gap-1 rounded-lg border border-border bg-card p-1"
+              className="w-full gap-0.5 rounded-lg border border-border bg-card p-0.5"
             >
               {attachmentKinds.map((kind) => (
                 <TabsTrigger
                   key={kind}
                   value={kind}
-                  className="min-h-9 flex-1 justify-center rounded-md border-b-0 py-0 text-body outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=active]:bg-border data-[state=active]:font-semibold"
+                  className="min-h-control-touch flex-1 justify-center rounded-md border-b-0 py-0 text-muted-foreground data-[state=active]:bg-muted data-[state=active]:font-medium data-[state=active]:text-foreground md:min-h-6"
                 >
                   {attachmentTabLabels[kind]}
                 </TabsTrigger>
@@ -167,7 +166,7 @@ export function ContextPicker({
                 className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2 md:px-3 md:pb-3"
               >
                 {groups.length === 0 ? (
-                  <p className="px-2.5 py-6 text-body text-secondary-foreground">
+                  <p className="px-2.5 py-6 text-secondary-foreground">
                     {attachmentEmptyLabels[kind]}
                   </p>
                 ) : (
@@ -177,9 +176,9 @@ export function ContextPicker({
                       aria-label={group.label}
                       className="flex flex-col gap-0.5"
                     >
-                      <MonoLabel size="nano" className="px-2.5 pt-3 pb-1">
+                      <span className="px-2.5 pt-3 pb-1 text-label font-medium text-muted-foreground">
                         {group.label}
-                      </MonoLabel>
+                      </span>
                       <ul className="flex flex-col gap-0.5">
                         {group.options.map((option) => {
                           const isSelected = selected.some((item) =>
@@ -206,14 +205,11 @@ export function ContextPicker({
           })}
         </Tabs>
         <div className="flex items-center gap-3 border-t border-border px-4 pt-3 pb-[max(1.75rem,env(safe-area-inset-bottom))] md:px-5.5 md:py-3.5">
-          <p
-            role="status"
-            className="flex-1 text-body text-secondary-foreground"
-          >
+          <p role="status" className="flex-1 text-secondary-foreground">
             {attachmentCountLabel(selected.length)}
           </p>
           <SheetClose asChild>
-            <Button className="min-h-11 px-4.5">Terminé</Button>
+            <Button className="max-md:min-h-control-touch">Terminé</Button>
           </SheetClose>
         </div>
       </SheetContent>

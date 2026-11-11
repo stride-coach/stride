@@ -58,7 +58,7 @@ export function ThreadMenu({
             variant="outline"
             size="icon"
             aria-label="Plus d’options"
-            className="size-11 rounded-lg min-[980px]:size-8.5"
+            className="max-md:size-control-touch"
           >
             <EllipsisIcon aria-hidden="true" />
           </Button>

@@ -87,7 +87,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   });
   await expect(sidebarConversations).toHaveAttribute("aria-current", "page");
   await expect(
-    coachItem.getByRole("link", { name: "L’équipe" }),
+    coachItem.getByRole("link", { name: "Le staff" }),
   ).not.toHaveAttribute("aria-current");
 
   const filters = page.getByRole("group", { name: "Filtrer" });
@@ -98,7 +98,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
     const style = getComputedStyle(element);
     return [style.minHeight, style.fontSize, style.borderTopWidth];
   });
-  expect(filterStyle).toEqual(["30px", "12px", "1px"]);
+  expect(filterStyle).toEqual(["24px", "13px", "1px"]);
   await mine.click();
   await expect(mine).toHaveAttribute("aria-pressed", "true");
   await expect(all).toHaveAttribute("aria-pressed", "false");
@@ -118,10 +118,10 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   await expect(page).toHaveURL(`/coach/${kneeThread}`, { timeout: 20_000 });
 
   const log = page.getByRole("log", { name: "Messages" });
-  await expect(log.getByText("@Inès", { exact: true })).toHaveCount(2);
+  await expect(log.getByText("@Santé", { exact: true })).toHaveCount(2);
   expect(
     await log
-      .locator("span", { hasText: /^@Inès$/ })
+      .locator("span", { hasText: /^@Santé$/ })
       .last()
       .evaluate((element) => getComputedStyle(element).color),
   ).toBe("rgb(36, 86, 230)");
@@ -130,7 +130,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   const question = log.getByRole("group", {
     name: "Comment réagit ton genou en descente ?",
   });
-  await expect(question).toContainText("Question d’Inès");
+  await expect(question).toContainText("Question de Santé");
   for (const option of [
     "Aucune gêne",
     "Gêne légère, qui passe",
@@ -147,10 +147,15 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
     name: "Suivi de la conversation",
   });
   await expect(suivi.getByText("Question pour toi")).toBeVisible();
-  await expect(suivi.getByText("Médecin · mentionnée")).toBeVisible();
+  await expect(
+    suivi
+      .getByRole("region", { name: "Participants" })
+      .getByRole("listitem")
+      .filter({ hasText: "Santé" }),
+  ).toContainText("Consulté");
   await expect(suivi.getByText("Signalements · 14 jours")).toBeVisible();
   await expect(suivi.locator('[aria-current="step"]')).toHaveText(
-    /Question d’Inès/,
+    /Question de Santé/,
   );
   await page.screenshot({ path: "test-results/coach-desktop.png" });
 
@@ -184,7 +189,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   await expect(
     log.getByText("Parfait, on garde la sortie longue."),
   ).toBeVisible();
-  await expect(log.getByText("En réponse à Inès")).toBeVisible();
+  await expect(log.getByText("En réponse à Santé")).toBeVisible();
   await expect(log.getByText("Alors tu peux courir")).toBeVisible();
   await expect(log).not.toContainText("Limites pour le plan");
   await expect(question).toContainText("Répondue");
@@ -196,7 +201,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
     "Dernière étape",
   );
   await expect(
-    suivi.getByText("Ta réponse à Inès", { exact: true }),
+    suivi.getByText("Ta réponse à Santé", { exact: true }),
   ).toBeVisible();
   expect(posted).toEqual({
     sessionId: "sesn_01Genou",
@@ -205,7 +210,7 @@ test("the conversations list, consult, question and Suivi at 1440", async ({
   });
 });
 
-test("a new conversation asks Inès and keeps the thread after the turn", async ({
+test("a new conversation asks Santé and keeps the thread after the turn", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -222,7 +227,7 @@ test("a new conversation asks Inès and keeps the thread after the turn", async 
         consoleUrl: "https://console.test",
       },
       item("athlete", { text: "Mon mollet est tendu", consult: "medical" }),
-      item("coach", { text: "@Inès, tu peux regarder ton mollet ?" }),
+      item("coach", { text: "@Santé, tu peux regarder ton mollet ?" }),
       item("consult_request", {
         thread: "sthr_calf",
         agent: "medical",
@@ -241,20 +246,20 @@ test("a new conversation asks Inès and keeps the thread after the turn", async 
       }),
       item("consult_end", { thread: "sthr_calf", agent: "medical" }),
       item("coach", {
-        text: "**Inès est rassurante** : on reste en facile.\n\n- footing\n- étirements",
+        text: "**Santé est rassurante** : on reste en facile.\n\n- footing\n- étirements",
       }),
       { type: "done", status: "idle" },
     ])(route);
   });
   const composer = page.getByRole("textbox", { name: "Écrire au staff" });
   await composer.fill("Mon mollet est tendu");
-  await page.getByRole("button", { name: "Mentionner Inès" }).click();
+  await page.getByRole("button", { name: "Mentionner Santé" }).click();
   await page.getByRole("button", { name: "Envoyer" }).click();
 
   await expect(page).toHaveURL(`/coach/${newThread}`);
   const log = page.getByRole("log", { name: "Messages" });
   await expect(
-    log.locator("strong", { hasText: "Inès est rassurante" }),
+    log.locator("strong", { hasText: "Santé est rassurante" }),
   ).toBeVisible();
   await expect(
     log.getByRole("listitem").filter({ hasText: "footing" }),
@@ -276,7 +281,7 @@ test("a new conversation asks Inès and keeps the thread after the turn", async 
       .getByRole("region", { name: "Conversations" })
       .getByRole("link", { name: /Mon mollet est tendu/ }),
   ).toContainText(
-    "Claire : Inès est rassurante : on reste en facile. footing étirements",
+    "Coach : Santé est rassurante : on reste en facile. footing étirements",
   );
   await expect(
     page.getByRole("heading", { name: "Mon mollet est tendu" }),
@@ -310,7 +315,7 @@ test("suggested replies send from the keyboard and hide while the staff works", 
   await signIn(page);
   await page.goto(`/coach/${kneeThread}`);
   await expect(
-    page.getByRole("log", { name: "Messages" }).getByText("Question d’Inès"),
+    page.getByRole("log", { name: "Messages" }).getByText("Question de Santé"),
   ).toBeVisible();
   await expect(
     page.getByRole("group", { name: "Réponses suggérées" }),
@@ -357,7 +362,7 @@ test("suggested replies send from the keyboard and hide while the staff works", 
   await expect(other).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("status").filter({ hasText: "Claire réfléchit…" }),
+    page.getByRole("status").filter({ hasText: "Le Coach réfléchit…" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Envoyer" })).toBeDisabled();
   await expect(
@@ -594,7 +599,7 @@ test("mobile picks context from a bottom sheet at 390", async ({ page }) => {
   await page.goto("/coach/new");
   const trigger = page.getByRole("button", { name: addContext });
   const triggerBox = await trigger.boundingBox();
-  expect(Math.round(triggerBox!.height)).toBeGreaterThanOrEqual(44);
+  expect(Math.round(triggerBox!.height)).toBeGreaterThanOrEqual(40);
   await trigger.focus();
   await page.keyboard.press("Enter");
   const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
@@ -692,7 +697,7 @@ test("the Plan empty state asks the Coach for a plan", async ({ page }) => {
   await page.getByRole("link", { name: "Demander un plan" }).click();
   await expect(page).toHaveURL("/coach/new?request=plan");
   await expect(
-    page.getByRole("heading", { name: "Demande ton plan à Claire" }),
+    page.getByRole("heading", { name: "Demande ton plan au Coach" }),
   ).toBeVisible();
   await expect(
     page.getByRole("textbox", { name: "Écrire au staff" }),
@@ -727,12 +732,12 @@ test("mobile shows the list, the thread and the Suivi sheet at 390", async ({
     page.getByRole("heading", { name: "Coach", level: 1 }),
   ).toBeVisible();
   await expect(page.getByRole("log")).toBeHidden();
-  const portraitWidth = await page
-    .getByRole("region", { name: "Ton staff" })
-    .getByRole("link", { name: "Claire, coach, voir l’équipe" })
-    .locator("img")
-    .evaluate((image: HTMLImageElement) => image.naturalWidth);
-  expect(portraitWidth).toBeGreaterThanOrEqual(Math.ceil(56 * 1.8));
+  await expect(
+    page
+      .getByRole("region", { name: "Ton staff" })
+      .getByRole("link", { name: "Coach, voir le staff" })
+      .locator('[data-slot="staff-avatar"]'),
+  ).toBeVisible();
   await page.screenshot({ path: "test-results/coach-mobile-list.png" });
   await page
     .getByRole("region", { name: "Conversations" })
@@ -746,7 +751,7 @@ test("mobile shows the list, the thread and the Suivi sheet at 390", async ({
     page.getByRole("link", { name: "Retour aux conversations" }),
   ).toBeVisible();
   const log = page.getByRole("log", { name: "Messages" });
-  await expect(log.getByText("Question d’Inès")).toBeVisible();
+  await expect(log.getByText("Question de Santé")).toBeVisible();
   await expect(
     log.getByRole("button", { name: "Aucune gêne", exact: true }),
   ).toBeVisible();
@@ -754,7 +759,12 @@ test("mobile shows the list, the thread and the Suivi sheet at 390", async ({
   await page.getByRole("button", { name: "Suivi de la conversation" }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByText("Participants")).toBeVisible();
-  await expect(sheet.getByText("Médecin · mentionnée")).toBeVisible();
+  await expect(
+    sheet
+      .getByRole("region", { name: "Participants" })
+      .getByRole("listitem")
+      .filter({ hasText: "Santé" }),
+  ).toContainText("Consulté");
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(390);
   await page.keyboard.press("Escape");
@@ -882,33 +892,7 @@ test("the thread menu offers deletion on mobile", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("portraits load the full source file", async ({ browser }) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 2,
-  });
-  const page = await context.newPage();
-  await signIn(page);
-  await page.goto("/coach");
-  const portrait = page
-    .getByRole("region", { name: "Ton staff" })
-    .getByRole("link", { name: "Claire, coach, voir l’équipe" })
-    .locator("img");
-  await expect(portrait).toBeVisible();
-  const { width, source } = await portrait.evaluate(
-    (image: HTMLImageElement) => ({
-      width: image.naturalWidth,
-      source: image.currentSrc,
-    }),
-  );
-  expect(new URL(source).pathname).toMatch(
-    /^\/_next\/static\/media\/claire\..+\.webp$/,
-  );
-  expect(width).toBe(768);
-  await context.close();
-});
-
-test("the team page shows the whole staff and changes faces everywhere", async ({
+test("the staff page shows five roles without faces and names them everywhere", async ({
   page,
 }) => {
   await resetCoach();
@@ -917,31 +901,42 @@ test("the team page shows the whole staff and changes faces everywhere", async (
   await page.goto("/coach");
   const coachLink = page.getByRole("link", { name: "Coach", exact: true });
   const coachItem = page.locator("li", { has: coachLink }).first();
-  await coachItem.getByRole("link", { name: "L’équipe" }).click();
+  await coachItem.getByRole("link", { name: "Le staff" }).click();
   await expect(page).toHaveURL("/coach/team", { timeout: 20_000 });
   await expect(
-    coachItem.getByRole("link", { name: "L’équipe" }),
+    coachItem.getByRole("link", { name: "Le staff" }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Sections du Coach" })
+      .filter({ visible: true })
+      .getByRole("link", { name: "Le staff" }),
   ).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Une équipe autour de toi, dans une seule conversation.",
+      name: "Cinq rôles, une seule conversation",
     }),
   ).toBeVisible();
-  await expect(page.getByText("Ton staff · 5 agents IA")).toBeVisible();
-  const coach = page.getByRole("region", { name: "Claire" });
-  await expect(coach).toContainText("Ta première interlocutrice.");
+  await expect(page.getByRole("article")).toHaveCount(5);
+  const coach = page.getByRole("article", { name: "Coach" });
+  await expect(coach).toContainText("Ton entraînement au quotidien");
   await expect(coach).toContainText("2 conversations ce mois");
-  const specialists = page.getByRole("region", { name: "Les spécialistes" });
-  await expect(specialists.getByRole("article")).toHaveCount(4);
-  const medical = specialists.getByRole("article", { name: "Inès" });
-  await expect(medical).toContainText("1 avis ce mois");
-  for (const name of ["Marc", "Hugo", "Léa"])
-    await expect(
-      specialists.getByRole("article", { name, exact: true }),
-    ).toBeVisible();
+  await expect(coach.getByRole("img", { name: "Coach" })).toBeVisible();
   await expect(
-    page.getByRole("region", { name: "Comment le staff travaille" }),
+    coach.getByRole("link", { name: "Écrire au Coach" }),
+  ).toBeVisible();
+  await expect(page.getByRole("article", { name: "Santé" })).toContainText(
+    "1 avis ce mois",
+  );
+  for (const name of ["Directeur sportif", "Stratège de course", "Nutrition"])
+    await expect(
+      page.getByRole("article", { name, exact: true }),
+    ).toBeVisible();
+  await expect(page.getByRole("group", { name: /^Visage/ })).toHaveCount(0);
+  await expect(page.getByRole("main").locator("img")).toHaveCount(0);
+  await expect(
+    page.getByRole("complementary", { name: "Comment le staff travaille" }),
   ).toBeVisible();
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(1440);
@@ -950,74 +945,29 @@ test("the team page shows the whole staff and changes faces everywhere", async (
     fullPage: true,
   });
 
-  const coachFaces = page.getByRole("group", { name: "Visage de coach" });
-  await expect(
-    coachFaces.getByRole("button", { name: "Claire" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await coachFaces.getByRole("button", { name: "Thomas" }).click();
-  await page
-    .getByRole("group", { name: "Visage de médecin" })
-    .getByRole("button", { name: "Karim" })
-    .click();
-  await expect(page.getByRole("region", { name: "Thomas" })).toContainText(
-    "Ton premier interlocuteur. Il construit",
-  );
-  await expect(
-    specialists.getByRole("article", { name: "Karim" }),
-  ).toBeVisible();
-  await page.reload();
-  await expect(
-    page
-      .getByRole("group", { name: "Visage de coach" })
-      .getByRole("button", { name: "Thomas" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(
-    page.getByRole("link", { name: "Écrire à Thomas" }),
-  ).toBeVisible();
-
   await page.goto(`/coach/${kneeThread}`);
-  await expect(page.getByText("Thomas, avec Karim")).toBeVisible();
+  await expect(page.getByText("Coach, avec Santé").first()).toBeVisible();
   await expect(
-    page.getByRole("log", { name: "Messages" }).getByText("Question de Karim"),
-  ).toBeVisible();
-  await expect(page.locator('img[src*="karim"]').first()).toBeAttached();
-
-  await page.goto("/coach/team");
-  await page
-    .getByRole("group", { name: "Visage de coach" })
-    .getByRole("button", { name: "Claire" })
-    .click();
-  await page
-    .getByRole("group", { name: "Visage de médecin" })
-    .getByRole("button", { name: "Inès" })
-    .click();
-  await expect(page.getByRole("region", { name: "Claire" })).toBeVisible();
-  await expect(
-    specialists.getByRole("article", { name: "Inès" }),
+    page.getByRole("log", { name: "Messages" }).getByText("Question de Santé"),
   ).toBeVisible();
 });
 
-test("mobile reaches the team page from the conversations list at 390", async ({
+test("mobile reaches the staff page from the conversations list at 390", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto("/coach");
-  await page.getByRole("link", { name: "Voir l’équipe", exact: true }).click();
+  await page.getByRole("link", { name: "Voir le staff", exact: true }).click();
   await expect(page).toHaveURL("/coach/team", { timeout: 20_000 });
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Une équipe autour de toi, une seule conversation.",
+      name: "Cinq rôles, une seule conversation",
     }),
   ).toBeVisible();
-  await expect(page.getByText("Rien ne change sans ton accord")).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Comment le staff travaille" }),
-  ).toBeHidden();
-  await expect(
-    page.getByRole("group", { name: "Visage de médecin" }),
-  ).toBeVisible();
+  await expect(page.getByRole("article")).toHaveCount(5);
+  await expect(page.getByRole("group", { name: /^Visage/ })).toHaveCount(0);
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(390);
   await page.screenshot({
@@ -1040,7 +990,7 @@ test("a refresh during a turn keeps the staff working and shows its result", asy
   await composer.fill(request);
   await composer.press("Enter");
   await expect(
-    page.getByRole("status").filter({ hasText: "Claire réfléchit…" }),
+    page.getByRole("status").filter({ hasText: "Le Coach réfléchit…" }),
   ).toBeVisible();
 
   await coachTurn({
@@ -1063,7 +1013,7 @@ test("a refresh during a turn keeps the staff working and shows its result", asy
   await expect(log.getByText(request)).toBeVisible();
   const working = page
     .getByRole("status")
-    .filter({ hasText: "Claire rédige sa réponse…" });
+    .filter({ hasText: "Le Coach rédige sa réponse…" });
   await expect(working).toContainText("depuis 3 min");
   await expect(working).toContainText(
     "Tu peux quitter la page : le staff continue et sa réponse t’attendra ici.",

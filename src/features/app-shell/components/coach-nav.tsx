@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/sidebar";
 import { NavBadge, NavItem } from "@/components/stride/navigation";
 import { StrideMark } from "@/components/stride/stride-mark";
-import { StaffStack } from "@/features/coach/components/staff-avatar";
-import { staffAgents } from "@/features/coach/staff";
 import {
   coachAttentionLabel,
   coachWaiting,
@@ -57,12 +55,7 @@ export function CoachNavItem({
           <SidebarMenuSubItem>
             <SidebarMenuSubButton asChild isActive={team} className={subClass}>
               <Link href="/coach/team" aria-current={team ? "page" : undefined}>
-                L’équipe
-                <StaffStack
-                  agents={staffAgents}
-                  size={22}
-                  className="ml-auto"
-                />
+                Le staff
               </Link>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>

@@ -4,8 +4,9 @@ import { useId } from "react";
 import { CheckIcon, RotateCcwIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContextChipLink } from "@/components/stride/context-chip";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { PulseDot } from "@/components/stride/marks";
+import { Chip } from "@/components/stride/chip";
+import { Status } from "@/components/stride/status";
+import { Widget } from "@/components/stride/widget";
 import { cn } from "@/lib/utils";
 import {
   attachmentDate,
@@ -31,11 +32,37 @@ import { ProposalLink } from "../../plan/_components/proposal-sheet";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 
 function StaffName({ agent }: { agent: StaffAgent }) {
-  const staff = allStaff;
   return (
-    <span className="inline-flex items-center gap-1.5 text-body font-semibold text-foreground">
-      {staff[agent].name}
-    </span>
+    <span className="font-medium text-foreground">{allStaff[agent].name}</span>
+  );
+}
+
+function StaffRow({
+  agent,
+  state = "idle",
+  time,
+  children,
+}: {
+  agent: StaffAgent;
+  state?: "idle" | "think" | "speak";
+  time?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[30px_minmax(0,1fr)] items-start gap-3">
+      <StaffAvatar agent={agent} size={30} state={state} decorative />
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-h-7.5 items-baseline gap-2 pt-1.5">
+          <StaffName agent={agent} />
+          {time && (
+            <span className="text-label text-muted-foreground tabular-nums">
+              {time}
+            </span>
+          )}
+        </div>
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -56,92 +83,83 @@ function QuestionCard({
   const titleId = useId();
   const pending = block.state === "pending";
   return (
-    <div
+    <Widget
       role="group"
       aria-labelledby={titleId}
-      className={cn(
-        "flex flex-col gap-2.5 rounded-2xl border bg-background px-3.5 py-3 sm:px-4 sm:py-3.5",
-        pending ? "border-border" : "border-border",
-      )}
-    >
-      <div className="flex flex-wrap items-center gap-2 text-label text-muted-foreground">
-        {pending ? (
-          <span className="inline-flex items-center gap-1.5 text-warning">
-            <PulseDot tone="warning" breathing={false} />
-            {questionAttribution(staff[block.askedFor])}
+      title={questionAttribution(staff[block.askedFor])}
+      verdict={
+        pending ? (
+          <Status level="watch">À répondre</Status>
+        ) : block.state === "answered" ? (
+          <span className="inline-flex items-center gap-1.5 text-label font-normal text-muted-foreground">
+            <CheckIcon aria-hidden="true" className="size-3 text-primary" />
+            Répondue
+            {block.answeredAt && ` · ${timeLabel(block.answeredAt, timeZone)}`}
           </span>
-        ) : (
-          <MonoLabel size="nano">
-            {questionAttribution(staff[block.askedFor])}
-          </MonoLabel>
-        )}
-        <span className="ml-auto inline-flex items-center gap-1.5">
-          {block.state === "answered" ? (
-            <>
-              <CheckIcon aria-hidden="true" className="size-3 text-primary" />
-              Répondue
-              {block.answeredAt &&
-                ` · ${timeLabel(block.answeredAt, timeZone)}`}
-            </>
-          ) : block.state === "closed" ? (
-            "Restée sans réponse"
-          ) : null}
-        </span>
-      </div>
-      <p id={titleId} className="text-body leading-snug font-medium">
-        {block.question}
-      </p>
-      {block.options.length > 0 && (pending || block.answer) && (
-        <div className="flex flex-wrap gap-1.5">
-          {block.options.map((option) => {
-            const chosen = block.answer === option;
-            return (
+        ) : block.state === "closed" ? (
+          <span className="text-label font-normal text-muted-foreground">
+            Restée sans réponse
+          </span>
+        ) : null
+      }
+      className="max-w-150"
+    >
+      <div className="flex flex-col gap-2.5">
+        <p id={titleId} className="font-medium">
+          {block.question}
+        </p>
+        {block.options.length > 0 && (pending || block.answer) && (
+          <div className="flex flex-wrap gap-1.5">
+            {block.options.map((option) => {
+              const chosen = block.answer === option;
+              return (
+                <Button
+                  key={option}
+                  type="button"
+                  variant="outline"
+                  aria-pressed={chosen}
+                  disabled={!pending || disabled}
+                  onClick={() => onAnswer(option)}
+                  className={cn(
+                    "h-auto min-h-control-auto py-1.5 text-left font-normal whitespace-normal text-secondary-foreground",
+                    chosen &&
+                      "border-transparent bg-accent font-medium text-primary disabled:opacity-100",
+                  )}
+                >
+                  {chosen && (
+                    <CheckIcon aria-hidden="true" className="size-3" />
+                  )}
+                  {option}
+                </Button>
+              );
+            })}
+            {pending && (
               <Button
-                key={option}
                 type="button"
                 variant="outline"
-                size="sm"
-                aria-pressed={chosen}
-                disabled={!pending || disabled}
-                onClick={() => onAnswer(option)}
-                className={cn(
-                  "h-auto min-h-9 rounded-full px-3 py-1.5 text-left text-body font-normal whitespace-normal text-secondary-foreground",
-                  chosen &&
-                    "border-foreground bg-muted text-foreground disabled:opacity-100",
-                )}
+                disabled={disabled}
+                onClick={onOther}
+                className="font-normal text-secondary-foreground"
               >
-                {chosen && <CheckIcon aria-hidden="true" className="size-3" />}
-                {option}
+                Autre…
               </Button>
-            );
-          })}
-          {pending && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={disabled}
-              onClick={onOther}
-              className="min-h-9 rounded-full px-3 text-body font-normal text-secondary-foreground"
-            >
-              Autre…
-            </Button>
-          )}
-        </div>
-      )}
-    </div>
+            )}
+          </div>
+        )}
+      </div>
+    </Widget>
   );
 }
 
 const proposalStatus: Record<
   ProposalCardStatus,
-  { label: string; tone: "warning" | "accent" | "foreground" | "muted" }
+  { label: string; level: "ok" | "watch" | null }
 > = {
-  pending: { label: "À toi de décider", tone: "warning" },
-  applying: { label: "Application en cours", tone: "accent" },
-  applied: { label: "Appliquée", tone: "foreground" },
-  rejected: { label: "Refusée", tone: "muted" },
-  closed: { label: "Plus applicable", tone: "muted" },
+  pending: { label: "À toi de décider", level: "watch" },
+  applying: { label: "Application en cours", level: "ok" },
+  applied: { label: "Appliquée", level: "ok" },
+  rejected: { label: "Refusée", level: null },
+  closed: { label: "Plus applicable", level: null },
 };
 
 const proposalKickers: Record<
@@ -162,71 +180,74 @@ function ProposalCard({
   const staff = allStaff;
   const status = proposalStatus[block.status];
   return (
-    <div className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-4 sm:p-4.5">
-      <div className="flex items-center gap-2">
-        <MonoLabel tone="foreground">{proposalKickers[block.scope]}</MonoLabel>
-        <MonoLabel
-          tone={status.tone}
-          className={cn(
-            "ml-auto",
-            block.status === "applied" && "text-primary",
+    <Widget
+      title={proposalKickers[block.scope]}
+      verdict={
+        status.level ? (
+          <Status level={status.level}>{status.label}</Status>
+        ) : (
+          <span className="text-label font-normal text-muted-foreground">
+            {status.label}
+          </span>
+        )
+      }
+      className="max-w-150"
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <p className="text-body-lg font-semibold">{block.title}</p>
+          {block.summary && (
+            <p className="text-secondary-foreground">{block.summary}</p>
           )}
-        >
-          {status.label}
-        </MonoLabel>
-      </div>
-      <div className="flex flex-col gap-1">
-        <p className="text-body-lg font-semibold">{block.title}</p>
-        {block.summary && (
-          <p className="text-body leading-normal text-secondary-foreground">
-            {block.summary}
-          </p>
-        )}
-      </div>
-      {block.opinions.length > 0 && (
-        <div className="flex flex-col border-t border-border">
-          {block.opinions.map((opinion, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-[20px_minmax(0,1fr)] gap-2.5 border-b border-border py-2.5 text-body leading-snug text-secondary-foreground"
-            >
-              <StaffAvatar agent={opinion.agent} size={22} decorative />
-              <span>
-                <b className="font-semibold text-foreground">
-                  {staff[opinion.agent].name}
-                </b>{" "}
-                · {opinion.summary}
-              </span>
-            </div>
-          ))}
         </div>
-      )}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          asChild
-          size="md"
-          variant={block.status === "pending" ? "default" : "outline"}
-        >
-          {block.raceId &&
-          (block.scope === "race_strategy" ||
-            block.scope === "race_nutrition") ? (
-            <Link
-              href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "roadbook" : "nutrition"}?proposal=${block.proposalId}`}
-              data-proposal-id={block.proposalId}
-            >
-              {block.status === "pending" ? "Examiner" : "Voir la proposition"}
-            </Link>
-          ) : (
-            <ProposalLink
-              href={`/plan?proposal=${block.proposalId}`}
-              data-proposal-id={block.proposalId}
-            >
-              {block.status === "pending" ? "Examiner" : "Voir la proposition"}
-            </ProposalLink>
-          )}
-        </Button>
+        {block.opinions.length > 0 && (
+          <div className="flex flex-col border-t border-border">
+            {block.opinions.map((opinion, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[22px_minmax(0,1fr)] gap-2.5 border-b border-border py-2 text-secondary-foreground last:border-b-0"
+              >
+                <StaffAvatar agent={opinion.agent} size={22} decorative />
+                <span>
+                  <b className="font-medium text-foreground">
+                    {staff[opinion.agent].name}
+                  </b>{" "}
+                  · {opinion.summary}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            asChild
+            variant={block.status === "pending" ? "default" : "outline"}
+          >
+            {block.raceId &&
+            (block.scope === "race_strategy" ||
+              block.scope === "race_nutrition") ? (
+              <Link
+                href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "roadbook" : "nutrition"}?proposal=${block.proposalId}`}
+                data-proposal-id={block.proposalId}
+              >
+                {block.status === "pending"
+                  ? "Examiner"
+                  : "Voir la proposition"}
+              </Link>
+            ) : (
+              <ProposalLink
+                href={`/plan?proposal=${block.proposalId}`}
+                data-proposal-id={block.proposalId}
+              >
+                {block.status === "pending"
+                  ? "Examiner"
+                  : "Voir la proposition"}
+              </ProposalLink>
+            )}
+          </Button>
+        </div>
       </div>
-    </div>
+    </Widget>
   );
 }
 
@@ -246,73 +267,52 @@ function StaffMessage({
   busy: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[36px_minmax(0,1fr)] sm:items-start sm:gap-3">
-      <span className="max-sm:hidden">
-        <StaffAvatar agent={entry.agent} size={30} decorative />
-      </span>
-      <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span className="sm:hidden">
-            <StaffAvatar agent={entry.agent} size={30} decorative />
-          </span>
-          <StaffName agent={entry.agent} />
-          <MonoLabel size="nano">{timeLabel(entry.at, timeZone)}</MonoLabel>
-        </div>
-        {entry.blocks.map((block, index) => {
-          if (block.type === "text")
-            return (
-              <Markdown
-                key={index}
-                text={block.text}
-                className="text-body leading-[1.55]"
-              />
-            );
-          if (block.type === "question")
-            return (
-              <QuestionCard
-                key={index}
-                block={block}
-                timeZone={timeZone}
-                onAnswer={onAnswer}
-                onOther={onOther}
-                disabled={busy}
-              />
-            );
-          if (block.type === "proposal")
-            return <ProposalCard key={index} block={block} />;
+    <StaffRow agent={entry.agent} time={timeLabel(entry.at, timeZone)}>
+      {entry.blocks.map((block, index) => {
+        if (block.type === "text")
           return (
-            <div key={index} className="flex flex-col items-start gap-2">
-              <p className="text-body text-destructive">{block.text}</p>
-              {onRetry && index === entry.blocks.length - 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={busy}
-                  onClick={onRetry}
-                >
-                  <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
-                  Renvoyer le message
-                </Button>
-              )}
-            </div>
+            <Markdown key={index} text={block.text} className="max-w-150" />
           );
-        })}
-        {entry.reads.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <MonoLabel size="nano">A lu</MonoLabel>
-            {entry.reads.map((read) => (
-              <span
-                key={read}
-                className="inline-flex items-center rounded-md border border-control-border px-1.75 py-0.5 text-[11px] text-secondary-foreground"
+        if (block.type === "question")
+          return (
+            <QuestionCard
+              key={index}
+              block={block}
+              timeZone={timeZone}
+              onAnswer={onAnswer}
+              onOther={onOther}
+              disabled={busy}
+            />
+          );
+        if (block.type === "proposal")
+          return <ProposalCard key={index} block={block} />;
+        return (
+          <div key={index} className="flex flex-col items-start gap-2">
+            <p className="text-body text-destructive">{block.text}</p>
+            {onRetry && index === entry.blocks.length - 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy}
+                onClick={onRetry}
               >
-                {read}
-              </span>
-            ))}
+                <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
+                Renvoyer le message
+              </Button>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        );
+      })}
+      {entry.reads.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-label text-muted-foreground">A lu</span>
+          {entry.reads.map((read) => (
+            <Chip key={read}>{read}</Chip>
+          ))}
+        </div>
+      )}
+    </StaffRow>
   );
 }
 
@@ -323,34 +323,12 @@ function TypingMessage({
 }) {
   const staff = allStaff;
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex flex-col gap-2 sm:grid sm:grid-cols-[36px_minmax(0,1fr)] sm:items-start sm:gap-3"
-    >
-      <span className="max-sm:hidden">
-        <StaffAvatar agent={entry.agent} size={30} decorative />
-      </span>
-      <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span className="sm:hidden">
-            <StaffAvatar agent={entry.agent} size={30} decorative />
-          </span>
-          <StaffName agent={entry.agent} />
-        </div>
-        <span className="inline-flex items-center gap-2.5 self-start rounded-[4px_16px_16px_16px] border border-border bg-card px-3.5 py-2.5 text-body text-secondary-foreground">
-          <span aria-hidden="true" className="inline-flex gap-1">
-            {[0, 1, 2].map((dot) => (
-              <span
-                key={dot}
-                className="size-1.25 rounded-full bg-foreground motion-safe:animate-pulse"
-                style={{ animationDelay: `${dot * 300}ms` }}
-              />
-            ))}
-          </span>
+    <div role="status" aria-live="polite">
+      <StaffRow agent={entry.agent} state="think">
+        <span className="text-secondary-foreground">
           {typingLabel(staff[entry.agent], entry.read)}
         </span>
-      </div>
+      </StaffRow>
     </div>
   );
 }
@@ -398,13 +376,13 @@ function AthleteMessage({
             : `@${staff[target].name}`}
         </span>
       )}
-      <div className="rounded-[16px_16px_4px_16px] bg-muted px-3.25 py-2.75 text-body leading-[1.45] whitespace-pre-wrap">
+      <div className="rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap">
         {entry.text}
         <SentChips attachments={entry.attachments} />
-        <MonoLabel size="nano" className="mt-1 block text-right">
-          {timeLabel(entry.at, timeZone)}
-        </MonoLabel>
       </div>
+      <span className="text-label text-muted-foreground tabular-nums">
+        {timeLabel(entry.at, timeZone)}
+      </span>
     </div>
   );
 }
@@ -432,7 +410,7 @@ export function ThreadLog({
     <div
       role="log"
       aria-label="Messages"
-      className="mx-auto flex w-full max-w-205 flex-col gap-5.5 px-4 pt-5 pb-6 sm:px-[clamp(20px,3vw,44px)] sm:pt-7"
+      className="mx-auto flex w-full max-w-180 flex-col gap-5.5 px-4 pt-4.5 pb-6 md:px-5"
     >
       {entries.map((entry, index) => {
         const previous = entries[index - 1];
@@ -443,9 +421,9 @@ export function ThreadLog({
             {separator && (
               <div className="flex items-center gap-3" aria-hidden="true">
                 <span className="h-px flex-1 bg-border" />
-                <MonoLabel size="nano">
+                <span className="text-label text-muted-foreground">
                   {dayLabel(entry.at, now, timeZone)}
-                </MonoLabel>
+                </span>
                 <span className="h-px flex-1 bg-border" />
               </div>
             )}
@@ -469,7 +447,7 @@ export function ThreadLog({
         );
       })}
       {pending && (
-        <div className="flex max-w-[84%] flex-col self-end rounded-[16px_16px_4px_16px] bg-muted px-3.25 py-2.75 text-body leading-[1.45] whitespace-pre-wrap opacity-70">
+        <div className="flex max-w-[84%] flex-col self-end rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap opacity-70">
           {pending.text}
           <SentChips attachments={pending.attachments} />
           <span className="sr-only">Envoi en cours</span>
@@ -492,45 +470,29 @@ export function StaffWorking({
     <div
       role="status"
       aria-live="polite"
-      className="mx-auto flex w-full max-w-205 flex-col gap-2 px-4 pb-4 sm:grid sm:grid-cols-[36px_minmax(0,1fr)] sm:items-start sm:gap-3 sm:px-[clamp(20px,3vw,44px)]"
+      className="mx-auto w-full max-w-180 px-4 pb-4 md:px-5"
     >
-      <span className="max-sm:hidden">
-        <StaffAvatar agent="coach" size={30} decorative />
-      </span>
-      <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span className="sm:hidden">
-            <StaffAvatar agent="coach" size={30} decorative />
-          </span>
-          <StaffName agent="coach" />
-        </div>
-        <span className="inline-flex flex-wrap items-center gap-2.5 self-start rounded-[4px_16px_16px_16px] border border-border bg-card px-3.5 py-2.5 text-body text-secondary-foreground">
-          <span aria-hidden="true" className="inline-flex gap-1">
-            {[0, 1, 2].map((dot) => (
-              <span
-                key={dot}
-                className="size-1.25 rounded-full bg-primary motion-safe:animate-pulse"
-                style={{ animationDelay: `${dot * 300}ms` }}
-              />
-            ))}
-          </span>
+      <StaffRow agent="coach" state={label.writing ? "speak" : "think"}>
+        <span className="flex flex-wrap items-baseline gap-2 text-secondary-foreground">
           {label.text}
-          {label.since && <MonoLabel size="nano">{label.since}</MonoLabel>}
+          {label.since && (
+            <span className="text-label text-muted-foreground">
+              {label.since}
+            </span>
+          )}
         </span>
         {label.writing && (
           <>
             <span
               aria-hidden="true"
-              className="relative h-0.5 max-w-65 overflow-hidden rounded-full bg-border"
+              className="relative h-0.5 max-w-65 overflow-hidden rounded-full bg-muted"
             >
               <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-primary to-transparent motion-safe:animate-trace motion-reduce:hidden" />
             </span>
-            <p className="max-w-115 text-body leading-normal text-muted-foreground">
-              {longWriteNote}
-            </p>
+            <p className="max-w-115 text-muted-foreground">{longWriteNote}</p>
           </>
         )}
-      </div>
+      </StaffRow>
     </div>
   );
 }
