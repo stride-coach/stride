@@ -334,7 +334,7 @@ test("an unplanned run takes a feeling and opens the coach with the activity att
   ).toHaveCount(0);
 
   await card.getByRole("link", { name: "En parler au coach" }).click();
-  await expect(page).toHaveURL(`/coach/new?activity=${activityId}`, {
+  await expect(page).toHaveURL(`/coach?activity=${activityId}`, {
     timeout: 20_000,
   });
   await expect(
@@ -611,7 +611,7 @@ test("a planned run shows its plan pill in the list and its session in the panel
   ).toBeVisible();
   await expect(
     card.getByRole("link", { name: "En parler au coach" }),
-  ).toHaveAttribute("href", /\/coach\/new\?session=s-/);
+  ).toHaveAttribute("href", /\/coach\?session=s-/);
 });
 
 test("name search filters before pagination and keeps context through drill-down", async ({

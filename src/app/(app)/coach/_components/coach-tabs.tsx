@@ -5,7 +5,7 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 import { cn } from "@/lib/utils";
 
 const coachTabs = [
-  { href: "/coach", label: "Conversations" },
+  { href: "/coach", label: "Conversation" },
   { href: "/coach/team", label: "Le staff" },
 ] as const;
 

@@ -109,3 +109,13 @@ The web process applies accepted proposals. The `stride-coach-worker` service, i
 - An unexpected failure while applying keeps the proposal accepted, and the athlete can retry it.
 
 **Trade-off.** The athlete can send a changeset of their choice for their own accepted proposal. It only affects their own plan, and the private function still validates its structure. Background runs (weekly reviews, monitors) still need a credential other than the athlete's session, and stay out of scope as before.
+
+## Amendment (2026-11-11, #463)
+
+Coach becomes one main thread plus topics. Each `coach_sessions` row still maps to exactly one Managed Agents session, so proposals, notifications, `findOwnSession` and the unique `managed_session_id` are unchanged.
+
+- **Kinds.** A row has `kind` `main` or `topic` (default `topic`, so the previous release keeps inserting valid rows), an optional `race_id` and `closed_at`. A main row is never closed (check constraint) and a closed topic cannot be reopened (trigger).
+- **Main thread.** `/coach` shows the items of every main row as one timeline (the last 500 items of the 60 latest main rows). A turn targeting the main thread continues the latest main row unless it is `budget_reached` or `terminated`, or its last turn was on an earlier local day while it is neither `running` nor `awaiting_athlete`; then a new main row and session start. This follows the daily reset in [models and costs](../architecture/coaching-engine/models-and-costs.md). Transcripts are never replayed into a new session: continuity comes from `read_athlete_context` and the read tools.
+- **Topics.** A new topic is created by its first turn (`target.kind = "new_topic"`), whose first message opens with the topic title and race. A closed topic refuses turns (`session_closed`) and stays readable.
+- **Closing.** `closeCoachTopic` sets `closed_at` and appends a `topic_summary` item to the latest main row, creating a main session if the athlete has none. Its decisions are the topic's accepted or applied proposals; only the summary text is generated, by the `topic-summary` skill (Claude Haiku through `completeStructured`). When generation fails, the card keeps the dates, message count and decisions without text.
+- **Migration.** Existing rows become closed topics with `closed_at = last_activity_at` and no summary card. The previous release ignores the new item kind because `parseThreadItem` drops unknown kinds.

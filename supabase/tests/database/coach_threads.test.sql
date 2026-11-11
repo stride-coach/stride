@@ -65,8 +65,8 @@ select lives_ok(
   'athlete marks their thread as read'
 );
 select throws_ok(
-  $$update public.coach_sessions set title = 'Renommé'$$,
-  '42501', null, 'the title is fixed at creation'
+  $$update public.coach_sessions set managed_session_id = 'sesn_01Autre'$$,
+  '42501', null, 'the managed session is fixed at creation'
 );
 select is(
   (select count(*)::int from public.coach_thread_items), 2,

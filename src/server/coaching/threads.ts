@@ -1,17 +1,21 @@
 import "server-only";
 import { displayTimeZone } from "@/features/app-shell/shell";
-import {
-  threadParticipants,
-  threadPreview,
-  type ConversationSummary,
-} from "@/features/coach/conversations";
+import { isUnread } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
-import { staff } from "@/features/coach/staff";
+import {
+  mainSessionReusable,
+  topicDecisions,
+  topicLead,
+  topicMessageCount,
+  type TopicSummary,
+} from "@/features/coach/topics";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import {
+  findLatestMainSession,
   findOwnThread,
-  listOwnThreads,
-  readConsultRequests,
+  listMainSessions,
+  listOwnTopics,
+  readSessionsItems,
   readThreadItems,
   readThreadProposalStatuses,
   type CoachSessionRecord,
@@ -19,86 +23,138 @@ import {
 
 export const coachTimeZone = displayTimeZone;
 
-const previewItems = 20;
+export type CoachMainData = {
+  threadId: string | null;
+  lastActivityAt: string | null;
+  state: CoachSessionRecord["status"] | null;
+  pendingToolUseId: string | null;
+  lastTurnAt: string | null;
+  composingSince: string | null;
+  unreadIds: string[];
+  items: ThreadItem[];
+  proposalStatuses: Record<string, string>;
+};
 
-export type CoachThreadData = {
+export type CoachTopicData = {
   id: string;
-  managedSessionId: string;
   mode: CoachSessionRecord["mode"];
   title: string;
+  raceId: string | null;
+  closedAt: string | null;
   state: CoachSessionRecord["status"];
   pendingToolUseId: string | null;
   lastTurnAt: string | null;
   composingSince: string | null;
   createdAt: string;
-  readAt: string | null;
-  lastActivityAt: string;
+  unread: boolean;
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
 };
 
-export async function loadConversations(
+function mergedStatuses(statuses: Map<string, Record<string, string>>) {
+  return Object.assign({}, ...statuses.values()) as Record<string, string>;
+}
+
+export async function loadMainThread(
   context: OnboardingContext,
-): Promise<ConversationSummary[]> {
-  const threads = await listOwnThreads(context);
-  const ids = threads.map((thread) => thread.id);
-  const [latest, consults, proposals] = await Promise.all([
-    Promise.all(
-      threads.map((thread) =>
-        readThreadItems(context, thread.id, previewItems),
-      ),
-    ),
-    readConsultRequests(context, ids),
+  now: Date,
+): Promise<CoachMainData> {
+  const sessions = await listMainSessions(context);
+  const ids = sessions.map((session) => session.id);
+  const [rows, statuses] = await Promise.all([
+    readSessionsItems(context, ids),
     readThreadProposalStatuses(context, ids),
   ]);
-  return threads.flatMap((thread, index) => {
-    const threadItems = latest[index];
-    if (!visibleThread(thread.title, threadItems)) return [];
+  const latest = sessions[0] ?? null;
+  const live =
+    latest && mainSessionReusable(latest, now, coachTimeZone) ? latest : null;
+  return {
+    threadId: latest?.id ?? null,
+    lastActivityAt: latest?.lastActivityAt ?? null,
+    state: live ? live.status : latest ? "idle" : null,
+    pendingToolUseId: live?.pendingToolUseId ?? null,
+    lastTurnAt: live?.lastTurnAt ?? null,
+    composingSince: live?.composingSince ?? null,
+    unreadIds: sessions
+      .filter((session) => isUnread(session.lastActivityAt, session.readAt))
+      .map((session) => session.id),
+    items: rows.map((row) => row.item),
+    proposalStatuses: mergedStatuses(statuses),
+  };
+}
+
+export async function loadMainActivity(context: OnboardingContext) {
+  return (await findLatestMainSession(context))?.lastActivityAt ?? null;
+}
+
+const topicKinds: readonly ThreadItem["kind"][] = [
+  "athlete",
+  "answer",
+  "coach",
+  "consult_request",
+  "consult_reply",
+  "staff_message",
+  "question",
+  "proposal",
+];
+
+export async function loadTopics(
+  context: OnboardingContext,
+): Promise<TopicSummary[]> {
+  const topics = await listOwnTopics(context);
+  const ids = topics.map((topic) => topic.id);
+  const [itemsByTopic, statuses] = await Promise.all([
+    Promise.all(
+      ids.map((id) => readSessionsItems(context, [id], 500, topicKinds)),
+    ),
+    readThreadProposalStatuses(context, ids),
+  ]);
+  return topics.map((topic, index) => {
+    const items = itemsByTopic[index].map((row) => row.item);
     return {
-      id: thread.id,
-      title: thread.title ?? "Conversation",
-      lastActivityAt: thread.lastActivityAt,
-      readAt: thread.readAt,
-      state: thread.status,
-      lastTurnAt: thread.lastTurnAt,
-      preview: threadPreview(staff, threadItems),
-      participants: threadParticipants([
-        ...(consults.get(thread.id) ?? []),
-        ...threadItems,
-      ]),
-      proposalStatuses: Object.values(proposals.get(thread.id) ?? {}),
+      id: topic.id,
+      title: topic.title ?? "Sujet",
+      lead: topicLead(items),
+      messages: topicMessageCount(items),
+      decisions: topicDecisions(items, statuses.get(topic.id) ?? {}).length,
+      lastActivityAt: topic.lastActivityAt,
+      closedAt: topic.closedAt,
+      unread: isUnread(topic.lastActivityAt, topic.readAt),
     };
   });
 }
 
-function visibleThread(title: string | null, items: readonly ThreadItem[]) {
-  return title !== null || items.length > 0;
-}
+export type TopicLookup =
+  { kind: "topic"; topic: CoachTopicData } | { kind: "main" } | null;
 
-export async function loadThread(
+export async function loadTopic(
   context: OnboardingContext,
   threadId: string,
-): Promise<CoachThreadData | null> {
+): Promise<TopicLookup> {
   const thread = await findOwnThread(context, threadId);
   if (!thread) return null;
+  if (thread.kind === "main") return { kind: "main" };
   const [items, proposals] = await Promise.all([
     readThreadItems(context, thread.id),
     readThreadProposalStatuses(context, [thread.id]),
   ]);
-  if (!visibleThread(thread.title, items)) return null;
+  if (thread.title === null && items.length === 0) return null;
   return {
-    id: thread.id,
-    managedSessionId: thread.managedSessionId,
-    mode: thread.mode,
-    title: thread.title ?? "Conversation",
-    state: thread.status,
-    pendingToolUseId: thread.pendingToolUseId,
-    lastTurnAt: thread.lastTurnAt,
-    composingSince: thread.composingSince,
-    createdAt: thread.createdAt,
-    readAt: thread.readAt,
-    lastActivityAt: thread.lastActivityAt,
-    items,
-    proposalStatuses: proposals.get(thread.id) ?? {},
+    kind: "topic",
+    topic: {
+      id: thread.id,
+      mode: thread.mode,
+      title: thread.title ?? "Sujet",
+      raceId: thread.raceId,
+      closedAt: thread.closedAt,
+      state: thread.status,
+      pendingToolUseId: thread.pendingToolUseId,
+      lastTurnAt: thread.lastTurnAt,
+      composingSince: thread.composingSince,
+      createdAt: thread.createdAt,
+      unread: isUnread(thread.lastActivityAt, thread.readAt),
+      items,
+      proposalStatuses: proposals.get(thread.id) ?? {},
+    },
   };
 }

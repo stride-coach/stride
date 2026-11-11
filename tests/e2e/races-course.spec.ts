@@ -44,7 +44,7 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       page.getByRole("link", { name: "Poser une question" }).first(),
     ).toHaveAttribute(
       "href",
-      "/coach/new?race=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "/coach?race=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     );
     const chart = page
       .locator('svg[aria-label^="Profil altimétrique"]:visible')

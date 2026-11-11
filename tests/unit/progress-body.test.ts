@@ -224,7 +224,7 @@ describe("Corps actions", () => {
     };
     expect(sessionHref(session)).toBe("/plan/sessions/2026-10-14%3Aseuil%201");
     const url = new URL(lighterSessionHref(session), "https://stride.test");
-    expect(url.pathname).toBe("/coach/new");
+    expect(url.pathname).toBe("/coach");
     expect(url.searchParams.get("text")).toBe(
       "Ma forme du jour est sous ma moyenne. Propose-moi une version allégée de « Seuil ».",
     );

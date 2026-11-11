@@ -267,7 +267,7 @@ export function buildDebriefView(input: DebriefViewInput): DebriefView | null {
     feeling: debrief.feeling
       ? feelingView(debrief.feeling, activityIds.length > 1)
       : null,
-    coachHref: `/coach/new?session=${encodeURIComponent(input.session.sessionKey)}`,
+    coachHref: `/coach?session=${encodeURIComponent(input.session.sessionKey)}`,
     planHref: sessionPanelHref(input.session.sessionKey),
   };
 }

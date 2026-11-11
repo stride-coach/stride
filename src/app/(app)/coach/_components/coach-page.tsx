@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { localToday } from "@/features/app-shell/shell";
 import { requireAthlete } from "@/server/app/session";
 import {
@@ -9,24 +9,22 @@ import {
 } from "@/server/coaching/attachments";
 import {
   coachTimeZone,
-  loadConversations,
-  loadThread,
+  loadMainActivity,
+  loadMainThread,
+  loadTopic,
+  loadTopics,
 } from "@/server/coaching/threads";
 import { CoachScreen } from "./coach-screen";
 
 const planRequest = "Construis-moi un plan d’entraînement pour mon objectif.";
 
-export async function CoachPage({
-  threadId = null,
-  current,
+export async function CoachMainPage({
   request = null,
   sessionKey = null,
   raceId = null,
   activityId = null,
   text = null,
 }: {
-  threadId?: string | null;
-  current: boolean;
   request?: string | null;
   sessionKey?: string | null;
   raceId?: string | null;
@@ -35,26 +33,22 @@ export async function CoachPage({
 }) {
   const context = await requireAthlete();
   const now = new Date();
-  const [conversations, thread, attachmentOptions] = await Promise.all([
-    loadConversations(context),
-    threadId ? loadThread(context, threadId) : null,
+  const [main, topics, attachmentOptions] = await Promise.all([
+    loadMainThread(context, now),
+    loadTopics(context),
     loadAttachmentOptions(context, localToday(now)),
   ]);
-  if (threadId && !thread) notFound();
   const plan = request === "plan";
-  const preselected = thread
-    ? []
-    : [
-        ...(await loadSessionOption(context, attachmentOptions, sessionKey)),
-        ...(await loadActivityOption(context, attachmentOptions, activityId)),
-        ...loadRaceOption(attachmentOptions, raceId),
-      ];
+  const preselected = [
+    ...(await loadSessionOption(context, attachmentOptions, sessionKey)),
+    ...(await loadActivityOption(context, attachmentOptions, activityId)),
+    ...loadRaceOption(attachmentOptions, raceId),
+  ];
   return (
     <CoachScreen
-      key={thread?.id ?? "new"}
-      conversations={conversations}
-      thread={thread}
-      current={current}
+      view={{ kind: "main", data: main }}
+      topics={topics}
+      mainActivityAt={main.lastActivityAt}
       draft={{
         mode: plan ? "plan" : "conversation",
         text: plan ? planRequest : (text ?? ""),
@@ -63,6 +57,32 @@ export async function CoachPage({
       timeZone={coachTimeZone}
       attachmentOptions={attachmentOptions}
       initialAttachments={preselected}
+    />
+  );
+}
+
+export async function CoachTopicPage({ threadId }: { threadId: string }) {
+  const context = await requireAthlete();
+  const now = new Date();
+  const [lookup, mainActivityAt, topics, attachmentOptions] = await Promise.all(
+    [
+      loadTopic(context, threadId),
+      loadMainActivity(context),
+      loadTopics(context),
+      loadAttachmentOptions(context, localToday(now)),
+    ],
+  );
+  if (!lookup) notFound();
+  if (lookup.kind === "main") redirect("/coach");
+  return (
+    <CoachScreen
+      view={{ kind: "topic", data: lookup.topic }}
+      topics={topics}
+      mainActivityAt={mainActivityAt}
+      draft={{ mode: lookup.topic.mode, text: "" }}
+      now={now.toISOString()}
+      timeZone={coachTimeZone}
+      attachmentOptions={attachmentOptions}
     />
   );
 }

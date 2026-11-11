@@ -582,15 +582,18 @@ export type Database = {
       coach_sessions: {
         Row: {
           budget_cents: number;
+          closed_at: string | null;
           composing_since: string | null;
           created_at: string;
           id: string;
+          kind: string;
           last_activity_at: string;
           last_turn_at: string | null;
           list_cost_cents: number;
           managed_session_id: string;
           mode: string;
           pending_tool_use_id: string | null;
+          race_id: string | null;
           read_at: string | null;
           status: string;
           title: string | null;
@@ -600,15 +603,18 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           budget_cents: number;
+          closed_at?: string | null;
           composing_since?: string | null;
           created_at?: string;
           id?: string;
+          kind?: string;
           last_activity_at?: string;
           last_turn_at?: string | null;
           list_cost_cents?: number;
           managed_session_id: string;
           mode: string;
           pending_tool_use_id?: string | null;
+          race_id?: string | null;
           read_at?: string | null;
           status?: string;
           title?: string | null;
@@ -617,22 +623,33 @@ export type Database = {
         };
         Update: {
           budget_cents?: number;
+          closed_at?: string | null;
           composing_since?: string | null;
           created_at?: string;
           id?: string;
+          kind?: string;
           last_activity_at?: string;
           last_turn_at?: string | null;
           list_cost_cents?: number;
           managed_session_id?: string;
           mode?: string;
           pending_tool_use_id?: string | null;
+          race_id?: string | null;
           read_at?: string | null;
           status?: string;
           title?: string | null;
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "coach_sessions_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       coach_thread_items: {
         Row: {

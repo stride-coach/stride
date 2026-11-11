@@ -18,7 +18,10 @@ export const sessionStatuses = [
   "terminated",
 ] as const;
 
+export const sessionKinds = ["main", "topic"] as const;
+
 export type SessionMode = (typeof sessionModes)[number];
+export type SessionKind = (typeof sessionKinds)[number];
 export type SessionStatus = (typeof sessionStatuses)[number];
 
 const rowSchema = z
@@ -36,6 +39,9 @@ const rowSchema = z
     read_at: z.string().nullable(),
     composing_since: z.string().nullable(),
     created_at: z.string(),
+    kind: z.enum(sessionKinds),
+    race_id: z.uuid().nullable(),
+    closed_at: z.string().nullable(),
   })
   .transform((row) => ({
     id: row.id,
@@ -51,12 +57,15 @@ const rowSchema = z
     readAt: row.read_at,
     composingSince: row.composing_since,
     createdAt: row.created_at,
+    kind: row.kind,
+    raceId: row.race_id,
+    closedAt: row.closed_at,
   }));
 
 export type CoachSessionRecord = z.output<typeof rowSchema>;
 
 const columns =
-  "id, managed_session_id, mode, status, pending_tool_use_id, budget_cents, list_cost_cents, last_turn_at, title, last_activity_at, read_at, composing_since, created_at";
+  "id, managed_session_id, mode, status, pending_tool_use_id, budget_cents, list_cost_cents, last_turn_at, title, last_activity_at, read_at, composing_since, created_at, kind, race_id, closed_at";
 
 export async function findOwnSession(
   context: OnboardingContext,
@@ -79,6 +88,9 @@ export async function recordSession(
     mode: SessionMode;
     budgetCents: number;
     title: string;
+    kind: SessionKind;
+    raceId: string | null;
+    status?: SessionStatus;
   },
 ): Promise<CoachSessionRecord> {
   const { data, error } = await context.client
@@ -87,9 +99,11 @@ export async function recordSession(
       user_id: context.userId,
       managed_session_id: session.managedSessionId,
       mode: session.mode,
-      status: "running",
+      status: session.status ?? "running",
       budget_cents: session.budgetCents,
       title: session.title,
+      kind: session.kind,
+      race_id: session.raceId,
     })
     .select(columns)
     .single();
@@ -154,7 +168,7 @@ export async function findOwnThread(
   return data ? rowSchema.parse(data) : null;
 }
 
-export async function listOwnThreads(
+export async function listOwnTopics(
   context: OnboardingContext,
   limit = 40,
 ): Promise<CoachSessionRecord[]> {
@@ -162,10 +176,68 @@ export async function listOwnThreads(
     .from("coach_sessions")
     .select(columns)
     .eq("user_id", context.userId)
+    .eq("kind", "topic")
+    .not("title", "is", null)
     .order("last_activity_at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error("Unable to list the coach threads");
+  if (error) throw new Error("Unable to list the coach topics");
   return z.array(rowSchema).parse(data ?? []);
+}
+
+export async function listMainSessions(
+  context: OnboardingContext,
+  limit = 60,
+): Promise<CoachSessionRecord[]> {
+  const { data, error } = await context.client
+    .from("coach_sessions")
+    .select(columns)
+    .eq("user_id", context.userId)
+    .eq("kind", "main")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error("Unable to list the main coach sessions");
+  return z.array(rowSchema).parse(data ?? []);
+}
+
+export async function findLatestMainSession(
+  context: OnboardingContext,
+): Promise<CoachSessionRecord | null> {
+  const [latest] = await listMainSessions(context, 1);
+  return latest ?? null;
+}
+
+export async function closeOwnTopic(
+  context: OnboardingContext,
+  threadId: string,
+  closedAt: string,
+) {
+  const { data, error } = await context.client
+    .from("coach_sessions")
+    .update({ closed_at: closedAt })
+    .eq("user_id", context.userId)
+    .eq("id", threadId)
+    .eq("kind", "topic")
+    .is("closed_at", null)
+    .select("id");
+  if (error) throw new Error("Unable to close the coach topic");
+  return (data ?? []).length > 0;
+}
+
+export async function renameOwnTopic(
+  context: OnboardingContext,
+  threadId: string,
+  title: string,
+) {
+  const { data, error } = await context.client
+    .from("coach_sessions")
+    .update({ title })
+    .eq("user_id", context.userId)
+    .eq("id", threadId)
+    .eq("kind", "topic")
+    .is("closed_at", null)
+    .select("id");
+  if (error) throw new Error("Unable to rename the coach topic");
+  return (data ?? []).length > 0;
 }
 
 export async function appendThreadItem(
@@ -204,52 +276,44 @@ export async function readThreadItems(
   coachSessionId: string,
   limit = 500,
 ): Promise<ThreadItem[]> {
-  const { data, error } = await context.client
+  const rows = await readSessionsItems(context, [coachSessionId], limit);
+  return rows.map((row) => row.item);
+}
+
+export async function readSessionsItems(
+  context: OnboardingContext,
+  coachSessionIds: readonly string[],
+  limit = 500,
+  kinds?: readonly ThreadItem["kind"][],
+) {
+  if (!coachSessionIds.length) return [];
+  let query = context.client
     .from("coach_thread_items")
     .select("coach_session_id, kind, body, created_at")
-    .eq("user_id", context.userId)
-    .eq("coach_session_id", coachSessionId)
+    .eq("user_id", context.userId);
+  query =
+    coachSessionIds.length === 1
+      ? query.eq("coach_session_id", coachSessionIds[0])
+      : query.in("coach_session_id", [...coachSessionIds]);
+  if (kinds) query = query.in("kind", [...kinds]);
+  const { data, error } = await query
     .order("id", { ascending: false })
     .limit(limit);
   if (error) throw new Error("Unable to read the coach thread items");
-  return parseItemRows(data)
-    .map((row) => row.item)
-    .reverse();
+  return parseItemRows(data).reverse();
 }
 
-export async function readConsultRequests(
+export async function markThreadsRead(
   context: OnboardingContext,
-  coachSessionIds: readonly string[],
-): Promise<Map<string, ThreadItem[]>> {
-  const items = new Map<string, ThreadItem[]>(
-    coachSessionIds.map((id) => [id, []]),
-  );
-  if (!coachSessionIds.length) return items;
-  const { data, error } = await context.client
-    .from("coach_thread_items")
-    .select("coach_session_id, kind, body, created_at")
-    .eq("user_id", context.userId)
-    .eq("kind", "consult_request")
-    .in("coach_session_id", [...coachSessionIds])
-    .order("id", { ascending: false })
-    .limit(1000);
-  if (error) throw new Error("Unable to read the coach consults");
-  for (const row of parseItemRows(data))
-    items.get(row.threadId)?.push(row.item);
-  return items;
-}
-
-export async function markThreadRead(
-  context: OnboardingContext,
-  threadId: string,
+  threadIds: readonly string[],
 ) {
-  if (!z.uuid().safeParse(threadId).success) return;
+  if (!threadIds.length) return;
   const { error } = await context.client
     .from("coach_sessions")
     .update({ read_at: new Date().toISOString() })
     .eq("user_id", context.userId)
-    .eq("id", threadId);
-  if (error) throw new Error("Unable to mark the coach thread as read");
+    .in("id", [...threadIds]);
+  if (error) throw new Error("Unable to mark the coach threads as read");
 }
 
 const proposalStatusSchema = z.object({
@@ -300,12 +364,18 @@ export async function readThreadProposalStatuses(
 export async function countCoachAttention(context: OnboardingContext) {
   const sessions = await context.client
     .from("coach_sessions")
-    .select("id, status")
+    .select("id, status, closed_at")
     .eq("user_id", context.userId)
     .not("title", "is", null);
   if (sessions.error) return null;
   const rows = z
-    .array(z.object({ id: z.uuid(), status: z.string() }))
+    .array(
+      z.object({
+        id: z.uuid(),
+        status: z.string(),
+        closed_at: z.string().nullable(),
+      }),
+    )
     .parse(sessions.data ?? []);
   if (!rows.length) return { questions: 0, proposals: 0 };
   const ids = rows.map((row) => row.id);
@@ -321,7 +391,9 @@ export async function countCoachAttention(context: OnboardingContext) {
   );
   if (plans.error || races.error) return null;
   return {
-    questions: rows.filter((row) => row.status === "awaiting_athlete").length,
+    questions: rows.filter(
+      (row) => row.status === "awaiting_athlete" && row.closed_at === null,
+    ).length,
     proposals: (plans.count ?? 0) + (races.count ?? 0),
   };
 }

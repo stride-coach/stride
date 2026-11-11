@@ -1,9 +1,14 @@
 import "server-only";
 import { z } from "zod";
-import { threadTitle } from "@/features/coach/conversations";
+import { displayTimeZone } from "@/features/app-shell/shell";
 import type { AttachmentRef } from "@/features/coach/attachments";
 import { clampItem, type ThreadItem } from "@/features/coach/items";
 import { readLabel } from "@/features/coach/reads";
+import {
+  mainSessionReusable,
+  mainThreadTitle,
+  topicContext,
+} from "@/features/coach/topics";
 import {
   agentOfManagedName,
   specialistAgents,
@@ -33,11 +38,14 @@ import {
 } from "./resources";
 import {
   appendThreadItem,
+  findLatestMainSession,
   findOwnSession,
+  findOwnThread,
   recordComposing,
   recordSession,
   updateSession,
   type CoachSessionRecord,
+  type SessionKind,
   type SessionMode,
   type SessionStatus,
 } from "./store";
@@ -64,7 +72,9 @@ export const turnMessages = {
   timeout:
     "Le coach n’a pas répondu à temps. Sa réponse a été interrompue, tu peux renvoyer ta demande.",
   budget:
-    "Cette conversation a atteint sa limite de coût. Démarre une nouvelle conversation pour continuer.",
+    "Ce sujet a atteint sa limite de coût. Tu peux le clore pour garder son résumé dans le fil principal.",
+  mainBudget:
+    "Le Coach a atteint la limite de cette session. Ton prochain message repartira d’une nouvelle session, avec tes données.",
   failed: "Le coach a rencontré un problème. Réessaie dans quelques instants.",
 } as const;
 
@@ -77,8 +87,14 @@ export type TurnInput =
     }
   | { kind: "answer"; toolUseId: string; text: string };
 
+export type TurnTarget =
+  | { kind: "main" }
+  | { kind: "topic"; threadId: string }
+  | { kind: "new_topic"; title: string; raceId: string | null };
+
 export type TurnRequest = {
   sessionId?: string;
+  target?: TurnTarget;
   mode: SessionMode;
   input: TurnInput;
 };
@@ -159,7 +175,7 @@ export function assertTurnAllowed(
   input: TurnInput,
   nowMs: number,
 ) {
-  if (closedStatuses.includes(record.status))
+  if (record.closedAt !== null || closedStatuses.includes(record.status))
     throw new SessionStateError("session_closed");
   if (
     record.status === "running" &&
@@ -214,49 +230,136 @@ function costCents(amount: string | undefined) {
   return Number.isFinite(cents) ? Math.round(cents) : null;
 }
 
+async function resumeSession(
+  context: OnboardingContext,
+  record: CoachSessionRecord,
+  input: TurnInput,
+  nowMs: number,
+  mode: SessionMode = record.mode,
+) {
+  const client = managedClient();
+  const session = await client.beta.sessions.retrieve(record.managedSessionId);
+  if (session.metadata?.[userKey] !== context.userId)
+    throw new SessionAccessError();
+  assertTurnAllowed(record, input, nowMs);
+  const budgetCents = Math.max(
+    sessionBudgetCents[record.mode],
+    sessionBudgetCents[mode],
+  );
+  const currentCents = costCents(session.budget?.max_list_cost.amount);
+  if (currentCents !== null && currentCents < budgetCents)
+    await client.beta.sessions
+      .update(record.managedSessionId, { budget: budgetLimit(budgetCents) })
+      .catch((error: unknown) => {
+        console.warn("Coach session budget was not raised", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      });
+  return record;
+}
+
+export async function createCoachSession(
+  context: OnboardingContext,
+  session: {
+    kind: SessionKind;
+    mode: SessionMode;
+    title: string;
+    raceId: string | null;
+    status?: SessionStatus;
+  },
+  vaultId: string,
+) {
+  const budgetCents = sessionBudgetCents[session.mode];
+  const created = await managedClient().beta.sessions.create({
+    agent: managedResources.coachAgentId,
+    environment_id: managedResources.environmentId,
+    title: `Stride ${session.mode}`,
+    vault_ids: [vaultId],
+    metadata: {
+      [userKey]: context.userId,
+      mode: session.mode,
+      kind: session.kind,
+    },
+    budget: budgetLimit(budgetCents),
+  });
+  return recordSession(context, {
+    managedSessionId: created.id,
+    budgetCents,
+    ...session,
+  });
+}
+
+type OpenedSession = { record: CoachSessionRecord; topic: string | null };
+
 async function openSession(
   context: OnboardingContext,
   request: TurnRequest,
   vaultId: string,
   nowMs: number,
-) {
-  const client = managedClient();
+): Promise<OpenedSession> {
   if (request.sessionId) {
     const record = await findOwnSession(context, request.sessionId);
     if (!record) throw new SessionAccessError();
-    const session = await client.beta.sessions.retrieve(request.sessionId);
-    if (session.metadata?.[userKey] !== context.userId)
-      throw new SessionAccessError();
-    assertTurnAllowed(record, request.input, nowMs);
-    const budgetCents = sessionBudgetCents[record.mode];
-    const currentCents = costCents(session.budget?.max_list_cost.amount);
-    if (currentCents !== null && currentCents < budgetCents)
-      await client.beta.sessions
-        .update(request.sessionId, { budget: budgetLimit(budgetCents) })
-        .catch((error: unknown) => {
-          console.warn("Coach session budget was not raised", {
-            error: error instanceof Error ? error.message : "unknown",
-          });
-        });
-    return record;
+    return {
+      record: await resumeSession(context, record, request.input, nowMs),
+      topic: null,
+    };
+  }
+  const target = request.target ?? { kind: "main" };
+  if (target.kind === "topic") {
+    const record = await findOwnThread(context, target.threadId);
+    if (!record || record.kind !== "topic") throw new SessionAccessError();
+    return {
+      record: await resumeSession(context, record, request.input, nowMs),
+      topic: null,
+    };
+  }
+  if (target.kind === "main") {
+    const latest = await findLatestMainSession(context);
+    if (latest && mainSessionReusable(latest, new Date(nowMs), displayTimeZone))
+      return {
+        record: await resumeSession(
+          context,
+          latest,
+          request.input,
+          nowMs,
+          request.mode,
+        ),
+        topic: null,
+      };
   }
   if (request.input.kind !== "message")
     throw new SessionStateError("no_pending_question");
-  const budgetCents = sessionBudgetCents[request.mode];
-  const session = await client.beta.sessions.create({
-    agent: managedResources.coachAgentId,
-    environment_id: managedResources.environmentId,
-    title: `Stride ${request.mode}`,
-    vault_ids: [vaultId],
-    metadata: { [userKey]: context.userId, mode: request.mode },
-    budget: budgetLimit(budgetCents),
-  });
-  return recordSession(context, {
-    managedSessionId: session.id,
-    mode: request.mode,
-    budgetCents,
-    title: threadTitle(request.input.text),
-  });
+  if (target.kind === "main")
+    return {
+      record: await createCoachSession(
+        context,
+        {
+          kind: "main",
+          mode: request.mode,
+          title: mainThreadTitle,
+          raceId: null,
+        },
+        vaultId,
+      ),
+      topic: null,
+    };
+  const [race] = target.raceId
+    ? await resolveAttachments(context, [{ kind: "race", id: target.raceId }])
+    : [];
+  return {
+    record: await createCoachSession(
+      context,
+      {
+        kind: "topic",
+        mode: request.mode,
+        title: target.title,
+        raceId: race?.id ?? null,
+      },
+      vaultId,
+    ),
+    topic: topicContext(target.title, race ?? null),
+  };
 }
 
 function messageOf(input: unknown): {
@@ -417,7 +520,12 @@ export async function* streamCoachTurn(
   const started = Date.now();
   const accessToken = await turnAccessToken(context, started);
   const vaultId = await syncAthleteVault(context.userId, accessToken);
-  const record = await openSession(context, request, vaultId, started);
+  const { record, topic } = await openSession(
+    context,
+    request,
+    vaultId,
+    started,
+  );
   const id = record.managedSessionId;
   const sessionMs = Date.now() - started;
   await updateSession(context, id, {
@@ -521,6 +629,7 @@ export async function* streamCoachTurn(
           ? {
               type: "user.message",
               content: [
+                ...(topic ? [{ type: "text" as const, text: topic }] : []),
                 { type: "text", text: request.input.text },
                 ...(attachmentContext
                   ? [{ type: "text" as const, text: attachmentContext }]
@@ -799,7 +908,8 @@ export async function* streamCoachTurn(
     failure = {
       type: "error",
       code: "budget_reached",
-      text: turnMessages.budget,
+      text:
+        record.kind === "main" ? turnMessages.mainBudget : turnMessages.budget,
     };
   } else if (stopReason === "terminated") {
     status = "terminated";

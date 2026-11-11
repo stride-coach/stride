@@ -9,7 +9,7 @@ import {
   TabTodayIcon,
 } from "@/components/stride/nav-icons";
 import { MobileTab, MobileTabBar } from "@/components/stride/mobile-tab-bar";
-import { isActivePath, mobileTabBarVisible } from "../mobile-nav";
+import { isActivePath } from "../mobile-nav";
 import {
   coachActionLabel,
   coachWaiting,
@@ -22,7 +22,6 @@ export function AppMobileTabBar({
   attention: CoachAttention | null;
 }) {
   const pathname = useShellPathname();
-  if (!mobileTabBarVisible(pathname)) return null;
   const waiting = coachWaiting(attention);
   const tab = (
     href: string,

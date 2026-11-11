@@ -1457,6 +1457,8 @@ function twinPlanAthlete(owner, ownerPlanId, prefix) {
 const coachKneeThread = "c0c0c0c0-0000-4000-8000-000000000001";
 const coachPlanThread = "c0c0c0c0-0000-4000-8000-000000000002";
 const coachSpikeThread = "c0c0c0c0-0000-4000-8000-000000000003";
+const coachMainThread = "c0c0c0c0-0000-4000-8000-000000000004";
+const coachClosedTopic = "c0c0c0c0-0000-4000-8000-000000000005";
 const coachNewPlanProposal = "eeeeeeee-eeee-4eee-8eee-900000000001";
 const coachToday = new Date().toISOString().slice(0, 10);
 const coachAt = (time) => `${coachToday}T${time}Z`;
@@ -1470,6 +1472,9 @@ const coachSession = (values) => ({
   last_turn_at: null,
   read_at: null,
   composing_since: null,
+  kind: "topic",
+  race_id: null,
+  closed_at: null,
   ...values,
 });
 let coachItemId = 0;
@@ -1505,6 +1510,27 @@ tables.coach_sessions = [
   }),
 ];
 tables.coach_sessions.push(
+  coachSession({
+    id: coachMainThread,
+    managed_session_id: "sesn_01Fil",
+    title: "Fil principal",
+    kind: "main",
+    budget_cents: 500,
+    last_turn_at: coachAt("05:00:00"),
+    last_activity_at: coachAt("05:01:00"),
+    read_at: coachAt("05:02:00"),
+    created_at: coachAt("05:00:00"),
+  }),
+  coachSession({
+    id: coachClosedTopic,
+    managed_session_id: "sesn_01Tendon",
+    title: "Tendon d’Achille en descente",
+    last_turn_at: coachAt("03:00:00"),
+    last_activity_at: coachAt("03:01:00"),
+    read_at: coachAt("03:02:00"),
+    created_at: coachAt("02:00:00"),
+    closed_at: coachAt("04:00:00"),
+  }),
   coachSession({
     id: coachSpikeThread,
     managed_session_id: "sesn_01Spike",
@@ -1542,6 +1568,24 @@ const coachRace = {
 };
 tables.athlete_races.push(coachRace);
 tables.coach_thread_items = [
+  coachItem(coachMainThread, "05:00:00", "athlete", {
+    text: "Comment s’est passée ma semaine ?",
+    consult: null,
+    attachments: [],
+  }),
+  coachItem(coachMainThread, "05:01:00", "coach", {
+    text: "Belle semaine : tes trois séances sont faites, la charge reste stable.",
+  }),
+  coachItem(coachClosedTopic, "02:00:00", "athlete", {
+    text: "Mon tendon tire en descente.",
+    consult: null,
+    attachments: [],
+  }),
+  coachItem(coachClosedTopic, "03:00:00", "staff_message", {
+    thread: "sthr_tendon",
+    agent: "medical",
+    text: "Deux semaines sans descentes rapides, puis reprise progressive.",
+  }),
   coachItem(coachKneeThread, "08:00:00", "athlete", {
     text: "J’ai une douleur au genou depuis la sortie de dimanche.",
     consult: "medical",
@@ -2206,9 +2250,13 @@ function selectRows(table, params) {
       .filter((row) => matchesNotification(row, params))
       .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));
   if (table === "coach_sessions") {
-    const status = params.get("status");
-    if (status?.startsWith("eq."))
-      rows = rows.filter((row) => row.status === status.slice(3));
+    for (const key of ["status", "kind"]) {
+      const filter = params.get(key);
+      if (filter?.startsWith("eq."))
+        rows = rows.filter((row) => row[key] === filter.slice(3));
+    }
+    if (params.get("closed_at") === "is.null")
+      rows = rows.filter((row) => row.closed_at === null);
   }
   const sessions = params.get("coach_session_id")?.match(/^in\.\((.*)\)$/);
   if (sessions) {
@@ -2221,6 +2269,8 @@ function selectRows(table, params) {
     const kind = params.get("kind");
     if (kind?.startsWith("eq."))
       rows = rows.filter((row) => row.kind === kind.slice(3));
+    const kinds = kind?.match(/^in\.\((.*)\)$/)?.[1].split(",");
+    if (kinds) rows = rows.filter((row) => kinds.includes(row.kind));
     const threadId = params.get("coach_session_id");
     if (threadId?.startsWith("eq."))
       rows = rows.filter((row) => row.coach_session_id === threadId.slice(3));
@@ -2230,7 +2280,9 @@ function selectRows(table, params) {
   }
   if (table === "coach_sessions")
     rows = [...rows].sort((a, b) =>
-      b.last_activity_at.localeCompare(a.last_activity_at),
+      params.get("order")?.startsWith("created_at.desc")
+        ? b.created_at.localeCompare(a.created_at)
+        : b.last_activity_at.localeCompare(a.last_activity_at),
     );
   if (table === "plan_proposals" || table === "plan_decisions") {
     for (const key of ["status"]) {
@@ -2561,6 +2613,10 @@ createServer(async (request, response) => {
         .filter((row) => row.user_id !== coachUser.id)
         .concat(snapshot[table]);
     return send(200, { reset: true });
+  }
+  if (url.pathname === "/__test__/coach-session" && request.method === "POST") {
+    tables.coach_sessions.push(coachSession(body.session));
+    return send(200, { ok: true });
   }
   if (url.pathname === "/__test__/coach-turn" && request.method === "POST") {
     const row = tables.coach_sessions.find(
@@ -3408,6 +3464,25 @@ createServer(async (request, response) => {
         );
         return send(204, undefined);
       }
+    }
+    if (
+      url.pathname === "/rest/v1/coach_sessions" &&
+      request.method === "PATCH"
+    ) {
+      const { rows } = selectRows("coach_sessions", url.searchParams);
+      for (const row of rows) Object.assign(row, body);
+      return send(200, rows);
+    }
+    if (
+      url.pathname === "/rest/v1/coach_thread_items" &&
+      request.method === "POST"
+    ) {
+      tables.coach_thread_items.push({
+        id: ++coachItemId,
+        ...body,
+        created_at: new Date().toISOString(),
+      });
+      return send(201, undefined);
     }
     if (
       url.pathname === "/rest/v1/coach_sessions" &&

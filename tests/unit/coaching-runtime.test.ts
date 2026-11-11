@@ -4,6 +4,8 @@ vi.mock("server-only", () => ({}));
 
 const store = vi.hoisted(() => ({
   findOwnSession: vi.fn(),
+  findOwnThread: vi.fn(),
+  findLatestMainSession: vi.fn(),
   recordSession: vi.fn(),
   updateSession: vi.fn(),
   appendThreadItem: vi.fn(),
@@ -115,6 +117,9 @@ function record(overrides: Partial<CoachSessionRecord> = {}) {
     readAt: null,
     composingSince: null,
     createdAt: "2026-10-16T09:00:00Z",
+    kind: "topic",
+    raceId: null,
+    closedAt: null,
     ...overrides,
   } satisfies CoachSessionRecord;
 }
@@ -195,6 +200,16 @@ describe("turn preconditions", () => {
       expect(() => assertTurnAllowed(record({ status }), message, now)).toThrow(
         SessionStateError,
       );
+  });
+
+  it("rejects a closed topic", () => {
+    expect(() =>
+      assertTurnAllowed(
+        record({ closedAt: "2026-10-16T09:30:00Z" }),
+        message,
+        now,
+      ),
+    ).toThrow(SessionStateError);
   });
 
   it("lets the athlete resend after a failed turn", () => {
@@ -288,16 +303,22 @@ describe("coach turn stream", () => {
         { type: "session.status_idle", stop_reason: { type: "end_turn" } },
       ]),
     );
+    store.findLatestMainSession.mockResolvedValue(null);
     await collect(
       streamCoachTurn(contextFor(athleteA), {
         ...request,
         sessionId: undefined,
+        target: { kind: "main" },
       }),
     );
     expect(managed.create).toHaveBeenCalledWith(
       expect.objectContaining({
         vault_ids: ["vlt_test"],
-        metadata: { stride_user_id: athleteA, mode: "conversation" },
+        metadata: {
+          stride_user_id: athleteA,
+          mode: "conversation",
+          kind: "main",
+        },
         budget: {
           type: "limit",
           max_list_cost: { amount: "500", currency: "USD" },
@@ -308,7 +329,9 @@ describe("coach turn stream", () => {
       managedSessionId: "sesn_01A",
       mode: "conversation",
       budgetCents: 500,
-      title: "Comment se passe ma semaine",
+      title: "Fil principal",
+      kind: "main",
+      raceId: null,
     });
   });
 
@@ -692,6 +715,27 @@ describe("coach turn stream", () => {
       text: turnMessages.budget,
     });
     expect(events.at(-1)).toMatchObject({ status: "budget_reached" });
+  });
+
+  it("never tells the athlete the main thread is closed when its budget is reached", async () => {
+    store.findOwnSession.mockResolvedValue(record({ kind: "main" }));
+    managed.stream.mockResolvedValue(
+      streamOf([
+        {
+          type: "session.status_idle",
+          stop_reason: { type: "budget_reached" },
+        },
+      ]),
+    );
+    const events = await collect(
+      streamCoachTurn(contextFor(athleteA), request),
+    );
+    expect(events).toContainEqual({
+      type: "error",
+      code: "budget_reached",
+      text: turnMessages.mainBudget,
+    });
+    expect(turnMessages.mainBudget).not.toMatch(/terminé/);
   });
 
   it("interrupts a turn that exceeds the timeout with a French message", async () => {
@@ -1398,6 +1442,189 @@ describe("coach turn stream", () => {
     expect(resolveAttachments).not.toHaveBeenCalled();
     expect(store.appendThreadItem.mock.calls[0][2]).toMatchObject({
       attachments: [],
+    });
+  });
+
+  describe("main thread and topics", () => {
+    const idle = () =>
+      managed.stream.mockResolvedValue(
+        streamOf([
+          { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+        ]),
+      );
+    const main = { ...request, sessionId: undefined } as const;
+    const today = new Date().toISOString();
+    const yesterday = new Date(Date.now() - 36 * 3_600_000).toISOString();
+
+    beforeEach(() => {
+      managed.create.mockResolvedValue({ id: "sesn_01New" });
+      store.recordSession.mockResolvedValue(
+        record({ id: "c0000000-0000-4000-8000-0000000000ee", kind: "main" }),
+      );
+    });
+
+    it("continues today's main session", async () => {
+      store.findLatestMainSession.mockResolvedValue(
+        record({ kind: "main", lastTurnAt: today }),
+      );
+      idle();
+      const events = await collect(
+        streamCoachTurn(contextFor(athleteA), {
+          ...main,
+          target: { kind: "main" },
+        }),
+      );
+      expect(managed.create).not.toHaveBeenCalled();
+      expect(events[0]).toMatchObject({
+        type: "session",
+        sessionId: "sesn_01A",
+      });
+    });
+
+    it.each([
+      [
+        "its budget is reached",
+        { status: "budget_reached", lastTurnAt: today },
+      ],
+      [
+        "its last turn was yesterday",
+        { status: "idle", lastTurnAt: yesterday },
+      ],
+    ] as const)("opens a new main session when %s", async (_, state) => {
+      store.findLatestMainSession.mockResolvedValue(
+        record({ kind: "main", ...state }),
+      );
+      idle();
+      await collect(
+        streamCoachTurn(contextFor(athleteA), {
+          ...main,
+          target: { kind: "main" },
+        }),
+      );
+      expect(store.recordSession).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ kind: "main", title: "Fil principal" }),
+      );
+    });
+
+    it("raises today's main session to the plan budget for a plan request", async () => {
+      store.findLatestMainSession.mockResolvedValue(
+        record({ kind: "main", lastTurnAt: today }),
+      );
+      managed.retrieve.mockResolvedValue({
+        id: "sesn_01A",
+        metadata: { stride_user_id: athleteA },
+        budget: {
+          type: "limit",
+          max_list_cost: { amount: "500", currency: "USD" },
+        },
+      });
+      managed.update.mockResolvedValue({});
+      idle();
+      await collect(
+        streamCoachTurn(contextFor(athleteA), {
+          ...main,
+          mode: "plan",
+          target: { kind: "main" },
+        }),
+      );
+      expect(managed.create).not.toHaveBeenCalled();
+      expect(managed.update).toHaveBeenCalledWith("sesn_01A", {
+        budget: {
+          type: "limit",
+          max_list_cost: { amount: "1000", currency: "USD" },
+        },
+      });
+    });
+
+    it("sends the answer to yesterday's pending question", async () => {
+      store.findLatestMainSession.mockResolvedValue(
+        record({
+          kind: "main",
+          status: "awaiting_athlete",
+          pendingToolUseId: "sevt_1",
+          lastTurnAt: yesterday,
+        }),
+      );
+      idle();
+      await collect(
+        streamCoachTurn(contextFor(athleteA), {
+          ...main,
+          target: { kind: "main" },
+          input: { kind: "answer", toolUseId: "sevt_1", text: "Oui" },
+        }),
+      );
+      expect(managed.create).not.toHaveBeenCalled();
+      expect(managed.send.mock.calls[0][1].events[0]).toMatchObject({
+        type: "user.custom_tool_result",
+        custom_tool_use_id: "sevt_1",
+      });
+    });
+
+    it("opens a topic with its title and race as context for the coach", async () => {
+      resolveAttachments.mockResolvedValue([
+        {
+          kind: "race",
+          id: "c0ace000-0000-4000-8000-000000000001",
+          title: "EcoTrail 120K",
+          date: "2027-03-20",
+        },
+      ]);
+      store.recordSession.mockResolvedValue(record({ kind: "topic" }));
+      idle();
+      await collect(
+        streamCoachTurn(contextFor(athleteA), {
+          ...main,
+          target: {
+            kind: "new_topic",
+            title: "Préparer l’EcoTrail",
+            raceId: "c0ace000-0000-4000-8000-000000000001",
+          },
+        }),
+      );
+      expect(store.recordSession).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          kind: "topic",
+          title: "Préparer l’EcoTrail",
+          raceId: "c0ace000-0000-4000-8000-000000000001",
+        }),
+      );
+      const [first, second] = managed.send.mock.calls[0][1].events[0].content;
+      expect(first.text).toContain("« Préparer l’EcoTrail »");
+      expect(first.text).toContain("EcoTrail 120K, le 2027-03-20");
+      expect(second.text).toBe(request.input.text);
+    });
+
+    it("refuses a turn in a closed topic", async () => {
+      store.findOwnThread.mockResolvedValue(
+        record({ closedAt: "2026-10-16T09:30:00Z" }),
+      );
+      managed.retrieve.mockResolvedValue({
+        id: "sesn_01A",
+        metadata: { stride_user_id: athleteA },
+      });
+      await expect(
+        collect(
+          streamCoachTurn(contextFor(athleteA), {
+            ...main,
+            target: { kind: "topic", threadId: record().id },
+          }),
+        ),
+      ).rejects.toMatchObject({ code: "session_closed" });
+      expect(managed.send).not.toHaveBeenCalled();
+    });
+
+    it("does not treat the main thread as a topic", async () => {
+      store.findOwnThread.mockResolvedValue(record({ kind: "main" }));
+      await expect(
+        collect(
+          streamCoachTurn(contextFor(athleteA), {
+            ...main,
+            target: { kind: "topic", threadId: record().id },
+          }),
+        ),
+      ).rejects.toBeInstanceOf(SessionAccessError);
     });
   });
 });

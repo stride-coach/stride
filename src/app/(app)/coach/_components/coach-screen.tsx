@@ -1,10 +1,9 @@
 "use client";
 
-import { MobileHeaderActions } from "@/features/app-shell/components/mobile-header-actions";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ChevronLeftIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
   ListIcon,
   PlusIcon,
@@ -19,6 +18,11 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Sheet,
   SheetClose,
   SheetContent,
@@ -27,7 +31,6 @@ import {
 import { Toggle } from "@/components/ui/toggle";
 import { ContextChip } from "@/components/stride/context-chip";
 import { SuggestedReplies } from "@/components/stride/suggested-reply";
-import { cn } from "@/lib/utils";
 import { localToday } from "@/features/app-shell/shell";
 import {
   attachmentDate,
@@ -40,14 +43,8 @@ import {
 import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
 import {
   closedStates,
-  conversationSections,
-  participantsLine,
-  threadParticipants,
-  threadPreview,
+  sameDay,
   threadStatus,
-  threadTitle,
-  timeLabel,
-  type ConversationSummary,
   type SessionState,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
@@ -56,36 +53,62 @@ import {
   StaffStack,
 } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
-import { staffAgents } from "@/features/coach/staff";
 import { refusalText, splitFrames, turnFailure } from "@/features/coach/stream";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
 import { buildThread, retryableMessage } from "@/features/coach/thread";
-import { markCoachThreadRead } from "@/server/coaching/actions";
-import { CoachHeaderNav, CoachTabs } from "./coach-tabs";
+import {
+  topicCompanions,
+  topicDecisions,
+  topicLead,
+  topicMessageCount,
+  topicOpenedLine,
+  type TopicSummary,
+} from "@/features/coach/topics";
+import { markCoachThreadsRead } from "@/server/coaching/actions";
+import type { CoachMainData, CoachTopicData } from "@/server/coaching/threads";
+import { CoachHeaderNav } from "./coach-tabs";
 import { ContextPicker } from "./context-picker";
-import { ConversationList } from "./conversation-list";
+import { NewTopicDialog, type DraftTopic } from "./new-topic-dialog";
 import { SuiviPanel } from "./suivi-panel";
-import { ThreadMenu } from "./thread-menu";
+import { TopicAside } from "./topic-aside";
+import { CloseTopicDialog, TopicActions } from "./topic-actions";
+import { TopicList } from "./topic-list";
 import { StaffWorking, ThreadLog } from "./thread-view";
 
-export type CoachThreadProps = {
-  id: string;
-  managedSessionId: string;
+type Target =
+  | { kind: "main" }
+  | { kind: "topic"; threadId: string }
+  | { kind: "new_topic"; title: string; raceId: string | null };
+
+type Conversation = {
+  key: string;
+  target: Target;
+  threadId: string | null;
   mode: "conversation" | "plan";
-  title: string;
-  state: SessionState;
+  title: string | null;
+  raceId: string | null;
+  createdAt: string | null;
+  closedAt: string | null;
+  state: SessionState | null;
   pendingToolUseId: string | null;
   lastTurnAt: string | null;
   composingSince: string | null;
-  createdAt: string;
+  readIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
 };
+
+export type CoachView =
+  | { kind: "main"; data: CoachMainData }
+  | { kind: "topic"; data: CoachTopicData };
 
 type Live = {
   base: ThreadItem[];
   items: ThreadItem[];
 };
+
+const noItems: ThreadItem[] = [];
+const noStatuses: Record<string, string> = {};
 
 function mergeLive(live: Live, base: ThreadItem[]): Live {
   if (live.base === base) return live;
@@ -97,11 +120,120 @@ function mergeLive(live: Live, base: ThreadItem[]): Live {
   };
 }
 
+function conversationOf(
+  view: CoachView,
+  draft: { mode: "conversation" | "plan" },
+  draftTopic: DraftTopic | null,
+): Conversation {
+  if (draftTopic)
+    return {
+      key: "draft-topic",
+      target: {
+        kind: "new_topic",
+        title: draftTopic.title,
+        raceId: draftTopic.raceId,
+      },
+      threadId: null,
+      mode: "conversation",
+      title: draftTopic.title,
+      raceId: draftTopic.raceId,
+      createdAt: null,
+      closedAt: null,
+      state: null,
+      pendingToolUseId: null,
+      lastTurnAt: null,
+      composingSince: null,
+      readIds: [],
+      items: noItems,
+      proposalStatuses: noStatuses,
+    };
+  if (view.kind === "topic")
+    return {
+      key: view.data.id,
+      target: { kind: "topic", threadId: view.data.id },
+      threadId: view.data.id,
+      mode: view.data.mode,
+      title: view.data.title,
+      raceId: view.data.raceId,
+      createdAt: view.data.createdAt,
+      closedAt: view.data.closedAt,
+      state: view.data.state,
+      pendingToolUseId: view.data.pendingToolUseId,
+      lastTurnAt: view.data.lastTurnAt,
+      composingSince: view.data.composingSince,
+      readIds: view.data.unread ? [view.data.id] : [],
+      items: view.data.items,
+      proposalStatuses: view.data.proposalStatuses,
+    };
+  return {
+    key: "main",
+    target: { kind: "main" },
+    threadId: view.data.threadId,
+    mode: draft.mode,
+    title: null,
+    raceId: null,
+    createdAt: null,
+    closedAt: null,
+    state: view.data.state,
+    pendingToolUseId: view.data.pendingToolUseId,
+    lastTurnAt: view.data.lastTurnAt,
+    composingSince: view.data.composingSince,
+    readIds: view.data.unreadIds,
+    items: view.data.items,
+    proposalStatuses: view.data.proposalStatuses,
+  };
+}
+
+function topicsCountLabel(count: number) {
+  if (count === 0) return "Sujets";
+  return count === 1 ? "1 sujet" : `${count} sujets`;
+}
+
+function ClosedNotice({
+  conversation,
+  busy,
+}: {
+  conversation: Conversation;
+  busy: boolean;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const limit = conversation.closedAt === null;
+  return (
+    <div className="mx-auto flex w-full max-w-180 flex-col gap-2 border-t border-border px-4 py-4 md:px-5">
+      <p className="text-secondary-foreground">
+        {limit
+          ? "Ce sujet a atteint sa limite. Clos-le pour garder son résumé et ses décisions dans le fil principal."
+          : "Ce sujet est clos. Il reste lisible ; écris dans le fil principal pour continuer."}
+      </p>
+      {limit && conversation.threadId ? (
+        <>
+          <Button
+            variant="outline"
+            className="self-start"
+            disabled={busy}
+            onClick={() => setConfirming(true)}
+          >
+            Clore le sujet
+          </Button>
+          <CloseTopicDialog
+            threadId={conversation.threadId}
+            open={confirming}
+            onOpenChange={setConfirming}
+          />
+        </>
+      ) : (
+        <Button asChild variant="outline" className="self-start">
+          <Link href="/coach">Revenir au fil principal</Link>
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function Composer({
   placeholder,
   answering,
   busy,
-  closed,
   initialText,
   initialAttachments,
   replies,
@@ -112,7 +244,6 @@ function Composer({
   placeholder: string;
   answering: boolean;
   busy: boolean;
-  closed: boolean;
   initialText: string;
   initialAttachments: AttachmentOption[];
   replies: readonly string[];
@@ -158,26 +289,13 @@ function Composer({
     input.current?.focus();
   }
 
-  if (closed)
-    return (
-      <div className="mx-auto flex w-full max-w-180 flex-col gap-2 border-t border-border px-4 py-4 md:px-5">
-        <p className="text-secondary-foreground">
-          Cette conversation est terminée. Démarre une nouvelle conversation
-          pour continuer.
-        </p>
-        <Button asChild variant="outline" className="self-start">
-          <Link href="/coach/new">Nouvelle conversation</Link>
-        </Button>
-      </div>
-    );
-
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
       }}
-      className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:bg-transparent md:px-5 md:pb-4"
+      className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-3 md:bg-transparent md:px-5 md:pb-4"
     >
       <SuggestedReplies
         replies={replies}
@@ -297,55 +415,76 @@ function Composer({
   );
 }
 
-export function CoachScreen({
-  conversations,
-  thread,
-  current,
-  draft,
-  now: nowIso,
-  timeZone,
+function EmptyConversation({ conversation }: { conversation: Conversation }) {
+  const staff = allStaff;
+  const topic = conversation.target.kind !== "main";
+  const plan = conversation.mode === "plan";
+  return (
+    <div className="mx-auto flex w-full max-w-180 flex-col gap-3 px-4 pt-8 md:px-5 md:pt-12">
+      <StaffAvatar agent="coach" size={48} />
+      <h2 className="text-verdict font-semibold">
+        {topic
+          ? conversation.title
+          : plan
+            ? `Demande ton plan ${staff.coach.to}`
+            : "Écris à ton staff"}
+      </h2>
+      <p className="max-w-140 text-body-lg text-secondary-foreground">
+        {topic
+          ? "Écris ta première question. Le staff garde le fil de ce sujet jusqu’à ce que tu le closes."
+          : plan
+            ? `${staff.coach.subject} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
+            : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.subject} te répond ou passe la main ${staff.medical.to}, qui te parle directement quand c’est utile.`}
+      </p>
+    </div>
+  );
+}
+
+function ConversationPane({
+  conversation,
+  draftText,
+  initialAttachments,
   attachmentOptions,
-  initialAttachments = [],
+  race,
+  now,
+  timeZone,
+  topicsBar,
 }: {
-  conversations: ConversationSummary[];
-  thread: CoachThreadProps | null;
-  current: boolean;
-  draft: { mode: "conversation" | "plan"; text: string };
-  now: string;
-  timeZone: string;
+  conversation: Conversation;
+  draftText: string;
+  initialAttachments: AttachmentOption[];
   attachmentOptions: AttachmentOptions;
-  initialAttachments?: AttachmentOption[];
+  race: { id: string; title: string; date: string | null } | null;
+  now: Date;
+  timeZone: string;
+  topicsBar: (extra: React.ReactNode) => React.ReactNode;
 }) {
   const staff = allStaff;
   const router = useRouter();
-  const now = useMemo(() => new Date(nowIso), [nowIso]);
-  const baseItems = useMemo(() => thread?.items ?? [], [thread]);
+  const [, startTransition] = useTransition();
+  const baseItems = conversation.items;
   const [liveState, setLive] = useState<Live>({ base: baseItems, items: [] });
   const live = mergeLive(liveState, baseItems);
   if (live !== liveState) setLive(live);
-  const [ids, setIds] = useState(() => ({
-    threadId: thread?.id ?? null,
-    sessionId: thread?.managedSessionId ?? null,
-  }));
-  const [state, setState] = useState<SessionState | null>(
-    thread?.state ?? null,
-  );
+  const [threadId, setThreadId] = useState(conversation.threadId);
+  const [state, setState] = useState<SessionState | null>(conversation.state);
   const [pendingQuestion, setPendingQuestion] = useState(
-    thread?.pendingToolUseId ?? null,
+    conversation.pendingToolUseId,
   );
-  const [lastTurnAt, setLastTurnAt] = useState(thread?.lastTurnAt ?? null);
+  const [lastTurnAt, setLastTurnAt] = useState(conversation.lastTurnAt);
   const [composingSince, setComposingSince] = useState(
-    thread?.composingSince ?? null,
+    conversation.composingSince,
   );
   const [busy, setBusy] = useState(false);
-  const [syncedThread, setSyncedThread] = useState(thread);
-  if (syncedThread !== thread) {
-    setSyncedThread(thread);
-    if (thread && !busy) {
-      setState(thread.state);
-      setPendingQuestion(thread.pendingToolUseId);
-      setLastTurnAt(thread.lastTurnAt);
-      setComposingSince(thread.composingSince);
+  const [synced, setSynced] = useState(conversation);
+  if (synced !== conversation) {
+    setSynced(conversation);
+    if (!busy) {
+      setThreadId(conversation.threadId);
+      setState(conversation.state);
+      setPendingQuestion(conversation.pendingToolUseId);
+      setLastTurnAt(conversation.lastTurnAt);
+      setComposingSince(conversation.composingSince);
     }
   }
   const [clock, setClock] = useState(now);
@@ -353,23 +492,24 @@ export function CoachScreen({
     text: string;
     attachments: SentAttachment[];
   } | null>(null);
-  const [suiviOpen, setSuiviOpen] = useState(false);
+  const [asideOpen, setAsideOpen] = useState(false);
   const logEnd = useRef<HTMLDivElement>(null);
 
   const items = useMemo(
     () => [...live.base, ...live.items],
     [live.base, live.items],
   );
-  const mode = thread?.mode ?? draft.mode;
-  const proposalStatuses = useMemo(
-    () => thread?.proposalStatuses ?? {},
-    [thread],
-  );
+  const main = conversation.target.kind === "main";
+  const { mode, proposalStatuses } = conversation;
   const status =
     state === null
       ? null
       : threadStatus({
-          state: busy ? "running" : state,
+          state: busy
+            ? "running"
+            : main && closedStates.includes(state)
+              ? "idle"
+              : state,
           lastTurnAt: busy ? new Date().toISOString() : lastTurnAt,
           now: busy ? new Date() : clock,
           proposalStatuses: Object.values(proposalStatuses).concat(
@@ -392,58 +532,19 @@ export function CoachScreen({
       }),
     [items, working, pendingQuestion, proposalStatuses],
   );
-  const closed = state !== null && closedStates.includes(state);
+  const closed =
+    !main &&
+    (conversation.closedAt !== null ||
+      (state !== null && closedStates.includes(state)));
   const retry =
     working || closed || pendingQuestion !== null
       ? null
       : retryableMessage(items);
-  const participants = threadParticipants(items);
-  const title =
-    thread?.title ??
-    (items[0]?.kind === "athlete"
-      ? threadTitle(items[0].text)
-      : "Nouvelle conversation");
-  const startedAt = thread?.createdAt ?? items[0]?.at ?? null;
 
-  const sections = useMemo(() => {
-    const merged = conversations.filter(
-      (conversation) => conversation.id !== ids.threadId,
-    );
-    const original = conversations.find(
-      (conversation) => conversation.id === ids.threadId,
-    );
-    if (ids.threadId && state)
-      merged.push({
-        id: ids.threadId,
-        title,
-        lastActivityAt: items.at(-1)?.at ?? original?.lastActivityAt ?? nowIso,
-        readAt: items.at(-1)?.at ?? nowIso,
-        state: busy ? "running" : state,
-        lastTurnAt: busy ? nowIso : lastTurnAt,
-        preview: threadPreview(staff, items),
-        participants,
-        proposalStatuses: original?.proposalStatuses ?? [],
-      });
-    return conversationSections(merged, now, timeZone);
-  }, [
-    conversations,
-    staff,
-    ids.threadId,
-    state,
-    title,
-    items,
-    busy,
-    lastTurnAt,
-    participants,
-    now,
-    nowIso,
-    timeZone,
-  ]);
-
-  const threadId = thread?.id ?? null;
+  const readIds = conversation.readIds;
   useEffect(() => {
-    if (threadId) void markCoachThreadRead({ threadId });
-  }, [threadId]);
+    if (readIds.length) void markCoachThreadsRead({ threadIds: readIds });
+  }, [readIds]);
 
   useEffect(() => {
     logEnd.current?.scrollIntoView({ block: "end" });
@@ -481,17 +582,20 @@ export function CoachScreen({
     });
     let sent = false;
     let started = false;
-    let threadKnown = Boolean(thread);
-    let currentThread = ids.threadId;
+    let currentThread = threadId;
     let turnError: string | null = null;
     let errorShown = false;
     let finished = false;
+    const target: Target =
+      conversation.target.kind === "new_topic" && threadId
+        ? { kind: "topic", threadId }
+        : conversation.target;
     try {
       const response = await fetch("/api/coach/turns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...(ids.sessionId ? { sessionId: ids.sessionId } : {}),
+          target,
           mode,
           input: answering
             ? { kind: "answer", toolUseId: answering, text }
@@ -531,17 +635,9 @@ export function CoachScreen({
             if (event.type === "session") {
               started = true;
               currentThread = event.threadId;
-              setIds({ threadId: event.threadId, sessionId: event.sessionId });
+              setThreadId(event.threadId);
               setState("running");
               setLastTurnAt(new Date().toISOString());
-              if (!threadKnown) {
-                threadKnown = true;
-                window.history.replaceState(
-                  null,
-                  "",
-                  `/coach/${event.threadId}`,
-                );
-              }
             }
             if (event.type === "item") {
               if (event.item.kind === "athlete" || event.item.kind === "answer")
@@ -574,8 +670,11 @@ export function CoachScreen({
       setBusy(false);
     }
     if (sent && currentThread) {
-      void markCoachThreadRead({ threadId: currentThread });
-      if (thread) router.refresh();
+      void markCoachThreadsRead({ threadIds: [currentThread] });
+      const opened = currentThread;
+      if (conversation.target.kind === "new_topic")
+        startTransition(() => router.replace(`/coach/${opened}`));
+      else router.refresh();
     }
     return sent;
   }
@@ -592,159 +691,101 @@ export function CoachScreen({
     ? `Ta réponse ${staff[answeringAgent].to}…`
     : "Écris au staff…";
   const empty = items.length === 0 && !sending;
-  const replies = suggestedReplies({
-    mode,
-    busy: working,
-    closed,
-    questionPending: pendingQuestion !== null,
-    status,
-    items,
-  });
+  const replies =
+    !main && items.length === 0
+      ? []
+      : suggestedReplies({
+          mode,
+          busy: working,
+          closed,
+          questionPending: pendingQuestion !== null,
+          status,
+          items,
+        });
 
-  const suivi = (
+  const lastDay = items.at(-1)?.at ?? null;
+  const suiviItems = useMemo(
+    () =>
+      lastDay === null
+        ? items
+        : items.filter((item) => sameDay(item.at, lastDay, timeZone)),
+    [items, lastDay, timeZone],
+  );
+  const lead = topicLead(items);
+  const asideTitle = main ? "Suivi de la conversation" : "Ce sujet";
+  const aside = main ? (
     <SuiviPanel
-      items={items}
+      items={suiviItems}
       status={status}
       pendingToolUseId={pendingQuestion}
       proposalStatuses={proposalStatuses}
       timeZone={timeZone}
     />
+  ) : (
+    <TopicAside
+      race={race}
+      lead={lead}
+      companions={topicCompanions(items)}
+      decisions={topicDecisions(items, proposalStatuses).length}
+      closed={conversation.closedAt !== null}
+    />
   );
+  const showAside = !main || !empty;
+  const asideButton = showAside ? (
+    <Button
+      variant="outline"
+      size="icon"
+      aria-label={asideTitle}
+      onClick={() => setAsideOpen(true)}
+      className="max-md:size-control-touch xl:hidden"
+    >
+      <ListIcon aria-hidden="true" />
+    </Button>
+  ) : null;
+  const topicMenu =
+    !main && threadId ? (
+      <TopicActions
+        threadId={threadId}
+        title={conversation.title ?? ""}
+        closed={conversation.closedAt !== null}
+        busy={working}
+      />
+    ) : null;
 
   return (
     <>
-      <AppHeader
-        title="Coach"
-        breadcrumb={<CoachHeaderNav />}
-        actions={
-          <Button asChild variant="ghost" className="max-md:hidden">
-            <Link href="/coach/new">Nouvelle conversation</Link>
-          </Button>
-        }
-        className="max-[980px]:hidden"
-      />
+      {topicsBar(
+        <>
+          {asideButton}
+          {topicMenu && <span className="md:hidden">{topicMenu}</span>}
+        </>,
+      )}
       <div className="flex min-h-0 flex-1">
-        <div
-          className={cn(
-            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-72 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border min-[980px]:bg-transparent",
-            current ? "hidden" : "flex",
-          )}
-        >
-          <ConversationList
-            sections={sections}
-            currentId={ids.threadId}
-            mobileHeader={
-              <div className="flex flex-col gap-3 min-[980px]:hidden">
-                <div className="flex min-h-11 items-center gap-2.5">
-                  <h1 className="text-body-lg font-semibold">Coach</h1>
-                  <span className="text-muted-foreground">ton staff</span>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="icon-lg"
-                    className="ml-auto"
-                  >
-                    <Link href="/coach/new" aria-label="Nouvelle conversation">
-                      <PlusIcon aria-hidden="true" />
-                    </Link>
-                  </Button>
-                  <MobileHeaderActions />
-                </div>
-                <CoachTabs className="md:flex" />
-                <section
-                  aria-label="Ton staff"
-                  className="flex flex-col gap-2.5"
-                >
-                  <div className="flex items-baseline">
-                    <span className="text-label font-medium text-muted-foreground">
-                      Ton staff
-                    </span>
-                    <Link
-                      href="/coach/team"
-                      className="ml-auto inline-flex min-h-control-touch items-center gap-1 text-label text-secondary-foreground hover:text-foreground"
-                    >
-                      Voir le staff
-                      <ChevronRightIcon aria-hidden="true" className="size-3" />
-                    </Link>
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto">
-                    {staffAgents.map((agent) => (
-                      <Link
-                        key={agent}
-                        href="/coach/team"
-                        aria-label={`${staff[agent].name}, voir le staff`}
-                        className="flex w-16 shrink-0 flex-col items-center gap-1.5 text-center text-label text-secondary-foreground hover:text-foreground"
-                      >
-                        <StaffAvatar agent={agent} size={30} decorative />
-                        <span aria-hidden="true">{staff[agent].name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            }
-          />
-        </div>
         <section
-          aria-label={title}
-          className={cn(
-            "min-h-0 min-w-0 flex-[999_1_520px] flex-col min-[980px]:flex",
-            current ? "flex" : "hidden",
-          )}
+          aria-label={main ? "Fil principal" : (conversation.title ?? "Sujet")}
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
         >
-          <div className="flex min-h-13 shrink-0 items-center gap-2.5 border-b border-border py-1.5 pr-2.5 pl-1.5 min-[980px]:min-h-header min-[980px]:gap-3 min-[980px]:px-5">
-            <Button
-              asChild
-              variant="ghost"
-              size="icon-lg"
-              className="text-secondary-foreground min-[980px]:hidden"
-            >
-              <Link href="/coach" aria-label="Retour aux conversations">
-                <ChevronLeftIcon aria-hidden="true" />
-              </Link>
-            </Button>
-            <StaffStack agents={participants} size={22} />
-            <span className="flex min-w-0 flex-1 flex-col">
-              <h1 className="truncate font-medium">
-                {empty && !thread ? "Nouvelle conversation" : title}
-              </h1>
-              <span className="truncate text-label text-muted-foreground">
-                {participantsLine(staff, participants)}
-                {startedAt &&
-                  !empty &&
-                  ` · commencé à ${timeLabel(startedAt, timeZone)}`}
+          {!main && (
+            <div className="flex min-h-header shrink-0 items-center gap-3 border-b border-border px-5 py-2 max-md:hidden">
+              <StaffAvatar agent={lead} size={22} decorative />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <h1 className="truncate font-semibold">{conversation.title}</h1>
+                <span className="truncate text-label text-muted-foreground">
+                  {conversation.createdAt
+                    ? topicOpenedLine(
+                        conversation.createdAt,
+                        topicMessageCount(items),
+                        timeZone,
+                      )
+                    : "Nouveau sujet"}
+                </span>
               </span>
-            </span>
-            {!empty && (
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Suivi de la conversation"
-                onClick={() => setSuiviOpen(true)}
-                className="max-md:size-control-touch xl:hidden"
-              >
-                <ListIcon aria-hidden="true" />
-              </Button>
-            )}
-            {ids.threadId && state !== null && (
-              <ThreadMenu threadId={ids.threadId} busy={working} />
-            )}
-          </div>
+              {topicMenu}
+            </div>
+          )}
           <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
             {empty ? (
-              <div className="mx-auto flex w-full max-w-180 flex-col gap-3 px-4 pt-8 md:px-5 md:pt-12">
-                <StaffAvatar agent="coach" size={48} />
-                <h2 className="text-verdict font-semibold">
-                  {mode === "plan"
-                    ? `Demande ton plan ${staff.coach.to}`
-                    : "Écris à ton staff"}
-                </h2>
-                <p className="max-w-140 text-body-lg text-secondary-foreground">
-                  {mode === "plan"
-                    ? `${staff.coach.subject} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
-                    : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.subject} te répond ou passe la main ${staff.medical.to}, qui te parle directement quand c’est utile.`}
-                </p>
-              </div>
+              <EmptyConversation conversation={conversation} />
             ) : (
               <ThreadLog
                 entries={entries}
@@ -769,30 +810,32 @@ export function CoachScreen({
             )}
             <div ref={logEnd} />
           </div>
-          <Composer
-            key={ids.threadId ?? "new"}
-            placeholder={placeholder}
-            answering={pendingQuestion !== null}
-            busy={working}
-            closed={closed}
-            initialText={thread ? "" : draft.text}
-            initialAttachments={thread ? [] : initialAttachments}
-            replies={replies}
-            options={attachmentOptions}
-            today={localToday(now)}
-            onSend={send}
-          />
+          {closed ? (
+            <ClosedNotice conversation={conversation} busy={working} />
+          ) : (
+            <Composer
+              placeholder={placeholder}
+              answering={pendingQuestion !== null}
+              busy={working}
+              initialText={draftText}
+              initialAttachments={initialAttachments}
+              replies={replies}
+              options={attachmentOptions}
+              today={localToday(now)}
+              onSend={send}
+            />
+          )}
         </section>
-        {!empty && (
+        {showAside && (
           <aside
-            aria-label="Suivi de la conversation"
+            aria-label={asideTitle}
             className="hidden w-panel shrink-0 overflow-y-auto border-l border-border px-5 py-4.5 xl:block"
           >
-            {suivi}
+            {aside}
           </aside>
         )}
       </div>
-      <Sheet open={suiviOpen} onOpenChange={setSuiviOpen}>
+      <Sheet open={asideOpen} onOpenChange={setAsideOpen}>
         <SheetContent
           side="bottom"
           showCloseButton={false}
@@ -800,9 +843,7 @@ export function CoachScreen({
           className="max-h-[85svh] gap-0 overflow-hidden rounded-t-2xl border-control-border bg-background shadow-float min-[640px]:inset-x-auto min-[640px]:right-2 min-[640px]:bottom-2 min-[640px]:w-100 min-[640px]:rounded-xl min-[640px]:border"
         >
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-            <SheetTitle className="font-semibold">
-              Suivi de la conversation
-            </SheetTitle>
+            <SheetTitle className="font-semibold">{asideTitle}</SheetTitle>
             <SheetClose asChild>
               <Button
                 variant="ghost"
@@ -813,10 +854,219 @@ export function CoachScreen({
             </SheetClose>
           </div>
           <div className="min-h-0 overflow-y-auto overscroll-contain px-4 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-            {suivi}
+            {aside}
           </div>
         </SheetContent>
       </Sheet>
+    </>
+  );
+}
+
+function TopicsFooter({ onNew }: { onNew: () => void }) {
+  return (
+    <div className="flex items-center gap-3 border-t border-border px-2.5 pt-2.5 pb-1">
+      <p className="flex-1 text-label text-muted-foreground">
+        Un sujet sert à une question de fond. Pour le reste, écris dans le fil
+        principal.
+      </p>
+      <Button variant="outline" onClick={onNew}>
+        Nouveau sujet
+      </Button>
+    </div>
+  );
+}
+
+export function CoachScreen({
+  view,
+  topics,
+  mainActivityAt,
+  draft,
+  now: nowIso,
+  timeZone,
+  attachmentOptions,
+  initialAttachments = [],
+}: {
+  view: CoachView;
+  topics: TopicSummary[];
+  mainActivityAt: string | null;
+  draft: { mode: "conversation" | "plan"; text: string };
+  now: string;
+  timeZone: string;
+  attachmentOptions: AttachmentOptions;
+  initialAttachments?: AttachmentOption[];
+}) {
+  const now = useMemo(() => new Date(nowIso), [nowIso]);
+  const [draftTopic, setDraftTopic] = useState<DraftTopic | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const conversation = useMemo(
+    () => conversationOf(view, draft, draftTopic),
+    [view, draft, draftTopic],
+  );
+  const currentId = view.kind === "topic" && !draftTopic ? view.data.id : null;
+  const openTopics = topics.filter((topic) => topic.closedAt === null).length;
+  const title =
+    conversation.target.kind === "main"
+      ? "Fil principal"
+      : (conversation.title ?? "Sujet");
+  const raceOption = conversation.raceId
+    ? (attachmentOptions.race.find(
+        (option) => option.id === conversation.raceId,
+      ) ?? null)
+    : null;
+  const race = raceOption
+    ? { id: raceOption.id, title: raceOption.title, date: raceOption.date }
+    : null;
+
+  function startTopic() {
+    setListOpen(false);
+    setSheetOpen(false);
+    setCreating(true);
+  }
+
+  const list = (onNavigate: () => void) => (
+    <TopicList
+      topics={topics}
+      current={draftTopic ? "draft" : currentId}
+      mainActivityAt={mainActivityAt}
+      now={now}
+      timeZone={timeZone}
+      onNavigate={() => {
+        setDraftTopic(null);
+        onNavigate();
+      }}
+    />
+  );
+
+  return (
+    <>
+      <AppHeader
+        title="Coach"
+        detail={conversation.target.kind === "main" ? "ton staff" : "sujet"}
+        breadcrumb={
+          conversation.target.kind === "main" ? (
+            <CoachHeaderNav />
+          ) : (
+            <nav
+              aria-label="Fil d’Ariane"
+              className="flex min-w-0 items-center gap-2"
+            >
+              <Link
+                href="/coach"
+                onClick={() => setDraftTopic(null)}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                Coach
+              </Link>
+              <ChevronRightIcon
+                aria-hidden="true"
+                className="size-3.5 shrink-0 text-muted-foreground"
+              />
+              <span aria-current="page" className="truncate font-semibold">
+                {title}
+              </span>
+            </nav>
+          )
+        }
+        actions={
+          <div className="flex items-center gap-2 max-md:hidden">
+            <Popover open={listOpen} onOpenChange={setListOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  Sujets
+                  {openTopics > 0 && (
+                    <span className="text-muted-foreground tabular-nums">
+                      {openTopics}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                aria-label="Sujets"
+                className="max-h-[min(36rem,80svh)] w-104 gap-1 overflow-y-auto p-1.5"
+              >
+                {list(() => setListOpen(false))}
+                <TopicsFooter onNew={startTopic} />
+              </PopoverContent>
+            </Popover>
+            <Button variant="ghost" onClick={startTopic}>
+              Nouveau sujet
+            </Button>
+          </div>
+        }
+      />
+      <ConversationPane
+        key={conversation.key}
+        conversation={conversation}
+        draftText={view.kind === "main" && !draftTopic ? draft.text : ""}
+        initialAttachments={
+          view.kind === "main" && !draftTopic ? initialAttachments : []
+        }
+        attachmentOptions={attachmentOptions}
+        race={race}
+        now={now}
+        timeZone={timeZone}
+        topicsBar={(extra) => (
+          <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2 md:hidden">
+            <Button
+              variant="outline"
+              aria-haspopup="dialog"
+              onClick={() => setSheetOpen(true)}
+              className="min-w-0 flex-1 justify-between font-normal"
+            >
+              <span className="truncate font-medium">{title}</span>
+              <span className="flex shrink-0 items-center gap-1 text-muted-foreground">
+                {topicsCountLabel(openTopics)}
+                <ChevronDownIcon aria-hidden="true" />
+              </span>
+            </Button>
+            {extra}
+          </div>
+        )}
+      />
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          aria-describedby={undefined}
+          className="max-h-[85svh] gap-0 overflow-hidden rounded-t-2xl border-control-border bg-background shadow-float"
+        >
+          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+            <SheetTitle className="font-semibold">Sujets</SheetTitle>
+            <SheetClose asChild>
+              <Button
+                variant="ghost"
+                className="ml-auto min-h-control-touch text-secondary-foreground"
+              >
+                Fermer
+              </Button>
+            </SheetClose>
+          </div>
+          <div className="min-h-0 overflow-y-auto overscroll-contain px-2 py-2">
+            {list(() => setSheetOpen(false))}
+          </div>
+          <div className="flex flex-col gap-2 border-t border-border px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <Button size="lg" onClick={startTopic}>
+              Nouveau sujet
+            </Button>
+            <Link
+              href="/coach/team"
+              onClick={() => setSheetOpen(false)}
+              className="inline-flex min-h-control-touch items-center justify-center text-secondary-foreground hover:text-foreground"
+            >
+              Voir le staff
+            </Link>
+          </div>
+        </SheetContent>
+      </Sheet>
+      <NewTopicDialog
+        open={creating}
+        onOpenChange={setCreating}
+        races={attachmentOptions.race}
+        onOpenTopic={setDraftTopic}
+      />
     </>
   );
 }

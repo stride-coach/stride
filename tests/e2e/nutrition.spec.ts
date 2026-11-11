@@ -51,7 +51,7 @@ test("the nutrition page shows today's targets and the next seven days", async (
   });
   const href = await coach.first().getAttribute("href");
   const url = new URL(href ?? "", "http://stride.test");
-  expect(url.pathname).toBe("/coach/new");
+  expect(url.pathname).toBe("/coach");
   expect(url.searchParams.get("text")).toMatch(/^Nutrition du /);
   await page.screenshot({
     path: "test-results/nutrition-1440.png",

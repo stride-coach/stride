@@ -211,7 +211,7 @@ describe("nutrition day view", () => {
       href: `/races/${race.id}/nutrition`,
     });
     const coach = new URL(today.coachHref, "https://stride.test");
-    expect(coach.pathname).toBe("/coach/new");
+    expect(coach.pathname).toBe("/coach");
     expect(coach.searchParams.get("session")).toBe("w1-sat");
     expect(coach.searchParams.get("race")).toBe(race.id);
     expect(coach.searchParams.get("text")).toContain("Ravito 70 g/h.");

@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/coach/equipe", destination: "/coach/team", permanent: true },
+      { source: "/coach/new", destination: "/coach", permanent: false },
       { source: "/health", destination: "/health/fitness", permanent: false },
       {
         source: "/nutrition",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { CoachPage } from "../_components/coach-page";
+import { CoachTopicPage } from "../_components/coach-page";
 
-export const metadata: Metadata = { title: "Conversation · Coach" };
+export const metadata: Metadata = { title: "Sujet · Coach" };
 
 export default async function CoachThreadPage({
   params,
@@ -9,5 +9,5 @@ export default async function CoachThreadPage({
   params: Promise<{ thread: string }>;
 }) {
   const { thread } = await params;
-  return <CoachPage threadId={thread} current />;
+  return <CoachTopicPage threadId={thread} />;
 }
