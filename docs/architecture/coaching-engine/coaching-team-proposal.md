@@ -160,8 +160,8 @@ The first live conversations (#139) worked end to end but read as agents talking
 
 **Decision.** Specialists may address the athlete directly inside a thread the Coach leads.
 
-- The Coach reads each athlete message and either answers alone or hands off in one short French line that mentions the specialist (« @Inès, tu peux vérifier le genou avec Jules ? »).
-- The specialist writes to the athlete in its own voice and name, in French, and may ask the athlete one question at a time through `ask_athlete`, preferably with 2 to 5 short answer options plus a free answer. The answer goes back to the specialist that asked, not through the Coach.
+- The Coach reads each athlete message and either answers alone or hands off in one short French line that mentions the specialist by role (« @Santé, tu peux vérifier le genou avec Jules ? »); the staff have no first names.
+- The specialist writes to the athlete in its own voice under its role, in French, and may ask the athlete one question at a time through `ask_athlete`, preferably with 2 to 5 short answer options plus a free answer. The answer goes back to the specialist that asked, not through the Coach.
 - The Coach does not repeat or rephrase what a specialist said. It adds a short synthesis only when a decision, a proposal or a contradiction between specialists needs one.
 - Every message the athlete can see is in French, including hand-offs between agents.
 - Messages are short by default: verdict first, safety first, no restating of what the athlete already said, details on request.
