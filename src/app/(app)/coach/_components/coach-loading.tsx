@@ -192,7 +192,7 @@ function ThreadLogLoading() {
 
 function ComposerLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-5 md:pb-4">
+    <div className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:bg-transparent md:px-5 md:pb-4">
       <Skeleton aria-hidden="true" className="h-12 w-full rounded-lg" />
       <p className="text-label text-muted-foreground max-sm:hidden">
         Le Coach lit chaque message et passe la main au bon spécialiste, deux au
@@ -232,7 +232,7 @@ export function CoachLoading({
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(
-            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-72 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border",
+            "min-h-0 w-full flex-col bg-background min-[980px]:flex min-[980px]:w-72 min-[980px]:shrink-0 min-[980px]:border-r min-[980px]:border-border min-[980px]:bg-transparent",
             current ? "hidden" : "flex",
           )}
         >

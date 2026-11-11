@@ -106,7 +106,7 @@ export function AuthShell({
       <AuthAside />
       <section
         aria-label={signup ? "Créer un compte" : "Se connecter"}
-        className="relative flex flex-1 flex-col px-4 pb-8 md:m-2 md:justify-center md:rounded-xl md:border md:border-border md:bg-background md:px-8 md:py-12"
+        className="relative flex flex-1 flex-col px-4 pb-8 md:m-2 md:justify-center md:rounded-xl md:border md:border-border md:bg-background/70 md:px-8 md:py-12"
       >
         <div className="mx-auto flex w-full max-w-95 flex-1 flex-col md:flex-none">
           {children}
