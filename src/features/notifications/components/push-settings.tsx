@@ -440,7 +440,7 @@ function InstallSteps({ label }: { label: DeviceLabel | null }) {
           >
             <span
               aria-hidden="true"
-              className="grid size-7 place-items-center rounded-full border border-control-border text-[15px] font-semibold tabular-nums"
+              className="grid size-7 place-items-center rounded-full border border-control-border font-semibold tabular-nums"
             >
               {index + 1}
             </span>

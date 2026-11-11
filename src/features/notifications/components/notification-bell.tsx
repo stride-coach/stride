@@ -145,22 +145,22 @@ function LoadedBell({
           align="end"
           sideOffset={8}
           aria-label="Notifications"
-          className="max-h-[min(760px,calc(100svh-80px))] w-105 overflow-hidden"
+          className="max-h-[min(760px,calc(100svh-80px))] w-120 overflow-hidden"
         >
-          <div className="flex items-center gap-2.5 px-3.5 pt-3.5 pb-2.5">
-            <h2 className="text-[15px] font-semibold">Notifications</h2>
-            <span className="text-label text-muted-foreground">
+          <div className="flex min-h-header items-center gap-2.5 border-b border-border px-4">
+            <h2 className="font-semibold">Notifications</h2>
+            <span className="text-label text-primary">
               {unreadLabel(unread)}
             </span>
-            {unread > 0 && <MarkAllRead className="ml-auto" />}
+            {unread > 0 && <MarkAllRead className="-mr-2 ml-auto" />}
           </div>
           <NotificationFilters
             current={filter}
             todo={(feed?.items ?? []).filter(isTodo).length}
             onSelect={setFilter}
-            className="px-3.5 pb-2.5"
+            className="mx-4 my-2.5"
           />
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-b border-border">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-y border-border">
             {items.length ? (
               <NotificationList notifications={items} now={now} />
             ) : (
@@ -170,10 +170,10 @@ function LoadedBell({
           <Link
             href="/notifications"
             onClick={() => setOpen(false)}
-            className="flex min-h-11 items-center justify-center gap-1.5 text-[13px] text-secondary-foreground hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+            className="flex min-h-row items-center gap-1 px-4 text-primary hover:text-foreground focus-visible:outline-offset-[-2px]"
           >
             Voir tout l’historique
-            <ChevronRightIcon aria-hidden="true" className="size-3" />
+            <ChevronRightIcon aria-hidden="true" className="size-3.5" />
           </Link>
         </PopoverContent>
       </Popover>

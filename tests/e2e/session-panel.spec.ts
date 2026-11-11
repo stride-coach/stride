@@ -178,6 +178,6 @@ test("a link inside the panel leaves it for the target page", async ({
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
   test.skip((await shoes.count()) === 0, "No pair for this session");
   await shoes.getByRole("link", { name: /Matériel/ }).click();
-  await expect(page).toHaveURL(/\/gear$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/activities\/gear$/, { timeout: 20_000 });
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });

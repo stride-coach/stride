@@ -12,16 +12,14 @@ export default async function NewShoeRoute() {
   return (
     <GearFrame
       crumbs={[
-        { label: "Matériel", href: "/gear" },
+        { label: "Matériel", href: "/activities/gear" },
         { label: "Ajouter une paire" },
       ]}
-      back={{ href: "/gear", label: "Retour au matériel" }}
+      back={{ href: "/activities/gear", label: "Retour au matériel" }}
     >
       <section className="flex flex-col gap-2.5">
-        <h1 className="text-[clamp(30px,3.2vw,40px)] leading-none font-semibold tracking-[-0.03em]">
-          Ajouter une paire
-        </h1>
-        <p className="max-w-155 text-body text-secondary-foreground">
+        <h1 className="text-verdict font-semibold">Ajouter une paire</h1>
+        <p className="max-w-155 text-body-lg text-pretty text-secondary-foreground">
           Donne le nom de la paire : Stride propose son type, son terrain et une
           phrase pour la décrire. Tu corriges si besoin.
         </p>

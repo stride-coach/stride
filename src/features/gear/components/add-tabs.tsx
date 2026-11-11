@@ -2,8 +2,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { key: "name", label: "Par son nom", href: "/gear/new" },
-  { key: "garmin", label: "Depuis Garmin", href: "/gear/import" },
+  { key: "name", label: "Par son nom", href: "/activities/gear/new" },
+  { key: "garmin", label: "Depuis Garmin", href: "/activities/gear/import" },
 ] as const;
 
 export function AddTabs({
@@ -14,7 +14,7 @@ export function AddTabs({
   return (
     <nav
       aria-label="Façon d’ajouter"
-      className="flex max-w-105 gap-1 rounded-xl border border-border bg-card p-1"
+      className="flex w-fit gap-0.5 rounded-lg border border-border bg-card p-0.5 max-sm:w-full"
     >
       {tabs.map((tab) => (
         <Link
@@ -22,9 +22,9 @@ export function AddTabs({
           href={tab.href}
           aria-current={tab.key === current ? "page" : undefined}
           className={cn(
-            "flex min-h-10 flex-1 items-center justify-center rounded-md px-2 text-center text-body",
+            "flex min-h-control-touch flex-1 items-center justify-center rounded-md px-2.5 text-center whitespace-nowrap transition-colors duration-150 ease-stride md:min-h-6",
             tab.key === current
-              ? "bg-border font-semibold text-foreground"
+              ? "bg-muted font-medium text-foreground"
               : "text-muted-foreground hover:text-foreground",
           )}
         >

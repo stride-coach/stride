@@ -8,10 +8,9 @@ import {
 } from "../model";
 
 const chip =
-  "flex min-h-11 shrink-0 items-center rounded-full border px-3 text-[13px] whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:min-h-8";
-const selected =
-  "border-foreground bg-foreground font-semibold text-background";
-const idle = "border-border text-muted-foreground hover:text-foreground";
+  "flex min-h-control-touch shrink-0 items-center rounded-md px-2.5 whitespace-nowrap transition-colors duration-150 ease-stride md:min-h-6";
+const selected = "bg-muted font-medium text-foreground";
+const idle = "text-muted-foreground hover:text-foreground";
 
 function label(filter: NotificationFilter, todo: number) {
   return filter === "todo" && todo > 0
@@ -35,7 +34,7 @@ export function NotificationFilters({
       role="group"
       aria-label="Filtrer les notifications"
       className={cn(
-        "flex shrink-0 [scrollbar-width:none] gap-1.5 overflow-x-auto",
+        "flex w-fit max-w-full shrink-0 [scrollbar-width:none] gap-0.5 overflow-x-auto rounded-lg border border-border bg-card p-0.5",
         className,
       )}
     >

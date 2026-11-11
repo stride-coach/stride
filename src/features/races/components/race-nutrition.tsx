@@ -438,7 +438,7 @@ export function NutritionBody({
             {formatInteger(plan.waterMlPerHour)} ml/h d’eau.
           </p>
           <Link
-            href="/nutrition"
+            href="/health/nutrition"
             className="inline-flex min-h-control-touch items-center text-primary hover:text-foreground md:min-h-0"
           >
             Nutrition du jour

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Chip } from "@/components/stride/chip";
+import { Widget } from "@/components/stride/widget";
 import { SourceMark } from "@/components/stride/marks";
 import { formatFrenchDate } from "@/features/onboarding/dates";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ import {
   type ShoeInput,
 } from "../view";
 import { CurrentKmButton, RetireShoeButton } from "./gear-actions";
+import { GearPanelSection } from "./gear-frame";
 import { WearGauge } from "./wear-gauge";
 
 const decimal = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
@@ -31,18 +33,50 @@ function Tile({
   detail: string;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-border bg-background px-4 py-3.5">
-      <MonoLabel size="nano" className="inline-flex items-center gap-1.5">
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="inline-flex items-center gap-1.5 text-label text-secondary-foreground">
         <SourceMark source={source} />
         {label}
-      </MonoLabel>
-      <span className="text-[26px] leading-tight font-semibold tabular-nums">
+      </dt>
+      <dd data-slot="metric" className="text-title font-semibold tabular-nums">
         {value}
-      </span>
-      <span className="text-label leading-snug text-muted-foreground">
-        {detail}
-      </span>
+      </dd>
+      <dd className="text-label text-muted-foreground">{detail}</dd>
     </div>
+  );
+}
+
+export function GearDetailPanel({ shoe }: { shoe: ShoeInput }) {
+  const retired = shoe.retiredOn !== null;
+  return (
+    <GearPanelSection id="gear-settings" title="Réglages de la paire">
+      <dl className="flex flex-col">
+        {specRows(shoe.spec, shoe.suggested).map((row) => (
+          <div
+            key={row.label}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 py-1.5"
+          >
+            <dt className="text-secondary-foreground">{row.label}</dt>
+            <dd
+              className={cn(
+                "text-right font-medium",
+                row.value === null && "font-normal text-muted-foreground",
+              )}
+            >
+              {row.value ?? "Non renseignée"}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline">
+          <Link href={`/activities/gear/${shoe.id}/edit`}>
+            Modifier la fiche
+          </Link>
+        </Button>
+        <RetireShoeButton id={shoe.id} retired={retired} />
+      </div>
+    </GearPanelSection>
   );
 }
 
@@ -60,66 +94,44 @@ export function GearDetail({
   const retired = shoe.retiredOn !== null;
   return (
     <>
-      <section className="flex flex-wrap items-end justify-between gap-5">
-        <div className="flex flex-col gap-2.5">
-          <div className="flex flex-wrap gap-2">
-            {[
-              categoryLabels[shoe.spec.category],
-              terrainLabels[shoe.spec.terrain],
-            ].map((tag) => (
-              <MonoLabel
-                key={tag}
-                size="nano"
-                tone="secondary"
-                className="rounded-sm border border-control-border px-1.5 py-0.5"
-              >
-                {tag}
-              </MonoLabel>
-            ))}
-            {retired && (
-              <span className="text-label text-muted-foreground">
-                Retirée le {formatFrenchDate(shoe.retiredOn)}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-body text-muted-foreground">
-              {shoe.spec.brand}
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <h1 className="text-verdict font-semibold text-balance">
+            {modelName(shoe.spec)}
+          </h1>
+          <span className="text-secondary-foreground">{shoe.spec.brand}</span>
+          {[
+            categoryLabels[shoe.spec.category],
+            terrainLabels[shoe.spec.terrain],
+          ].map((tag) => (
+            <Chip key={tag}>{tag}</Chip>
+          ))}
+          {retired && (
+            <span className="text-label text-muted-foreground">
+              Retirée le {formatFrenchDate(shoe.retiredOn)}
             </span>
-            <h1 className="text-[clamp(32px,3.5vw,44px)] leading-none font-semibold tracking-[-0.03em]">
-              {modelName(shoe.spec)}
-            </h1>
-          </div>
-          <p className="text-body text-muted-foreground">
-            {garmin ? "Suivie par Garmin" : "Hors Garmin"} · première sortie le{" "}
-            {formatFrenchDate(shoe.firstUseDate)}
-          </p>
+          )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="outline" size="md">
-            <Link href={`/gear/${shoe.id}/edit`}>Modifier la fiche</Link>
-          </Button>
-          <RetireShoeButton id={shoe.id} retired={retired} />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:p-7">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="flex items-end gap-3.5">
-            <span className="text-[72px] leading-[0.78] font-semibold tabular-nums sm:text-[88px]">
+        <p className="text-label text-muted-foreground">
+          {garmin ? "Suivie par Garmin" : "Hors Garmin"} · première sortie le{" "}
+          {formatFrenchDate(shoe.firstUseDate)}
+        </p>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <span className="flex items-baseline gap-1.5">
+            <span
+              data-slot="metric"
+              className="text-display font-semibold tabular-nums"
+            >
               {card.totalKm}
             </span>
-            <span className="flex flex-col gap-0.5 pb-1">
-              <span className="text-body">km sur {card.lifespanKm}</span>
-              <span className="text-body text-muted-foreground">
-                {wear.percent} % de la durée de vie
-              </span>
+            <span className="text-body text-secondary-foreground">
+              / {card.lifespanKm} km · {wear.percent} % de la durée de vie
             </span>
-          </div>
-          <div className="flex flex-col items-start gap-0.5 sm:items-end sm:text-right">
+          </span>
+          <span className="flex flex-col items-start gap-0.5 sm:items-end sm:text-right">
             <span
               className={cn(
-                "text-[28px] leading-none font-semibold tabular-nums",
+                "text-title font-semibold tabular-nums",
                 card.high && "text-warning",
               )}
             >
@@ -127,64 +139,65 @@ export function GearDetail({
                 ? "Durée de vie atteinte"
                 : `${formatKm(wear.remainingKm)} km restants`}
             </span>
-            <span className="text-body text-secondary-foreground">
+            <span className="text-label text-secondary-foreground">
               {replacement && !wear.worn
                 ? `à remplacer vers le ${formatFrenchDate(replacement)} au rythme actuel`
                 : "pas assez de sorties récentes pour estimer une date"}
             </span>
-          </div>
+          </span>
         </div>
         <div className="flex flex-col gap-1.5">
-          <WearGauge wear={wear} split className="h-2.5" />
+          <WearGauge wear={wear} split className="h-2" />
           <div className="flex justify-between text-label text-muted-foreground">
             <span>0</span>
             <span>{card.lifespanKm} km · alerte Garmin</span>
           </div>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3.5">
-          <Tile
-            source="manual"
-            label="Km de départ · toi"
-            value={`${formatKm(wear.startingKm)} km`}
-            detail="avant que Garmin ne compte cette paire"
-          />
-          <Tile
-            source="provider"
-            label="Depuis · Garmin"
-            value={`${formatKm(wear.garminKm)} km`}
-            detail={
-              garmin
-                ? `${garmin.totalActivities} ${garmin.totalActivities > 1 ? "activités liées" : "activité liée"} à cette paire dans Garmin`
-                : "paire absente de Garmin"
-            }
-          />
-          {garmin && (
+      </header>
+
+      <Widget headingLevel={2} title="Kilomètres">
+        <div className="flex flex-col gap-3.5">
+          <dl className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+            <Tile
+              source="manual"
+              label="Km de départ · toi"
+              value={`${formatKm(wear.startingKm)} km`}
+              detail="avant que Garmin ne compte cette paire"
+            />
             <Tile
               source="provider"
-              label="Alerte d’usure · Garmin"
-              value={`${formatKm(Math.max(wear.lifespanKm - wear.startingKm, 1))} km`}
-              detail={`limite réglée dans Garmin : ${card.lifespanKm} − ${formatKm(wear.startingKm)} km de départ. Garmin te prévient.`}
+              label="Depuis · Garmin"
+              value={`${formatKm(wear.garminKm)} km`}
+              detail={
+                garmin
+                  ? `${garmin.totalActivities} ${garmin.totalActivities > 1 ? "activités liées" : "activité liée"} à cette paire dans Garmin`
+                  : "paire absente de Garmin"
+              }
             />
-          )}
+            {garmin && (
+              <Tile
+                source="provider"
+                label="Alerte d’usure · Garmin"
+                value={`${formatKm(Math.max(wear.lifespanKm - wear.startingKm, 1))} km`}
+                detail={`limite réglée dans Garmin : ${card.lifespanKm} − ${formatKm(wear.startingKm)} km de départ. Garmin te prévient.`}
+              />
+            )}
+          </dl>
+          <div>
+            <CurrentKmButton
+              id={shoe.id}
+              currentKm={wear.totalKm}
+              garminKm={wear.garminKm}
+            />
+          </div>
         </div>
-        <div>
-          <CurrentKmButton
-            id={shoe.id}
-            currentKm={wear.totalKm}
-            garminKm={wear.garminKm}
-          />
-        </div>
-      </section>
+      </Widget>
 
-      <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-2">
-        <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-          <h2 className="text-body-lg font-semibold">La paire</h2>
-          {shoe.spec.description && (
-            <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-background px-4 py-3.5">
-              <MonoLabel
-                size="nano"
-                className="inline-flex items-center gap-1.5"
-              >
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+        <Widget headingLevel={2} title="La paire">
+          {shoe.spec.description ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="inline-flex items-center gap-1.5 text-label text-secondary-foreground">
                 <SourceMark
                   source={
                     shoe.suggested.includes("description")
@@ -195,61 +208,50 @@ export function GearDetail({
                 {shoe.suggested.includes("description")
                   ? "Suggestion Stride"
                   : "Toi"}
-              </MonoLabel>
-              <p className="text-[15px] leading-normal">
-                {shoe.spec.description}
-              </p>
+              </span>
+              <p className="text-body-lg">{shoe.spec.description}</p>
             </div>
+          ) : (
+            <p className="text-body text-muted-foreground">
+              Pas encore de description.
+            </p>
           )}
-          <dl className="grid grid-cols-2 gap-x-5">
-            {specRows(shoe.spec, shoe.suggested).map((row) => (
-              <div
-                key={row.label}
-                className="flex flex-col gap-0.5 border-t border-border py-2.5"
-              >
-                <dt className="text-label text-muted-foreground">
-                  {row.label}
-                </dt>
-                <dd
-                  className={cn(
-                    "text-[15px] font-medium",
-                    row.value === null && "text-muted-foreground",
-                  )}
-                >
-                  {row.value ?? "Non renseignée"}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-        <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-          <div className="flex flex-wrap items-baseline gap-2.5">
-            <h2 className="text-body-lg font-semibold">Dernières activités</h2>
-            <span className="text-label text-muted-foreground">
+        </Widget>
+        <Widget
+          headingLevel={2}
+          title="Dernières activités"
+          verdict={
+            <span className="text-label font-normal text-muted-foreground">
               sur les 12 derniers mois
             </span>
-          </div>
+          }
+        >
           {shoe.activities.length === 0 ? (
             <p className="text-body text-muted-foreground">
               Aucune sortie liée à cette paire dans Garmin pour l’instant.
             </p>
           ) : (
-            <ul>
+            <ul className="-my-1.5">
               {shoe.activities.slice(0, 8).map((activity) => (
                 <li
                   key={activity.activityId}
-                  className="grid grid-cols-[88px_minmax(0,1fr)_auto] items-center gap-3 border-t border-border py-2.5 text-body"
+                  className="grid grid-cols-[88px_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2 last:border-b-0"
                 >
-                  <MonoLabel size="nano">{formatDay(activity.day)}</MonoLabel>
+                  <span className="text-label text-muted-foreground">
+                    {formatDay(activity.day)}
+                  </span>
                   <span className="truncate">{activity.name ?? "Sortie"}</span>
-                  <span className="text-body-lg font-semibold tabular-nums">
+                  <span
+                    data-slot="metric"
+                    className="font-semibold tabular-nums"
+                  >
                     {decimal.format(activity.distanceM / 1000)} km
                   </span>
                 </li>
               ))}
             </ul>
           )}
-        </section>
+        </Widget>
       </div>
     </>
   );

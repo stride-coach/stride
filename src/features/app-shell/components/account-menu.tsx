@@ -64,7 +64,7 @@ function AccountMenuItems({
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild className={itemClass}>
-        <Link href="/gear">Matériel</Link>
+        <Link href="/activities/gear">Matériel</Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild className={itemClass}>
         <Link href="/settings/privacy">Données et confidentialité</Link>

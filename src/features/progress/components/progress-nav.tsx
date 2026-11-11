@@ -57,14 +57,15 @@ function SectionLink({
 
 const healthTabs = [
   ...progressSections,
-  { href: "/nutrition", label: "Nutrition" },
+  { href: "/health/nutrition", label: "Nutrition" },
 ] as const;
 
 function useCurrentHref() {
   const pathname = usePathname();
   const section = useSection();
-  return pathname === "/nutrition" || pathname.startsWith("/nutrition/")
-    ? "/nutrition"
+  return pathname === "/health/nutrition" ||
+    pathname.startsWith("/health/nutrition/")
+    ? "/health/nutrition"
     : section.href;
 }
 
@@ -82,7 +83,7 @@ export function HealthHeaderNav() {
             key={item.href}
             href={item.href}
             current={item.href === currentHref}
-            keepPeriod={item.href !== "/nutrition"}
+            keepPeriod={item.href !== "/health/nutrition"}
             className={cn(
               "flex items-center border-b-2 px-0.5 whitespace-nowrap transition-colors duration-150 ease-stride focus-visible:outline-offset-[-2px]",
               item.href === currentHref
@@ -110,7 +111,7 @@ export function HealthTabs() {
           key={item.href}
           href={item.href}
           current={item.href === currentHref}
-          keepPeriod={item.href !== "/nutrition"}
+          keepPeriod={item.href !== "/health/nutrition"}
           className={cn(
             "inline-flex min-h-control-touch shrink-0 items-center rounded-full border px-3 whitespace-nowrap transition-colors duration-150 ease-stride",
             item.href === currentHref
@@ -129,20 +130,16 @@ export function ProgressSidebarGroup() {
   const pathname = usePathname();
   const section = useSection();
   const onNutrition =
-    pathname === "/nutrition" || pathname.startsWith("/nutrition/");
-  if (
-    !onNutrition &&
-    pathname !== "/health" &&
-    !pathname.startsWith("/health/")
-  )
-    return null;
+    pathname === "/health/nutrition" ||
+    pathname.startsWith("/health/nutrition/");
+  if (pathname !== "/health" && !pathname.startsWith("/health/")) return null;
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Santé</SidebarGroupLabel>
       <SidebarMenu>
         {healthTabs.map((item) => {
           const current = onNutrition
-            ? item.href === "/nutrition"
+            ? item.href === "/health/nutrition"
             : item.href === section.href;
           return (
             <SidebarMenuItem key={item.href}>
@@ -155,7 +152,7 @@ export function ProgressSidebarGroup() {
                 <SectionLink
                   href={item.href}
                   current={current}
-                  keepPeriod={item.href !== "/nutrition"}
+                  keepPeriod={item.href !== "/health/nutrition"}
                 >
                   <span
                     aria-hidden="true"

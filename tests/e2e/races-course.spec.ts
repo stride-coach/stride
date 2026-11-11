@@ -299,7 +299,7 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
     page
       .getByRole("region", { name: "Base commune" })
       .getByRole("link", { name: "Nutrition du jour" }),
-  ).toHaveAttribute("href", "/nutrition");
+  ).toHaveAttribute("href", "/health/nutrition");
   await expect(
     page.getByRole("region", { name: "Teste ton ravito" }),
   ).toBeVisible();

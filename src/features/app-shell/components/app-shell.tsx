@@ -129,13 +129,12 @@ export function AppShell({
                       />
                       <ShellNavItem
                         href="/activities"
-                        match={["/gear"]}
                         icon={<NavActivitiesIcon />}
                         label="Activités"
                       />
                       <ShellNavItem
                         href="/health/fitness"
-                        match={["/health", "/nutrition"]}
+                        match={["/health"]}
                         icon={<NavProgressIcon />}
                         label="Santé"
                       />

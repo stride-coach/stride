@@ -16,7 +16,7 @@ test("the nutrition page shows today's targets and the next seven days", async (
     .filter({ visible: true })
     .getByRole("link", { name: "Nutrition", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/nutrition$/);
+  await expect(page).toHaveURL(/\/health\/nutrition$/);
   await expect(
     page.getByRole("heading", {
       level: 1,
@@ -62,7 +62,7 @@ test("the nutrition page shows today's targets and the next seven days", async (
 test("the nutrition page fits a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
-  await page.goto("/nutrition");
+  await page.goto("/health/nutrition");
   await expect(
     page.getByRole("heading", { level: 1, name: /kcal aujourd’hui\.$/ }),
   ).toBeVisible();

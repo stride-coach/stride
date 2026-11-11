@@ -4,7 +4,6 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { markAllNotificationsRead } from "@/server/notifications/actions";
-import { cn } from "@/lib/utils";
 
 export function MarkAllRead({
   label = "Tout marquer comme lu",
@@ -25,7 +24,7 @@ export function MarkAllRead({
       size={size}
       aria-busy={pending || undefined}
       disabled={pending}
-      className={cn("text-[12.5px]", className)}
+      className={className}
       onClick={() =>
         startTransition(async () => {
           const result = await markAllNotificationsRead().catch(() => null);
