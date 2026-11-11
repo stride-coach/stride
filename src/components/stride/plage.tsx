@@ -15,11 +15,13 @@ export function PlageTrack({
   scale,
   level,
   threshold,
+  revealOrder = 0,
   className,
 }: {
   scale: PlageScale;
   level: StatusLevel;
   threshold?: number | null;
+  revealOrder?: number;
   className?: string;
 }) {
   const { bandStart, bandWidth, point } = plagePositions(scale);
@@ -48,10 +50,16 @@ export function PlageTrack({
       )}
       <span
         className={cn(
-          "absolute top-1/2 size-2.75 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_0_2px_var(--card)]",
+          "absolute top-1/2 size-2.75 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_0_2px_var(--card)] motion-safe:animate-plage-reveal",
           pointTones[level],
         )}
-        style={{ left: `${point}%` }}
+        style={
+          {
+            left: `${point}%`,
+            "--plage-from": `${bandStart + bandWidth / 2}%`,
+            animationDelay: `${revealOrder * 80}ms`,
+          } as React.CSSProperties
+        }
       />
     </div>
   );
@@ -64,6 +72,7 @@ export function Plage({
   level,
   verdict,
   scale,
+  revealOrder,
   className,
   ...props
 }: Omit<React.ComponentProps<"div">, "children"> & {
@@ -73,6 +82,7 @@ export function Plage({
   level: StatusLevel;
   verdict: React.ReactNode;
   scale: PlageScale;
+  revealOrder?: number;
 }) {
   return (
     <div
@@ -97,7 +107,7 @@ export function Plage({
           </b>
           <Status level={level}>{verdict}</Status>
         </span>
-        <PlageTrack scale={scale} level={level} />
+        <PlageTrack scale={scale} level={level} revealOrder={revealOrder} />
       </span>
     </div>
   );

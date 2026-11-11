@@ -171,6 +171,8 @@
   --animate-trace: trace 1.6s var(--stride-ease) infinite;
   --animate-sheen: sheen 1.8s linear infinite;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
+  --animate-plage-reveal: plage-reveal var(--stride-duration-reveal)
+    var(--stride-ease) backwards;
 
   @keyframes rise {
     from {
@@ -194,6 +196,13 @@
     }
     to {
       transform: translateX(100%);
+    }
+  }
+
+  @keyframes plage-reveal {
+    from {
+      left: var(--plage-from);
+      background-color: var(--primary);
     }
   }
 

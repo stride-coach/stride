@@ -143,6 +143,12 @@ const motion = [
   ["Import lane — sheen sweeps the bar", "animate-sheen", "1.8 s loop"],
   ["Sidebar ⌘B — width 264 → 56", "duration-220", "220 ms"],
   ["Sync — dot breathes", "animate-breathe", "2.4 s"],
+  [
+    "Plage — point slides into its range",
+    "animate-plage-reveal",
+    "600 ms, 80 ms stagger",
+  ],
+  ["Key figures — count up once", "CountUp", "500 ms"],
 ] as const;
 
 const session = [
@@ -725,6 +731,7 @@ export default function DesignSystemPage() {
             >
               <div className="divide-y divide-border">
                 <Plage
+                  revealOrder={0}
                   name="Sommeil"
                   range="7h00–7h45"
                   value="5h52"
@@ -739,6 +746,7 @@ export default function DesignSystemPage() {
                   }}
                 />
                 <Plage
+                  revealOrder={1}
                   name="Charge 7 j"
                   range="0,8–1,3"
                   value="1,24"
@@ -753,6 +761,7 @@ export default function DesignSystemPage() {
                   }}
                 />
                 <Plage
+                  revealOrder={2}
                   name="VFC"
                   range="52–64 ms"
                   value="38 ms"

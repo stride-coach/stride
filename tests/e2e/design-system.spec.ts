@@ -161,3 +161,16 @@ test("interactive controls show a pointer cursor unless disabled", async ({
     page.getByRole("button", { name: "Disabled", exact: true }),
   ).toHaveCSS("cursor", "not-allowed");
 });
+
+test("range points slide into place, and rest with reduced motion", async ({
+  page,
+}) => {
+  await page.goto("/design-system");
+  const point = page.locator("[data-slot=plage-track] > span.rounded-full");
+  await expect(point.first()).toHaveCSS("animation-name", "plage-reveal");
+  await expect(point.nth(1)).toHaveCSS("animation-delay", "0.08s");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload();
+  await expect(point.first()).toHaveCSS("animation-name", "none");
+});
