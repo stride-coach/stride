@@ -16,7 +16,7 @@ import type {
   ConversationRow,
   ConversationSection,
 } from "@/features/coach/conversations";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { ThreadStatusLabel } from "@/features/coach/components/thread-status";
 
 type Filter = "all" | "mine";
@@ -32,12 +32,12 @@ function needsAthlete(row: ConversationRow) {
 
 function RowAvatar({ row }: { row: ConversationRow }) {
   const specialist = row.participants.find((agent) => agent !== "coach");
-  if (!specialist) return <StaffPortrait agent="coach" size={40} />;
+  if (!specialist) return <StaffAvatar agent="coach" size={30} />;
   return (
     <span className="relative block size-10">
-      <StaffPortrait agent="coach" size={30} />
+      <StaffAvatar agent="coach" size={30} />
       <span className="absolute -right-0.5 -bottom-0.5 rounded-[9px] ring-2 ring-background">
-        <StaffPortrait agent={specialist} size={22} decorative />
+        <StaffAvatar agent={specialist} size={22} decorative />
       </span>
     </span>
   );
@@ -181,7 +181,7 @@ export function ConversationList({
       <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-1.5 pb-3">
         {empty && (
           <p className="px-3.5 py-6 text-body text-muted-foreground">
-            Aucune conversation pour l’instant. Écris à Claire pour commencer.
+            Aucune conversation pour l’instant. Écris au Coach pour commencer.
           </p>
         )}
         {!empty && visible.length === 0 && (

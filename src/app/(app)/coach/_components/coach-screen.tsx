@@ -54,10 +54,10 @@ import {
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
 import {
-  StaffPortrait,
+  StaffAvatar,
   StaffStack,
-} from "@/features/coach/components/staff-portrait";
-import { useStaff } from "@/features/coach/components/staff-context";
+} from "@/features/coach/components/staff-avatar";
+import { staff as allStaff } from "@/features/coach/staff";
 import { staffAgents } from "@/features/coach/staff";
 import { refusalText, splitFrames, turnFailure } from "@/features/coach/stream";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
@@ -125,7 +125,7 @@ function Composer({
     attachments: SentAttachment[],
   ) => Promise<boolean>;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const [text, setText] = useState(initialText);
   const [consult, setConsult] = useState(false);
   const [attachments, setAttachments] =
@@ -264,7 +264,7 @@ function Composer({
               disabled={busy}
               className="min-h-9 gap-1.5 rounded-md border-border bg-transparent pr-2 pl-1.5 text-body font-normal data-[state=on]:border-foreground data-[state=on]:bg-muted data-[state=on]:font-semibold data-[state=on]:text-foreground"
             >
-              <StaffStack agents={["medical"]} size={18} />@{staff.medical.name}
+              <StaffStack agents={["medical"]} size={22} />@{staff.medical.name}
             </Toggle>
           )}
           <Button
@@ -319,7 +319,7 @@ export function CoachScreen({
   attachmentOptions: AttachmentOptions;
   initialAttachments?: AttachmentOption[];
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const router = useRouter();
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const baseItems = useMemo(() => thread?.items ?? [], [thread]);
@@ -671,10 +671,10 @@ export function CoachScreen({
                       <Link
                         key={agent}
                         href="/coach/team"
-                        aria-label={`${staff[agent].alt}, voir l’équipe`}
+                        aria-label={`${staff[agent].name}, voir l’équipe`}
                         className="flex w-15.5 flex-col items-center gap-1.5 text-label text-secondary-foreground hover:text-foreground"
                       >
-                        <StaffPortrait agent={agent} size={56} decorative />
+                        <StaffAvatar agent={agent} size={48} decorative />
                         <span aria-hidden="true">{staff[agent].name}</span>
                       </Link>
                     ))}
@@ -732,7 +732,7 @@ export function CoachScreen({
           <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
             {empty ? (
               <div className="mx-auto flex w-full max-w-205 flex-col gap-4 px-4 pt-8 sm:px-[clamp(20px,3vw,44px)] sm:pt-12">
-                <StaffPortrait agent="coach" size={56} />
+                <StaffAvatar agent="coach" size={48} />
                 <h2 className="text-verdict font-semibold">
                   {mode === "plan"
                     ? `Demande ton plan à ${staff.coach.name}`

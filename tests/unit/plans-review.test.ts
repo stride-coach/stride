@@ -93,7 +93,7 @@ describe("proposal review", () => {
         elevation: null,
       },
     ]);
-    expect(review.origin.line).toBe("Proposée par Claire, avec Inès");
+    expect(review.origin.line).toBe("Proposée par le Coach, avec Santé");
     expect(review.origin.detail).toBe("mer. 14/10/2026 · 07:42");
     expect(
       review.opinions.map((opinion) => [
@@ -102,8 +102,8 @@ describe("proposal review", () => {
         opinion.verdict?.label ?? null,
       ]),
     ).toEqual([
-      ["Claire", "Coach", null],
-      ["Inès", "Médecin · consultée", "D’accord"],
+      ["Coach", "Mène la proposition", null],
+      ["Santé", "Consulté", "D’accord"],
     ]);
     expect(review.checks).toContainEqual({
       tone: "pass",
@@ -284,7 +284,7 @@ describe("proposal review", () => {
       }),
     );
     expect(stale.banner?.body).toBe(
-      "Ton plan a changé depuis qu’elle a été proposée. Rien n’a été modifié. Demande à Claire de la mettre à jour.",
+      "Ton plan a changé depuis qu’elle a été proposée. Rien n’a été modifié. Demande au Coach de la mettre à jour.",
     );
     expect(stale.actions.accept).toBe(false);
   });
@@ -349,7 +349,7 @@ describe("proposal review", () => {
     expect(review.kicker).toBe("Proposition · nouveau plan");
     expect(review.subkicker).toBe("Premier plan");
     expect(review.acceptLabel).toBe("Activer ce plan");
-    expect(review.origin.line).toBe("Créé avec Claire");
+    expect(review.origin.line).toBe("Créé avec le Coach");
     expect(review.newPlan).toEqual({
       weeks: 4,
       sessions: 5,
@@ -448,7 +448,7 @@ describe("plan history", () => {
       when: "mer. 14/10/2026 · 07:42",
       reviewable: true,
       highlighted: true,
-      origin: { line: "Proposée par Claire, avec Inès" },
+      origin: { line: "Proposée par le Coach, avec Santé" },
     });
     expect(entries[2].note).toBe(
       "Refusée par toi le 03/10/2026 : week-end en famille.",
@@ -457,7 +457,7 @@ describe("plan history", () => {
       "Le plan a changé avant son application. Rien n’a été appliqué.",
     );
     expect(entries[4]).toMatchObject({
-      origin: { line: "Créé avec Claire" },
+      origin: { line: "Créé avec le Coach" },
       note: "4 semaines, 5 séances, début le 12/10/2026.",
       isNewPlan: true,
     });

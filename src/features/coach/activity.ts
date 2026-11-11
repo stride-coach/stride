@@ -19,10 +19,14 @@ export function workingLabel(
   const elapsed =
     composingSince === null ? 0 : now.getTime() - Date.parse(composingSince);
   if (!(elapsed >= composingThresholdMs))
-    return { text: `${member.name} réfléchit…`, since: null, writing: false };
+    return {
+      text: `${member.subject} réfléchit…`,
+      since: null,
+      writing: false,
+    };
   const minutes = Math.floor(elapsed / 60_000);
   return {
-    text: `${member.name} rédige sa réponse…`,
+    text: `${member.subject} rédige sa réponse…`,
     since: minutes >= 1 ? `depuis ${minutes} min` : null,
     writing: true,
   };

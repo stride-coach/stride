@@ -15,9 +15,9 @@ import {
 import { longWriteNote, workingLabel } from "@/features/coach/activity";
 import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
 import { dayLabel, sameDay, timeLabel } from "@/features/coach/conversations";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { Markdown } from "@/features/coach/components/markdown";
-import { useStaff } from "@/features/coach/components/staff-context";
+import { staff as allStaff } from "@/features/coach/staff";
 import type { StaffAgent } from "@/features/coach/staff";
 import {
   questionAttribution,
@@ -31,13 +31,10 @@ import { ProposalLink } from "../../plan/_components/proposal-sheet";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 
 function StaffName({ agent }: { agent: StaffAgent }) {
-  const staff = useStaff();
+  const staff = allStaff;
   return (
     <span className="inline-flex items-center gap-1.5 text-body font-semibold text-foreground">
       {staff[agent].name}
-      <MonoLabel size="nano" className="font-normal">
-        {staff[agent].role}
-      </MonoLabel>
     </span>
   );
 }
@@ -55,7 +52,7 @@ function QuestionCard({
   onOther: () => void;
   disabled: boolean;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const titleId = useId();
   const pending = block.state === "pending";
   return (
@@ -162,7 +159,7 @@ function ProposalCard({
 }: {
   block: Extract<StaffBlock, { type: "proposal" }>;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const status = proposalStatus[block.status];
   return (
     <div className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-4 sm:p-4.5">
@@ -193,7 +190,7 @@ function ProposalCard({
               key={index}
               className="grid grid-cols-[20px_minmax(0,1fr)] gap-2.5 border-b border-border py-2.5 text-body leading-snug text-secondary-foreground"
             >
-              <StaffPortrait agent={opinion.agent} size={20} decorative />
+              <StaffAvatar agent={opinion.agent} size={22} decorative />
               <span>
                 <b className="font-semibold text-foreground">
                   {staff[opinion.agent].name}
@@ -251,12 +248,12 @@ function StaffMessage({
   return (
     <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[36px_minmax(0,1fr)] sm:items-start sm:gap-3">
       <span className="max-sm:hidden">
-        <StaffPortrait agent={entry.agent} size={36} decorative />
+        <StaffAvatar agent={entry.agent} size={30} decorative />
       </span>
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex items-center gap-2">
           <span className="sm:hidden">
-            <StaffPortrait agent={entry.agent} size={28} decorative />
+            <StaffAvatar agent={entry.agent} size={30} decorative />
           </span>
           <StaffName agent={entry.agent} />
           <MonoLabel size="nano">{timeLabel(entry.at, timeZone)}</MonoLabel>
@@ -324,7 +321,7 @@ function TypingMessage({
 }: {
   entry: Extract<ThreadEntry, { type: "typing" }>;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   return (
     <div
       role="status"
@@ -332,12 +329,12 @@ function TypingMessage({
       className="flex flex-col gap-2 sm:grid sm:grid-cols-[36px_minmax(0,1fr)] sm:items-start sm:gap-3"
     >
       <span className="max-sm:hidden">
-        <StaffPortrait agent={entry.agent} size={36} decorative />
+        <StaffAvatar agent={entry.agent} size={30} decorative />
       </span>
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex items-center gap-2">
           <span className="sm:hidden">
-            <StaffPortrait agent={entry.agent} size={28} decorative />
+            <StaffAvatar agent={entry.agent} size={30} decorative />
           </span>
           <StaffName agent={entry.agent} />
         </div>
@@ -389,13 +386,13 @@ function AthleteMessage({
   entry: Extract<ThreadEntry, { type: "athlete" }>;
   timeZone: string;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const target = entry.replyTo ?? entry.consult;
   return (
     <div className="flex max-w-[84%] flex-col items-end gap-1 self-end sm:max-w-[72%]">
       {target && (
         <span className="inline-flex items-center gap-1.5 text-label text-muted-foreground">
-          <StaffPortrait agent={target} size={16} decorative />
+          <StaffAvatar agent={target} size={22} decorative />
           {entry.replyTo
             ? replyToLabel(staff[target])
             : `@${staff[target].name}`}
@@ -489,7 +486,7 @@ export function StaffWorking({
   composingSince: string | null;
   now: Date;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const label = workingLabel(staff.coach, composingSince, now);
   return (
     <div
@@ -498,12 +495,12 @@ export function StaffWorking({
       className="mx-auto flex w-full max-w-205 flex-col gap-2 px-4 pb-4 sm:grid sm:grid-cols-[36px_minmax(0,1fr)] sm:items-start sm:gap-3 sm:px-[clamp(20px,3vw,44px)]"
     >
       <span className="max-sm:hidden">
-        <StaffPortrait agent="coach" size={36} decorative />
+        <StaffAvatar agent="coach" size={30} decorative />
       </span>
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex items-center gap-2">
           <span className="sm:hidden">
-            <StaffPortrait agent="coach" size={28} decorative />
+            <StaffAvatar agent="coach" size={30} decorative />
           </span>
           <StaffName agent="coach" />
         </div>

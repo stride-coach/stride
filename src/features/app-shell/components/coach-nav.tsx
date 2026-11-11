@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavBadge, NavItem } from "@/components/stride/navigation";
 import { StrideMark } from "@/components/stride/stride-mark";
-import { StaffStack } from "@/features/coach/components/staff-portrait";
+import { StaffStack } from "@/features/coach/components/staff-avatar";
 import { staffAgents } from "@/features/coach/staff";
 import {
   coachAttentionLabel,
@@ -60,7 +60,7 @@ export function CoachNavItem({
                 L’équipe
                 <StaffStack
                   agents={staffAgents}
-                  size={16}
+                  size={22}
                   className="ml-auto"
                 />
               </Link>

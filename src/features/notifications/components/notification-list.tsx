@@ -8,8 +8,8 @@ import {
   NavPlanIcon,
 } from "@/components/stride/nav-icons";
 import { MonoLabel } from "@/components/stride/mono-label";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
-import { useStaff } from "@/features/coach/components/staff-context";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
+import { staff as allStaff } from "@/features/coach/staff";
 import { openNotification } from "@/server/notifications/actions";
 import { cn } from "@/lib/utils";
 import {
@@ -50,9 +50,7 @@ const familyIcons: Record<
 
 function NotificationIcon({ view }: { view: NotificationView }) {
   if (view.agent)
-    return (
-      <StaffPortrait agent={view.agent} size={32} className="rounded-lg" />
-    );
+    return <StaffAvatar agent={view.agent} size={30} className="rounded-lg" />;
   const { icon: Icon, className } =
     familyIcons[view.family === "staff" ? "plan" : view.family];
   return (
@@ -166,7 +164,7 @@ export function NotificationList({
   now: string;
   withDate?: boolean;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const days = groupByDay(
     notifications.map((notification) => notificationView(notification, staff)),
     new Date(now),

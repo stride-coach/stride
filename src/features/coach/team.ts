@@ -11,9 +11,9 @@ export type TeamProfile = {
 
 export const teamProfiles: Record<StaffAgent, TeamProfile> = {
   coach: {
-    tagline: "Coach · mène le staff",
-    summary: (member) =>
-      `${member.feminine ? "Ta première interlocutrice" : "Ton premier interlocuteur"}. ${member.pronoun} construit et adapte ton plan, répond à tes questions et passe la main au bon spécialiste quand ta demande le nécessite.`,
+    tagline: "Mène le staff",
+    summary: () =>
+      "Ton entraînement au quotidien : la séance du jour, la semaine, les ajustements. C’est lui qui te répond en premier et qui passe la main au bon spécialiste.",
     listTitle: "Son rôle",
     duties: () => [
       "Lit chaque message et passe la main au bon spécialiste",
@@ -22,9 +22,9 @@ export const teamProfiles: Record<StaffAgent, TeamProfile> = {
     reads: ["Plan", "Historique", "Forme du jour", "Courses"],
   },
   medical: {
-    tagline: "Médecin",
-    summary: (member) =>
-      `Douleur, maladie, fatigue et risque de blessure. ${member.pronoun} a toujours le dernier mot quand ta santé est en jeu.`,
+    tagline: "Récupération et signaux du corps",
+    summary: () =>
+      "Douleur, maladie, fatigue et risque de blessure. Santé a toujours le dernier mot quand ta santé est en jeu. Ce rôle ne pose pas de diagnostic.",
     listTitle: "Consulté quand",
     duties: () => [
       "Tu signales une douleur ou une maladie",
@@ -34,7 +34,7 @@ export const teamProfiles: Record<StaffAgent, TeamProfile> = {
     reads: ["Signalements", "Sommeil", "VFC", "Charge"],
   },
   director: {
-    tagline: "Directeur sportif",
+    tagline: "Saison, objectifs et calendrier",
     summary: () =>
       "Ta saison dans son ensemble : le rôle de chaque course, l'espacement entre elles et ce qui est réaliste sur l'année.",
     listTitle: "Consulté quand",
@@ -46,7 +46,7 @@ export const teamProfiles: Record<StaffAgent, TeamProfile> = {
     reads: ["Courses", "Plan", "Charge", "Faisabilité"],
   },
   strategist: {
-    tagline: "Stratège de course",
+    tagline: "Allures, ravitaillements et jour J",
     summary: () =>
       "Le parcours, ton objectif sur ce parcours et ta gestion de course : allures, montées, nuit et ravitaillements.",
     listTitle: "Consulté quand",
@@ -58,7 +58,7 @@ export const teamProfiles: Record<StaffAgent, TeamProfile> = {
     reads: ["Profil du parcours", "Météo", "Seuils", "Résultats"],
   },
   nutritionist: {
-    tagline: "Nutritionniste",
+    tagline: "Glucides, hydratation et quotidien",
     summary: () =>
       "Énergie et glucides selon tes séances, charge glucidique avant course et ravitaillement pendant l'effort.",
     listTitle: "Consulté quand",

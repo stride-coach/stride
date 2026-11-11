@@ -11,8 +11,8 @@ import {
   type ThreadStatus,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
-import { StaffPortrait } from "@/features/coach/components/staff-portrait";
-import { useStaff } from "@/features/coach/components/staff-context";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
+import { staff as allStaff } from "@/features/coach/staff";
 
 const cardTone = {
   accent: "border-border bg-card",
@@ -41,7 +41,7 @@ export function SuiviPanel({
   proposalStatuses: Readonly<Record<string, string>>;
   timeZone: string;
 }) {
-  const staff = useStaff();
+  const staff = allStaff;
   const card = suiviCard(staff, status);
   const steps = suiviTimeline({
     staff,
@@ -82,7 +82,7 @@ export function SuiviPanel({
             key={participant.agent}
             className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-border py-2"
           >
-            <StaffPortrait agent={participant.agent} size={36} decorative />
+            <StaffAvatar agent={participant.agent} size={30} decorative />
             <span className="flex min-w-0 flex-col gap-px">
               <span className="text-body font-semibold">
                 {staff[participant.agent].name}

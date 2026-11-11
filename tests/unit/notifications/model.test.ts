@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultStaff } from "@/features/coach/staff";
+import { staff as defaultStaff } from "@/features/coach/staff";
 import {
   bellLabel,
   dayLabel,
@@ -38,7 +38,7 @@ describe("notification view", () => {
   it("asks the athlete to review a ready proposal", () => {
     expect(view({})).toMatchObject({
       family: "plan",
-      title: "Claire propose : Raccourcir ton seuil",
+      title: "Le Coach propose : Raccourcir ton seuil",
       body: "4 × 6’",
       href: `/plan?proposal=${proposalId}`,
       unread: true,
@@ -81,7 +81,7 @@ describe("notification view", () => {
     ).toMatchObject({
       family: "staff",
       agent: "strategist",
-      title: "Hugo a répondu sur « Ravitaillements »",
+      title: "Le Stratège de course a répondu sur « Ravitaillements »",
       body: "7 ravitos sur l’EcoTrail.",
       href: `/coach/${threadId}`,
       todo: false,
@@ -99,7 +99,7 @@ describe("notification view", () => {
       question: "Et tes jambes ce matin ?",
     };
     expect(view({ kind: "staff_question", payload })).toMatchObject({
-      title: "Claire t’a posé une question",
+      title: "Le Coach t’a posé une question",
       body: "« Et tes jambes ce matin ? »",
       todo: true,
       status: { label: "Réponse attendue", tone: "warning" },

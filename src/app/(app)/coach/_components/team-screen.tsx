@@ -5,11 +5,11 @@ import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MonoLabel } from "@/components/stride/mono-label";
 import { AppHeader } from "@/features/app-shell/components/app-header";
-import { useStaff } from "@/features/coach/components/staff-context";
+import { staff as allStaff } from "@/features/coach/staff";
 import {
-  StaffPortrait,
+  StaffAvatar,
   StaffStack,
-} from "@/features/coach/components/staff-portrait";
+} from "@/features/coach/components/staff-avatar";
 import {
   staffAgents,
   type SpecialistAgent,
@@ -22,7 +22,6 @@ import {
   type StaffUsage,
 } from "@/features/coach/team";
 import { cn } from "@/lib/utils";
-import { FacePicker } from "./face-picker";
 
 const roleTone: Record<StaffAgent, { dot: string; text: string }> = {
   coach: { dot: "bg-primary", text: "text-primary" },
@@ -131,28 +130,8 @@ function Usage({
   );
 }
 
-function FaceRow({
-  agent,
-  className,
-}: {
-  agent: StaffAgent;
-  className?: string;
-}) {
-  return (
-    <span className={cn("flex items-center gap-2.5", className)}>
-      <span
-        aria-hidden="true"
-        className="text-label text-muted-foreground max-md:mr-auto"
-      >
-        Visage
-      </span>
-      <FacePicker agent={agent} />
-    </span>
-  );
-}
-
 function CoachCard({ usage }: { usage: StaffUsage }) {
-  const coach = useStaff().coach;
+  const coach = allStaff.coach;
   const profile = teamProfiles.coach;
   return (
     <section
@@ -160,15 +139,10 @@ function CoachCard({ usage }: { usage: StaffUsage }) {
       className="flex min-w-0 flex-col overflow-hidden rounded-[16px] border border-primary/20 bg-card min-[1100px]:flex-row md:border-border"
     >
       <div className="relative h-75 w-75 max-w-full shrink-0 max-md:hidden min-[1100px]:h-auto min-[1100px]:min-h-75">
-        <StaffPortrait agent="coach" size={300} fill decorative />
+        <StaffAvatar agent="coach" size={48} decorative />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3.5 px-4 py-4.5 md:gap-4 md:px-7.5 md:py-7">
-        <StaffPortrait
-          agent="coach"
-          size={120}
-          decorative
-          className="md:hidden"
-        />
+        <StaffAvatar agent="coach" size={48} decorative className="md:hidden" />
         <div className="flex flex-col gap-1.25 md:gap-4">
           <RoleLine agent="coach" label={profile.tagline} />
           <h2
@@ -196,7 +170,6 @@ function CoachCard({ usage }: { usage: StaffUsage }) {
           <Button asChild size="md" className="rounded-lg max-md:hidden">
             <Link href="/coach/new">Écrire à {coach.name}</Link>
           </Button>
-          <FaceRow agent="coach" className="max-md:w-full md:ml-auto" />
         </div>
       </div>
     </section>
@@ -210,7 +183,7 @@ function SpecialistCard({
   agent: SpecialistAgent;
   usage: StaffUsage;
 }) {
-  const member = useStaff()[agent];
+  const member = allStaff[agent];
   const profile = teamProfiles[agent];
   const id = `team-${agent}`;
   return (
@@ -219,15 +192,10 @@ function SpecialistCard({
       className="flex min-w-0 flex-col gap-3.5 rounded-[16px] border border-border bg-card px-4 py-4.5 md:gap-4 md:p-5.5"
     >
       <div className="flex items-start gap-3.5 md:gap-4">
-        <StaffPortrait
+        <StaffAvatar agent={agent} size={48} decorative className="md:hidden" />
+        <StaffAvatar
           agent={agent}
-          size={72}
-          decorative
-          className="md:hidden"
-        />
-        <StaffPortrait
-          agent={agent}
-          size={88}
+          size={48}
           decorative
           className="max-md:hidden"
         />
@@ -254,7 +222,6 @@ function SpecialistCard({
           label={opinionsLabel}
           className="max-md:hidden"
         />
-        <FaceRow agent={agent} className="max-md:w-full md:ml-auto" />
       </div>
     </article>
   );
@@ -313,7 +280,7 @@ function Step({
 }
 
 function HowItWorks({ initials }: { initials: string }) {
-  const coach = useStaff().coach;
+  const coach = allStaff.coach;
   return (
     <section
       aria-labelledby="team-how"
@@ -330,23 +297,23 @@ function HowItWorks({ initials }: { initials: string }) {
         >
           <Initials initials={initials} />
           <Arrow />
-          <StaffPortrait agent="coach" size={36} decorative />
+          <StaffAvatar agent="coach" size={30} decorative />
         </Step>
         <Step
           index={2}
           title={`${coach.name} passe la main`}
           text="Au spécialiste utile, deux au plus. Il te parle directement et te pose ses questions dans la conversation."
         >
-          <StaffPortrait agent="coach" size={36} decorative />
+          <StaffAvatar agent="coach" size={30} decorative />
           <Arrow />
-          <StaffStack agents={specialists} size={36} />
+          <StaffStack agents={specialists} size={30} />
         </Step>
         <Step
           index={3}
           title="Tu décides"
           text="Le staff propose, tu valides ou tu refuses. Ton plan ne change jamais sans toi."
         >
-          <StaffPortrait agent="coach" size={36} decorative />
+          <StaffAvatar agent="coach" size={30} decorative />
           <Arrow />
           <Initials initials={initials} />
           <span className="rounded-md border border-primary bg-primary px-2 py-0.75 text-label font-semibold text-primary-foreground">
@@ -398,7 +365,7 @@ export function TeamScreen({
   usage: StaffUsage;
   initials: string;
 }) {
-  const coach = useStaff().coach;
+  const coach = allStaff.coach;
   return (
     <>
       <AppHeader

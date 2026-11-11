@@ -6,7 +6,7 @@ import {
   type ConversationSummary,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
-import { staffOf } from "@/features/coach/staff";
+import { staff } from "@/features/coach/staff";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import {
   findOwnThread,
@@ -16,7 +16,6 @@ import {
   readThreadProposalStatuses,
   type CoachSessionRecord,
 } from "./managed/store";
-import { readStaffFaces } from "./staff";
 
 export const coachTimeZone = displayTimeZone;
 
@@ -43,7 +42,7 @@ export async function loadConversations(
 ): Promise<ConversationSummary[]> {
   const threads = await listOwnThreads(context);
   const ids = threads.map((thread) => thread.id);
-  const [latest, consults, proposals, faces] = await Promise.all([
+  const [latest, consults, proposals] = await Promise.all([
     Promise.all(
       threads.map((thread) =>
         readThreadItems(context, thread.id, previewItems),
@@ -51,9 +50,7 @@ export async function loadConversations(
     ),
     readConsultRequests(context, ids),
     readThreadProposalStatuses(context, ids),
-    readStaffFaces(context),
   ]);
-  const staff = staffOf(faces);
   return threads.flatMap((thread, index) => {
     const threadItems = latest[index];
     if (!visibleThread(thread.title, threadItems)) return [];

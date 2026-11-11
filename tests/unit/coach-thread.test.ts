@@ -17,18 +17,11 @@ import {
   parseThreadItem,
   type ThreadItem,
 } from "../../src/features/coach/items";
-import {
-  portraitCrop,
-  portraitFrame,
-  portraitSourceSize,
-} from "../../src/features/coach/portrait-crop";
 import { readLabel } from "../../src/features/coach/reads";
 import {
   agentOfManagedName,
-  defaultStaff,
-  staffFaceChoiceSchema,
-  staffFacesOf,
-  staffOf,
+  groupLine,
+  staff as defaultStaff,
 } from "../../src/features/coach/staff";
 import {
   buildThread,
@@ -158,9 +151,9 @@ describe("thread view model", () => {
       read: "Signalements · 14 jours",
     });
     expect(typingLabel(defaultStaff.medical, "Signalements · 14 jours")).toBe(
-      "Inès lit signalements · 14 jours…",
+      "Santé lit signalements · 14 jours…",
     );
-    expect(typingLabel(defaultStaff.medical, null)).toBe("Inès écrit…");
+    expect(typingLabel(defaultStaff.medical, null)).toBe("Santé écrit…");
   });
 
   it("never shows the brief between agents or a typing entry once reloaded", () => {
@@ -189,8 +182,8 @@ describe("thread view model", () => {
         },
       ],
     });
-    expect(questionAttribution(defaultStaff.medical)).toBe("Question d’Inès");
-    expect(questionAttribution(defaultStaff.coach)).toBe("Question de Claire");
+    expect(questionAttribution(defaultStaff.medical)).toBe("Question de Santé");
+    expect(questionAttribution(defaultStaff.coach)).toBe("Question du Coach");
   });
 
   it("routes the answer to the specialist and shows its reply as its own message", () => {
@@ -211,7 +204,7 @@ describe("thread view model", () => {
       replyTo: "medical",
       text: "Aucune gêne",
     });
-    expect(replyToLabel(defaultStaff.medical)).toBe("En réponse à Inès");
+    expect(replyToLabel(defaultStaff.medical)).toBe("En réponse à Santé");
     expect(entries[4]).toMatchObject({
       agent: "medical",
       reads: ["Profil et contexte"],
@@ -250,7 +243,7 @@ describe("thread view model", () => {
     });
     expect(JSON.stringify(entries)).not.toContain("Limites");
     expect(threadPreview(defaultStaff, items)).toBe(
-      "Inès : @Jules Tu peux courir à plat.",
+      "Santé : @Jules Tu peux courir à plat.",
     );
     expect(suiviParticipants(defaultStaff, items)[1]).toMatchObject({
       messages: 2,
@@ -263,7 +256,7 @@ describe("thread view model", () => {
         pendingToolUseId: null,
         proposalStatuses: {},
         timeZone: tz,
-      }).filter((step) => step.label === "Réponse d’Inès"),
+      }).filter((step) => step.label === "Réponse de Santé"),
     ).toHaveLength(1);
   });
 
@@ -568,7 +561,7 @@ describe("conversations", () => {
   it("summarizes participants, reads, preview and timeline for Suivi", () => {
     expect(threadParticipants(consultDone)).toEqual(["coach", "medical"]);
     expect(participantsLine(defaultStaff, ["coach", "medical"])).toBe(
-      "Claire, avec Inès",
+      "Coach, avec Santé",
     );
     expect(staffReads(consultDone)).toEqual([
       "Signalements · 14 jours",
@@ -578,11 +571,11 @@ describe("conversations", () => {
       "Comment réagit ton genou en descente ?",
     );
     expect(threadPreview(defaultStaff, answered.slice(0, -1))).toBe(
-      "Inès : @Jules Alors c’est compatible.",
+      "Santé : @Jules Alors c’est compatible.",
     );
     expect(suiviParticipants(defaultStaff, answered)).toEqual([
-      { agent: "coach", role: "Coach · mène", messages: 0 },
-      { agent: "medical", role: "Médecin · mentionnée", messages: 2 },
+      { agent: "coach", role: "Mène", messages: 0 },
+      { agent: "medical", role: "Consulté", messages: 2 },
     ]);
     const steps = suiviTimeline({
       staff: defaultStaff,
@@ -594,10 +587,10 @@ describe("conversations", () => {
     });
     expect(steps.map((step) => [step.label, step.state])).toEqual([
       ["Ta demande", "done"],
-      ["Réponse de Claire", "done"],
-      ["Claire passe la main à Inès", "done"],
-      ["Question d’Inès", "current"],
-      ["Réponse d’Inès", "upcoming"],
+      ["Réponse du Coach", "done"],
+      ["Le Coach passe la main à Santé", "done"],
+      ["Question de Santé", "current"],
+      ["Réponse de Santé", "upcoming"],
     ]);
   });
 
@@ -645,13 +638,13 @@ describe("conversations", () => {
       }).map((step) => [step.label, step.state]);
     expect(timeline("proposal")).toEqual([
       ["Ta demande", "done"],
-      ["Réponse de Claire", "done"],
-      ["Claire passe la main à Inès", "done"],
-      ["Question d’Inès", "done"],
-      ["Ta réponse à Inès", "done"],
-      ["Claire passe la main à Inès", "done"],
-      ["Réponse d’Inès", "done"],
-      ["Réponse de Claire", "done"],
+      ["Réponse du Coach", "done"],
+      ["Le Coach passe la main à Santé", "done"],
+      ["Question de Santé", "done"],
+      ["Ta réponse à Santé", "done"],
+      ["Le Coach passe la main à Santé", "done"],
+      ["Réponse de Santé", "done"],
+      ["Réponse du Coach", "done"],
       ["Proposition du staff", "done"],
       ["À toi de décider", "current"],
     ]);
@@ -672,11 +665,11 @@ describe("conversations", () => {
     expect(working.slice(-3)).toEqual([
       ["Ta décision", "done"],
       ["Le staff travaille", "current"],
-      ["Réponse de Claire", "upcoming"],
+      ["Réponse du Coach", "upcoming"],
     ]);
     expect(working.filter(([, state]) => state === "current")).toHaveLength(1);
     expect(threadPreview(defaultStaff, items.slice(0, -1))).toBe(
-      "Claire : Verdict : on continue.",
+      "Coach : Verdict : on continue.",
     );
   });
 });
@@ -694,97 +687,33 @@ describe("staff and reads", () => {
     expect(readLabel("custom", "ask_athlete", {})).toBeNull();
     expect(readLabel("garmin", "get_sleep_data", {})).toBe("Garmin · Sommeil");
   });
-
-  it("crops small portraits on the face", () => {
-    expect(portraitCrop(36)).toEqual({ scale: 1.8, originY: 0.073 });
-    expect(portraitCrop(96)).toEqual({ scale: 1.3, originY: 0 });
-    expect(portraitCrop(168)).toBeNull();
-    expect(portraitSourceSize(36)).toBe(65);
-    expect(portraitSourceSize(96)).toBe(125);
-    expect(portraitSourceSize(168)).toBe(168);
-    expect(portraitFrame(50)).toEqual({
-      width: 90,
-      height: 90,
-      left: -20,
-      top: -2.92,
-    });
-    expect(portraitFrame(100)).toEqual({
-      width: 130,
-      height: 130,
-      left: -15,
-      top: -0,
-    });
-    expect(portraitFrame(168)).toBeNull();
-  });
 });
 
-describe("staff faces", () => {
-  const swapped = staffOf({
-    coach: "thomas",
-    medical: "karim",
-    director: "sophie",
-    strategist: "nadia",
-    nutritionist: "yanis",
-  });
-  const defaults = {
-    coach: "claire",
-    medical: "ines",
-    director: "marc",
-    strategist: "hugo",
-    nutritionist: "lea",
-  };
-
-  it("defaults to the board faces and ignores unknown stored faces", () => {
-    expect(staffFacesOf(null)).toEqual(defaults);
-    expect(
-      staffFacesOf({
-        coach_face: "marc",
-        medical_face: "karim",
-        strategist_face: "nadia",
-        nutritionist_face: "ines",
-      }),
-    ).toEqual({ ...defaults, medical: "karim", strategist: "nadia" });
-  });
-
-  it("changes names, alt text and grammar but never the role", () => {
-    expect(swapped.coach).toMatchObject({
-      name: "Thomas",
-      role: "Coach",
-      alt: "Thomas, coach",
-      pronoun: "Il",
+describe("staff roles", () => {
+  it("names each role without a first name and in French grammar", () => {
+    expect(defaultStaff.medical).toMatchObject({
+      name: "Santé",
+      subject: "Santé",
+      of: "de Santé",
+      to: "à Santé",
     });
-    expect(swapped.medical).toMatchObject({
-      name: "Karim",
-      role: "Médecin",
-      consulted: "consulté",
+    expect(defaultStaff.coach).toMatchObject({
+      name: "Coach",
+      subject: "Le Coach",
+      of: "du Coach",
+      to: "au Coach",
     });
-    expect(swapped.director).toMatchObject({
-      name: "Sophie",
-      role: "Directeur sportif",
-      consulted: "consultée",
-    });
-    expect(questionAttribution(swapped.medical)).toBe("Question de Karim");
-    expect(participantsLine(swapped, ["coach", "medical"])).toBe(
-      "Thomas, avec Karim",
+    expect(questionAttribution(defaultStaff.strategist)).toBe(
+      "Question du Stratège de course",
+    );
+    expect(participantsLine(defaultStaff, ["coach", "medical"])).toBe(
+      "Coach, avec Santé",
     );
   });
 
-  it("only accepts a face that belongs to the role", () => {
-    expect(
-      staffFaceChoiceSchema.safeParse({ agent: "coach", face: "thomas" })
-        .success,
-    ).toBe(true);
-    expect(
-      staffFaceChoiceSchema.safeParse({ agent: "coach", face: "karim" })
-        .success,
-    ).toBe(false);
-    expect(
-      staffFaceChoiceSchema.safeParse({ agent: "nutritionist", face: "lea" })
-        .success,
-    ).toBe(true);
-    expect(
-      staffFaceChoiceSchema.safeParse({ agent: "director", face: "hugo" })
-        .success,
-    ).toBe(false);
+  it("tells the model the roles, never first names", () => {
+    expect(groupLine(defaultStaff, "Jules")).toBe(
+      "Rôles dans ce groupe, sans prénom : Coach, Santé, Directeur sportif, Stratège de course, Nutrition. Athlète : Jules.",
+    );
   });
 });

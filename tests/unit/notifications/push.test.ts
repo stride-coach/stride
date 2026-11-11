@@ -34,7 +34,7 @@ function delivery(
 }
 
 describe("push message", () => {
-  it("names the staff member who replied with the athlete's chosen face", () => {
+  it("names the staff role that replied, whatever face the profile kept", () => {
     expect(
       pushMessage(
         delivery(
@@ -49,14 +49,14 @@ describe("push message", () => {
         ),
       ),
     ).toEqual({
-      title: "Thomas a répondu",
+      title: "Le Coach a répondu",
       body: "« On garde la sortie longue dimanche. »",
       url: `/coach/${threadId}`,
       tag: `staff_reply:/coach/${threadId}`,
     });
   });
 
-  it("falls back to default faces when the profile is missing", () => {
+  it("names the role that asked a question", () => {
     expect(
       pushMessage(
         delivery("staff_question", {
@@ -66,7 +66,7 @@ describe("push message", () => {
           question: "Où as-tu mal ?",
         }),
       )?.title,
-    ).toBe("Inès t’a posé une question");
+    ).toBe("Santé t’a posé une question");
   });
 
   it("announces a ready debrief that opens the activity", () => {
@@ -116,7 +116,7 @@ describe("push message", () => {
         }),
       ),
     ).toMatchObject({
-      title: "Claire propose : Semaine allégée",
+      title: "Le Coach propose : Semaine allégée",
       body: "Deux séances raccourcies.",
     });
   });

@@ -11,7 +11,6 @@ import {
 import { profileRowSchema, profileValues } from "@/features/onboarding/profile";
 import { buildProgram, programNavigation } from "@/features/plans/view/program";
 import { loadPlanOverview, programInput } from "@/server/plans/overview";
-import { staffFacesOf } from "@/features/coach/staff";
 import { countCoachAttention } from "@/server/coaching/managed/store";
 import { countPlanProposals } from "@/server/plans/proposals";
 import type { OnboardingContext } from "@/server/onboarding/context";
@@ -65,7 +64,6 @@ export async function loadShellIdentity(context: OnboardingContext, now: Date) {
           localToday(now),
         )
       : null,
-    staffFaces: staffFacesOf(profile.data),
   };
 }
 

@@ -1,7 +1,7 @@
 import type { ThreadItem } from "./items";
 import { markdownPlainText } from "./markdown";
 import { staffJoin, type Staff, type StaffAgent } from "./staff";
-import { ofName, proposalCardStatus } from "./thread";
+import { proposalCardStatus } from "./thread";
 
 export const turnStaleMs = 15 * 60 * 1000;
 
@@ -267,7 +267,7 @@ export function suiviCard(staff: Staff, status: ThreadStatus): SuiviCard {
       return {
         tone: "accent",
         title: "Le staff travaille",
-        detail: `${staff.coach.name} te répond dès que la concertation est terminée.`,
+        detail: "Le Coach te répond dès que la concertation est terminée.",
       };
     case "question":
       return {
@@ -321,10 +321,7 @@ export function suiviParticipants(
     ).length;
     return {
       agent,
-      role:
-        agent === "coach"
-          ? `${staff.coach.role} · mène`
-          : `${staff[agent].role} · ${staff[agent].mentioned}`,
+      role: agent === "coach" ? "Mène" : "Consulté",
       messages,
     };
   });
@@ -412,7 +409,7 @@ export function suiviTimeline(input: {
           item.kind === "athlete"
             ? "Ta demande"
             : target && target !== "coach"
-              ? `Ta réponse à ${input.staff[target].name}`
+              ? `Ta réponse ${input.staff[target].to}`
               : "Ta réponse",
           item.at,
         );
@@ -423,16 +420,16 @@ export function suiviTimeline(input: {
         consulted.add(item.thread);
         done(
           key,
-          `${input.staff.coach.name} passe la main à ${input.staff[item.agent].name}`,
+          `Le Coach passe la main ${input.staff[item.agent].to}`,
           item.at,
-          input.staff[item.agent].role,
+          input.staff[item.agent].name,
         );
         break;
       case "consult_reply":
       case "staff_message":
         if (replied.has(item.thread)) break;
         replied.add(item.thread);
-        done(key, `Réponse ${ofName(input.staff[item.agent])}`, item.at);
+        done(key, `Réponse ${input.staff[item.agent].of}`, item.at);
         break;
       case "question": {
         const current =
@@ -444,7 +441,7 @@ export function suiviTimeline(input: {
         }
         steps.push({
           key,
-          label: `Question ${ofName(input.staff[item.askedFor])}`,
+          label: `Question ${input.staff[item.askedFor].of}`,
           detail: current ? item.question : null,
           at: at(item.at),
           state: current ? "current" : "done",
@@ -455,7 +452,7 @@ export function suiviTimeline(input: {
       }
       case "coach":
         if (lastCoach.has(index))
-          done(key, `Réponse ${ofName(input.staff.coach)}`, item.at);
+          done(key, `Réponse ${input.staff.coach.of}`, item.at);
         break;
       case "proposal": {
         const card = proposalCardStatus(
@@ -504,7 +501,7 @@ export function suiviTimeline(input: {
   if (input.status === "working" || awaitingAnswer)
     steps.push({
       key: "upcoming-answer",
-      label: `Réponse ${ofName(input.staff[awaitingFrom])}`,
+      label: `Réponse ${input.staff[awaitingFrom].of}`,
       detail: null,
       at: null,
       state: "upcoming",

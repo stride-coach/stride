@@ -3,62 +3,24 @@ import { z } from "zod";
 import {
   groupLine,
   specialistAgents,
-  staffFaceColumns,
-  staffFacesOf,
-  staffOf,
+  staff,
   type SpecialistAgent,
-  type StaffFaceChoice,
-  type StaffFaces,
 } from "@/features/coach/staff";
 import { monthStart, type StaffUsage } from "@/features/coach/team";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { displayTimeZone } from "@/features/app-shell/shell";
 
-const staffFaceSelect =
-  "coach_face, medical_face, director_face, strategist_face, nutritionist_face";
-
-export async function readStaffFaces(
-  context: OnboardingContext,
-): Promise<StaffFaces> {
-  const { data, error } = await context.client
-    .from("athlete_profiles")
-    .select(staffFaceSelect)
-    .eq("user_id", context.userId)
-    .maybeSingle();
-  if (error) return staffFacesOf(null);
-  return staffFacesOf(data);
-}
-
 export async function readGroupLine(context: OnboardingContext) {
   try {
     const { data } = await context.client
       .from("athlete_profiles")
-      .select(
-        "coach_face, medical_face, director_face, strategist_face, nutritionist_face, first_name",
-      )
+      .select("first_name")
       .eq("user_id", context.userId)
       .maybeSingle();
-    return groupLine(
-      staffOf(staffFacesOf(data)),
-      data?.first_name?.trim() || null,
-    );
+    return groupLine(staff, data?.first_name?.trim() || null);
   } catch {
-    return groupLine(staffOf(staffFacesOf(null)), null);
+    return groupLine(staff, null);
   }
-}
-
-export async function saveStaffFace(
-  context: OnboardingContext,
-  choice: StaffFaceChoice,
-) {
-  const { data, error } = await context.client
-    .from("athlete_profiles")
-    .update({ [staffFaceColumns[choice.agent]]: choice.face } as Partial<
-      Record<(typeof staffFaceColumns)[keyof typeof staffFaceColumns], string>
-    >)
-    .eq("user_id", context.userId)
-    .select("user_id");
-  return !error && data.length === 1;
 }
 
 const consultRowSchema = z.object({

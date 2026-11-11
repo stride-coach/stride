@@ -12,14 +12,14 @@ import { MonoLabel } from "@/components/stride/mono-label";
 import { cn } from "@/lib/utils";
 import { participantsLine } from "@/features/coach/conversations";
 import {
-  StaffPortrait,
+  StaffAvatar,
   StaffStack,
-} from "@/features/coach/components/staff-portrait";
-import { useStaff } from "@/features/coach/components/staff-context";
+} from "@/features/coach/components/staff-avatar";
+import { staff as allStaff } from "@/features/coach/staff";
 import { staffAgents } from "@/features/coach/staff";
 
 function ConversationListLoading() {
-  const staff = useStaff();
+  const staff = allStaff;
   return (
     <section
       aria-label="Conversations"
@@ -53,7 +53,7 @@ function ConversationListLoading() {
                   key={agent}
                   className="flex w-15.5 flex-col items-center gap-1.5 text-label text-secondary-foreground"
                 >
-                  <StaffPortrait agent={agent} size={56} decorative />
+                  <StaffAvatar agent={agent} size={48} decorative />
                   <span aria-hidden="true">{staff[agent].name}</span>
                 </span>
               ))}
@@ -111,7 +111,7 @@ function ConversationListLoading() {
 }
 
 function ThreadHeader({ title }: { title: string | null }) {
-  const staff = useStaff();
+  const staff = allStaff;
   return (
     <div className="flex min-h-14 shrink-0 items-center gap-2.5 border-b border-border py-2 pr-2.5 pl-1.5 min-[980px]:gap-3 min-[980px]:px-6 min-[980px]:py-3">
       <Button
@@ -151,10 +151,10 @@ function ThreadHeader({ title }: { title: string | null }) {
 }
 
 function EmptyThread({ plan }: { plan: boolean }) {
-  const staff = useStaff();
+  const staff = allStaff;
   return (
     <div className="mx-auto flex w-full max-w-205 flex-col gap-4 px-4 pt-8 sm:px-[clamp(20px,3vw,44px)] sm:pt-12">
-      <StaffPortrait agent="coach" size={56} />
+      <StaffAvatar agent="coach" size={48} />
       <h2 className="text-verdict font-semibold">
         {plan ? `Demande ton plan à ${staff.coach.name}` : "Écris à ton staff"}
       </h2>
@@ -197,7 +197,7 @@ function ThreadLogLoading() {
 }
 
 function ComposerLoading() {
-  const staff = useStaff();
+  const staff = allStaff;
   return (
     <div className="mx-auto flex w-full max-w-205 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-[clamp(20px,3vw,44px)] sm:pb-5">
       <Skeleton aria-hidden="true" className="h-13 w-full rounded-xl" />
@@ -267,7 +267,7 @@ export function CoachLoading({
 }
 
 export function TeamLoading() {
-  const coach = useStaff().coach;
+  const coach = allStaff.coach;
   return (
     <LoadingScope
       label="Chargement de l’équipe"
