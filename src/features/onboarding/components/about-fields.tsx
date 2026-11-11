@@ -244,15 +244,16 @@ export function ChoiceField<T extends string>({
       <span className="text-body font-medium">{label}</span>
       <ToggleGroup
         type="single"
+        variant="segment"
         value={value ?? ""}
         onValueChange={(next) => onChange((next || null) as T | null)}
-        className="grid auto-cols-fr grid-flow-col"
+        className="w-full bg-card"
       >
         {options.map((option) => (
           <ToggleGroupItem
             key={option.value}
             value={option.value}
-            className="w-full"
+            className="flex-1 max-md:min-h-control-touch"
           >
             {option.label}
           </ToggleGroupItem>
@@ -411,12 +412,7 @@ export function SaveIndicator({
       )}
       {statusCopy[status]}
       {status === "error" && (
-        <Button
-          variant="link"
-          size="sm"
-          className="h-auto p-0"
-          onClick={onRetry}
-        >
+        <Button variant="link" className="h-auto p-0" onClick={onRetry}>
           Réessayer
         </Button>
       )}

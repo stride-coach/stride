@@ -84,7 +84,7 @@ export function GarminCode({
             <h2 className="text-label text-muted-foreground tabular-nums">
               Connexion en cours
             </h2>
-            <div className="flex flex-col gap-1 rounded-xl border border-border p-4">
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-4 py-3">
               <span className="text-label text-muted-foreground">
                 Compte Garmin Connect
               </span>

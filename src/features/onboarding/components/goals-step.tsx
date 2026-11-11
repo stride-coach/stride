@@ -172,9 +172,9 @@ export function GoalsStep({
   }
   const selected = goal.state.local.focus;
   return (
-    <div className="flex flex-1 flex-col gap-7 motion-safe:animate-rise lg:max-w-212 lg:gap-9">
+    <div className="flex flex-1 flex-col gap-6 motion-safe:animate-rise">
       <div className="flex flex-col gap-3">
-        <h1 className="text-[1.75rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance lg:text-[2.75rem]">
+        <h1 className="text-verdict font-semibold text-balance">
           Pour quoi t’entraînes-tu ?
         </h1>
         <p className="text-body text-pretty text-secondary-foreground lg:text-body-lg">
@@ -185,7 +185,7 @@ export function GoalsStep({
       <div
         role="radiogroup"
         aria-label="Ce qui compte le plus"
-        className="grid grid-cols-2 gap-2 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-2"
       >
         {focuses.map((focus) => {
           const checked = selected === focus.value;
@@ -231,13 +231,13 @@ export function GoalsStep({
         className="flex flex-col gap-5 border-t border-border pt-7"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 id="race-title" className="text-title font-semibold">
+          <h2 id="race-title" className="font-semibold">
             Course objectif
           </h2>
           {races.length > 0 && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" disabled={busy !== null}>
+                <Button variant="ghost" disabled={busy !== null}>
                   Pas de course pour l’instant
                 </Button>
               </AlertDialogTrigger>
@@ -301,7 +301,7 @@ export function GoalsStep({
           </p>
         )}
         <Button
-          className="w-full lg:w-auto lg:px-5.5"
+          className="w-full lg:w-auto"
           disabled={completion.pending || busy !== null}
           aria-busy={completion.pending}
           onClick={() => void finish()}

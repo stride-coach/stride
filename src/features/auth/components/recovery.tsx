@@ -1,37 +1,34 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ChevronLeftIcon } from "lucide-react";
-import { MonoLabel } from "@/components/stride/mono-label";
-import { Wordmark } from "./auth-shell";
+import { Relief } from "@/components/stride/relief";
+import { AuthAside, Wordmark } from "./auth-shell";
 import { cn } from "@/lib/utils";
 
 export function RecoveryShell({ children }: { children: ReactNode }) {
   return (
-    <main className="flex min-h-svh flex-col bg-background md:bg-background">
-      <header className="flex min-h-15 items-center gap-4 px-5 pt-4 md:min-h-0 md:justify-between md:px-8 md:py-5">
-        <Link
-          href="/sign-in"
-          className="order-first -ml-2.5 inline-flex min-h-11 items-center gap-1.5 rounded-md pr-2 text-body text-secondary-foreground hover:text-foreground md:order-last md:ml-0 md:min-h-0 md:pr-0 md:text-primary md:hover:text-primary md:hover:underline"
-        >
-          <ChevronLeftIcon
-            aria-hidden="true"
-            className="size-10 p-2.5 md:hidden"
-          />
-          <span aria-hidden="true" className="max-md:hidden">
-            ←
-          </span>
-          Retour à la connexion
-        </Link>
-        <div className="ml-auto md:ml-0">
-          <Wordmark compactOnMobile />
-        </div>
-      </header>
-      <div className="flex flex-1 flex-col md:mx-2 md:mb-2 md:rounded-lg md:border md:border-border md:bg-background">
-        <div className="flex flex-col gap-2 px-5 pt-5 pb-5.5 md:px-8 md:pt-10 md:pb-2">
-          <MonoLabel className="text-label md:text-label">
+    <main className="relative flex min-h-svh flex-col overflow-hidden bg-background md:grid md:grid-cols-[1.35fr_1fr] md:bg-shell">
+      <Relief corner="top-right" className="print:hidden" />
+      <Relief corner="bottom-left" className="max-md:hidden print:hidden" />
+      <AuthAside />
+      <div className="relative flex flex-1 flex-col md:m-2 md:overflow-y-auto md:rounded-xl md:border md:border-border md:bg-background">
+        <header className="flex min-h-13 items-center gap-4 px-4 pt-3 md:min-h-0 md:px-8 md:pt-8">
+          <Link
+            href="/sign-in"
+            className="-ml-2.5 inline-flex min-h-11 items-center gap-1 rounded-md pr-2 text-body text-secondary-foreground hover:text-foreground md:ml-0 md:min-h-control md:text-primary md:hover:underline"
+          >
+            <ChevronLeftIcon aria-hidden="true" className="size-4" />
+            Retour à la connexion
+          </Link>
+          <div className="ml-auto md:hidden">
+            <Wordmark compactOnMobile />
+          </div>
+        </header>
+        <div className="flex flex-col gap-1.5 px-4 pt-3 pb-4 md:px-8">
+          <p className="text-label text-secondary-foreground">
             Mot de passe oublié · trois étapes
-          </MonoLabel>
-          <h1 className="text-[28px] leading-[1.08] font-semibold tracking-[-0.025em] md:text-[32px] md:leading-tight">
+          </p>
+          <h1 className="text-metric leading-tight font-semibold text-balance">
             Retour sur pied en une minute.
           </h1>
         </div>
@@ -55,20 +52,20 @@ export function RecoveryStage({
   return (
     <section
       aria-current={active ? "step" : undefined}
-      className="flex min-w-0 flex-col gap-4 border-t border-border px-5 py-6 md:gap-5 md:border-t-0 md:border-border md:p-8 md:not-first:border-l"
+      className="flex min-w-0 flex-col gap-3 border-t border-border px-4 py-4.5 md:px-8"
     >
       <div className="flex items-center gap-2.5">
         <span
           className={cn(
-            "flex size-6.5 shrink-0 items-center justify-center rounded-full text-body font-semibold tabular-nums",
+            "flex size-6 shrink-0 items-center justify-center rounded-full text-label font-semibold tabular-nums",
             active
               ? "bg-primary text-primary-foreground"
-              : "border-[1.5px] border-control-border text-foreground",
+              : "border border-control-border text-secondary-foreground",
           )}
         >
           {number}
         </span>
-        <h2 className="text-body-lg font-semibold">{title}</h2>
+        <h2 className="font-semibold">{title}</h2>
       </div>
       {children}
     </section>

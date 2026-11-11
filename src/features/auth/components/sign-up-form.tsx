@@ -57,31 +57,28 @@ export function SignUpForm({
     password === confirmation;
   if (state.status === "success" && state.email) {
     return (
-      <div className="flex flex-1 flex-col gap-6 md:flex-none">
-        <p className="text-label text-primary tabular-nums">
+      <div className="flex flex-1 flex-col gap-4 md:flex-none">
+        <p className="text-label text-secondary-foreground tabular-nums">
           Étape 1 sur 4 · Confirme ton e-mail
         </p>
-        <div
-          className="grid size-12 place-items-center rounded-md border border-border text-metric text-primary"
-          aria-hidden="true"
-        >
-          ✉
-        </div>
         <FormHeading
           title="Vérifie ta boîte mail"
           description={`On a envoyé un lien de confirmation à ${state.email}. Ouvre-le pour activer ton compte.`}
         />
-        <ol className="flex flex-col gap-3 rounded-lg border border-border bg-muted p-4 text-body text-secondary-foreground">
+        <ol className="flex flex-col border-t border-border">
           {[
             "Ouvre l’e-mail de Stride",
             "Clique sur « Confirmer l’adresse e-mail »",
             "Tu reviens ici, connecté, prêt à configurer ton coach",
           ].map((step, index) => (
-            <li key={step} className="flex items-start gap-3">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-label text-foreground tabular-nums">
+            <li
+              key={step}
+              className="grid grid-cols-[2rem_minmax(0,1fr)] border-b border-border py-2.5"
+            >
+              <span className="text-muted-foreground tabular-nums">
                 {index + 1}
               </span>
-              <span>{step}</span>
+              <span className="font-medium">{step}</span>
             </li>
           ))}
         </ol>
@@ -96,15 +93,18 @@ export function SignUpForm({
           className="text-body text-secondary-foreground"
         >
           Mauvaise adresse ?{" "}
-          <button type="submit" className="text-primary hover:underline">
+          <button
+            type="submit"
+            className="inline-flex min-h-control-touch items-center text-primary hover:underline md:min-h-0"
+          >
             Changer d’e-mail
           </button>
         </form>
-        <p className="text-body text-secondary-foreground">
+        <p className="text-label text-muted-foreground">
           Introuvable ? Regarde dans les spams ou promotions. Les liens expirent
           : utilise l’e-mail le plus récent.
         </p>
-        <p className="mt-auto border-t border-border pt-5 text-center text-body text-secondary-foreground md:mt-0">
+        <p className="mt-auto text-body text-secondary-foreground md:mt-0">
           Déjà confirmé ?{" "}
           <Link href="/sign-in" className="text-primary hover:underline">
             Se connecter
@@ -130,6 +130,7 @@ export function SignUpForm({
         >
           <FieldLabel htmlFor="fullName">Nom complet</FieldLabel>
           <Input
+            className="h-control-touch"
             id="fullName"
             name="fullName"
             autoComplete="name"
@@ -208,13 +209,17 @@ export function SignUpForm({
         />
       </FieldGroup>
       <FormFeedback state={state} />
-      <Button type="submit" disabled={pending || !valid} className="w-full">
+      <Button
+        type="submit"
+        disabled={pending || !valid}
+        className="h-control-touch w-full"
+      >
         {pending ? "Création du compte…" : "Créer un compte"}
       </Button>
       <p className="text-label text-secondary-foreground">
         On t’envoie un lien par e-mail pour confirmer ton adresse.
       </p>
-      <p className="text-label leading-relaxed text-muted-foreground">
+      <p className="text-label text-muted-foreground">
         En créant un compte, tu acceptes les{" "}
         <Link href="/terms" className="text-primary hover:underline">
           Conditions d’utilisation

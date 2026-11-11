@@ -101,7 +101,6 @@ export function RaceForm({
         </span>
         <Button
           variant="ghost"
-          size="sm"
           disabled={removing}
           aria-busy={removing}
           onClick={onRemove}
@@ -161,7 +160,6 @@ export function RaceForm({
                       key={distance}
                       type="button"
                       variant="outline"
-                      size="sm"
                       onClick={() => {
                         change("distance_km", distance);
                         setDistanceKey((key) => key + 1);
@@ -241,7 +239,6 @@ export function RaceForm({
           <span>Cette course a changé sur un autre appareil.</span>
           <span className="flex gap-2">
             <Button
-              size="sm"
               variant="outline"
               onClick={() =>
                 state.conflicts.forEach((field) => resolve(field, "mine"))
@@ -250,7 +247,6 @@ export function RaceForm({
               Garder ma version
             </Button>
             <Button
-              size="sm"
               variant="outline"
               onClick={() => {
                 state.conflicts.forEach((field) => resolve(field, "theirs"));

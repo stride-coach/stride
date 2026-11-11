@@ -55,12 +55,12 @@ export function ConfirmationResend({
         type="submit"
         variant="outline"
         disabled={pending || seconds > 0}
-        className="w-full"
+        className="h-control-touch w-full"
       >
         {pending ? "Envoi…" : "Renvoyer l’e-mail"}
       </Button>
       {seconds > 0 && (
-        <p className="text-center text-body text-secondary-foreground">
+        <p className="text-label text-muted-foreground tabular-nums">
           Renvoi possible dans 0:{String(seconds).padStart(2, "0")}
         </p>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Status } from "@/components/stride/status";
 import { useActionState, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,16 +26,17 @@ export function ExpiredLinkForm({ action }: { action: AuthAction }) {
   );
   const [email, setEmail] = useState("");
   return (
-    <div className="flex flex-1 flex-col gap-5 md:flex-none">
-      <p className="text-label text-warning tabular-nums">Lien expiré</p>
+    <div className="flex flex-1 flex-col gap-4 md:flex-none">
+      <Status level="watch">Lien expiré</Status>
       <FormHeading
         title="Ce lien n’est plus valide"
         description="Les liens de confirmation expirent et ne servent qu’une fois. Demande-en un nouveau, on te l’envoie tout de suite."
       />
-      <form action={formAction} className="flex flex-col gap-5">
+      <form action={formAction} className="flex flex-col gap-4">
         <Field data-invalid={Boolean(state.errors?.email)}>
           <FieldLabel htmlFor="expired-email">E-mail</FieldLabel>
           <Input
+            className="h-control-touch"
             id="expired-email"
             name="email"
             type="email"
@@ -48,19 +50,22 @@ export function ExpiredLinkForm({ action }: { action: AuthAction }) {
           />
           {state.errors?.email && <FieldError>{state.errors.email}</FieldError>}
         </Field>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="h-control-touch">
           {pending ? "Envoi…" : "Envoyer un nouveau lien"}
         </Button>
         <FormFeedback
           state={state.status === "error" ? state : initialAuthState}
         />
       </form>
-      <p className="text-center text-body">
-        <Link href="/sign-in" className="text-primary hover:underline">
+      <p className="text-body">
+        <Link
+          href="/sign-in"
+          className="inline-flex min-h-control-touch items-center text-primary hover:underline md:min-h-0"
+        >
           Retour à la connexion
         </Link>
       </p>
-      <p className="mt-auto text-center text-body text-secondary-foreground md:mt-0">
+      <p className="mt-auto text-label text-muted-foreground md:mt-0">
         Déjà confirmé ? Connecte-toi simplement.
       </p>
     </div>
