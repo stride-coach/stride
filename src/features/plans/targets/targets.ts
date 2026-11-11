@@ -62,6 +62,7 @@ const talkTest: Record<Intensity, string> = {
 
 const minimumEffortMeters = 3_000;
 const thresholdVo2Share = 0.88;
+const flatLapTolerance = 0.05;
 
 export type PaceSourceKind =
   "flat_laps" | "garmin_lactate_threshold" | "best_effort" | "vo2max";
@@ -176,28 +177,32 @@ function datedSource<K extends string>(
     : null;
 }
 
-function measuredThresholdPace(input: TargetsInput): PaceCandidate | null {
-  const candidates: PaceCandidate[] = [];
-  const laps = input.flatLapThresholdPace;
-  if (laps && laps.secondsPerKm > 0) {
-    const source = datedSource("flat_laps", laps.asOf, input.today);
-    if (source) candidates.push({ secondsPerKm: laps.secondsPerKm, source });
-  }
+function garminThresholdPace(input: TargetsInput): PaceCandidate | null {
   const garmin = input.garminLactateThreshold;
-  if (garmin?.speedMps && garmin.speedMps > 0) {
-    const source = datedSource(
-      "garmin_lactate_threshold",
-      garmin.asOf,
-      input.today,
-    );
-    if (source)
-      candidates.push({ secondsPerKm: 1000 / garmin.speedMps, source });
-  }
-  return (
-    candidates.sort((first, second) =>
-      second.source.asOf.localeCompare(first.source.asOf),
-    )[0] ?? null
+  if (!garmin?.speedMps || !(garmin.speedMps > 0)) return null;
+  const source = datedSource(
+    "garmin_lactate_threshold",
+    garmin.asOf,
+    input.today,
   );
+  return source ? { secondsPerKm: 1000 / garmin.speedMps, source } : null;
+}
+
+function flatLapThresholdPace(
+  input: TargetsInput,
+  references: PaceCandidate[],
+): PaceCandidate | null {
+  const laps = input.flatLapThresholdPace;
+  if (!laps || !(laps.secondsPerKm > 0)) return null;
+  const source = datedSource("flat_laps", laps.asOf, input.today);
+  if (!source) return null;
+  const fastest = Math.min(
+    ...references.map((reference) => reference.secondsPerKm),
+  );
+  return references.length > 0 &&
+    laps.secondsPerKm < fastest * (1 - flatLapTolerance)
+    ? null
+    : { secondsPerKm: laps.secondsPerKm, source };
 }
 
 function effortThresholdPace(input: TargetsInput): PaceCandidate | null {
@@ -282,10 +287,21 @@ function heartRateRange(
 }
 
 export function trainingTargets(input: TargetsInput): TrainingTargets {
+  const garmin = garminThresholdPace(input);
+  const effort = effortThresholdPace(input);
+  const vo2 = vo2ThresholdPace(input);
+  const laps = flatLapThresholdPace(
+    input,
+    [garmin, effort, vo2].filter((candidate) => candidate !== null),
+  );
   const pace =
-    measuredThresholdPace(input) ??
-    effortThresholdPace(input) ??
-    vo2ThresholdPace(input);
+    [laps, garmin]
+      .filter((candidate) => candidate !== null)
+      .sort((first, second) =>
+        second.source.asOf.localeCompare(first.source.asOf),
+      )[0] ??
+    effort ??
+    vo2;
   const heartRate = heartRateReference(input);
   const intensityTargets = Object.fromEntries(
     intensities.map((intensity) => {
