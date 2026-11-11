@@ -1,5 +1,46 @@
 # Changelog
 
+## [2.0.0](https://github.com/stride-coach/stride/compare/v1.4.0...v2.0.0) (2026-11-11)
+
+
+### Features
+
+* **activities:** rebuild the list and the activity page on the Dense patterns ([#438](https://github.com/stride-coach/stride/issues/438)) ([6e8c1f0](https://github.com/stride-coach/stride/commit/6e8c1f025616797dd184ed589e3a9a15d228fcca))
+* **app:** rebuild Nutrition, Matériel and Notifications on Dense in their V2 places ([#447](https://github.com/stride-coach/stride/issues/447)) ([fea6739](https://github.com/stride-coach/stride/commit/fea67394f5c175d476b3fe2d478d56002c3b9f06))
+* **auth:** rebuild auth and onboarding on Dense without the halo ([#452](https://github.com/stride-coach/stride/issues/452)) ([896db5d](https://github.com/stride-coach/stride/commit/896db5d680283b32d6527c60731c130662b591b0))
+* **brand:** adopt the Topo logo, the Dense app icon and Dense auth e-mails ([#459](https://github.com/stride-coach/stride/issues/459)) ([66e8a54](https://github.com/stride-coach/stride/commit/66e8a54a6b789e0f296799bc2faa0b69848df4ed))
+* **coach:** one main thread with topics that close into a summary ([#466](https://github.com/stride-coach/stride/issues/466)) ([b366794](https://github.com/stride-coach/stride/commit/b3667947ea8b7f9e7a128dd6f4e57f75d010eecd)), closes [#463](https://github.com/stride-coach/stride/issues/463)
+* **coach:** prepare a close A race inside the previous season ([#462](https://github.com/stride-coach/stride/issues/462)) ([f646afb](https://github.com/stride-coach/stride/commit/f646afb7fb9c442ea9d8517eaf97ca6c3cdc88bf)), closes [#451](https://github.com/stride-coach/stride/issues/451)
+* **coach:** rebuild Coach on Dense with role galets instead of named staff ([#446](https://github.com/stride-coach/stride/issues/446)) ([bc595df](https://github.com/stride-coach/stride/commit/bc595dfd4685e261e196f1bf5a353f2e4ec87f30))
+* **coach:** search the conversation with the staff ([#467](https://github.com/stride-coach/stride/issues/467)) ([98f4e01](https://github.com/stride-coach/stride/commit/98f4e01185966e45c0694269e86f3184d4e637d9)), closes [#464](https://github.com/stride-coach/stride/issues/464)
+* **design-system:** add the Dense data patterns ([#412](https://github.com/stride-coach/stride/issues/412)) ([79fc344](https://github.com/stride-coach/stride/commit/79fc344eaf4fbfa1f3365563ba80e5bdd227ecbe))
+* **health:** move Santé to /health and rebuild it on the Dense patterns ([#439](https://github.com/stride-coach/stride/issues/439)) ([056af4b](https://github.com/stride-coach/stride/commit/056af4b7b644923eaa4dd3f8f49e7d258173e0b0))
+* **plan:** rebuild the programme and session panel on the Dense patterns ([#436](https://github.com/stride-coach/stride/issues/436)) ([bceb3c7](https://github.com/stride-coach/stride/commit/bceb3c7f59de61c0a7c03dcddcf55e49f4fbb5be))
+* **plan:** restyle proposals, review, history and debrief to Dense ([#437](https://github.com/stride-coach/stride/issues/437)) ([a426e73](https://github.com/stride-coach/stride/commit/a426e7331badf71619e219b934a9ab4bd7b910d8))
+* **plans:** show archived plans as read-only past seasons ([#461](https://github.com/stride-coach/stride/issues/461)) ([e5119ab](https://github.com/stride-coach/stride/commit/e5119ab5615e3475b6fbc42c2b32d3515566c4b8))
+* **plans:** show the plan as seasons with a season switcher ([#458](https://github.com/stride-coach/stride/issues/458)) ([7963a8c](https://github.com/stride-coach/stride/commit/7963a8c9fa230d54a0582ae44575aefc367d3514))
+* **public:** rebuild the landing, legal and system pages on Dense ([#453](https://github.com/stride-coach/stride/issues/453)) ([81de6bd](https://github.com/stride-coach/stride/commit/81de6bd5f3b7587d86e167cf027315366ddb9116))
+* **races:** rebuild the race course, nutrition, gear and waypoints on Dense ([#445](https://github.com/stride-coach/stride/issues/445)) ([073476b](https://github.com/stride-coach/stride/commit/073476b921a707274fc427bf5ece1360b04267bd))
+* **races:** rebuild the season list and the race strategy on the Dense patterns ([#443](https://github.com/stride-coach/stride/issues/443)) ([1a7c2df](https://github.com/stride-coach/stride/commit/1a7c2df0088fc1a0ccb7dd47faf739aaca86f722))
+* **settings:** rebuild Réglages on Dense with Notifications and Apparence pages ([#449](https://github.com/stride-coach/stride/issues/449)) ([da80454](https://github.com/stride-coach/stride/commit/da804545d3c0ea1f86bc855c6baa4418914800b0))
+* **shell:** move the desktop app into the Dense frame ([#432](https://github.com/stride-coach/stride/issues/432)) ([41b509d](https://github.com/stride-coach/stride/commit/41b509d85e1bbc6bcbc8cf18c1e07784370f3d18))
+* **shell:** move the mobile app into the Dense frame ([#434](https://github.com/stride-coach/stride/issues/434)) ([2b36058](https://github.com/stride-coach/stride/commit/2b360588e62dad2e97192e8253319f0bbb744d4e))
+* **theme:** switch the app to the Dense design system ([#409](https://github.com/stride-coach/stride/issues/409)) ([72b4b43](https://github.com/stride-coach/stride/commit/72b4b43cc7255d5e733d5862f4ae041efb581e1e))
+* **today:** rebuild Aujourd’hui on the Dense patterns ([#435](https://github.com/stride-coach/stride/issues/435)) ([db22242](https://github.com/stride-coach/stride/commit/db2224291bfae1e7e7a8c442908318a7bc0df780))
+* **ui:** restyle the shadcn primitives to Dense ([#411](https://github.com/stride-coach/stride/issues/411)) ([7c0c374](https://github.com/stride-coach/stride/commit/7c0c3747ddf02927665ae06ffba249eaa3acee9b))
+
+
+### Bug Fixes
+
+* **coach:** keep race sessions to the race itself ([#442](https://github.com/stride-coach/stride/issues/442)) ([36b8647](https://github.com/stride-coach/stride/commit/36b86476e5c6cf9525c3e2ebc4a41afa21bba58a)), closes [#440](https://github.com/stride-coach/stride/issues/440)
+* **plans:** keep the flat-lap threshold pace consistent with other evidence ([#444](https://github.com/stride-coach/stride/issues/444)) ([02455e3](https://github.com/stride-coach/stride/commit/02455e3ade25b7fae1949ae15e50602da59fee3a)), closes [#441](https://github.com/stride-coach/stride/issues/441)
+* **shell:** show the relief through the content panel and match the board contours ([#457](https://github.com/stride-coach/stride/issues/457)) ([4d9ae90](https://github.com/stride-coach/stride/commit/4d9ae90ea90bdd02481bf24e3ab16a2fc86a824d)), closes [#454](https://github.com/stride-coach/stride/issues/454)
+
+
+### Miscellaneous Chores
+
+* **design:** remove the Night Track leftovers ([#460](https://github.com/stride-coach/stride/issues/460)) ([e8e5458](https://github.com/stride-coach/stride/commit/e8e5458dd2f99e4c69268892a192a56fc5480f9e)), closes [#407](https://github.com/stride-coach/stride/issues/407)
+
 ## [1.4.0](https://github.com/stride-coach/stride/compare/v1.3.0...v1.4.0) (2026-11-08)
 
 
