@@ -173,6 +173,9 @@
   --animate-breathe: breathe 2.4s ease-in-out infinite;
   --animate-plage-reveal: plage-reveal var(--stride-duration-reveal)
     var(--stride-ease) backwards;
+  --animate-chart-fade: chart-fade 250ms var(--stride-ease) backwards;
+  --animate-chart-draw: chart-draw 700ms ease-out 150ms backwards;
+  --animate-chart-marks: chart-fade 180ms var(--stride-ease) 850ms backwards;
 
   @keyframes rise {
     from {
@@ -203,6 +206,18 @@
     from {
       left: var(--plage-from);
       background-color: var(--primary);
+    }
+  }
+
+  @keyframes chart-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes chart-draw {
+    from {
+      clip-path: inset(0 100% 0 0);
     }
   }
 

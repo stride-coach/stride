@@ -60,6 +60,24 @@ for (const viewport of [
   });
 }
 
+test("the load curve draws once, and rests with reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+  await page.goto("/health/fitness");
+  const lines = page
+    .getByRole("img", { name: /^Condition \d+, fatigue \d+/ })
+    .first()
+    .locator("[data-slot=load-lines]");
+  await expect(lines).toHaveCSS("animation-name", "chart-draw");
+  await expect(lines).toHaveCSS("animation-iteration-count", "1");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload();
+  await expect(lines).toHaveCSS("animation-name", "none");
+});
+
 test("period choice is kept in the URL", async ({ page }) => {
   await signIn(page);
   await page.goto("/health/fitness");
