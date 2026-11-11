@@ -77,6 +77,11 @@ const notificationUser = {
   id: "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd",
   email: "notifications@example.com",
 };
+const seasonsUser = {
+  ...user,
+  id: "12121212-1212-4212-8212-121212121212",
+  email: "seasons@example.com",
+};
 const consentUser = {
   ...user,
   id: "efefefef-efef-4fef-8fef-efefefefefef",
@@ -94,6 +99,7 @@ const recordsSessions = [
   syncUser,
   planReviewUser,
   planHistoryUser,
+  seasonsUser,
 ].map((identity) => ({
   ...session,
   user: identity,
@@ -1697,6 +1703,20 @@ twinPlanAthlete(
   "8888",
 );
 twinPlanAthlete(watchUser, "dddddddd-dddd-4ddd-8ddd-abababababab", "abab");
+twinPlanAthlete(seasonsUser, "dddddddd-dddd-4ddd-8ddd-121212121212", "1212");
+tables.athlete_races.push({
+  id: "12121212-0000-4000-8000-000000000009",
+  user_id: seasonsUser.id,
+  name: "Trail d’automne 25K",
+  race_kind: "trail",
+  race_date: shiftDay(planStart, 6),
+  distance_km: null,
+  elevation_gain_m: null,
+  priority: "A",
+  target_duration_seconds: null,
+  revision: 1,
+  updated_at: "2026-01-01T00:00:00Z",
+});
 tables.athlete_profiles.push({
   ...structuredClone(tables.athlete_profiles[0]),
   user_id: watchUser.id,

@@ -17,7 +17,11 @@ import { MobileHeaderActions } from "@/features/app-shell/components/mobile-head
 import { ShellIdentityProvider } from "@/features/app-shell/components/shell-identity";
 import { ShortcutHelp } from "@/features/app-shell/components/shortcut-help";
 import { TopBar } from "@/features/app-shell/components/top-bar";
-import type { ShellAthlete, ShellGoal } from "@/features/app-shell/shell";
+import type {
+  ShellAthlete,
+  ShellGoal,
+  ShellSeason,
+} from "@/features/app-shell/shell";
 import { settingsHref, settingsSections } from "../navigation";
 
 const toneDots = {
@@ -101,11 +105,13 @@ function SettingsNav({ active }: { active: string | undefined }) {
 export function SettingsShell({
   athlete,
   goal,
+  seasons,
   modelDetail,
   children,
 }: {
   athlete: ShellAthlete;
   goal: ShellGoal | null;
+  seasons: Promise<ShellSeason[]>;
   modelDetail: string;
   children: React.ReactNode;
 }) {
@@ -125,7 +131,7 @@ export function SettingsShell({
   const overview = section?.slug === "";
   const label = section?.label ?? "Réglages";
   return (
-    <ShellIdentityProvider value={{ athlete, goal, modelDetail }}>
+    <ShellIdentityProvider value={{ athlete, goal, seasons, modelDetail }}>
       <SidebarProvider
         open
         onOpenChange={() => {}}

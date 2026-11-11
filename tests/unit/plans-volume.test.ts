@@ -162,7 +162,7 @@ describe("program weekly volume", () => {
   });
 
   it("includes estimated warmup and cooldown distance as approximate", () => {
-    const { weeks, blocks, programs } = buildProgram(input({ paces }));
+    const { weeks, blocks, seasons } = buildProgram(input({ paces }));
     expect(weeks[0].totals).toMatchObject({
       distanceMeters: 7_500 + thresholdMeters,
       distanceEstimated: true,
@@ -170,7 +170,7 @@ describe("program weekly volume", () => {
     expect(weeks[0].days[3].summary).toMatch(/^50’ · ≈ \d+,\d km$/);
     expect(blocks[0].totals.distanceEstimated).toBe(true);
     expect(
-      programs[0].kpis.find((kpi) => kpi.key === "distance")?.value,
+      seasons[0].kpis.find((kpi) => kpi.key === "distance")?.value,
     ).toMatch(/^≈ \d+ km$/);
   });
 
@@ -195,10 +195,10 @@ describe("program weekly volume", () => {
   });
 
   it("shows no distance rather than a partial sum when a run is unknown", () => {
-    const { weeks, blocks, programs } = buildProgram(input());
+    const { weeks, blocks, seasons } = buildProgram(input());
     expect(weeks[0].totals.distanceMeters).toBeNull();
     expect(blocks[0].totals.distanceMeters).toBeNull();
-    expect(programs[0].kpis.map((kpi) => kpi.key)).not.toContain("distance");
+    expect(seasons[0].kpis.map((kpi) => kpi.key)).not.toContain("distance");
   });
 
   it("sums completed runs only when every completed distance is known", () => {
@@ -224,6 +224,20 @@ describe("program weekly volume", () => {
         targets: { ...week.targets, distanceMeters: 40_000 },
       })),
     };
+    const volume = (overrides: Partial<ProgramInput>) =>
+      buildProgram(
+        input({ state: withTarget, today: "2027-01-01", ...overrides }),
+      ).seasons[0].kpis.find((kpi) => kpi.key === "volume")?.value;
+    expect(
+      volume({ matches: completed(["s-2026-10-13-1", "s-2026-10-15-1"]) }),
+    ).toBe("1h35");
+    expect(volume({ matches: completed(["s-2026-10-13-1"]) })).toBe("8 km");
+    expect(
+      volume({
+        paces,
+        matches: completed(["s-2026-10-13-1", "s-2026-10-15-1"]),
+      }),
+    ).toMatch(/^≈ \d+ km$/);
     const [partial] = buildProgram(
       input({
         state: withTarget,

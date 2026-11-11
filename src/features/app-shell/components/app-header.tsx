@@ -57,6 +57,7 @@ function Crumbs({ crumbs, detail }: { crumbs: AppCrumb[]; detail?: string }) {
 export function AppHeader({
   title,
   detail,
+  titleAction,
   crumbs,
   breadcrumb,
   back,
@@ -65,6 +66,7 @@ export function AppHeader({
 }: {
   title: string;
   detail?: string;
+  titleAction?: React.ReactNode;
   crumbs?: AppCrumb[];
   breadcrumb?: React.ReactNode;
   back?: { href: string; label: string };
@@ -89,9 +91,10 @@ export function AppHeader({
       )}
       <div className="flex min-w-0 flex-1 items-baseline gap-2 md:hidden">
         <p className="shrink-0 text-body-lg font-semibold">{title}</p>
-        {detail && !back && (
-          <span className="truncate text-muted-foreground">{detail}</span>
-        )}
+        {titleAction ??
+          (detail && !back && (
+            <span className="truncate text-muted-foreground">{detail}</span>
+          ))}
       </div>
       <div className="flex min-w-0 flex-1 max-md:hidden">
         {breadcrumb ?? (

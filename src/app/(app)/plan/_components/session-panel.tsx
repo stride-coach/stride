@@ -88,7 +88,7 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
 
 function proposalHref(current: URLSearchParams, proposalId: string) {
   const query = new URLSearchParams();
-  for (const key of ["race", "week"]) {
+  for (const key of ["season", "race", "week"]) {
     const value = current.get(key);
     if (value) query.set(key, value);
   }

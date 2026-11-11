@@ -1,11 +1,9 @@
-import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/features/plans/view/format";
 import {
   chartDescription,
   type BandTone,
   type ProgramBand,
-  type ProgramNested,
   type ProgramWeek,
 } from "@/features/plans/view/program";
 import { formatInteger } from "@/features/progress/format";
@@ -130,13 +128,11 @@ function Bar({
 export function ProgramChart({
   weeks,
   bands,
-  nested,
   selected,
   onSelect,
 }: {
   weeks: ProgramWeek[];
   bands: ProgramBand[];
-  nested: ProgramNested[];
   selected: string | null;
   onSelect: (weekKey: string) => void;
 }) {
@@ -180,23 +176,6 @@ export function ProgramChart({
           style={{ "--weeks": weeks.length } as React.CSSProperties}
           className="flex min-w-[calc(var(--weeks)*2.25rem)] flex-col sm:min-w-0"
         >
-          {nested.length > 0 && (
-            <div style={columns} className="mb-1 grid gap-x-1">
-              {nested.map((item) => (
-                <Link
-                  key={item.raceId}
-                  href={`/plan?race=${item.raceId}`}
-                  style={column(item.start, item.span)}
-                  className="flex h-6 min-w-0 items-center gap-1.5 overflow-hidden rounded-t-md border border-b-0 border-dashed border-control-border px-2 text-label whitespace-nowrap text-secondary-foreground hover:text-foreground"
-                >
-                  <RaceMark letter={item.letter} primary={false} />
-                  <span className="truncate">
-                    Programme {item.name} · ouvrir
-                  </span>
-                </Link>
-              ))}
-            </div>
-          )}
           <div
             role="group"
             aria-label={chartDescription(weeks)}

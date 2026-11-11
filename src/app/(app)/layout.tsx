@@ -4,6 +4,7 @@ import {
   getShellIdentity,
   getShellNavigation,
   getShellNotifications,
+  getShellSeasons,
 } from "@/server/app/shell";
 import { requireAthlete } from "@/server/app/session";
 
@@ -19,6 +20,7 @@ export default async function AppLayout({
   await requireAthlete();
   const navigation = getShellNavigation();
   const notifications = getShellNotifications();
+  const seasons = getShellSeasons();
   const [identity, cookieStore] = await Promise.all([
     getShellIdentity(),
     cookies(),
@@ -26,6 +28,7 @@ export default async function AppLayout({
   return (
     <AppShell
       {...identity}
+      seasons={seasons}
       navigation={navigation}
       notifications={notifications}
       notificationsAt={new Date().toISOString()}

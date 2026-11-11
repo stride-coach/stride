@@ -198,6 +198,7 @@ const text = programText({
       targetSeconds: 64_800,
       distanceKm: 120,
       elevationGainM: 1_450,
+      kind: "road",
     },
     {
       id: "dix",
@@ -207,6 +208,7 @@ const text = programText({
       targetSeconds: null,
       distanceKm: 10,
       elevationGainM: null,
+      kind: "road",
     },
     {
       id: "other",
@@ -216,6 +218,7 @@ const text = programText({
       targetSeconds: null,
       distanceKm: 21.1,
       elevationGainM: null,
+      kind: "road",
     },
   ],
 });

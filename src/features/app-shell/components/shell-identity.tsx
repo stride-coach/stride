@@ -1,11 +1,12 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { ShellAthlete, ShellGoal } from "../shell";
+import type { ShellAthlete, ShellGoal, ShellSeason } from "../shell";
 
 export type ShellIdentity = {
   athlete: ShellAthlete;
   goal: ShellGoal | null;
+  seasons: Promise<ShellSeason[]>;
   modelDetail: string;
 };
 

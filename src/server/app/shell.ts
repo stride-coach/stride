@@ -6,11 +6,20 @@ import {
   shellAccount,
   shellAthlete,
   shellGoal,
+  shellSeasons,
   type ShellNavigation,
+  type ShellSeason,
 } from "@/features/app-shell/shell";
 import { profileRowSchema, profileValues } from "@/features/onboarding/profile";
 import { buildProgram, programNavigation } from "@/features/plans/view/program";
-import { loadPlanOverview, programInput } from "@/server/plans/overview";
+import { planSeasons } from "@/features/plans/view/seasons";
+import { localToday as planToday } from "@/features/plans/constraints";
+import {
+  loadPlanOverview,
+  programInput,
+  readPlanRaces,
+} from "@/server/plans/overview";
+import { readActivePlan } from "@/server/plans/stored";
 import { countCoachAttention } from "@/server/coaching/managed/store";
 import { countPlanProposals } from "@/server/plans/proposals";
 import type { OnboardingContext } from "@/server/onboarding/context";
@@ -34,6 +43,18 @@ async function readTodayReadiness(context: OnboardingContext, now: Date) {
   return data[0].value_numeric !== null && Number.isFinite(value)
     ? value
     : null;
+}
+
+async function readShellSeasons(
+  context: OnboardingContext,
+): Promise<ShellSeason[]> {
+  const [plan, races] = await Promise.all([
+    readActivePlan(context),
+    readPlanRaces(context),
+  ]);
+  if (!plan) return [];
+  const today = planToday(plan.state.plan.timeZone);
+  return shellSeasons(planSeasons({ state: plan.state, races, today }), today);
 }
 
 export async function loadShellIdentity(context: OnboardingContext, now: Date) {
@@ -89,6 +110,12 @@ export async function loadShellNavigation(
 
 export const getShellIdentity = cache(async () =>
   loadShellIdentity(await requireAthleteAccount(), new Date()),
+);
+
+export const getShellSeasons = cache(async (): Promise<ShellSeason[]> =>
+  requireAthleteAccount()
+    .then(readShellSeasons)
+    .catch(() => []),
 );
 
 export const getShellNavigation = cache(async () =>

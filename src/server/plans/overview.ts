@@ -3,7 +3,7 @@ import { cache } from "react";
 import { z } from "zod";
 import { localToday } from "@/features/plans/constraints";
 import type { IntensityPaces } from "@/features/plans/model/structure";
-import { withRaceCourse } from "@/features/onboarding/goals";
+import { raceKinds, withRaceCourse } from "@/features/onboarding/goals";
 import {
   withRaceValues,
   type ProgramInput,
@@ -32,6 +32,7 @@ const raceSchema = z.object({
   target_duration_seconds: z.number().int().positive().nullable().catch(null),
   distance_km: z.coerce.number().positive().nullable().catch(null),
   elevation_gain_m: z.number().int().min(0).nullable().catch(null),
+  race_kind: z.enum(raceKinds).catch("trail"),
 });
 
 export const readPlanRaces = cache(async function readPlanRaces(
@@ -41,7 +42,7 @@ export const readPlanRaces = cache(async function readPlanRaces(
     context.client
       .from("athlete_races")
       .select(
-        "id, name, race_date, priority, target_duration_seconds, distance_km, elevation_gain_m",
+        "id, name, race_date, priority, target_duration_seconds, distance_km, elevation_gain_m, race_kind",
       )
       .eq("user_id", context.userId),
     readRaceCourses(context),
@@ -61,6 +62,7 @@ export const readPlanRaces = cache(async function readPlanRaces(
         targetSeconds: row.target_duration_seconds,
         distanceKm: values.distance_km,
         elevationGainM: values.elevation_gain_m,
+        kind: row.race_kind,
       };
     });
 });

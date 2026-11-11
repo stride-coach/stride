@@ -1,5 +1,13 @@
 import type { GoalFocus } from "@/features/onboarding/goals";
 import type { ProgramNav } from "@/features/plans/view/program";
+import {
+  seasonCountdown,
+  seasonHref,
+  seasonProgress,
+  type PlanSeason,
+} from "@/features/plans/view/seasons";
+import { formatDateSpan } from "@/features/plans/view/format";
+import { formatDayMonthShort } from "@/features/progress/format";
 import type { CoachAttention } from "./coach-attention";
 import { readinessLevel, readinessTones } from "@/features/progress/recovery";
 import { focusLabels } from "@/features/onboarding/athlete-profile";
@@ -15,6 +23,15 @@ export type ShellRace = {
   raceDate: string | null;
 };
 export type ShellGoal = { name: string; detail: string; countdown?: string };
+export type ShellSeason = Pick<
+  PlanSeason,
+  "id" | "raceIds" | "startsOn" | "endsOn" | "status" | "letter" | "name"
+> & {
+  href: string;
+  dates: string;
+  progress: string;
+  countdown: string | null;
+};
 export type ShellAccount = {
   profilePercent: number;
   questions: number;
@@ -89,6 +106,29 @@ export function shellGoal(
     };
   }
   return focus ? { name: focusLabels[focus], detail: "Objectif" } : null;
+}
+
+export function shellSeasons(
+  seasons: PlanSeason[],
+  today: string,
+): ShellSeason[] {
+  return seasons.map((season) => ({
+    id: season.id,
+    raceIds: season.raceIds,
+    startsOn: season.startsOn,
+    endsOn: season.endsOn,
+    status: season.status,
+    letter: season.letter,
+    name: season.name,
+    href: seasonHref(seasons, season.id),
+    dates: `${formatDateSpan(season.startsOn, season.endsOn)} · ${
+      season.raceDate
+        ? `course le ${formatDayMonthShort(season.raceDate)}`
+        : "aucune course A"
+    }`,
+    progress: seasonProgress(season),
+    countdown: season.status === "past" ? null : seasonCountdown(season, today),
+  }));
 }
 
 export function shellAthlete(
