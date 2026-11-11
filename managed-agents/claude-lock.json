@@ -9,18 +9,18 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "24",
-      "hash": "f89ea4c2f28d13eb99f4b2235a1468fc",
-      "remote_hash": "3954a5a5f97adeba458fbb9c93156dea",
-      "stamp": "24"
+      "version": "25",
+      "hash": "ed33da3c4841d65f22062b02f20f091c",
+      "remote_hash": "ae4963892ce063c265bbd4f5a050aff9",
+      "stamp": "25"
     },
     "./agents/director.md": {
       "kind": "agent",
       "id": "agent_017vonN4KirZUgE4TdC7eept",
-      "version": "5",
-      "hash": "68e814efc587fa2df1eb295b5308e585",
-      "remote_hash": "d04bdc1253c9422e1eb631230cabedc7",
-      "stamp": "5"
+      "version": "6",
+      "hash": "eade3ba44834ccc7a8d697830c68b700",
+      "remote_hash": "997aa4656c1ad130e11bec77c877a971",
+      "stamp": "6"
     },
     "./agents/medical.md": {
       "kind": "agent",
@@ -126,9 +126,8 @@
     "./skills/season-calendar": {
       "kind": "skill",
       "id": "skill_01QWi4yaJZQLoZAfGZU5aBBF",
-      "version": "skver_01HAh8cW8mgUej9tRBWYZZrw",
-      "hash": "5d3f98440d8d7441528c34c7e1b5bcb6",
-      "stamp": "skver_01HAh8cW8mgUej9tRBWYZZrw"
+      "version": "skver_015HTrDhtJ7wTpDF5KfunDwY",
+      "hash": "f840962d944e09e9d6f005d01fae1e4c"
     },
     "./skills/session-design": {
       "kind": "skill",
