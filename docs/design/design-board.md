@@ -38,7 +38,7 @@ Fixes that only bring the code back in line with the board need no board change.
 
 Artboard markup is a reference, not production code. Never copy its generated HTML, inline styles, or scripts. Rebuild the screen with Stride's architecture, Tailwind, Dense tokens, and shadcn primitives, and map raw values such as `#6E9BFF` or `9px` radii to the semantic tokens in [design-system.md](design-system.md).
 
-Read the design system's `project/README.md`, `project/tokens.json` and the relevant component pages with any screen artboard when a task touches visual language. Screens of the Dense direction live on the `V2 · Dense` page; the older pages show Night Track and are references for behaviour and copy only until their area is migrated.
+Read the design system's `project/README.md`, `project/tokens.json` and the relevant component pages with any screen artboard when a task touches visual language. Screens live on the `V2 · Dense` page, which is the only current direction. Pages that still show Night Track or the unused rework directions are superseded: do not build from them.
 
 Board assets are never application assets. Do not download, transform, or commit board images or derivatives without explicit instruction.
 

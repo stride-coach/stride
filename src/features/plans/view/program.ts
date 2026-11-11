@@ -1,5 +1,4 @@
 import type { SessionBlock } from "@/components/stride/session-blocks";
-import type { SessionTileKind } from "@/components/stride/session-kind-tile";
 import {
   sessionStatuses,
   planAdherence,
@@ -44,7 +43,22 @@ import {
   type SeasonStatus,
 } from "./seasons";
 
-export type SessionFamily = SessionTileKind;
+export type SessionFamily =
+  | "easy"
+  | "recovery"
+  | "long"
+  | "long_trail"
+  | "tempo"
+  | "threshold"
+  | "intervals"
+  | "hills"
+  | "fartlek"
+  | "race_specific"
+  | "strength"
+  | "mobility"
+  | "cross"
+  | "race"
+  | "rest";
 
 export const familyLabels: Record<SessionFamily, string> = {
   easy: "Footing",

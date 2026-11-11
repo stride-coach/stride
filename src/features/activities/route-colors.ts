@@ -11,11 +11,11 @@ export const colorModes: { mode: ColorMode; label: string }[] = [
 ];
 
 export const zoneHex = {
-  1: "#3d4238",
-  2: "#5e8fb8",
-  3: "#a9c94a",
-  4: "#e8f59a",
-  5: "#ff6a3d",
+  1: "#7f8ea3",
+  2: "#6e9bff",
+  3: "#8f7bff",
+  4: "#c06cf0",
+  5: "#ff6fb5",
 } as const;
 
 export type RoutePalette = Record<1 | 2 | 3 | 4 | 5, string>;

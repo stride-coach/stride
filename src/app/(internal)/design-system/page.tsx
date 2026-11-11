@@ -61,44 +61,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CoachActivity } from "@/components/stride/coach-activity";
 import { CoachNote } from "@/components/stride/coach-note";
-import { ConfidenceMeter } from "@/components/stride/confidence-meter";
-import { DecisionLegend, LedgerEntry } from "@/components/stride/ledger-entry";
-import { TrendLabel } from "@/components/stride/marks";
-import { Halo } from "@/components/stride/halo";
 import { Metric } from "@/components/stride/metric";
 import { MonoLabel } from "@/components/stride/mono-label";
-import {
-  ProvenanceLabel,
-  SignalList,
-  SignalRow,
-} from "@/components/stride/provenance";
-import { ProviderValueInput } from "@/components/stride/provider-value-input";
-import {
-  Recommendation,
-  RecommendationActions,
-  RecommendationBody,
-  RecommendationDiff,
-  RecommendationHeader,
-  RecommendationSignals,
-  RecommendationTitle,
-} from "@/components/stride/recommendation";
-import {
-  SessionKindTile,
-  type SessionTileKind,
-} from "@/components/stride/session-kind-tile";
+import { ProvenanceLabel } from "@/components/stride/provenance";
 import { SessionShape } from "@/components/stride/session-shape";
-import { SignalChip } from "@/components/stride/signal-chip";
-import {
-  Stepper,
-  StepperItem,
-  StepperSegments,
-} from "@/components/stride/stepper";
+import { StepperSegments } from "@/components/stride/stepper";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { StrideLogo } from "@/components/stride/stride-logo";
 import { SyncStatus } from "@/components/stride/sync-status";
-import { VerdictList, VerdictRow } from "@/components/stride/verdict-row";
 import { Chip } from "@/components/stride/chip";
 import { EmptyState, FeedbackBanner } from "@/components/stride/feedback";
 import { Plage } from "@/components/stride/plage";
@@ -108,24 +79,6 @@ import { Widget } from "@/components/stride/widget";
 import { ContextChipsExample } from "./_components/context-chips";
 import { SuggestedRepliesExample } from "./_components/suggested-replies";
 import { GallerySection, Specimen } from "./_components/specimen";
-
-const sessionTileKinds: SessionTileKind[] = [
-  "easy",
-  "recovery",
-  "long",
-  "long_trail",
-  "tempo",
-  "threshold",
-  "intervals",
-  "fartlek",
-  "hills",
-  "race_specific",
-  "strength",
-  "mobility",
-  "cross",
-  "race",
-  "rest",
-];
 
 const surfaces = [
   ["Shell", "bg-shell", "shell"],
@@ -232,7 +185,7 @@ export default function DesignSystemPage() {
             ["#controls", "Controls"],
             ["#overlays", "Overlays"],
             ["#dense-patterns", "Data patterns"],
-            ["#patterns", "Night Track patterns"],
+            ["#patterns", "Other patterns"],
             ["#states", "States"],
           ].map(([href, label]) => (
             <a
@@ -295,12 +248,6 @@ export default function DesignSystemPage() {
                 </li>
               ))}
             </ul>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-label">
-              <TrendLabel trend="improving" />
-              <TrendLabel trend="stable" />
-              <TrendLabel trend="watch">Watch · needs you</TrendLabel>
-              <TrendLabel trend="investigate">Investigate · failed</TrendLabel>
-            </div>
           </Specimen>
           <Specimen title="Lines and radii" meta="border-* · rounded-*">
             <div className="flex flex-wrap gap-2">
@@ -353,8 +300,8 @@ export default function DesignSystemPage() {
       <GallerySection
         id="type"
         index="02 · Typography"
-        title="Three voices"
-        description="Instrument Sans for UI and the coach's voice, Barlow Condensed for race-bib numerals, IBM Plex Mono for labels and provenance."
+        title="One family"
+        description="Inter everywhere, with tabular numerals where values align. Hierarchy comes from weight and grey, not size."
       >
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <ul className="flex flex-col border-t border-border">
@@ -482,16 +429,6 @@ export default function DesignSystemPage() {
                 <FieldError id="ds-email-error">
                   Enter a complete email address.
                 </FieldError>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="ds-weight">Weight</FieldLabel>
-                <ProviderValueInput
-                  id="ds-weight"
-                  providerValue="68"
-                  unit="kg"
-                  inputMode="decimal"
-                  provenance="From Garmin · 3 days ago"
-                />
               </Field>
               <Field>
                 <FieldLabel htmlFor="ds-locked">Account email</FieldLabel>
@@ -702,11 +639,14 @@ export default function DesignSystemPage() {
               <SheetHeader>
                 <SheetTitle>Approve change</SheetTitle>
                 <SheetDescription>
-                  Same recommendation anatomy as Today and Coach.
+                  A bottom sheet for a decision that needs room.
                 </SheetDescription>
               </SheetHeader>
-              <div className="px-4 pb-6">
-                <ExampleRecommendation />
+              <div className="flex gap-2 px-4 pb-6">
+                <Button size="md">Accept</Button>
+                <Button size="md" variant="outline">
+                  Keep 5 × 6
+                </Button>
               </div>
             </SheetContent>
           </Sheet>
@@ -882,158 +822,16 @@ export default function DesignSystemPage() {
       <GallerySection
         id="patterns"
         index="06 · Patterns"
-        title="Night Track patterns"
-        description="Patterns still used by screens that have not moved to Dense. Each one is replaced or removed with its screen lot."
+        title="Other patterns"
+        description="Patterns in use outside the core Dense set: session structure, coach notes, metrics and onboarding progress."
       >
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
-          <Specimen title="Verdict row" meta="replaces the tile">
-            <VerdictList>
-              <VerdictRow
-                label="Aerobic efficiency"
-                value="5:31"
-                trend="improving"
-              />
-              <VerdictRow label="Threshold pace" value="4:38" trend="stable" />
-              <VerdictRow label="HR drift" value="7.8%" trend="investigate" />
-            </VerdictList>
-            <SessionShape blocks={session} className="mt-2" />
+          <Specimen title="Session structure" meta="SessionShape">
+            <SessionShape blocks={session} />
             <p className="text-label text-muted-foreground">
               Session structure: width is time, colour is intensity, warm-up and
               recoveries lower and faded, a removed rep dashed.
             </p>
-          </Specimen>
-          <Specimen title="Session kind tile" meta="SessionKindTile">
-            <ul className="flex flex-wrap gap-2">
-              {sessionTileKinds.map((kind) => (
-                <li key={kind}>
-                  <SessionKindTile kind={kind} label={kind} size="md" />
-                </li>
-              ))}
-            </ul>
-            <div className="flex items-end gap-3">
-              {(["xs", "sm", "md", "lg"] as const).map((size) => (
-                <span key={size} className="flex flex-col items-center gap-1.5">
-                  <SessionKindTile kind="threshold" size={size} />
-                  <MonoLabel size="nano">{size}</MonoLabel>
-                </span>
-              ))}
-              <SessionKindTile kind="rest" size="lg" />
-              <SessionKindTile kind="race" size="lg" />
-            </div>
-            <p className="text-label text-muted-foreground">
-              Easy and long on provider blue, quality on zone 4, hills and trail
-              on zone 3, support work muted, race in Volt, rest dashed.
-            </p>
-          </Specimen>
-          <Specimen title="Recommendation" meta="Card · Badge · Button">
-            <ExampleRecommendation />
-            <p className="text-body text-muted-foreground">
-              Fixed anatomy: who · what · diff · why · confidence · decision.
-            </p>
-          </Specimen>
-          <Specimen title="Provenance" meta="inline · subtle">
-            <SignalList>
-              <SignalRow
-                label="Height"
-                value="178"
-                unit="cm"
-                source="manual"
-                provenance="Entered manually"
-              />
-              <SignalRow
-                label="Resting HR"
-                value="48"
-                unit="bpm"
-                source="provider"
-                provenance="Garmin · updated today"
-              />
-              <SignalRow
-                label="Threshold pace"
-                value="4:38"
-                source="estimate"
-                provenance="Stride estimate · moderate"
-              />
-              <SignalRow
-                label="VO2 max"
-                value="52"
-                source="provider"
-                provenance="Garmin · today"
-                provenanceVariant="mono"
-              />
-            </SignalList>
-          </Specimen>
-          <Specimen title="Ledger entry" meta="timeline">
-            <LedgerEntry
-              status="accepted"
-              title="Long run Sat → Sun"
-              attribution="Proposed by Training · accepted by you · Mon 5"
-              action={
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="h-auto px-0 text-secondary-foreground"
-                >
-                  Revert
-                </Button>
-              }
-            >
-              You blocked Saturday. Volume unchanged.
-            </LedgerEntry>
-            <LedgerEntry
-              status="open"
-              title="Threshold 5 × 6 → 4 × 6"
-              attribution="Proposed by Recovery · waiting for you"
-            >
-              Sleep and HRV are both down.
-            </LedgerEntry>
-            <DecisionLegend />
-          </Specimen>
-          <Specimen title="Halo Volt" meta="Halo · entry and highlight only">
-            <div className="relative isolate flex h-64 flex-col justify-end overflow-hidden rounded-2xl border border-border bg-background p-6">
-              <Halo
-                viewBox="0 0 600 300"
-                path="M-20,290 C140,270 230,170 330,140 S500,80 620,30"
-                pool={{ cx: 432, cy: 105, r: 360 }}
-                width={110}
-                point={{ x: 330, y: 140 }}
-                scrim="bottom-start"
-                className="absolute inset-0 -z-10 size-full"
-              />
-              <p className="text-title font-semibold">
-                Ton coach sait déjà d’où tu viens.
-              </p>
-            </div>
-            <p className="text-label text-muted-foreground">
-              Pool, blurred ribbon and crisp trace from the halo tokens, with a
-              scrim in the surface color under text. Breathes over 8 s and stays
-              static with reduced motion. Never behind data, buttons, badges or
-              status, and one per screen.
-            </p>
-          </Specimen>
-          <Specimen title="Coach presence" meta="no sparkles">
-            <dl className="grid grid-cols-[5.625rem_minmax(0,1fr)] border-t border-border">
-              {(
-                [
-                  ["idle", "Ask about today…"],
-                  ["reading", "Reading last 6 threshold sessions"],
-                  ["watching", "Training · 2 proposals"],
-                  ["noticing", "Findings rise in one by one during import"],
-                  ["changed", "Moved by coach · see ledger"],
-                ] as const
-              ).map(([state, text]) => (
-                <div
-                  key={state}
-                  className="col-span-full grid grid-cols-subgrid items-center gap-3 border-b border-border py-3"
-                >
-                  <dt>
-                    <MonoLabel>{state}</MonoLabel>
-                  </dt>
-                  <dd>
-                    <CoachActivity state={state}>{text}</CoachActivity>
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </Specimen>
           <Specimen title="Context chips" meta="ContextChip · ContextChipLink">
             <ContextChipsExample />
@@ -1050,18 +848,7 @@ export default function DesignSystemPage() {
               that wrap from md.
             </p>
           </Specimen>
-          <Specimen title="Signals and notes" meta="SignalChip · CoachNote">
-            <div className="flex flex-wrap gap-1.5">
-              <SignalChip label="Sleep" value="5h52" direction="down" />
-              <SignalChip label="HRV" value="46 ms" direction="down" />
-              <SignalChip label="Load" value="1.24" direction="up" />
-              <SignalChip
-                label="Legs"
-                value="Fresh"
-                direction="flat"
-                tone="muted"
-              />
-            </div>
+          <Specimen title="Coach notes" meta="CoachNote · Metric">
             <CoachNote
               action={
                 <Button
@@ -1080,9 +867,9 @@ export default function DesignSystemPage() {
             <div className="flex items-end gap-3">
               <Metric size="hero" value="58" />
               <div className="flex flex-col gap-1 pb-2">
-                <TrendLabel trend="watch" className="text-body-lg">
+                <span className="text-body-lg font-medium">
                   Moderate readiness
-                </TrendLabel>
+                </span>
                 <span className="text-body text-secondary-foreground">
                   14-day avg 69 · mostly sleep
                 </span>
@@ -1119,29 +906,7 @@ export default function DesignSystemPage() {
               </SyncStatus>
             </div>
           </Specimen>
-          <Specimen title="Stepper" meta="onboarding">
-            <Stepper aria-label="Onboarding steps">
-              <StepperItem index={1} status="done" label="Welcome" />
-              <StepperItem index={2} status="done" label="Connect Garmin" />
-              <StepperItem
-                index={3}
-                status="background"
-                label="Import history"
-                detail="Still reading · 71%"
-              />
-              <StepperItem
-                index={4}
-                status="current"
-                label="About you"
-                detail="Only what Garmin can't tell"
-              />
-              <StepperItem index={5} status="upcoming" label="Goals" />
-              <StepperItem
-                index={6}
-                status="upcoming"
-                label="Your athlete profile"
-              />
-            </Stepper>
+          <Specimen title="Onboarding progress" meta="StepperSegments">
             <StepperSegments
               statuses={[
                 "done",
@@ -1154,7 +919,7 @@ export default function DesignSystemPage() {
               currentProgress={0.6}
             />
             <p className="text-body text-muted-foreground">
-              Desktop: in the sidebar. Mobile: segments across the top.
+              Segments across the top of each onboarding step.
             </p>
           </Specimen>
           <Specimen title="Messages" meta="Alert · empty">
@@ -1187,35 +952,5 @@ export default function DesignSystemPage() {
         </div>
       </GallerySection>
     </main>
-  );
-}
-
-function ExampleRecommendation() {
-  return (
-    <Recommendation>
-      <RecommendationHeader
-        source="via Recovery + Training"
-        status={<Badge variant="warning">Needs approval</Badge>}
-      />
-      <RecommendationBody>
-        <RecommendationTitle>
-          Reduce today&apos;s threshold to 4 × 6 min.
-        </RecommendationTitle>
-        <RecommendationDiff from="5 × 6 min · 62'" to="4 × 6 min · 52'" />
-        <RecommendationSignals>
-          <SignalChip label="Sleep" value="5h52" direction="down" />
-          <SignalChip label="HRV" value="46 ms" direction="down" />
-          <SignalChip label="Load" value="1.24" direction="up" />
-        </RecommendationSignals>
-        <RecommendationActions
-          confidence={<ConfidenceMeter level="moderate" />}
-        >
-          <Button size="md">Accept</Button>
-          <Button size="md" variant="outline">
-            Keep 5 × 6
-          </Button>
-        </RecommendationActions>
-      </RecommendationBody>
-    </Recommendation>
   );
 }
