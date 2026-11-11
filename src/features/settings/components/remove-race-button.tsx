@@ -18,7 +18,7 @@ export function RemoveRaceButton({ id, name }: { id: string; name: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button type="button" variant="destructive" size="md">
+        <Button type="button" variant="destructive">
           Supprimer la course
         </Button>
       </AlertDialogTrigger>

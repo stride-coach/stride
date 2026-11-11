@@ -1,7 +1,9 @@
 export const settingsSections = [
   { slug: "", label: "Vue d’ensemble", group: "You" },
-  { slug: "profile", label: "Profil", group: "You" },
-  { slug: "training", label: "Entraînement et coach", group: "You" },
+  { slug: "profile", label: "Profil et zones", group: "You" },
+  { slug: "training", label: "Entraînement et staff", group: "You" },
+  { slug: "notifications", label: "Notifications", group: "You" },
+  { slug: "appearance", label: "Apparence et raccourcis", group: "You" },
   { slug: "goals", label: "Objectifs et courses", group: "You" },
   { slug: "connections", label: "Connexions", group: "Data" },
   { slug: "privacy", label: "Données et confidentialité", group: "Data" },
