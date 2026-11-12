@@ -45,7 +45,10 @@ function sectionOf(
   kind: RaceKind,
   past = false,
 ) {
-  const rest = pathname.slice(base.length).replace(/\/$/, "");
+  const rest = pathname
+    .slice(base.length)
+    .replace(/\/$/, "")
+    .replace(/^\/after\/compare$/, "/after");
   const extra = extraCrumbs[rest];
   if (extra) return { tab: extra.tab, view: null, crumb: extra.crumb };
   const view =

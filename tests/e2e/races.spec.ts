@@ -196,4 +196,24 @@ test("a past race opens its after-race tab", async ({ page }) => {
       .getByText("Résultat non trouvé")
       .or(page.getByRole("heading", { name: "Ta course sur ton plan" })),
   ).toBeVisible();
+  const after = page.getByRole("navigation", {
+    name: "Vues de l’après-course",
+  });
+  await after.getByRole("link", { name: "Comparer" }).click();
+  await expect(page).toHaveURL(/\/after\/compare$/);
+  await expect(
+    sections.getByRole("link", { name: "Après-course" }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(page.getByText("Aucune autre édition à comparer")).toBeVisible();
+  await after.getByRole("link", { name: "Cette course" }).click();
+  await page.getByRole("link", { name: "Refaire cette course" }).click();
+  await expect(page).toHaveURL(/\/races\/new\?from=/);
+  await expect(page.getByLabel("Nom", { exact: true })).toHaveValue(
+    "Trail des Lacs 30K",
+  );
+  await expect(
+    page.getByText(/^Pré-remplie d’après l’édition \d{4}\./),
+  ).toBeVisible();
+  await expect(page.getByLabel("Distance", { exact: true })).toHaveValue("30");
+  await expect(page.getByLabel("Date", { exact: true })).not.toHaveValue("");
 });

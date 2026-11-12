@@ -11,6 +11,7 @@ import {
   recoveryDays,
 } from "@/features/races/after-race";
 import { EmptyState, RaceCard } from "@/features/races/components/race-ui";
+import { AfterViews } from "@/features/races/components/after-views";
 import { readNutritionLibrary } from "@/server/fueling/products";
 import { loadAfterRace } from "@/server/races/after";
 import { loadRace } from "@/server/races/load";
@@ -35,13 +36,26 @@ export default async function RaceAfterPage({
     date: raceDate,
   });
   const recovery = recoveryDays({ nights, raceDate, today });
+  const afterNav = (
+    <div className="flex flex-wrap items-center gap-2">
+      <AfterViews base={base} current="race" />
+      <Button asChild variant="outline" className="sm:ml-auto">
+        <Link href={`/races/new?from=${data.race.id}`}>
+          Refaire cette course
+        </Link>
+      </Button>
+    </div>
+  );
   if (!result)
     return (
-      <EmptyState title="Résultat non trouvé">
-        Stride cherche une sortie de course enregistrée le jour de la course, à
-        15 % près de sa distance. Synchronise ta montre ou vérifie la date de la
-        course.
-      </EmptyState>
+      <>
+        {afterNav}
+        <EmptyState title="Résultat non trouvé">
+          Stride cherche une sortie de course enregistrée le jour de la course,
+          à 15 % près de sa distance. Synchronise ta montre ou vérifie la date
+          de la course.
+        </EmptyState>
+      </>
     );
   const views = planFor(data);
   const planned = views?.planned ?? null;
@@ -74,6 +88,7 @@ export default async function RaceAfterPage({
   );
   return (
     <>
+      {afterNav}
       <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
         {afterReading({ result, passages })}
