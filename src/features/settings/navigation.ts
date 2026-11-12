@@ -4,7 +4,6 @@ export const settingsSections = [
   { slug: "training", label: "Entraînement et staff", group: "You" },
   { slug: "notifications", label: "Notifications", group: "You" },
   { slug: "appearance", label: "Apparence et raccourcis", group: "You" },
-  { slug: "goals", label: "Objectifs et courses", group: "You" },
   { slug: "connections", label: "Connexions", group: "Data" },
   { slug: "privacy", label: "Données et confidentialité", group: "Data" },
 ] as const;

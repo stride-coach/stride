@@ -276,6 +276,9 @@ export function FeaturedRace({
         <Button asChild variant="outline">
           <Link href={`/races/${race.id}/roadbook`}>Voir la stratégie</Link>
         </Button>
+        <Button asChild variant="ghost">
+          <Link href={`/races/${race.id}/edit`}>Modifier l’objectif</Link>
+        </Button>
       </div>
     </section>
   );
@@ -432,7 +435,7 @@ export function OpenSlot({ priority }: { priority: "B" }) {
         nutrition et équipement testés dans les conditions réelles.
       </p>
       <Button asChild variant="outline" className="self-start">
-        <Link href="/settings/goals">Ajouter une course B</Link>
+        <Link href="/races/new?priority=B">Ajouter une course B</Link>
       </Button>
     </section>
   );

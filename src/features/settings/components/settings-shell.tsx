@@ -121,7 +121,6 @@ export function SettingsShell({
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [pathname, search]);
-  const goals = pathname === "/settings/goals";
   const garmin = pathname === "/settings/connections/garmin";
   const section = settingsSections.find(
     (item) =>
@@ -223,18 +222,6 @@ export function SettingsShell({
                   </span>
                 )}
               </nav>
-              {goals && (
-                <Link
-                  href="/settings/goals?course=nouvelle"
-                  aria-label="Ajouter une course"
-                  className="inline-flex min-h-control-touch shrink-0 items-center justify-center rounded-md bg-primary px-3 font-medium text-primary-foreground hover:bg-primary/90 max-md:min-w-control-touch md:min-h-control"
-                >
-                  <span aria-hidden="true" className="md:hidden">
-                    +
-                  </span>
-                  <span className="max-md:hidden">+ Ajouter une course</span>
-                </Link>
-              )}
               <MobileHeaderActions />
               <DataActivityThread />
             </header>

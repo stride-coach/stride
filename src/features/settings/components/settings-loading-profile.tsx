@@ -106,25 +106,3 @@ export function SettingsTrainingLoading() {
     </LoadingScope>
   );
 }
-
-export function SettingsGoalsLoading() {
-  return (
-    <LoadingScope
-      label="Chargement des objectifs"
-      className="flex flex-col gap-6 md:gap-8"
-    >
-      <PageTitle
-        title="Objectifs et courses"
-        description="Ta course A structure tout le plan. La changer crée une proposition de plan que tu peux relire avant."
-      />
-      <section className="flex flex-col gap-2 md:gap-3">
-        <SectionTitle>Objectif principal</SectionTitle>
-        <Skeleton aria-hidden="true" className="h-24 w-full rounded-xl" />
-      </section>
-      <section className="min-w-0">
-        <SectionTitle>À venir</SectionTitle>
-        <Rows rows={3} />
-      </section>
-    </LoadingScope>
-  );
-}

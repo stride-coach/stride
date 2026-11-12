@@ -115,7 +115,7 @@ describe("athleteModelQuestions", () => {
     expect(
       questions.map(({ key, href, action }) => ({ key, href, action })),
     ).toEqual([
-      { key: "focus", href: "/settings/goals", action: "Choisir" },
+      { key: "focus", href: "/settings/training#objectif", action: "Choisir" },
       {
         key: "weight_kg",
         href: "/settings/profile#weight_kg",

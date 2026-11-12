@@ -13,7 +13,7 @@ export default function RacesListLayout({
         title="Courses"
         actions={
           <Button asChild variant="outline" className="shrink-0">
-            <Link href="/settings/goals">
+            <Link href="/races/new">
               <span aria-hidden="true">+</span>
               <span className="max-sm:sr-only">Ajouter une course</span>
             </Link>

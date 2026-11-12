@@ -135,7 +135,7 @@ test("today explains the missing plan and keeps Garmin data", async ({
   ).toBeVisible();
   await expect(
     session.getByRole("link", { name: "Ajouter une course" }),
-  ).toHaveAttribute("href", "/races");
+  ).toHaveAttribute("href", "/races/new");
   await expect(
     page.getByRole("region", { name: /^Cette semaine/ }),
   ).toHaveCount(0);

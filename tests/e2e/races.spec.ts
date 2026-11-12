@@ -71,3 +71,84 @@ for (const viewport of [
       await expect(page.getByText(list, { exact: true }).first()).toBeVisible();
   });
 }
+
+for (const viewport of [
+  { width: 1440, height: 900, name: "Trail des Crêtes" },
+  { width: 390, height: 844, name: "Cross des Lilas" },
+]) {
+  test(`a race is added, edited and removed from Courses at ${viewport.width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await signIn(page);
+    await page.goto("/races");
+    await page
+      .getByRole("link", { name: "Ajouter une course", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/races\/new$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Quelle course ?" }),
+    ).toBeVisible();
+    await page.getByLabel("Nom", { exact: true }).fill(viewport.name);
+    await page.getByLabel("Date", { exact: true }).fill("10/08/2027");
+    await page.getByLabel("Distance", { exact: true }).fill("21,1");
+    await page.getByRole("button", { name: "Continuer" }).click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Qu’en attends-tu ?" }),
+    ).toBeVisible();
+    await page.getByText("C · Course de préparation").click();
+    await expect(
+      page.getByRole("radio", { name: /C · Course de préparation/ }),
+    ).toBeChecked();
+    await page
+      .getByRole("button", { name: "Voir l’effet sur le plan" })
+      .click();
+    await expect(
+      page.getByText("Course ajoutée à tes objectifs."),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Voir la course" }).click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: viewport.name }),
+    ).toBeVisible();
+
+    await page
+      .getByRole("link", { name: "Modifier l’objectif" })
+      .filter({ visible: true })
+      .click();
+    await expect(page).toHaveURL(/\/races\/[0-9a-f-]+\/edit$/);
+    await expect(page.getByLabel("Nom", { exact: true })).toHaveValue(
+      viewport.name,
+    );
+    await page.getByLabel("Nom", { exact: true }).fill(`${viewport.name} 2027`);
+    await page.getByRole("button", { name: "Continuer" }).click();
+    await expect(
+      page.getByRole("radio", { name: /C · Course de préparation/ }),
+    ).toBeChecked();
+    await page
+      .getByRole("button", { name: "Voir l’effet sur le plan" })
+      .click();
+    await expect(page.getByText("Course mise à jour.")).toBeVisible();
+    await page.getByRole("link", { name: "Voir la course" }).click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: `${viewport.name} 2027` }),
+    ).toBeVisible();
+
+    await page
+      .getByRole("link", { name: "Modifier l’objectif" })
+      .filter({ visible: true })
+      .click();
+    await page.getByRole("button", { name: "Supprimer la course" }).click();
+    await page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: "Supprimer la course" })
+      .click();
+    await expect(page).toHaveURL(/\/races$/);
+    await expect(page.getByText("Course supprimée.")).toBeVisible();
+    await expect(page.getByText(`${viewport.name} 2027`)).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+  });
+}

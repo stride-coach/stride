@@ -156,57 +156,20 @@ test("desktop settings reflect stored athlete data and expose every supported se
   await page.reload();
   await expect(page.getByRole("radio", { name: "Route" })).toBeChecked();
   await page
-    .getByRole("navigation", { name: "Réglages personnels" })
-    .getByRole("link", { name: "Objectifs et courses" })
-    .click();
-  await expect(page.getByText("EcoTrail Paris 120K").first()).toBeVisible();
-  await page
     .getByRole("combobox", { name: "Quel est ton objectif ?" })
     .selectOption("trail");
   await page.getByRole("button", { name: "Enregistrer l’objectif" }).click();
-  await expect(page.getByText("Objectif enregistré.")).toBeVisible();
+  await expectTrainingNotice(page, "Modifications enregistrées.");
   await page.reload();
   await expect(
     page.getByRole("combobox", { name: "Quel est ton objectif ?" }),
   ).toHaveValue("trail");
-  await page.getByRole("link", { name: "Ajouter une course" }).click();
-  const wizard = page.getByRole("dialog", { name: "Ajouter une course" });
-  await expect(wizard).toBeVisible();
-  await wizard.getByLabel("Nom").fill("Training 10K");
-  await wizard.getByLabel("Date").fill("10/08/2027");
-  await wizard.getByLabel("Distance").fill("10");
-  await wizard.getByRole("button", { name: "Continuer" }).click();
-  await wizard
-    .getByRole("button", { name: "Voir l’effet sur le plan" })
-    .click();
-  await expect(
-    wizard.getByText("Course ajoutée à tes objectifs."),
-  ).toBeVisible();
-  await wizard.getByRole("button", { name: "Terminer" }).click();
-  await expect(page).toHaveURL(/\/settings\/goals$/);
+  await page.goto("/settings/goals");
+  await expect(page).toHaveURL(/\/races$/);
   await page.goto("/settings");
   await expect(
-    page.getByRole("link", {
-      name: /Objectifs et courses.*EcoTrail Paris 120K.*Training 10K/,
-    }),
-  ).toBeVisible();
-  await page.goto("/settings/goals");
-  await page.reload();
-  await page
-    .locator("div")
-    .filter({ hasText: "Training 10K" })
-    .filter({ has: page.getByRole("link", { name: "Modifier" }) })
-    .last()
-    .getByRole("link", { name: "Modifier" })
-    .click();
-  await page.getByRole("button", { name: "Supprimer la course" }).click();
-  await expect(page.getByRole("alertdialog")).toBeVisible();
-  await page
-    .getByRole("alertdialog")
-    .getByRole("button", { name: "Supprimer la course" })
-    .click();
-  await expect(page.getByText("Course supprimée.")).toBeVisible();
-  await expect(page.getByText("Training 10K")).toHaveCount(0);
+    page.getByRole("link", { name: /Objectifs et courses/ }),
+  ).toHaveCount(0);
   await page
     .getByRole("navigation", { name: "Réglages des données" })
     .getByRole("link", { name: "Connexions" })
@@ -235,14 +198,14 @@ test("mobile settings keep a narrow viewport navigable", async ({ page }) => {
     page.getByRole("button", { name: "Se déconnecter" }),
   ).toBeInViewport();
   await expect(
-    page.getByRole("link", { name: /Objectifs et courses/ }).last(),
+    page.getByRole("link", { name: /Entraînement et staff/ }).last(),
   ).toBeVisible();
   await page
-    .getByRole("link", { name: /Objectifs et courses/ })
+    .getByRole("link", { name: /Entraînement et staff/ })
     .last()
     .click();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Objectifs et courses" }),
+    page.getByRole("heading", { level: 1, name: "Entraînement et staff" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Retour aux réglages" }),
@@ -266,7 +229,6 @@ test("settings pages keep a centred reading column on every width", async ({
     "/settings/training",
     "/settings/notifications",
     "/settings/appearance",
-    "/settings/goals",
     "/settings/connections",
     "/settings/connections/garmin",
     "/settings/privacy",
@@ -309,7 +271,7 @@ test("desktop settings keep the account footer fixed", async ({ page }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 650 });
   await signIn(page);
-  for (const section of ["training", "goals"]) {
+  for (const section of ["training", "profile"]) {
     await page.goto(`/settings/${section}`);
     const footer = page.locator('[data-slot="settings-account"]');
     const before = await footer.boundingBox();

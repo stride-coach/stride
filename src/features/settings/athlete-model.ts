@@ -123,7 +123,7 @@ export function athleteModelQuestions(
       key: "focus",
       question: "Sur quoi veux-tu progresser cette saison ?",
       impact: "Aucun objectif principal · oriente la structure du plan",
-      href: "/settings/goals",
+      href: "/settings/training#objectif",
       action: "Choisir",
     });
   for (const field of requiredProfileFields) {
