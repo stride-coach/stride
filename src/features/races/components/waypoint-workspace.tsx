@@ -1119,12 +1119,20 @@ export function WaypointWorkspace({
             <WaypointEditor key={editorKey} {...editorProps} />
           ) : (
             !estimate && (
-              <WatchExport
-                raceId={raceId}
-                points={points}
-                instructions={instructions}
-                compact={false}
-              />
+              <>
+                <WatchExport
+                  raceId={raceId}
+                  points={points}
+                  instructions={instructions}
+                  compact={false}
+                />
+                <WatchExport
+                  raceId={raceId}
+                  points={points}
+                  instructions={instructions}
+                  compact
+                />
+              </>
             )
           )}
         </aside>
