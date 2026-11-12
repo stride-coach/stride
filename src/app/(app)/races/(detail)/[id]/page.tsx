@@ -1,23 +1,13 @@
 import { Suspense } from "react";
-import { localToday } from "@/features/app-shell/shell";
 import type { RaceWeather } from "@/features/races/weather";
 import { walkPortions, walkSummary } from "@/features/races/grade";
-import { raceOnTrack, type RaceOnTrack } from "@/features/races/on-track";
-import {
-  preparationProgress,
-  preparationRows,
-} from "@/features/races/overview";
 import { MapCard } from "@/features/races/components/map-card";
 import { ProfileCard } from "@/features/races/components/course-cards";
 import { CourseImport } from "@/features/races/components/course-import";
-import { OnTrack } from "@/features/races/components/on-track";
-import { RaceCard } from "@/features/races/components/race-ui";
 import { TargetMissing } from "@/features/races/components/target-missing";
 import { WalkCard } from "@/features/races/components/walk-card";
-import { requireAthlete } from "@/server/app/session";
 import type { RaceWorkspaceData } from "@/server/races/races";
 import { loadRace } from "@/server/races/load";
-import { loadOnTrackInputs } from "@/server/races/on-track";
 import { chartViews, planFor, weatherFor } from "@/server/races/views";
 import { listCourseActivities } from "@/server/races/activities";
 
@@ -101,25 +91,14 @@ function CourseWorkspace({
 
 function RaceStatus({
   data,
-  onTrack,
   askTarget = true,
 }: {
   data: RaceWorkspaceData;
-  onTrack: RaceOnTrack | null;
   askTarget?: boolean;
 }) {
-  return (
-    <>
-      {askTarget && !data.race.targetSeconds && (
-        <TargetMissing race={data.race} plan={data.plan} />
-      )}
-      {onTrack && (
-        <RaceCard>
-          <OnTrack onTrack={onTrack} />
-        </RaceCard>
-      )}
-    </>
-  );
+  return askTarget && !data.race.targetSeconds ? (
+    <TargetMissing race={data.race} plan={data.plan} />
+  ) : null;
 }
 
 export default async function RaceCoursePage({
@@ -127,24 +106,13 @@ export default async function RaceCoursePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const inputsRead = requireAthlete().then((context) =>
-    loadOnTrackInputs(context, localToday(new Date())),
-  );
   const { id } = await params;
-  const [{ context, data }, inputs] = await Promise.all([
-    loadRace(id),
-    inputsRead,
-  ]);
-  const onTrack = raceOnTrack(
-    data.race,
-    inputs,
-    preparationProgress(preparationRows(data)),
-  );
+  const { context, data } = await loadRace(id);
   if (!data.course) {
     const activities = await listCourseActivities(context);
     return (
       <>
-        <RaceStatus data={data} onTrack={onTrack} askTarget={false} />
+        <RaceStatus data={data} askTarget={false} />
         <CourseImport
           race={data.race}
           activities={activities}
@@ -159,14 +127,14 @@ export default async function RaceCoursePage({
   if (!planned || !data.race.date || planned.startEpochMs === null)
     return (
       <>
-        <RaceStatus data={data} onTrack={onTrack} />
+        <RaceStatus data={data} />
         <CourseWorkspace {...props} weather={null} />
       </>
     );
   const weather = weatherFor(data, views.model, planned);
   return (
     <>
-      <RaceStatus data={data} onTrack={onTrack} />
+      <RaceStatus data={data} />
       <Suspense fallback={<CourseWorkspace {...props} weather={null} />}>
         <CourseWithWeather {...props} weather={weather} />
       </Suspense>

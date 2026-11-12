@@ -29,13 +29,6 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     );
     const pace = page.locator("dl > div", { hasText: "Allure moy" });
     await expect(pace).toContainText("12:00 /km");
-    const onTrack = page.getByRole("region", {
-      name: "Suis-je dans les temps ?",
-    });
-    await expect(onTrack).toBeVisible();
-    await expect(
-      onTrack.getByText("pas de prévision fiable en ultra"),
-    ).toBeVisible();
     await expect(page.getByText("Météo du jour J")).toHaveCount(0);
     const margin = page.locator("dl > div", { hasText: "Marge barrière" });
     if (viewport.width < 500) await expect(margin).toContainText("2h");
@@ -149,7 +142,7 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     const sections = page.getByRole("navigation", {
       name: "Sections de la course",
     });
-    for (const label of ["Stratégie", "Alimentation", "Équipement"]) {
+    for (const label of ["Ravitaillement", "Équipement", "Préparation"]) {
       await sections.getByRole("link", { name: label }).click();
       await expect(
         page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
@@ -193,7 +186,7 @@ test("the plan de course follows the timeline and applies a strategy proposal", 
     `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
   );
   await signInAs(page, "athlete@example.com");
-  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/roadbook");
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/scenarios");
 
   const timeline = page.getByRole("list", {
     name: "Plan de course par tronçon",
@@ -454,17 +447,18 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
     name: "Sections de la course",
   });
   await expect(sections.getByRole("link")).toHaveText([
-    "Parcours",
-    "Check-lists",
+    "Plan de course",
+    "Équipement",
+    "Préparation",
   ]);
+  await expect(
+    page.getByRole("navigation", { name: "Vues du plan de course" }),
+  ).toHaveCount(0);
   await expect(page.getByText("Simulation par tronçon")).toHaveCount(0);
   await expect(page.getByText("Marche en pente")).toHaveCount(0);
   await expect(
     page.locator("dl > div", { hasText: "Allure moy" }),
   ).toContainText("3:54 /km");
-  await expect(
-    page.getByRole("region", { name: "Suis-je dans les temps ?" }),
-  ).toBeVisible();
   await page.screenshot({
     path: "test-results/race-road-1440.png",
     fullPage: true,
@@ -492,11 +486,13 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
     page.locator("dl > div", { hasText: "Départ" }).first(),
   ).toContainText("09:00", { timeout: 15_000 });
 
-  const raceUrl = page.url();
-  await page.goto(`${raceUrl}/preparation`);
-  await expect(page).toHaveURL(`${raceUrl}/gear`);
+  await sections.getByRole("link", { name: "Préparation" }).click();
   await expect(
-    sections.getByRole("link", { name: "Check-lists" }),
+    page.getByRole("region", { name: "Suis-je dans les temps ?" }),
+  ).toBeVisible();
+  await sections.getByRole("link", { name: "Équipement" }).click();
+  await expect(
+    sections.getByRole("link", { name: "Équipement" }),
   ).toHaveAttribute("aria-current", "page");
   for (const list of ["J-7", "J-1", "Jour J"])
     await expect(

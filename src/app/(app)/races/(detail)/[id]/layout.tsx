@@ -11,7 +11,11 @@ import { StrideMark } from "@/components/stride/stride-mark";
 import { requireAthlete } from "@/server/app/session";
 import { loadOnTrackInputs } from "@/server/races/on-track";
 import { RaceHeader } from "@/features/races/components/race-header";
-import { RaceBreadcrumb, RaceTabs } from "@/features/races/components/race-nav";
+import {
+  RaceBreadcrumb,
+  RaceTabs,
+  RaceViews,
+} from "@/features/races/components/race-nav";
 import { loadRace } from "@/server/races/load";
 
 export async function generateMetadata({
@@ -47,11 +51,7 @@ export default async function RaceLayout({
         className="print:hidden"
         actions={
           <>
-            <Button
-              asChild
-              variant="ghost"
-              className="shrink-0 max-md:hidden"
-            >
+            <Button asChild variant="ghost" className="shrink-0 max-md:hidden">
               <Link href={`${base}/edit`}>
                 <PencilIcon aria-hidden="true" className="size-3.5" />
                 Modifier l’objectif
@@ -94,7 +94,7 @@ export default async function RaceLayout({
           </>
         }
         breadcrumb={
-          <div className="flex min-w-0 items-stretch gap-6 self-stretch">
+          <div className="flex min-w-0 flex-1 items-stretch gap-6 self-stretch">
             <RaceBreadcrumb
               raceId={data.race.id}
               name={data.race.name}
@@ -106,10 +106,18 @@ export default async function RaceLayout({
               kind={data.race.kind}
               variant="header"
             />
+            <div className="ml-auto flex items-center">
+              <RaceViews
+                raceId={data.race.id}
+                kind={data.race.kind}
+                variant="header"
+              />
+            </div>
           </div>
         }
       />
       <RaceTabs raceId={data.race.id} kind={data.race.kind} variant="pills" />
+      <RaceViews raceId={data.race.id} kind={data.race.kind} variant="row" />
       <div
         id={raceWorkspaceId}
         className="relative flex min-h-0 flex-1 flex-col print:block"

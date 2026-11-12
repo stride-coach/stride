@@ -39,8 +39,8 @@ const nextConfig: NextConfig = {
       },
       { source: "/coach/nouvelle", destination: "/coach/new", permanent: true },
       {
-        source: "/races/:id/preparation",
-        destination: "/races/:id/gear",
+        source: "/races/:id/roadbook",
+        destination: "/races/:id/scenarios",
         permanent: true,
       },
       {

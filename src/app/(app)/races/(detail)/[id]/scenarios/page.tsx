@@ -87,8 +87,8 @@ function ScenarioChips({
           key={scenario.key}
           href={
             scenario.key === "target"
-              ? `${base}/roadbook`
-              : `${base}/roadbook?scenario=${scenario.key}`
+              ? `${base}/scenarios`
+              : `${base}/scenarios?scenario=${scenario.key}`
           }
           scroll={false}
           aria-current={scenario.key === current ? "true" : undefined}
@@ -140,7 +140,7 @@ function StrategistCard({
         ),
       ).length
     : 0;
-  const base = `/races/${data.race.id}/roadbook`;
+  const base = `/races/${data.race.id}/scenarios`;
   return (
     <section
       aria-labelledby="consignes-strategiste"
