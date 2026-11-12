@@ -346,6 +346,7 @@ const tables = {
   race_drop_bags: [],
   race_setting_changes: [],
   fueling_tests: [],
+  race_crew_links: [],
   athlete_nutrition_products: [],
   activity_shoe_decisions: [],
   activity_feelings: [],
@@ -2931,6 +2932,9 @@ createServer(async (request, response) => {
     tables.race_drop_bags = [];
     tables.race_setting_changes = [];
     tables.fueling_tests = [];
+    tables.race_crew_links = [];
+    if (url.searchParams.get("crew"))
+      race.race_date = new Date(Date.now() + day).toISOString().slice(0, 10);
     const checklistItem = (index, list, label, values = {}) => ({
       id: `e2000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       race_id: race.id,
@@ -3214,7 +3218,11 @@ createServer(async (request, response) => {
         "eq.aaaaaaaa-aaaa-4aaa-8aaa-000000000168"
     )
       await new Promise((resolve) => setTimeout(resolve, 6000));
-    if (request.headers.authorization !== `Bearer ${token}` && !recordsSession)
+    if (
+      request.headers.authorization !== `Bearer ${token}` &&
+      !recordsSession &&
+      url.pathname !== "/rest/v1/rpc/crew_link_view"
+    )
       return send(401, { message: "JWT required" });
     if (
       recordsSession?.user.id === recordsGoalFailureUser.id &&
@@ -3967,6 +3975,107 @@ createServer(async (request, response) => {
           ? { id: row.id }
           : [{ id: row.id }],
       );
+    }
+    if (url.pathname === "/rest/v1/race_crew_links") {
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        const row = {
+          enabled: true,
+          ...value,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        tables.race_crew_links = tables.race_crew_links
+          .filter((item) => item.race_id !== row.race_id)
+          .concat(row);
+        return send(201, undefined);
+      }
+      if (request.method === "PATCH") {
+        const rows = tables.race_crew_links.filter(
+          (row) => url.searchParams.get("race_id") === `eq.${row.race_id}`,
+        );
+        for (const row of rows) Object.assign(row, body);
+        return send(
+          200,
+          request.headers.accept?.includes("vnd.pgrst.object")
+            ? rows[0]
+              ? { race_id: rows[0].race_id }
+              : null
+            : rows.map((row) => ({ race_id: row.race_id })),
+        );
+      }
+    }
+    if (
+      url.pathname === "/rest/v1/rpc/crew_link_view" &&
+      request.method === "POST"
+    ) {
+      const link = tables.race_crew_links.find(
+        (row) => row.token === body.p_token && row.enabled,
+      );
+      const race = link
+        ? tables.athlete_races.find((item) => item.id === link.race_id)
+        : null;
+      const today = new Date().toISOString().slice(0, 10);
+      const shift = (date, days) => {
+        const value = new Date(`${date}T00:00:00Z`);
+        value.setUTCDate(value.getUTCDate() + days);
+        return value.toISOString().slice(0, 10);
+      };
+      if (
+        !race?.race_date ||
+        today < shift(race.race_date, -1) ||
+        today > shift(race.race_date, 1)
+      )
+        return send(200, null);
+      const plan = tables.race_plans.find((row) => row.race_id === race.id);
+      const course = tables.race_courses.find((row) => row.race_id === race.id);
+      return send(200, {
+        race: {
+          name: race.name,
+          race_date: race.race_date,
+          race_kind: race.race_kind,
+          distance_km: race.distance_km ?? null,
+          elevation_gain_m: race.elevation_gain_m ?? null,
+          target_duration_seconds: race.target_duration_seconds ?? null,
+        },
+        plan: plan
+          ? {
+              start_time: plan.start_time,
+              ambitious_duration_seconds: plan.ambitious_duration_seconds,
+              cautious_duration_seconds: plan.cautious_duration_seconds,
+              cutoff_duration_seconds: plan.cutoff_duration_seconds,
+              walk_grade_percent: plan.walk_grade_percent,
+              walk_pace_seconds_per_km: plan.walk_pace_seconds_per_km,
+              aid_stop_seconds: plan.aid_stop_seconds,
+              water_stop_seconds: plan.water_stop_seconds,
+            }
+          : null,
+        course: course
+          ? {
+              time_zone: course.time_zone,
+              distance_m: course.distance_m,
+              elevation_gain_m: course.elevation_gain_m,
+              elevation_loss_m: course.elevation_loss_m,
+              step_m: course.step_m,
+              points: course.points,
+            }
+          : null,
+        waypoints: tables.race_waypoints
+          .filter((row) => row.race_id === race.id)
+          .map((row) => ({
+            id: row.id,
+            kind: row.kind,
+            name: row.name,
+            distance_m: row.distance_m,
+            cutoff_time: row.cutoff_time ?? null,
+            services: row.services ?? [],
+            stop_seconds: row.stop_seconds ?? null,
+            crew_access: row.crew_access ?? null,
+            crew_prepare: row.crew_prepare ?? null,
+            crew_reason: row.crew_reason ?? null,
+          })),
+        pace_factors: null,
+      });
     }
     const raceRowTable = {
       "/rest/v1/race_nutrition_plans": "race_nutrition_plans",
