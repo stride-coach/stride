@@ -20,7 +20,9 @@ import {
   type RacePlanModel,
   type ScenarioKey,
 } from "@/features/races/workspace";
+import { roadbookRows, roadbookTotals } from "@/features/races/axis";
 import { barriersOf, cutoffAlert } from "@/features/races/cutoff-alert";
+import { printedRoadbook } from "@/features/races/printed-roadbook";
 import { paceFactorsOf, type RaceStrategy } from "@/features/races/proposals";
 import { raceWeather } from "./weather";
 import type { NutritionProduct } from "@/features/fueling/products";
@@ -62,6 +64,32 @@ export function planFor(
       })
     : null;
   return { model, planned, scenarios };
+}
+
+export async function printedRoadbookFor(
+  data: RaceWorkspaceData,
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] },
+) {
+  const views = data.course ? planFor(data) : estimateFor(data);
+  if (!views?.planned) return null;
+  const { model, planned } = views;
+  const weather = data.course
+    ? await weatherFor(data, model, planned).catch(() => null)
+    : null;
+  const timeline = timelineFor({ data, model, planned, weather, products });
+  const { profile } = chartViews(model, planned, weather);
+  const estimate = data.course === null;
+  const rows = roadbookRows(timeline, weather);
+  return printedRoadbook({
+    race: data.race,
+    planned,
+    timeline,
+    rows: estimate ? rows.map((row) => ({ ...row, walk: "—" })) : rows,
+    totals: roadbookTotals(timeline, model.course.distanceM),
+    walkGradePercent: data.plan.walkGradePercent,
+    rain: weather?.mode === "forecast" ? profile.rain : [],
+    estimate,
+  });
 }
 
 export function estimateFor(data: RaceWorkspaceData) {
