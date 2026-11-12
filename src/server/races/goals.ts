@@ -71,8 +71,22 @@ async function savePlanValues(
   return !insertError;
 }
 
+function testItemsOf(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || !value) return null;
+  try {
+    const items: unknown = JSON.parse(value);
+    return Array.isArray(items) && items.length > 0 ? items : null;
+  } catch {
+    return undefined;
+  }
+}
+
 function raceFormValues(data: FormData) {
   return {
+    location: nullableText(data.get("location")),
+    poles: nullableText(data.get("poles")),
+    expectation: nullableText(data.get("expectation")),
+    test_items: testItemsOf(data.get("test_items")),
     race_kind: data.get("race_kind"),
     name: nullableText(data.get("name")),
     race_date: nullableText(data.get("race_date")),

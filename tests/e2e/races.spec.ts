@@ -118,11 +118,25 @@ for (const viewport of [
     await page.getByLabel("Nom", { exact: true }).fill(viewport.name);
     await page.getByLabel("Date", { exact: true }).fill("10/08/2027");
     await page.getByLabel("Distance", { exact: true }).fill("21,1");
+    await page.getByLabel("Lieu", { exact: true }).fill("Chevreuse (78)");
+    await page
+      .getByRole("group", { name: "Bâtons" })
+      .getByRole("button", { name: "Interdits" })
+      .click();
     await page.getByRole("button", { name: "Continuer" }).click();
     await expect(
       page.getByRole("heading", { level: 1, name: "Qu’en attends-tu ?" }),
     ).toBeVisible();
     await page.getByText("C · Course de préparation").click();
+    await page
+      .getByRole("group", { name: "Ce que tu en attends" })
+      .getByRole("button", { name: "Répétition générale" })
+      .click();
+    await page.getByRole("button", { name: "Départ de nuit" }).click();
+    await page
+      .getByRole("textbox", { name: "Autre chose à tester" })
+      .fill("Gilet hydratation");
+    await page.getByRole("button", { name: "Ajouter", exact: true }).click();
     await expect(
       page.getByRole("radio", { name: /C · Course de préparation/ }),
     ).toBeChecked();
@@ -145,11 +159,29 @@ for (const viewport of [
     await expect(page.getByLabel("Nom", { exact: true })).toHaveValue(
       viewport.name,
     );
+    await expect(page.getByLabel("Lieu", { exact: true })).toHaveValue(
+      "Chevreuse (78)",
+    );
+    await expect(
+      page
+        .getByRole("group", { name: "Bâtons" })
+        .getByRole("button", { name: "Interdits" }),
+    ).toHaveAttribute("aria-pressed", "true");
     await page.getByLabel("Nom", { exact: true }).fill(`${viewport.name} 2027`);
     await page.getByRole("button", { name: "Continuer" }).click();
     await expect(
       page.getByRole("radio", { name: /C · Course de préparation/ }),
     ).toBeChecked();
+    await expect(
+      page
+        .getByRole("group", { name: "Ce que tu en attends" })
+        .getByRole("button", { name: "Répétition générale" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    for (const item of ["Départ de nuit", "Gilet hydratation"])
+      await expect(page.getByRole("button", { name: item })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
     await page
       .getByRole("button", { name: "Voir l’effet sur le plan" })
       .click();

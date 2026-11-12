@@ -178,6 +178,7 @@ export function RaceHeader({
   waypoints,
   today,
   phase = null,
+  location = null,
 }: {
   race: RaceSummary;
   plan: RacePlan;
@@ -185,6 +186,7 @@ export function RaceHeader({
   waypoints: Waypoint[];
   today: string;
   phase?: string | null;
+  location?: string | null;
 }) {
   const waypointCount = waypoints.length;
   const base = `/races/${race.id}`;
@@ -210,6 +212,12 @@ export function RaceHeader({
         <h1 className="min-w-0 text-verdict font-semibold text-balance">
           {race.name}
         </h1>
+        {location && (
+          <Chip className="max-md:hidden">
+            <span className="sr-only">Lieu : </span>
+            {location}
+          </Chip>
+        )}
         {plan.labels.map((label) => (
           <Chip key={label} className="max-md:hidden">
             {label}

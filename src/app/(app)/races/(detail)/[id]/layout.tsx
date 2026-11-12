@@ -138,6 +138,7 @@ export default async function RaceLayout({
               waypoints={data.waypoints}
               today={today}
               phase={phase}
+              location={data.details.location}
             />
             <div className="flex flex-col gap-5 px-4 py-4.5 md:gap-6 md:px-5 print:p-0">
               {children}
