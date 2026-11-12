@@ -60,6 +60,16 @@ function focusTrigger(sessionKey: string, overlay: boolean) {
   [...links].find((link) => link.offsetParent !== null)?.focus();
 }
 
+function panelSources(sessionKey: string) {
+  const key = CSS.escape(sessionKey);
+  const href = CSS.escape(sessionPanelHref(sessionKey));
+  return [
+    ...document.querySelectorAll<HTMLElement>(
+      `[data-session-key="${key}"], a[href="${href}"]`,
+    ),
+  ].filter((source) => !source.closest('[role="dialog"]'));
+}
+
 export function markSessionOpened(event: React.MouseEvent) {
   openedFromPlan =
     event.button === 0 &&
@@ -144,6 +154,15 @@ export function SessionSheet({
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [go, left, panel.previousKey, panel.nextKey]);
 
+  useEffect(() => {
+    if (left || !open) return;
+    const sources = panelSources(panel.sessionKey);
+    for (const source of sources) source.setAttribute("data-panel-source", "");
+    return () => {
+      for (const source of sources) source.removeAttribute("data-panel-source");
+    };
+  }, [left, open, panel.sessionKey]);
+
   if (left) return null;
 
   const position = `Séance ${panel.position.index} / ${panel.position.count}`;
@@ -195,7 +214,7 @@ export function SessionSheet({
           else if (start - end > 60) go(panel.nextKey);
         }}
         className={cn(
-          "gap-0 overflow-hidden border-control-border bg-background text-foreground",
+          "gap-0 overflow-hidden border-control-border bg-background text-foreground data-open:fade-in-100 data-[side=bottom]:data-open:slide-in-from-bottom data-[side=right]:data-open:slide-in-from-right data-closed:fade-out-100 data-[side=bottom]:data-closed:slide-out-to-bottom data-[side=right]:data-closed:slide-out-to-right",
           mobile
             ? "data-[side=bottom]:top-14.5 data-[side=bottom]:rounded-t-[18px]"
             : "rounded-2xl border shadow-[-30px_0_80px_rgba(0,0,0,.55)] data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-125 data-[side=right]:max-w-[calc(100vw-1rem)] data-[side=right]:sm:max-w-125",

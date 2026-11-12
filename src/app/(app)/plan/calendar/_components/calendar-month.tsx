@@ -194,7 +194,7 @@ function DesktopGrid({ calendar }: { calendar: CalendarMonth }) {
                     onClick={session.raceId ? undefined : markSessionOpened}
                     data-session-key={session.sessionKey}
                     tabIndex={-1}
-                    className="flex min-w-0 flex-col gap-0.5 rounded-md hover:bg-muted"
+                    className="flex min-w-0 flex-col gap-0.5 rounded-md hover:bg-muted data-panel-source:bg-muted"
                   >
                     <span className="flex min-w-0 items-center gap-1.5">
                       <span
