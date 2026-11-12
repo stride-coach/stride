@@ -39,32 +39,25 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       "href",
       "/coach?race=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     );
-    const chart = page
-      .locator('svg[aria-label^="Profil altimétrique"]:visible')
-      .first();
-    const aid = chart.locator('g[aria-label^="Ravito du Bois"]');
-    await aid.locator("circle").first().hover();
-    await expect(
-      page.getByText("Ravito du Bois", { exact: true }),
-    ).toBeVisible();
-    await expect(chart.getByText("Ravito du Bois")).toHaveCount(0);
-    await chart.focus();
-    await chart.press("End");
-    await expect(chart).toHaveAttribute("aria-label", /Km 30,0/);
-    await aid.focus();
-    await expect(
-      page.getByText("Ravito du Bois", { exact: true }),
-    ).toBeVisible();
-    await expect
-      .poll(() =>
-        aid.evaluate((element) => getComputedStyle(element).outlineStyle),
-      )
-      .toBe("none");
-    await expect
-      .poll(() =>
-        chart.evaluate((element) => getComputedStyle(element).outlineStyle),
-      )
-      .toBe("none");
+    const axis = page.getByRole("slider", {
+      name: "Position sur le parcours",
+    });
+    const cursor = page.getByRole("region", { name: "Sous le curseur" });
+    await axis.focus();
+    await axis.press("End");
+    await expect(axis).toHaveAttribute("aria-valuetext", /^km 30, /);
+    await expect(cursor).toContainText("km 30 ·");
+    await axis.press("Home");
+    await expect(axis).toHaveAttribute("aria-valuetext", /^km 0, /);
+    await expect(cursor.getByText("Terrain")).toBeVisible();
+    await expect(cursor.getByText("Consigne")).toBeVisible();
+    const roadbook = page.getByRole("region", { name: "Carnet de route" });
+    const rows = roadbook.locator("tbody tr");
+    await expect(rows.first()).toHaveAttribute("aria-current", "true");
+    await rows.nth(1).getByRole("button").click();
+    await expect(rows.nth(1)).toHaveAttribute("aria-current", "true");
+    await expect(rows.first()).not.toHaveAttribute("aria-current", "true");
+    await expect(roadbook.locator("tfoot")).toContainText("Total");
     const map = page
       .getByRole("img", { name: /^Carte du parcours/ })
       .filter({ visible: true })

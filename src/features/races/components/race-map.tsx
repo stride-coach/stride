@@ -124,6 +124,7 @@ function RaceMapView({
   cooperative = true,
   label,
   className,
+  cursor = null,
 }: {
   theme: ResolvedTheme;
   data: MapData;
@@ -139,12 +140,14 @@ function RaceMapView({
   cooperative?: boolean;
   label: string;
   className?: string;
+  cursor?: { lat: number; lon: number } | null;
 }) {
   const framed = Boolean(onFullscreen || onClose);
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
+  const cursorRef = useRef<Marker | null>(null);
   const pickRef = useRef(onPick);
   const selectRef = useRef(onSelect);
   const [ready, setReady] = useState(false);
@@ -305,6 +308,43 @@ function RaceMapView({
           layers[id] ? "visible" : "none",
         );
   }, [ready, layers]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    if (!cursor) {
+      cursorRef.current?.remove();
+      cursorRef.current = null;
+      return;
+    }
+    if (cursorRef.current) {
+      cursorRef.current.setLngLat([cursor.lon, cursor.lat]);
+      return;
+    }
+    let active = true;
+    (async () => {
+      const maplibre = await import("maplibre-gl");
+      if (!active || cursorRef.current) return;
+      const element = document.createElement("span");
+      element.setAttribute("aria-hidden", "true");
+      element.className =
+        "block size-3.5 rounded-full border-2 border-background bg-foreground shadow-float";
+      cursorRef.current = new maplibre.Marker({ element })
+        .setLngLat([cursor.lon, cursor.lat])
+        .addTo(map);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [ready, cursor]);
+
+  useEffect(
+    () => () => {
+      cursorRef.current?.remove();
+      cursorRef.current = null;
+    },
+    [],
+  );
 
   useEffect(() => {
     const map = mapRef.current;
