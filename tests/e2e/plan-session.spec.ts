@@ -113,26 +113,30 @@ test("a completed session shows planned versus completed", async ({ page }) => {
   throw new Error("No completed session with an activity was found");
 });
 
-test("a session link loaded directly opens the panel", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  await page.goto("/plan");
-  await sessionLinks(page).filter({ hasText: /Seuil/ }).first().click();
-  const panel = page.getByRole("dialog");
-  await expect(panel).toBeVisible({ timeout: 20_000 });
-  const title = await panel.getByRole("heading", { level: 2 }).textContent();
-  const url = page.url();
-  await page.goto("about:blank");
-  await page.goto(url);
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(
-    page.getByRole("dialog").getByRole("heading", { level: 2 }),
-  ).toHaveText(title ?? "");
-  await expect(page.locator("main h1")).toContainText("Marathon de Paris");
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page).not.toHaveURL(/session=/);
-});
+test(
+  "a session link loaded directly opens the panel",
+  { tag: "@quarantine" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await signIn(page);
+    await page.goto("/plan");
+    await sessionLinks(page).filter({ hasText: /Seuil/ }).first().click();
+    const panel = page.getByRole("dialog");
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    const title = await panel.getByRole("heading", { level: 2 }).textContent();
+    const url = page.url();
+    await page.goto("about:blank");
+    await page.goto(url);
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(
+      page.getByRole("dialog").getByRole("heading", { level: 2 }),
+    ).toHaveText(title ?? "");
+    await expect(page.locator("main h1")).toContainText("Marathon de Paris");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page).not.toHaveURL(/session=/);
+  },
+);
 
 test("a session opens as a bottom sheet on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

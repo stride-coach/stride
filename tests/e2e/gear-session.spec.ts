@@ -114,70 +114,72 @@ test("today shows the pair of a running session", async ({ page }) => {
   await page.screenshot({ path: "test-results/gear-today-desktop.png" });
 });
 
-test("a run with another pair in Garmin asks which one was worn", async ({
-  page,
-}) => {
-  const reset = await fetch(
-    `${authUrl}/__test__/activity-feelings?activity=aaaaaaaa-aaaa-4aaa-8aaa-000000005000`,
-    { method: "DELETE" },
-  );
-  expect(reset.ok).toBe(true);
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  const latest = page.getByRole("region", { name: "À faire" });
-  await expect(
-    page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
-  ).toHaveCount(0);
-  await latest
-    .getByRole("radiogroup", {
-      name: "Comment c’était ? Effort perçu, de 1 à 10",
-    })
-    .getByRole("radio", { name: "4" })
-    .click();
-  await latest
-    .getByRole("radiogroup", { name: "Sensations" })
-    .getByRole("radio", { name: "Bien", exact: true })
-    .click();
-  await expect(page.getByText("Ressenti enregistré.")).toBeVisible();
-  const card = page.getByRole("group", {
-    name: "Garmin indique les Zegama, la séance prévoyait les Adizero Evo SL 3.",
-  });
-  await expect(card).toBeVisible({ timeout: 20_000 });
-  await expect(
-    card.getByText("Ta réponse corrige aussi la paire dans Garmin."),
-  ).toBeVisible();
-  await page.screenshot({ path: "test-results/gear-check-today.png" });
+test(
+  "a run with another pair in Garmin asks which one was worn",
+  { tag: "@quarantine" },
+  async ({ page }) => {
+    const reset = await fetch(
+      `${authUrl}/__test__/activity-feelings?activity=aaaaaaaa-aaaa-4aaa-8aaa-000000005000`,
+      { method: "DELETE" },
+    );
+    expect(reset.ok).toBe(true);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await signIn(page);
+    const latest = page.getByRole("region", { name: "À faire" });
+    await expect(
+      page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
+    ).toHaveCount(0);
+    await latest
+      .getByRole("radiogroup", {
+        name: "Comment c’était ? Effort perçu, de 1 à 10",
+      })
+      .getByRole("radio", { name: "4" })
+      .click();
+    await latest
+      .getByRole("radiogroup", { name: "Sensations" })
+      .getByRole("radio", { name: "Bien", exact: true })
+      .click();
+    await expect(page.getByText("Ressenti enregistré.")).toBeVisible();
+    const card = page.getByRole("group", {
+      name: "Garmin indique les Zegama, la séance prévoyait les Adizero Evo SL 3.",
+    });
+    await expect(card).toBeVisible({ timeout: 20_000 });
+    await expect(
+      card.getByText("Ta réponse corrige aussi la paire dans Garmin."),
+    ).toBeVisible();
+    await page.screenshot({ path: "test-results/gear-check-today.png" });
 
-  await page.goto("/activities/gear");
-  const watch = page.getByRole("region", { name: "À surveiller" });
-  await expect(watch.getByText(/^Paire à confirmer · /)).toBeVisible();
-  await watch.getByRole("link", { name: "Répondre" }).click();
-  await expect(page).toHaveURL(
-    /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000005000/,
-  );
-  const shoes = page.getByRole("region", { name: "Chaussures" });
-  await expect(shoes.getByText("Nike Zegama")).toBeVisible();
-  await expect(shoes.getByText("· Garmin", { exact: true })).toBeVisible();
-  await page.screenshot({ path: "test-results/gear-check-activity.png" });
+    await page.goto("/activities/gear");
+    const watch = page.getByRole("region", { name: "À surveiller" });
+    await expect(watch.getByText(/^Paire à confirmer · /)).toBeVisible();
+    await watch.getByRole("link", { name: "Répondre" }).click();
+    await expect(page).toHaveURL(
+      /\/activities\/aaaaaaaa-aaaa-4aaa-8aaa-000000005000/,
+    );
+    const shoes = page.getByRole("region", { name: "Chaussures" });
+    await expect(shoes.getByText("Nike Zegama")).toBeVisible();
+    await expect(shoes.getByText("· Garmin", { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-results/gear-check-activity.png" });
 
-  await page
-    .getByRole("group", { name: /^Garmin indique les Zegama/ })
-    .getByRole("button", { name: "Oui, les Zegama" })
-    .click();
-  await expect(shoes.getByText("· confirmée par toi")).toBeVisible({
-    timeout: 15_000,
-  });
-  await expect(
-    page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
-  ).toHaveCount(0);
-  await page.goto("/today");
-  await expect(
-    page.getByRole("region", { name: "Séance du jour" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
-  ).toHaveCount(0);
-});
+    await page
+      .getByRole("group", { name: /^Garmin indique les Zegama/ })
+      .getByRole("button", { name: "Oui, les Zegama" })
+      .click();
+    await expect(shoes.getByText("· confirmée par toi")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
+    ).toHaveCount(0);
+    await page.goto("/today");
+    await expect(
+      page.getByRole("region", { name: "Séance du jour" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
+    ).toHaveCount(0);
+  },
+);
 
 test("the race gear list links the shoe line to a real pair", async ({
   page,

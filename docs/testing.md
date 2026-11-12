@@ -10,6 +10,14 @@
 
 Run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` before a pull request when relevant. Locally, run only the Playwright specs the change touches, such as `npx playwright test tests/e2e/<area>.spec.ts --project=chromium`. Pull requests run the browser specs selected from their changes, `main` runs the full browser suite, and onboarding runs only with migrations (see [CI design](ci.md)). CI retries a failed browser test once. A test that passes only on retry keeps the job green but is listed as flaky in the job's browser report (see [CI design](ci.md)); treat it as a failure to fix, not as noise.
 
+### Quarantine
+
+A browser test that fails on `main` without a related change can be quarantined with `test("…", { tag: "@quarantine" }, …)`. Every project skips tagged tests unless `PLAYWRIGHT_QUARANTINE=true`, which runs only them. On `main` pushes, the non-blocking `browser-quarantine` job runs the quarantined `chromium` and `chromium-race-course` tests on a production build and publishes their browser report, so they keep running without turning `main` red.
+
+- Quarantine a test only with its failure rate from the browser reports, and list it in the tracking issue (#515).
+- Remove the tag in the pull request that fixes the cause.
+- Never quarantine a test that fails because of the change under review.
+
 ### Reusing the app between local runs
 
 Each Playwright invocation otherwise builds or compiles the app before its first test. Keep one app running instead, and let Playwright start fresh auth and Garmin fixtures for every run:
