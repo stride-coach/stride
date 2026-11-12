@@ -21,6 +21,7 @@ const courseSpecs = specFiles(lanes.course);
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/fixtures/dev-warmup.ts",
   fullyParallel: true,
   workers: process.env.CI ? 4 : Number(process.env.PLAYWRIGHT_WORKERS ?? 1),
   retries: process.env.CI ? 1 : 0,
