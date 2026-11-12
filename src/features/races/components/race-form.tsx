@@ -160,6 +160,7 @@ function Stepper({ step }: { step: number }) {
 export function RaceForm({
   mode,
   race,
+  template,
   defaultPriority,
   primaryName,
   hasPlan,
@@ -168,6 +169,7 @@ export function RaceForm({
 }: {
   mode: "create" | "edit";
   race?: RaceFormRace;
+  template?: Omit<RaceFormRace, "id" | "revision"> & { note: string };
   defaultPriority: RacePriority;
   primaryName: string | null;
   hasPlan: boolean;
@@ -176,7 +178,8 @@ export function RaceForm({
 }) {
   const navigate = useDataActivityNavigation();
   const close = () => navigate(cancelHref);
-  const values = race?.values;
+  const initial = race ?? template;
+  const values = initial?.values;
   const [step, setStep] = useState(1);
   const [saving, startSaving] = useTransition();
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -185,7 +188,7 @@ export function RaceForm({
   const [dateText, setDateText] = useState(
     formatFrenchDate(values?.race_date ?? null),
   );
-  const [start, setStart] = useState(race?.startTime ?? "");
+  const [start, setStart] = useState(initial?.startTime ?? "");
   const [distance, setDistance] = useState(
     values?.distance_km === null || values?.distance_km === undefined
       ? ""
@@ -197,7 +200,7 @@ export function RaceForm({
       : String(values.elevation_gain_m),
   );
   const [cutoff, setCutoff] = useState(
-    race?.cutoffSeconds ? formatTarget(race.cutoffSeconds) : "",
+    initial?.cutoffSeconds ? formatTarget(initial.cutoffSeconds) : "",
   );
   const [kind, setKind] = useState(values?.race_kind ?? "trail");
   const [priority, setPriority] = useState<RacePriority>(
@@ -330,7 +333,8 @@ export function RaceForm({
       <div className="flex flex-col gap-1.5">
         <h1 className="text-verdict font-semibold">{headings[step - 1]}</h1>
         <p className="text-body-lg text-pretty text-secondary-foreground">
-          {step === 1 && "Tout reste modifiable après l’ajout."}
+          {step === 1 &&
+            (template ? template.note : "Tout reste modifiable après l’ajout.")}
           {step === 2 &&
             "La priorité décide de la place que la course prend dans ton plan."}
           {step === 3 &&
