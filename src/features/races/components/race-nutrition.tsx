@@ -19,6 +19,7 @@ import {
   startBoxes,
   testedRows,
   type UpcomingSession,
+  fuelingHours,
 } from "../nutrition-view";
 import type { ChecklistItem } from "../checklists";
 import type { RacePlan } from "../race";
@@ -27,6 +28,7 @@ import type { RaceStrategy } from "../proposals";
 import { raceTimeline, timelineFueling } from "../timeline";
 import type { RaceWeather } from "../weather";
 import type { CourseModel, RacePlanModel } from "../workspace";
+import { FuelingHours } from "./fueling-hours";
 import { NutritionTargetTile } from "./nutrition-target-tile";
 import { NutritionistBanner } from "./nutritionist-banner";
 
@@ -446,101 +448,74 @@ export function NutritionBody({
         </section>
         <Widget
           headingLevel={2}
-          title={<span id="plan-par-troncon">Plan par tronçon</span>}
+          title={<span id="heure-par-heure">Heure par heure</span>}
           verdict={
             <span className="text-label font-normal text-muted-foreground">
-              calé sur le plan de course
+              calé sur tes heures de passage
             </span>
           }
-          aria-labelledby="plan-par-troncon"
+          aria-labelledby="heure-par-heure"
         >
-          <table className="w-full table-fixed border-collapse text-left text-body max-md:hidden">
-            <colgroup>
-              <col className="w-12" />
-              <col className="w-[22%]" />
-              <col className="w-30" />
-              <col className="w-[30%]" />
-              <col />
-            </colgroup>
-            <thead>
-              <tr className="border-b border-border">
-                <th scope="col" className={headClass}>
-                  <span className="sr-only">Numéro</span>
-                </th>
-                <th scope="col" className={headClass}>
-                  Tronçon
-                </th>
-                <th scope="col" className={headClass}>
-                  Glucides · eau · sodium
-                </th>
-                <th scope="col" className={headClass}>
-                  À prendre pendant
-                </th>
-                <th scope="col" className={headClass}>
-                  Au ravito d’arrivée
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-border align-top last:border-b-0"
-                >
-                  <td className="px-2 py-2.5">
-                    <SegmentBadge index={row.index} />
-                  </td>
-                  <th scope="row" className="px-2 py-2.5 font-normal">
-                    <span className="font-medium">{row.route}</span>
-                    <br />
-                    <span className="text-label text-muted-foreground">
-                      {row.timing}
-                    </span>
-                  </th>
-                  <td className="px-2 py-2.5">
-                    <span
-                      data-slot="metric"
-                      className="font-semibold tabular-nums"
-                    >
-                      {row.carbs}
-                    </span>
-                    <br />
-                    <span className="text-label whitespace-nowrap text-muted-foreground">
-                      {row.water} · {row.sodium}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5">{row.eat}</td>
-                  <td className="px-2 py-2.5 text-secondary-foreground">
-                    {row.arrival}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <ol className="flex flex-col md:hidden">
+          <FuelingHours
+            hours={fuelingHours(allocation, timeline)}
+            targetPerHourG={plan.carbsPerHourG}
+          />
+        </Widget>
+        <Widget
+          headingLevel={2}
+          title={<span id="section-par-section">Section par section</span>}
+          verdict={
+            <span className="text-label font-normal text-muted-foreground">
+              ce que tu portes, ce que tu fais au ravito
+            </span>
+          }
+          aria-labelledby="section-par-section"
+        >
+          <ol className="flex flex-col">
             {rows.map((row) => (
               <li
                 key={row.id}
-                className="flex flex-col gap-1 border-b border-border py-2.5 first:pt-0 last:border-b-0 last:pb-0"
+                className="grid gap-x-6 gap-y-2 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)]"
               >
-                <div className="flex items-center gap-2">
-                  <SegmentBadge index={row.index} />
-                  <span className="min-w-0 font-medium">{row.route}</span>
-                  <span
-                    data-slot="metric"
-                    className="ml-auto font-semibold tabular-nums"
-                  >
-                    {row.carbs}
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <SegmentBadge index={row.index} />
+                    <span className="min-w-0 font-medium">{row.route}</span>
+                    <span
+                      data-slot="metric"
+                      className="ml-auto font-semibold tabular-nums md:hidden"
+                    >
+                      {row.carbs}
+                    </span>
+                  </div>
+                  <span className="text-label text-muted-foreground">
+                    {row.timing}
+                  </span>
+                  <span className="flex gap-3 text-label text-secondary-foreground tabular-nums">
+                    <span className="font-semibold text-foreground max-md:hidden">
+                      {row.carbs}
+                    </span>
+                    <span>Eau {row.water}</span>
+                    <span>Sodium {row.sodium}</span>
                   </span>
                 </div>
-                <span className="flex gap-3 text-label text-secondary-foreground">
-                  <span>Eau {row.water}</span>
-                  <span>Sodium {row.sodium}</span>
-                </span>
-                <span>{row.eat}</span>
-                <span className="text-label text-muted-foreground">
-                  Au ravito : {row.arrival}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <h3 className="text-label font-medium text-muted-foreground">
+                    Dans tes poches
+                  </h3>
+                  <p className="text-pretty">{row.eat}</p>
+                </div>
+                {row.station && (
+                  <div className="flex flex-col gap-0.5">
+                    <h3 className="text-label font-medium text-muted-foreground">
+                      Au ravito de {row.station}
+                      {row.stop ? ` · ${row.stop}` : ""}
+                    </h3>
+                    <p className="text-pretty text-secondary-foreground">
+                      {row.arrival}
+                    </p>
+                  </div>
+                )}
               </li>
             ))}
           </ol>
