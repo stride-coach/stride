@@ -268,6 +268,8 @@ export type SegmentRow = {
   sodium: string;
   eat: string;
   arrival: string;
+  station: string | null;
+  stop: string | null;
 };
 
 export function segmentRows(
@@ -301,6 +303,67 @@ export function segmentRows(
         to?.kind === "finish"
           ? "Arrivée"
           : (to?.refill ?? "Pas de ravitaillement"),
+      station: to && to.kind !== "finish" ? shortName(to.name) : null,
+      stop:
+        to && to.kind !== "finish" && to.stopSeconds > 0
+          ? `${Math.round(to.stopSeconds / 60)} min`
+          : null,
+    };
+  });
+}
+
+export type FuelingHour = {
+  index: number;
+  clock: string;
+  carbsG: number;
+  caffeine: boolean;
+  night: boolean;
+};
+
+export function fuelingHours(
+  allocation: RaceNutritionAllocation,
+  timeline: RaceTimeline,
+): FuelingHour[] {
+  const startClock = timeline.stations[0]?.clockMinutes ?? 0;
+  const finish = timeline.stations.at(-1)?.elapsedSeconds ?? 0;
+  const windows = allocation.segments.map((segment, position) => {
+    const from = timeline.stations[position];
+    const to = timeline.stations[position + 1];
+    const end = to?.elapsedSeconds ?? finish;
+    const begin = Math.max(
+      (from?.elapsedSeconds ?? 0) +
+        (position > 0 ? (from?.stopSeconds ?? 0) : 0),
+      end - segment.movingSeconds,
+    );
+    return {
+      begin,
+      end,
+      carbsPerSecond: end > begin ? segment.carbsG / (end - begin) : 0,
+      caffeinePerSecond: end > begin ? segment.caffeineMg / (end - begin) : 0,
+      night: timeline.segments[position]?.night ?? segment.night,
+    };
+  });
+  return Array.from({ length: Math.ceil(finish / 3600) }, (_, index) => {
+    const from = index * 3600;
+    const to = Math.min(finish, from + 3600);
+    let carbs = 0;
+    let caffeine = 0;
+    let night = false;
+    for (const window of windows) {
+      const overlap = Math.max(
+        0,
+        Math.min(to, window.end) - Math.max(from, window.begin),
+      );
+      carbs += overlap * window.carbsPerSecond;
+      caffeine += overlap * window.caffeinePerSecond;
+      if (overlap > 0 && window.night) night = true;
+    }
+    return {
+      index,
+      clock: formatClock(startClock + from / 60),
+      carbsG: Math.round(carbs),
+      caffeine: caffeine >= 1,
+      night,
     };
   });
 }

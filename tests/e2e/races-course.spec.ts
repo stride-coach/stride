@@ -422,15 +422,23 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
   const banner = page.getByRole("region", { name: "Plan de nutrition" });
   await expect(banner).toContainText("Nutrition peut ajuster ce plan avec toi");
   await expect(banner).toContainText("2 changements proposés");
-  const plan = page.getByRole("region", { name: "Plan par tronçon" });
-  const first = plan.getByRole("row", { name: /Départ → Ravito du Bois/ });
+  const hours = page.getByRole("region", { name: "Heure par heure" });
+  await expect(
+    hours.getByRole("list", { name: "Glucides heure par heure" }),
+  ).toBeVisible();
+  const plan = page.getByRole("region", { name: "Section par section" });
+  const first = plan
+    .getByRole("listitem")
+    .filter({ hasText: /Départ → Ravito du Bois/ });
   await expect(first).toContainText("gels Maurten");
   await expect(first).toContainText("1 flasque iso (1 dose)");
   await expect(first).toContainText(
     "Flasque 1 iso (1 dose) · flasque 2 eau · reprends",
   );
   await expect(
-    plan.getByRole("row", { name: /Ravito du Bois → Point d’eau/ }),
+    plan
+      .getByRole("listitem")
+      .filter({ hasText: /Ravito du Bois → Point d’eau/ }),
   ).toContainText("Flasque 2 eau seulement");
   await expect(page.getByRole("region", { name: "Au départ" })).toContainText(
     "Iso Näak · 1 dose",
@@ -440,7 +448,8 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
       .getByRole("complementary", { name: "Contexte de l’alimentation" })
       .getByRole("region", { name: "Liste de courses" }),
   ).toContainText("Näak Ultra Energy · doses");
-  await expect(first.getByText(/^\d+,\d L · \d+ mg$/)).toBeVisible();
+  await expect(first.getByText(/^Eau \d+,\d L$/)).toBeVisible();
+  await expect(first.getByText(/^Sodium \d+ mg$/)).toBeVisible();
   await expect(
     page
       .getByRole("region", { name: "Base commune" })
@@ -494,11 +503,13 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
     page.getByRole("button", { name: /^Glucides 70 g\/h/ }),
   ).toBeVisible();
   await expect(
-    plan.getByRole("row", { name: /Ravito du Bois → Point d’eau/ }),
+    plan
+      .getByRole("listitem")
+      .filter({ hasText: /Ravito du Bois → Point d’eau/ }),
   ).toContainText("Compote au km 15.");
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(plan.getByText(/^Au ravito : /).first()).toBeVisible();
+  await expect(plan.getByText(/^Au ravito de /).first()).toBeVisible();
   await expect(plan.getByText(/^Eau \d+,\d L$/).first()).toBeVisible();
   await expect(plan.getByText(/^Sodium \d+ mg$/).first()).toBeVisible();
   await page.screenshot({
