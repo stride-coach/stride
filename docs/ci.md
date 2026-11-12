@@ -24,14 +24,15 @@ The self-hosted runner executes jobs one at a time, so browser lanes run sequent
 
 ## Isolated jobs
 
-| Job                         | Coverage                                                                              | Server / fixtures                                         |
-| --------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `quality`                   | Lint, typecheck, unit tests and normal production build                               | No browser or database stack                              |
-| `browser` main-1/2          | Main Chromium tests, two shards with four workers (one shard for small selections)    | Production app, independent auth/Garmin fixtures          |
-| `browser` course            | Serial race-course and session-matching tests                                         | Production app, independent mutable course fixture        |
-| `browser` development-1/2   | Gallery, remote-origin and data-activity tests, two shards (one for small selections) | Development app, independent auth/Garmin fixtures         |
-| `database-onboarding` 1/2/3 | Only with migrations: database checks and 21 onboarding tests split 7/7/7             | Development app, independent local Supabase/Garmin stacks |
-| `validate` / `database`     | Required-check result assertions                                                      | No checkout or dependency installation                    |
+| Job                         | Coverage                                                                                               | Server / fixtures                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `quality`                   | Lint, typecheck, unit tests and normal production build                                                | No browser or database stack                              |
+| `browser` main-1/2          | Main Chromium tests, two shards with four workers (one shard for small selections)                     | Production app, independent auth/Garmin fixtures          |
+| `browser` course            | Serial race-course and session-matching tests                                                          | Production app, independent mutable course fixture        |
+| `browser` development-1/2   | Gallery, remote-origin and data-activity tests, two shards (one for small selections)                  | Development app, independent auth/Garmin fixtures         |
+| `database-onboarding` 1/2/3 | Only with migrations: database checks and 21 onboarding tests split 7/7/7                              | Development app, independent local Supabase/Garmin stacks |
+| `browser-quarantine`        | Only on `main` pushes, non-blocking: tests tagged `@quarantine` (see [Testing](testing.md#quarantine)) | Production app, independent auth/Garmin fixtures          |
+| `validate` / `database`     | Required-check result assertions                                                                       | No checkout or dependency installation                    |
 
 All browser selections use explicit projects and `--no-deps` to avoid Playwright's dependency project running all tests on the first shard, and `--pass-with-no-tests` so a shard whose selected files hold no test for its project succeeds. Main settings and course serial groups retain their ordering. Browser jobs run four workers in CI, except the development project, which keeps two: with four, `next dev` compiles routes for every worker at once and timing-sensitive loading journeys miss their window. Onboarding enables test-level sharding while keeping one worker per runner. `fail-fast: false` allows every shard to report its own result and preserves complete coverage even when a sibling fails.
 

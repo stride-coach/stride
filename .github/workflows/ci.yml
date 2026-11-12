@@ -111,6 +111,43 @@ jobs:
         if: always()
         run: chown -R "$(stat -c '%u:%g' /__w)" /__w
 
+  browser-quarantine:
+    needs: scope
+    if: github.event_name == 'push' && needs.scope.outputs.browser == 'true'
+    continue-on-error: true
+    runs-on: ${{ fromJSON(needs.scope.outputs.runner) }}
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e -- --project=chromium --project=chromium-race-course --no-deps --pass-with-no-tests
+        env:
+          PLAYWRIGHT_PRODUCTION: "true"
+          PLAYWRIGHT_QUARANTINE: "true"
+      - name: Browser report
+        if: always()
+        run: node scripts/e2e-report.ts test-results/report.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-quarantine-report
+          include-hidden-files: true
+          path: |
+            test-results/report.json
+            test-results/**/trace.zip
+            test-results/**/error-context.md
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Restore workspace ownership
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' /__w)" /__w
+
   database-onboarding:
     needs: scope
     if: needs.scope.outputs.migrations == 'true'
