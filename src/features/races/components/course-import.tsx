@@ -354,8 +354,8 @@ export function CourseImport({
               {race.elevationGainM !== null
                 ? ` et les ${formatInteger(race.elevationGainM)} m de D+`
                 : ""}{" "}
-              annoncés : pas encore de passages par ravito, ni de nuit ou de
-              météo le long du parcours.
+              annoncés : les passages aux ravitos que tu saisis restent une
+              estimation, sans nuit ni météo le long du parcours.
             </p>
           </Widget>
         )}

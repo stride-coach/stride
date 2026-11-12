@@ -13,6 +13,12 @@ import { MapCard, type MapSegment } from "./map-card";
 
 const width = 1000;
 
+const rowSpans: Record<number, string> = {
+  2: "xl:row-span-2",
+  3: "xl:row-span-3",
+  4: "xl:row-span-4",
+};
+
 type Range = { fromM: number; toM: number };
 
 function x(distanceM: number, total: number) {
@@ -372,11 +378,13 @@ function Roadbook({
   totals,
   section,
   onSelect,
+  note,
 }: {
   rows: RoadbookRow[];
   totals: RoadbookTotals;
   section: number;
   onSelect: (fromM: number) => void;
+  note: string;
 }) {
   const head =
     "px-2 py-2 text-left text-label font-normal text-muted-foreground";
@@ -391,9 +399,7 @@ function Roadbook({
         <h2 id="axis-roadbook" className="font-semibold">
           Carnet de route
         </h2>
-        <p className="text-label text-muted-foreground">
-          La ligne suit le curseur
-        </p>
+        <p className="text-label text-muted-foreground">{note}</p>
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full min-w-180 border-collapse text-body">
@@ -521,6 +527,7 @@ export function RaceAxis({
   settings,
   alert,
   context,
+  estimate = false,
 }: {
   lanes: AxisLanes;
   readings: AxisReading[];
@@ -533,10 +540,11 @@ export function RaceAxis({
     title: string;
     rainLabel: "Météo" | "Averses";
     hasWeather: boolean;
-  };
+  } | null;
   settings?: React.ReactNode;
   alert?: React.ReactNode;
   context?: React.ReactNode;
+  estimate?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const reading = readings[index] ?? readings[0];
@@ -578,35 +586,43 @@ export function RaceAxis({
     event.preventDefault();
   };
   const left = `${(reading.distanceM / lanes.distanceM) * 100}%`;
+  const mainRows = (alert ? 1 : 0) + (map ? 1 : 0) + 2;
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
+    <div
+      className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start"
+      style={{ gridTemplateRows: `repeat(${mainRows - 1}, auto) 1fr` }}
+    >
       {alert && <div className="min-w-0 xl:col-start-1">{alert}</div>}
-      <div className="min-w-0 xl:col-start-1">
-        <MapCard
-          data={map.data}
-          segments={map.segments}
-          title={map.title}
-          rainLabel={map.rainLabel}
-          hasWeather={map.hasWeather}
-          cursor={reading.position}
-          walkLabel={`Côtes ≥ ${walkThreshold} %`}
-        />
-      </div>
+      {map && (
+        <div className="min-w-0 xl:col-start-1">
+          <MapCard
+            data={map.data}
+            segments={map.segments}
+            title={map.title}
+            rainLabel={map.rainLabel}
+            hasWeather={map.hasWeather}
+            cursor={reading.position}
+            walkLabel={`Côtes ≥ ${walkThreshold} %`}
+          />
+        </div>
+      )}
       <section
         aria-labelledby="axis-lanes"
         className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5 xl:col-start-1"
       >
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h2 id="axis-lanes" className="font-semibold">
-            Au fil de la course
+            {estimate
+              ? "Au fil de la course, sans tracé"
+              : "Au fil de la course"}
           </h2>
           <Legend lanes={lanes} walkThreshold={walkThreshold} />
         </div>
         <div className="relative">
           <div className="grid grid-cols-[88px_minmax(0,1fr)] max-sm:grid-cols-[64px_minmax(0,1fr)]">
-            <ProfileLane lanes={lanes} />
+            {!estimate && <ProfileLane lanes={lanes} />}
             <PaceLane lanes={lanes} />
-            <WeatherLane lanes={lanes} />
+            {!estimate && <WeatherLane lanes={lanes} />}
             <FuelingLane lanes={lanes} />
           </div>
           <div
@@ -637,12 +653,12 @@ export function RaceAxis({
       <div
         className={cn(
           "min-w-0 xl:col-start-2 xl:row-start-1",
-          alert ? "xl:row-span-4" : "xl:row-span-3",
+          rowSpans[mainRows],
         )}
       >
         <div className="flex flex-col gap-5 xl:sticky xl:top-4">
           {context}
-          <CursorPanel reading={reading} />
+          {!estimate && <CursorPanel reading={reading} />}
           {settings}
         </div>
       </div>
@@ -652,6 +668,11 @@ export function RaceAxis({
           totals={totals}
           section={reading.section}
           onSelect={pick}
+          note={
+            estimate
+              ? "Estimation sans tracé : le dénivelé est réparti également"
+              : "La ligne suit le curseur"
+          }
         />
       </div>
     </div>

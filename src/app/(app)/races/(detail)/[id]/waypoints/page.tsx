@@ -6,7 +6,8 @@ import { WaypointWorkspace } from "@/features/races/components/waypoint-workspac
 import { mapData } from "@/features/races/map";
 import { profileData } from "@/features/races/profile";
 import { loadRace } from "@/server/races/load";
-import { planFor } from "@/server/races/views";
+import { estimatedCourseModel } from "@/features/races/workspace";
+import { estimateFor, planFor } from "@/server/races/views";
 
 export default async function WaypointsPage({
   params,
@@ -16,6 +17,21 @@ export default async function WaypointsPage({
   const { id } = await params;
   const { data } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
+  const estimated = data.course
+    ? null
+    : estimatedCourseModel(data.race, data.waypoints);
+  if (estimated)
+    return (
+      <WaypointWorkspace
+        raceId={id}
+        waypoints={estimated.waypoints}
+        marks={estimated.marks}
+        profile={null}
+        map={null}
+        passages={estimateFor(data)?.planned.simulation.passages ?? []}
+        distanceM={estimated.course.distanceM}
+      />
+    );
   if (!data.course)
     return (
       <EmptyState

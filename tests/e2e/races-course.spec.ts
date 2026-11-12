@@ -808,3 +808,52 @@ test("replacing the course shows what changes before anything is replaced", asyn
   );
   await expect(page.getByText(/^2[78],\d km$/).first()).toBeVisible();
 });
+
+test("a race without a course reads as an estimate and takes manual aid stations", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?nocourse=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+
+  await expect(
+    page.getByText(
+      /^Sans tracé, je travaille avec la distance et le dénivelé annoncés\./,
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Dépose le tracé GPX de la course" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Au fil de la course, sans tracé" }),
+  ).toBeVisible();
+  const roadbook = page.getByRole("region", { name: "Carnet de route" });
+  await expect(
+    roadbook.getByRole("row", { name: /Départ → Ravito du Bois/ }),
+  ).toContainText("≈");
+  await expect(
+    page.getByRole("region", { name: "Avec et sans tracé" }),
+  ).toContainText("Avec le tracé");
+
+  await page.getByRole("link", { name: "Saisir les ravitaillements" }).click();
+  await expect(page).toHaveURL(/\/waypoints$/);
+  await page.getByRole("button", { name: "+ Ajouter" }).click();
+  const editor = page.getByRole("region", { name: "Ajouter un point" });
+  await expect(editor.getByText("Kilomètre annoncé")).toBeVisible();
+  await editor
+    .getByRole("textbox", { name: "Nom", exact: true })
+    .fill("Base de Chaville");
+  await editor.getByRole("textbox", { name: /^Km/ }).fill("60");
+  await editor.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByText("Point enregistré.")).toBeVisible();
+
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  await expect(
+    roadbook.getByRole("row", { name: /→ Base de Chaville/ }),
+  ).toBeVisible();
+});

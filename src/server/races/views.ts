@@ -13,6 +13,7 @@ import {
 } from "@/features/races/weather";
 import {
   courseModel,
+  estimatedCourseModel,
   planModel,
   scenariosOf,
   type CourseModel,
@@ -61,6 +62,24 @@ export function planFor(
       })
     : null;
   return { model, planned, scenarios };
+}
+
+export function estimateFor(data: RaceWorkspaceData) {
+  if (data.course) return null;
+  const model = estimatedCourseModel(data.race, data.waypoints);
+  const scenario = scenariosOf(data.race, data.plan).find(
+    (item) => item.key === "target",
+  );
+  if (!model || !scenario) return null;
+  const planned = planModel({
+    model,
+    race: { ...data.race, date: null },
+    plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
+    scenario,
+    timeZone: "Europe/Paris",
+    paceFactors: data.strategy ? paceFactorsOf(data.strategy) : undefined,
+  });
+  return { model, planned };
 }
 
 export function cutoffFor(

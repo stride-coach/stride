@@ -77,7 +77,9 @@ export function CourseReplacementCard({
           <div className="flex flex-col gap-1 text-body">
             {preview.removed.length > 0 && (
               <p>
-                <span className="font-medium">Retirés avec l’ancien GPX : </span>
+                <span className="font-medium">
+                  Retirés avec l’ancien GPX :{" "}
+                </span>
                 <span className="text-secondary-foreground">
                   {preview.removed.join(", ")}
                 </span>

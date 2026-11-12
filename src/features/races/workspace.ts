@@ -147,6 +147,54 @@ export function courseModel(
   };
 }
 
+export function estimatedCourse(
+  distanceM: number,
+  elevationGainM: number | null,
+): Course {
+  const stepM = Math.max(100, Math.ceil(distanceM / 2000));
+  const count = Math.max(2, Math.ceil(distanceM / stepM) + 1);
+  const bump = elevationGainM ? 10 : 0;
+  return {
+    stepM,
+    distanceM,
+    points: Array.from({ length: count }, (_, index) => [
+      0,
+      0,
+      100 + (index % 2) * bump,
+    ]),
+    elevationGainM,
+    elevationLossM: elevationGainM,
+  };
+}
+
+export function estimatedCourseModel(
+  race: Pick<RaceSummary, "distanceKm" | "elevationGainM" | "kind">,
+  waypoints: Waypoint[],
+): CourseModel | null {
+  if (!race.distanceKm || race.distanceKm <= 0) return null;
+  const course = estimatedCourse(race.distanceKm * 1000, race.elevationGainM);
+  const complete = completeWaypoints(
+    race.kind === "road"
+      ? waypoints.filter(
+          (waypoint) => waypoint.kind === "start" || waypoint.kind === "finish",
+        )
+      : waypoints.filter(
+          (waypoint) =>
+            waypoint.kind !== "finish" ||
+            Math.abs(waypoint.distanceM - course.distanceM) <= 50,
+        ),
+    course,
+  );
+  return {
+    course,
+    waypoints: complete,
+    marks: waypointMarks(complete),
+    grades: course.points.map(() => 0),
+    portions: [],
+    walkByThreshold: [],
+  };
+}
+
 export type RacePlanModel = {
   scenario: Scenario;
   simulation: Simulation;
