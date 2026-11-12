@@ -26,6 +26,7 @@
     "onboarding": ["auth", "home"],
     "plans": [
       "plan",
+      "plan-calendar",
       "plan-history",
       "plan-review",
       "plan-session",
