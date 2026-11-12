@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { parseRacesView } from "@/features/races/overview";
@@ -19,6 +19,26 @@ import {
 import { ActivityListPane } from "@/features/activities/components/activity-list-pane";
 import { useActivityListSnapshot } from "@/features/activities/components/activity-list-snapshot";
 import { useDataActivity } from "./provider";
+import {
+  durationMs,
+  replacementOf,
+  revealPath,
+  type RevealPath,
+} from "../reveal";
+
+function revealContent(path: RevealPath) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const target = replacementOf(path);
+  if (!(target instanceof HTMLElement)) return;
+  const tokens = getComputedStyle(document.documentElement);
+  target.animate([{ opacity: 0 }, { opacity: 1 }], {
+    duration: durationMs(
+      tokens.getPropertyValue("--stride-duration-fast"),
+      150,
+    ),
+    easing: tokens.getPropertyValue("--stride-ease").trim() || "ease-out",
+  });
+}
 
 export function LoadingScope({
   label,
@@ -30,9 +50,16 @@ export function LoadingScope({
   className?: string;
 }) {
   const markSkeleton = useDataActivity()?.markSkeleton;
+  const scope = useRef<HTMLDivElement>(null);
   useEffect(() => markSkeleton?.(), [markSkeleton]);
+  useLayoutEffect(() => {
+    const node = scope.current;
+    if (!node) return;
+    const path = revealPath(node, document.body);
+    return () => queueMicrotask(() => revealContent(path));
+  }, []);
   return (
-    <div role="status" aria-label={label} className={className}>
+    <div ref={scope} role="status" aria-label={label} className={className}>
       {children}
       <span className="sr-only">{label}</span>
     </div>
