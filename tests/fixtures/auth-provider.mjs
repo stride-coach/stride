@@ -3838,6 +3838,97 @@ createServer(async (request, response) => {
       );
       return send(204, undefined);
     }
+    if (
+      url.pathname === "/rest/v1/rpc/replace_race_course" &&
+      request.method === "POST"
+    ) {
+      const raceId = body.p_race_id;
+      const owner =
+        tables.athlete_races.find((item) => item.id === raceId)?.user_id ??
+        null;
+      if (!owner)
+        return send(403, { code: "42501", message: "race_not_owned" });
+      const replacing = tables.race_courses.some(
+        (item) => item.race_id === raceId,
+      );
+      tables.race_courses = tables.race_courses
+        .filter((item) => item.race_id !== raceId)
+        .concat({
+          race_id: raceId,
+          user_id: owner,
+          source: body.p_source,
+          file_name: body.p_file_name,
+          source_activity_id: body.p_source_activity_id ?? null,
+          time_zone: body.p_time_zone,
+          distance_m: body.p_distance_m,
+          elevation_gain_m: body.p_elevation_gain_m ?? null,
+          elevation_loss_m: body.p_elevation_loss_m ?? null,
+          step_m: body.p_step_m,
+          points: body.p_points,
+          imported_at: new Date().toISOString(),
+          revision: 1,
+        });
+      tables.race_waypoints = tables.race_waypoints.filter(
+        (row) =>
+          row.race_id !== raceId || !["gpx", "course"].includes(row.source),
+      );
+      if (replacing)
+        for (const row of tables.race_waypoints)
+          if (row.race_id === raceId)
+            Object.assign(row, {
+              distance_m: Math.min(row.distance_m, body.p_distance_m),
+              needs_review: true,
+            });
+      const waypointRow = (values) => ({
+        id: randomUUID(),
+        race_id: raceId,
+        user_id: owner,
+        cutoff_time: null,
+        services: [],
+        watch_label: null,
+        alert_distance_m: 500,
+        voice_note: null,
+        todo: null,
+        nutrition_note: null,
+        needs_review: false,
+        revision: 1,
+        ...values,
+      });
+      const added = [
+        waypointRow({
+          kind: "start",
+          name: "Départ",
+          distance_m: 0,
+          source: "course",
+        }),
+        waypointRow({
+          kind: "finish",
+          name: "Arrivée",
+          distance_m: body.p_distance_m,
+          source: "course",
+        }),
+        ...body.p_waypoints.map((point) =>
+          waypointRow({ ...point, source: "gpx" }),
+        ),
+      ];
+      tables.race_waypoints.push(...added);
+      tables.race_waypoints.sort((a, b) => a.distance_m - b.distance_m);
+      return send(200, added.length);
+    }
+    if (
+      url.pathname === "/rest/v1/race_waypoints" &&
+      request.method === "PATCH"
+    ) {
+      const rows = tables.race_waypoints.filter(
+        (row) => url.searchParams.get("id") === `eq.${row.id}`,
+      );
+      for (const row of rows)
+        Object.assign(row, body, { revision: row.revision + 1 });
+      return send(
+        200,
+        rows.map((row) => ({ id: row.id })),
+      );
+    }
     const raceRowTable = {
       "/rest/v1/race_nutrition_plans": "race_nutrition_plans",
       "/rest/v1/race_drop_bags": "race_drop_bags",
