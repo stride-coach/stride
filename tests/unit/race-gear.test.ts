@@ -251,6 +251,28 @@ describe("race pair card", () => {
     );
   });
 
+  it("projects the pair's distance on race day from its recent use", () => {
+    const view = racePairView({
+      shoe: shoe(312, [30, 30, 30, 30]),
+      source: "reserved",
+      raceDate: "2026-11-21",
+      today: "2026-10-24",
+      dropBag: false,
+    });
+    expect(view.raceDay).toMatch(
+      /^≈ \d+ km le jour J, sous sa limite de 800 km$/,
+    );
+    expect(
+      racePairView({
+        shoe: shoe(312),
+        source: "reserved",
+        raceDate: "2026-11-21",
+        today: "2026-10-24",
+        dropBag: false,
+      }).raceDay,
+    ).toBeNull();
+  });
+
   it("asks to break in a new pair and warns before its lifespan", () => {
     expect(
       racePairView({
