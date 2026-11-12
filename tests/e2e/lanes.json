@@ -4,7 +4,12 @@
   "database": ["onboarding"],
   "smoke": ["auth", "today"],
   "areas": {
-    "activities": ["activities", "data-activity", "session-matching"],
+    "activities": [
+      "activities",
+      "data-activity",
+      "loading-motion",
+      "session-matching"
+    ],
     "ai": ["coach", "coach-runtime"],
     "auth": ["auth", "auth-integration", "home"],
     "coach": ["coach", "coach-runtime", "plan-review"],
