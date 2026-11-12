@@ -62,6 +62,7 @@ function dayDescription(day: CalendarDay) {
 function sessionHref(month: string, session: CalendarSession) {
   if (session.raceId) return `/races/${session.raceId}`;
   const query = new URLSearchParams({ month, session: session.sessionKey });
+  if (session.planId) query.set("plan", session.planId);
   return `/plan/calendar?${query}`;
 }
 

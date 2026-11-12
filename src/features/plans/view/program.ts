@@ -1175,6 +1175,18 @@ export function previousWeeks(
     .map((week) => ({ ...readOnlyWeek(week), status: "past", planId }));
 }
 
+export type PreviousPlanProgram = {
+  planId: string;
+  weekStarts: string[];
+  input: ProgramInput;
+};
+
+export function previousProgramWeeks(plans: PreviousPlanProgram[]) {
+  return plans.flatMap((plan) =>
+    previousWeeks(plan.input, plan.planId, plan.weekStarts),
+  );
+}
+
 export function archivedProgram(
   input: ProgramInput,
   season: PlanSeason,

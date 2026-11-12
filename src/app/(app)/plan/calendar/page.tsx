@@ -8,10 +8,19 @@ import {
   type CalendarMonth,
 } from "@/features/plans/view/calendar";
 import { intensityLabels } from "@/features/plans/view/intensity";
-import { buildProgram } from "@/features/plans/view/program";
+import {
+  buildProgram,
+  previousProgramWeeks,
+} from "@/features/plans/view/program";
 import { programText } from "@/features/plans/view/program-text";
+import { isArchivedSeason } from "@/features/plans/view/seasons";
 import { requireAthlete } from "@/server/app/session";
-import { loadPlanOverview, programInput } from "@/server/plans/overview";
+import {
+  loadPlanOverview,
+  loadPlanSeasons,
+  loadPreviousPlans,
+  programInput,
+} from "@/server/plans/overview";
 import { loadIntensityPaces } from "@/server/plans/paces";
 import { loadSessionSheet } from "@/server/plans/session-sheet";
 import { cn } from "@/lib/utils";
@@ -174,18 +183,35 @@ export default async function PlanCalendarPage({
     return typeof value === "string" ? value : null;
   };
   const sessionKey = param("session");
-  const [overview, paces, sheet] = await Promise.all([
+  const [overview, allSeasons, paces] = await Promise.all([
     loadPlanOverview(context),
+    loadPlanSeasons(context),
     loadIntensityPaces(context),
-    sessionKey ? loadSessionSheet(context, sessionKey) : null,
+  ]);
+  const seasons = allSeasons.filter((season) => !isArchivedSeason(season.id));
+  const previousPlans = seasons
+    .flatMap((season) => season.previousPlans)
+    .filter((plan) => plan.weekStarts.length > 0);
+  const requestedPlan = param("plan");
+  const sheetPlan =
+    requestedPlan === null
+      ? { planId: null }
+      : previousPlans.find((plan) => plan.planId === requestedPlan);
+  const [previous, sheet] = await Promise.all([
+    loadPreviousPlans(context, previousPlans, paces),
+    sessionKey && sheetPlan
+      ? loadSessionSheet(context, sessionKey, sheetPlan.planId)
+      : null,
   ]);
   const input = overview ? programInput(overview, paces) : null;
   const calendar =
     input &&
     calendarMonth({
       input,
-      seasons: buildProgram(input).seasons,
+      seasons: buildProgram(input, seasons, previousProgramWeeks(previous))
+        .seasons,
       month: param("month"),
+      previous,
     });
   if (!overview || !calendar)
     return (
