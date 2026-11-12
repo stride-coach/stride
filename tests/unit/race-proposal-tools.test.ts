@@ -47,6 +47,7 @@ function waypoint(id: string, kind: Waypoint["kind"], distanceM: number) {
     voiceNote: null,
     todo: null,
     nutritionNote: null,
+    stopSeconds: null,
     source: "athlete",
     needsReview: false,
     revision: 1,

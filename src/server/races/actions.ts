@@ -166,6 +166,7 @@ function waypointRow(input: z.infer<typeof waypointInputSchema>) {
     voice_note: input.voiceNote || null,
     todo: input.todo || null,
     nutrition_note: input.nutritionNote || null,
+    ...(input.stopSeconds !== undefined && { stop_seconds: input.stopSeconds }),
     needs_review: false,
   };
 }
