@@ -20,10 +20,10 @@ import {
 import { requireAthlete } from "@/server/app/session";
 import {
   loadArchivedPlanOverview,
-  loadArchivedSeasons,
   loadPlanOverview,
+  loadPlanSeasons,
+  loadPreviousWeeks,
   programInput,
-  type PlanOverview,
 } from "@/server/plans/overview";
 import { loadIntensityPaces } from "@/server/plans/paces";
 import { loadProposalReview } from "@/server/plans/proposals";
@@ -67,23 +67,61 @@ export default async function PlanPage({
       : null;
   const sessionKey =
     typeof query.session === "string" && !proposalId ? query.session : null;
-  const [overview, archived, archivedSeasons, sheet, paces, review] =
-    await Promise.all([
-      loadPlanOverview(context),
-      archivedPlanId ? loadArchivedPlanOverview(context, archivedPlanId) : null,
-      archivedPlanId ? loadArchivedSeasons(context) : [],
-      sessionKey ? loadSessionSheet(context, sessionKey, archivedPlanId) : null,
-      loadIntensityPaces(context),
-      proposalId ? loadProposalReview(context, proposalId) : null,
-    ]);
-  const seasons = overview
-    ? buildProgram(programInput(overview, paces)).seasons
-    : [];
-  const archivedIndex = archivedSeasons.findIndex(
-    (item) => item.id === param("season"),
+  const [overview, allSeasons, paces, review] = await Promise.all([
+    loadPlanOverview(context),
+    loadPlanSeasons(context),
+    loadIntensityPaces(context),
+    proposalId ? loadProposalReview(context, proposalId) : null,
+  ]);
+  const ownSeasons = allSeasons.filter((item) => !isArchivedSeason(item.id));
+  const archivedSeasons = allSeasons.filter((item) =>
+    isArchivedSeason(item.id),
   );
-  if (archived && archivedIndex >= 0) {
-    const season = archivedSeasons[archivedIndex];
+  const merged = ownSeasons.some((item) =>
+    item.previousPlans.some((plan) => plan.planId === archivedPlanId),
+  );
+  const archivedSelected =
+    archivedPlanId && !merged
+      ? seasonFor(archivedSeasons, { season: param("season") })
+      : null;
+  const archivedIndex = archivedSelected
+    ? archivedSeasons.indexOf(archivedSelected)
+    : -1;
+  const archived = archivedSelected
+    ? await loadArchivedPlanOverview(
+        context,
+        archivedSeasonPlanId(archivedSelected.id)!,
+      )
+    : null;
+  const archivedTarget = archived ? archivedSelected : null;
+  const session = overview?.plan.state.sessions.find(
+    (item) => item.sessionKey === sessionKey,
+  );
+  const selected =
+    archivedTarget ??
+    seasonFor(ownSeasons, {
+      season: param("season"),
+      race: param("race"),
+      week: param("week"),
+      session: session?.scheduledOn ?? null,
+    });
+  const previousPlans = selected?.previousPlans ?? [];
+  const sheetPlanId =
+    previousPlans.find((item) => item.planId === param("plan"))?.planId ??
+    archivedPlanId;
+  const [previous, sheet] = await Promise.all([
+    loadPreviousWeeks(context, previousPlans, paces),
+    sessionKey ? loadSessionSheet(context, sessionKey, sheetPlanId) : null,
+  ]);
+  const seasons = overview
+    ? buildProgram(
+        programInput(overview, paces),
+        ownSeasons,
+        archivedTarget ? [] : previous,
+      ).seasons
+    : [];
+  if (archived && archivedTarget) {
+    const season = archivedTarget;
     const newer = archivedSeasons[archivedIndex - 1];
     const program = archivedProgram(
       programInput(archived, paces),
@@ -91,6 +129,7 @@ export default async function PlanPage({
       newer
         ? seasonLink(archivedSeasons, newer, archived.today)
         : (seasons[0]?.link ?? null),
+      previous,
     );
     const opened = archived.plan.state.sessions.find(
       (item) => item.sessionKey === sessionKey,
@@ -99,7 +138,6 @@ export default async function PlanPage({
       param("week") ?? (opened ? mondayOf(opened.scheduledOn) : null);
     return (
       <ArchivedSeasonPage
-        overview={archived}
         program={program}
         replaced={season.replacedOn !== null}
         initialWeekKey={
@@ -131,14 +169,12 @@ export default async function PlanPage({
     );
   const watch = await loadWatchView(context, overview.plan);
   const { planId, state } = overview.plan;
-  const activeSheet = isArchivedSeason(param("season")) ? null : sheet;
-  const session = state.sessions.find((item) => item.sessionKey === sessionKey);
-  const program = seasonFor(seasons, {
-    season: param("season"),
-    race: param("race"),
-    week: param("week"),
-    session: session?.scheduledOn ?? null,
-  });
+  const activeSheet =
+    sheetPlanId === null ||
+    previousPlans.some((item) => item.planId === sheetPlanId)
+      ? sheet
+      : null;
+  const program = seasons.find((item) => item.id === selected?.id) ?? null;
   if (!program)
     return (
       <PlanFrame>
@@ -203,7 +239,6 @@ export default async function PlanPage({
 }
 
 function ArchivedSeasonPage({
-  overview,
   program,
   replaced,
   initialWeekKey,
@@ -211,7 +246,6 @@ function ArchivedSeasonPage({
   sheet,
   text,
 }: {
-  overview: PlanOverview;
   program: SeasonProgram;
   replaced: boolean;
   initialWeekKey: string | null;
@@ -241,7 +275,7 @@ function ArchivedSeasonPage({
       {sheet && (
         <SessionSheet
           key={sheet.panel.sessionKey}
-          planId={overview.plan.planId}
+          planId={sheet.planId}
           panel={sheet.panel}
         />
       )}

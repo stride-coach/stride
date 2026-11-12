@@ -202,6 +202,7 @@ export function ProgramExplorer({
               const query = new URLSearchParams();
               if (program.href !== "/plan") query.set("season", program.id);
               query.set("week", week.weekStart);
+              if (week.planId) query.set("plan", week.planId);
               query.set("session", sessionKey);
               return `/plan?${query}`;
             }}

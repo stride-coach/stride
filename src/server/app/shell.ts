@@ -12,13 +12,11 @@ import {
 } from "@/features/app-shell/shell";
 import { profileRowSchema, profileValues } from "@/features/onboarding/profile";
 import { buildProgram, programNavigation } from "@/features/plans/view/program";
-import { planSeasons } from "@/features/plans/view/seasons";
 import { localToday as planToday } from "@/features/plans/constraints";
 import {
-  loadArchivedSeasons,
   loadPlanOverview,
+  loadPlanSeasons,
   programInput,
-  readPlanRaces,
 } from "@/server/plans/overview";
 import { readActivePlan } from "@/server/plans/stored";
 import { countCoachAttention } from "@/server/coaching/managed/store";
@@ -49,16 +47,14 @@ async function readTodayReadiness(context: OnboardingContext, now: Date) {
 async function readShellSeasons(
   context: OnboardingContext,
 ): Promise<ShellSeason[]> {
-  const [plan, races, archived] = await Promise.all([
+  const [plan, seasons] = await Promise.all([
     readActivePlan(context),
-    readPlanRaces(context),
-    loadArchivedSeasons(context).catch(() => []),
+    loadPlanSeasons(context),
   ]);
   const today = plan
     ? planToday(plan.state.plan.timeZone)
     : localToday(new Date());
-  const own = plan ? planSeasons({ state: plan.state, races, today }) : [];
-  return shellSeasons([...own, ...archived], today);
+  return shellSeasons(seasons, today);
 }
 
 export async function loadShellIdentity(context: OnboardingContext, now: Date) {

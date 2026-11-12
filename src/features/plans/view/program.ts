@@ -159,6 +159,9 @@ export type ProgramTotals = {
 export type ProgramWeek = {
   weekKey: string;
   weekStart: string;
+  planId: string | null;
+  block: { key: string; kind: PlanBlock["kind"] } | null;
+  longestRunSeconds: number;
   number: number;
   numberInBlock: number;
   blockName: string;
@@ -258,7 +261,7 @@ export type ProgramSeasonLink = {
 
 export type SeasonProgram = Pick<
   PlanSeason,
-  "id" | "raceIds" | "startsOn" | "endsOn"
+  "id" | "raceIds" | "startsOn" | "endsOn" | "previousPlans"
 > & {
   raceId: string | null;
   letter: PlanSeason["letter"];
@@ -398,6 +401,7 @@ export function buildProgram(
     races: input.races,
     today: input.today,
   }),
+  previous: ProgramWeek[] = [],
 ): ProgramOverview {
   const { state, today } = input;
   const paces = input.paces ?? null;
@@ -650,17 +654,26 @@ export function buildProgram(
       return { ...base, ...lead, sessions: ordered };
     });
     const families = days.map((day) => day.family);
+    const block = state.blocks.find((item) => item.blockKey === week.blockKey);
     return {
       weekKey: week.weekKey,
       weekStart: week.weekStart,
+      planId: null,
+      block: block ? { key: block.blockKey, kind: block.kind } : null,
+      longestRunSeconds: Math.max(
+        0,
+        ...sessions
+          .filter(
+            (session) => isRunningSession(session) && session.kind !== "race",
+          )
+          .map((session) => session.targets.durationSeconds),
+      ),
       number: index + 1,
       numberInBlock:
         state.weeks
           .filter((item) => item.blockKey === week.blockKey)
           .findIndex((item) => item.weekKey === week.weekKey) + 1,
-      blockName:
-        state.blocks.find((block) => block.blockKey === week.blockKey)?.name ??
-        "",
+      blockName: block?.name ?? "",
       daysUntil: daysBetween(today, week.weekStart),
       range: formatWeekRange(week.weekStart, end),
       label,
@@ -736,7 +749,13 @@ export function buildProgram(
   });
 
   return {
-    seasons: seasonPrograms(input, weeks, seasons),
+    seasons: seasonPrograms(
+      input,
+      [...previous, ...weeks].sort((first, second) =>
+        first.weekStart.localeCompare(second.weekStart),
+      ),
+      seasons,
+    ),
     blocks,
     weeks,
     currentWeekKey:
@@ -770,13 +789,6 @@ function weeksDistance(weeks: ProgramWeek[]) {
   );
 }
 
-function blockOf(state: PlanState, week: ProgramWeek) {
-  const blockKey = state.weeks.find(
-    (item) => item.weekKey === week.weekKey,
-  )?.blockKey;
-  return state.blocks.find((block) => block.blockKey === blockKey);
-}
-
 function daysBetween(from: string, to: string) {
   return Math.round(
     (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
@@ -792,19 +804,24 @@ function renumber(weeks: ProgramWeek[]) {
   return weeks.map((week, index) => ({ ...week, number: index + 1 }));
 }
 
-function programBands(state: PlanState, weeks: ProgramWeek[]): ProgramBand[] {
+function programBands(weeks: ProgramWeek[]): ProgramBand[] {
   const bands: ProgramBand[] = [];
   weeks.forEach((week, index) => {
-    const block = blockOf(state, week);
+    const block = week.block;
     const last = bands.at(-1);
-    if (last && block && last.key === block.blockKey) {
+    if (
+      last &&
+      block &&
+      last.key === block.key &&
+      weeks[index - 1].planId === week.planId
+    ) {
       last.span += 1;
       last.current ||= week.status === "current";
       return;
     }
     bands.push({
-      key: block?.blockKey ?? week.weekKey,
-      name: block?.name ?? week.blockName,
+      key: block?.key ?? week.weekKey,
+      name: week.blockName,
       start: index,
       span: 1,
       tone: block ? bandTones[block.kind] : "dim",
@@ -888,7 +905,7 @@ function programMilestones(
   );
   if (peak && weeks.length > 2)
     add(peak, "peak", "Pic de volume", peak.range, "quality");
-  const taper = weeks.find((week) => blockOf(state, week)?.kind === "taper");
+  const taper = weeks.find((week) => week.block?.kind === "taper");
   if (taper)
     add(
       taper,
@@ -900,24 +917,10 @@ function programMilestones(
   return milestones.sort((first, second) => first.number - second.number);
 }
 
-function programKpis(state: PlanState, weeks: ProgramWeek[]): ProgramKpi[] {
+function programKpis(weeks: ProgramWeek[]): ProgramKpi[] {
   const total = sum(weeks.map((week) => week.totals.durationSeconds));
   const distance = weeksDistance(weeks);
-  const longest = Math.max(
-    0,
-    ...state.sessions
-      .filter(
-        (session) =>
-          isRunningSession(session) &&
-          session.kind !== "race" &&
-          weeks.some(
-            (week) =>
-              session.scheduledOn >= week.weekStart &&
-              session.scheduledOn <= addDays(week.weekStart, 6),
-          ),
-      )
-      .map((session) => session.targets.durationSeconds),
-  );
+  const longest = Math.max(0, ...weeks.map((week) => week.longestRunSeconds));
   const peak = Math.max(0, ...weeks.map((week) => week.totals.durationSeconds));
   const kpis: ProgramKpi[] = [
     {
@@ -1091,6 +1094,7 @@ function seasonPrograms(
       raceIds: season.raceIds,
       startsOn: season.startsOn,
       endsOn: season.endsOn,
+      previousPlans: season.previousPlans,
       raceId: season.raceId,
       letter: season.letter,
       name: season.name,
@@ -1115,12 +1119,9 @@ function seasonPrograms(
             ? state.plan.title
             : openSeasonName,
       summary: season.id === initial?.id ? input.summary : null,
-      kpis: [
-        ...raceKpi,
-        ...(past ? seasonKpis(weeks) : programKpis(state, weeks)),
-      ],
+      kpis: [...raceKpi, ...(past ? seasonKpis(weeks) : programKpis(weeks))],
       weeks,
-      bands: programBands(state, weeks),
+      bands: programBands(weeks),
       milestones: programMilestones(state, weeks),
       races: input.races
         .flatMap((item) => {
@@ -1156,19 +1157,34 @@ function seasonPrograms(
   });
 }
 
+function readOnlyWeek(week: ProgramWeek): ProgramWeek {
+  return {
+    ...week,
+    status: week.status === "current" ? "past" : week.status,
+    days: week.days.map((day) => ({ ...day, isToday: false })),
+  };
+}
+
+export function previousWeeks(
+  input: ProgramInput,
+  planId: string,
+  weekStarts: string[],
+): ProgramWeek[] {
+  return buildProgram(input, [])
+    .weeks.filter((week) => weekStarts.includes(week.weekStart))
+    .map((week) => ({ ...readOnlyWeek(week), status: "past", planId }));
+}
+
 export function archivedProgram(
   input: ProgramInput,
   season: PlanSeason,
   next: ProgramSeasonLink | null,
+  previous: ProgramWeek[] = [],
 ): SeasonProgram {
-  const [program] = buildProgram(input, [season]).seasons;
+  const [program] = buildProgram(input, [season], previous).seasons;
   return {
     ...program,
-    weeks: program.weeks.map((week) => ({
-      ...week,
-      status: week.status === "current" ? "past" : week.status,
-      days: week.days.map((day) => ({ ...day, isToday: false })),
-    })),
+    weeks: program.weeks.map(readOnlyWeek),
     next,
   };
 }

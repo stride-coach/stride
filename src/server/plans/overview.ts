@@ -4,15 +4,20 @@ import { z } from "zod";
 import { localToday } from "@/features/plans/constraints";
 import type { IntensityPaces } from "@/features/plans/model/structure";
 import { raceKinds, withRaceCourse } from "@/features/onboarding/goals";
+import { displayTimeZone } from "@/features/app-shell/shell";
 import {
-  archivedSeason,
   archivedState,
+  planSeasons,
+  withPreviousPlans,
   type PlanSeason,
+  type PreviousPlanWeeks,
 } from "@/features/plans/view/seasons";
 import {
+  previousWeeks,
   withRaceValues,
   type ProgramInput,
   type ProgramRace,
+  type ProgramWeek,
 } from "@/features/plans/view/program";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { readRaceCourses } from "@/server/races/courses";
@@ -98,14 +103,21 @@ export const loadPlanOverview = cache(
   },
 );
 
-export const loadArchivedSeasons = cache(async function loadArchivedSeasons(
+export const loadPlanSeasons = cache(async function loadPlanSeasons(
   context: OnboardingContext,
 ): Promise<PlanSeason[]> {
-  const [plans, races] = await Promise.all([
-    readArchivedPlans(context),
+  const [plan, archived, races] = await Promise.all([
+    readActivePlan(context),
+    readArchivedPlans(context).catch(() => []),
     readPlanRaces(context),
   ]);
-  return plans.flatMap((plan) => archivedSeason(plan, races) ?? []);
+  const today = localToday(plan?.state.plan.timeZone ?? displayTimeZone);
+  return withPreviousPlans({
+    seasons: plan ? planSeasons({ state: plan.state, races, today }) : [],
+    archived,
+    races,
+    today,
+  });
 });
 
 export const loadArchivedPlanOverview = cache(
@@ -146,4 +158,22 @@ export function programInput(
     races: overview.races,
     paces,
   };
+}
+
+export async function loadPreviousWeeks(
+  context: OnboardingContext,
+  plans: PreviousPlanWeeks[],
+  paces: IntensityPaces | null,
+): Promise<ProgramWeek[]> {
+  const weeks = await Promise.all(
+    plans
+      .filter((plan) => plan.weekStarts.length > 0)
+      .map(async ({ planId, weekStarts }) => {
+        const overview = await loadArchivedPlanOverview(context, planId);
+        return overview
+          ? previousWeeks(programInput(overview, paces), planId, weekStarts)
+          : [];
+      }),
+  );
+  return weeks.flat();
 }
