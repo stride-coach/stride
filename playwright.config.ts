@@ -3,7 +3,11 @@ import lanes from "./tests/e2e/lanes.json";
 import { acquireE2eLock } from "./tests/fixtures/e2e-lock";
 
 // The config is also loaded by every worker; only the runner (no IPC channel) takes the lock.
-if (!process.env.CI && !process.send && process.env.PLAYWRIGHT_NO_LOCK !== "true") {
+if (
+  !process.env.CI &&
+  !process.send &&
+  process.env.PLAYWRIGHT_NO_LOCK !== "true"
+) {
   acquireE2eLock();
 }
 
@@ -21,7 +25,9 @@ export default defineConfig({
   workers: process.env.CI ? 4 : Number(process.env.PLAYWRIGHT_WORKERS ?? 1),
   retries: process.env.CI ? 1 : 0,
   testIgnore: "onboarding.spec.ts",
-  reporter: "list",
+  reporter: process.env.CI
+    ? [["list"], ["json", { outputFile: "test-results/report.json" }]]
+    : "list",
   use: {
     baseURL: `http://127.0.0.1:${appPort}`,
     trace: "retain-on-failure",

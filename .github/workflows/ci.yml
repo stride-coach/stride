@@ -85,6 +85,16 @@ jobs:
       - run: npm run test:e2e -- --project=${{ matrix.project }} --no-deps --shard=${{ matrix.shard }} --pass-with-no-tests ${{ matrix.specs }}
         env:
           PLAYWRIGHT_PRODUCTION: ${{ matrix.production }}
+      - name: Browser report
+        if: always()
+        run: node scripts/e2e-report.ts test-results/report.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-${{ matrix.lane }}-report
+          path: test-results/report.json
+          if-no-files-found: warn
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -134,12 +144,16 @@ jobs:
         if: matrix.shard == 1
       - run: npm run db:types && git diff --exit-code src/server/supabase/database.types.ts
       - run: npm run test:e2e:onboarding -- --shard=${{ matrix.shard }}/3
+      - name: Browser report
+        if: always()
+        run: node scripts/e2e-report.ts test-results/report.json >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: onboarding-${{ matrix.shard }}-results
           include-hidden-files: true
           path: |
+            test-results/report.json
             test-results/**/trace.zip
             test-results/**/error-context.md
             test-results/onboarding-*.png
