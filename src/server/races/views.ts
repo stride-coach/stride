@@ -4,6 +4,7 @@ import { isNightAt } from "@/features/races/night";
 import { mapData } from "@/features/races/map";
 import { profileData } from "@/features/races/profile";
 import type { RaceWorkspaceData } from "./races";
+import { withFuelingCap } from "@/features/fueling/tests";
 import { distanceAtElapsed } from "@/features/races/simulation";
 import {
   slotTimes,
@@ -52,7 +53,7 @@ export function planFor(
     ? planModel({
         model,
         race: data.race,
-        plan: data.plan,
+        plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
         scenario,
         timeZone: data.course.timeZone,
         paceFactors: strategy ? paceFactorsOf(strategy) : undefined,
@@ -141,7 +142,7 @@ export function timelineFor({
       raceAllocation({
         model,
         planned,
-        plan: data.plan,
+        plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
         nutritionPlan: data.nutritionPlan?.plan ?? null,
         dropBagExtras: data.dropBag?.extras ?? [],
         products: products.active,

@@ -6,6 +6,7 @@ import {
   EditProductButton,
 } from "@/features/fueling/components/product-dialog";
 import type { NutritionProduct } from "@/features/fueling/products";
+import { withFuelingCap } from "@/features/fueling/tests";
 import type { RaceNutritionPlan } from "@/features/fueling/race-plan";
 import { sessionPanelHref } from "@/features/plans/view/session-href";
 import { formatClock, formatDuration, formatInteger } from "../format";
@@ -51,6 +52,7 @@ export type NutritionBodyProps = {
     strategy: RaceStrategy | null;
     nutritionPlan: { plan: RaceNutritionPlan; updatedAt: string } | null;
     dropBag: { extras: string[] } | null;
+    fuelingCapG: number | null;
   };
   model: CourseModel;
   planned: RacePlanModel;
@@ -252,7 +254,7 @@ export function NutritionBody({
   const allocation = raceAllocation({
     model,
     planned,
-    plan,
+    plan: withFuelingCap(plan, data.fuelingCapG),
     nutritionPlan: data.nutritionPlan?.plan ?? null,
     dropBagExtras: data.dropBag?.extras ?? [],
     products,

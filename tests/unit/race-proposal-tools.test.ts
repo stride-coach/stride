@@ -215,6 +215,22 @@ describe("race proposal tools", () => {
     });
   });
 
+  it("never proposes more carbohydrate than validated in training", async () => {
+    sources.readWorkspace.mockResolvedValue({ ...workspace, fuelingCapG: 60 });
+    const input = nutritionInput([{ arrivalWaypointId: ids.finish, count: 1 }]);
+    await expect(
+      proposeRaceNutritionTool.run!(context, {
+        ...input,
+        targets: { ...input.targets, carbsPerHourG: 70 },
+      }),
+    ).rejects.toMatchObject({
+      details: {
+        reason: "above_validated_intake",
+        validatedCarbsPerHourG: 60,
+      },
+    });
+  });
+
   it("stores caffeine at night within the maximum", async () => {
     await expect(
       proposeRaceNutritionTool.run!(

@@ -30,6 +30,7 @@ import { loadGear } from "@/server/gear/load";
 import { readRaceFacts } from "@/server/gear/planned";
 import { loadRace } from "@/server/races/load";
 import type { RaceWorkspaceData } from "@/server/races/races";
+import { withFuelingCap } from "@/features/fueling/tests";
 import { planFor, weatherFor } from "@/server/races/views";
 import { Suspense } from "react";
 import { weatherGear } from "@/features/races/gear-weather";
@@ -257,7 +258,7 @@ export default async function RaceGearPage({
     ? raceAllocation({
         model: views.model,
         planned: views.planned,
-        plan: data.plan,
+        plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
         nutritionPlan: data.nutritionPlan?.plan ?? null,
         dropBagExtras: data.dropBag?.extras ?? [],
         products: library.active,
