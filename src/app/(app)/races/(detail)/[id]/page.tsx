@@ -8,12 +8,28 @@ import { TargetMissing } from "@/features/races/components/target-missing";
 import { WalkCard } from "@/features/races/components/walk-card";
 import type { RaceWorkspaceData } from "@/server/races/races";
 import { loadRace } from "@/server/races/load";
-import { chartViews, planFor, weatherFor } from "@/server/races/views";
+import {
+  chartViews,
+  planFor,
+  timelineFor,
+  weatherFor,
+} from "@/server/races/views";
+import {
+  axisLanes,
+  axisReadings,
+  roadbookRows,
+  roadbookTotals,
+} from "@/features/races/axis";
+import { planProfile } from "@/features/races/timeline";
+import type { NutritionProduct } from "@/features/fueling/products";
+import { RaceAxis } from "@/features/races/components/race-axis";
+import { readNutritionLibrary } from "@/server/fueling/products";
 import { listCourseActivities } from "@/server/races/activities";
 
 type Workspace = {
   data: RaceWorkspaceData;
   views: NonNullable<ReturnType<typeof planFor>>;
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] };
 };
 
 async function CourseWithWeather({
@@ -26,11 +42,61 @@ async function CourseWithWeather({
 function CourseWorkspace({
   data,
   views,
+  products,
   weather,
 }: Workspace & { weather: RaceWeather | null }) {
   const { model, planned } = views;
   const { profile, map } = chartViews(model, planned, weather);
   const road = data.race.kind === "road";
+  const walkCard = (
+    <WalkCard
+      raceId={data.race.id}
+      revision={data.plan.revision}
+      threshold={data.plan.walkGradePercent}
+      paceSecondsPerKm={data.plan.walkPaceSecondsPerKm}
+      rows={Array.from({ length: 16 }, (_, index) => index + 5).map(
+        (threshold) => ({
+          threshold,
+          ...walkSummary(walkPortions(model.course, threshold, model.grades)),
+        }),
+      )}
+      applied={planned !== null}
+    />
+  );
+  if (!road && planned) {
+    const timeline = timelineFor({ data, model, planned, weather, products });
+    const lanes = axisLanes({
+      profile: planProfile(profile, timeline),
+      model,
+      timeline,
+      weather,
+    });
+    return (
+      <>
+        <RaceAxis
+          lanes={lanes}
+          readings={axisReadings({
+            model,
+            planned,
+            timeline,
+            weather,
+            walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
+          })}
+          rows={roadbookRows(timeline, weather)}
+          totals={roadbookTotals(timeline, model.course.distanceM)}
+          walkThreshold={data.plan.walkGradePercent}
+          map={{
+            data: map,
+            segments: profile.segments,
+            title: data.race.name,
+            rainLabel: weather?.mode === "forecast" ? "Averses" : "Météo",
+            hasWeather: profile.rain.length > 0,
+          }}
+        />
+        {walkCard}
+      </>
+    );
+  }
   const roadProfile = road
     ? {
         ...profile,
@@ -49,12 +115,6 @@ function CourseWorkspace({
   const walk = model.walkByThreshold.find(
     (item) => item.threshold === data.plan.walkGradePercent,
   )!;
-  const walkRows = Array.from({ length: 16 }, (_, index) => index + 5).map(
-    (threshold) => ({
-      threshold,
-      ...walkSummary(walkPortions(model.course, threshold, model.grades)),
-    }),
-  );
   return (
     <>
       <MapCard
@@ -75,16 +135,7 @@ function CourseWorkspace({
         walkDistanceM={walk.distanceM}
         race={data.race}
       />
-      {!road && (
-        <WalkCard
-          raceId={data.race.id}
-          revision={data.plan.revision}
-          threshold={data.plan.walkGradePercent}
-          paceSecondsPerKm={data.plan.walkPaceSecondsPerKm}
-          rows={walkRows}
-          applied={planned !== null}
-        />
-      )}
+      {!road && walkCard}
     </>
   );
 }
@@ -122,7 +173,11 @@ export default async function RaceCoursePage({
     );
   }
   const views = planFor(data)!;
-  const props = { data, views };
+  const products =
+    data.race.kind === "trail" && views.planned
+      ? await readNutritionLibrary(context)
+      : { active: [], archived: [] };
+  const props = { data, views, products };
   const { planned } = views;
   if (!planned || !data.race.date || planned.startEpochMs === null)
     return (

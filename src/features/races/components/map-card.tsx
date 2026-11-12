@@ -183,6 +183,8 @@ export function MapCard({
   rainLabel,
   hasWeather,
   kind = "trail",
+  cursor = null,
+  walkLabel = "Marche",
 }: {
   data: MapData;
   segments?: MapSegment[];
@@ -190,6 +192,8 @@ export function MapCard({
   rainLabel: "Météo" | "Averses";
   hasWeather: boolean;
   kind?: "road" | "trail";
+  cursor?: { lat: number; lon: number } | null;
+  walkLabel?: string;
 }) {
   const road = kind === "road";
   const pathname = usePathname();
@@ -222,7 +226,7 @@ export function MapCard({
         </LayerChip>
       )}
       <LayerChip pressed={layers.walk} onPressedChange={toggle("walk")}>
-        Marche
+        {walkLabel}
       </LayerChip>
       {hasWeather && (
         <LayerChip
@@ -250,6 +254,7 @@ export function MapCard({
         }
         fullscreenRef={opener}
         onFullscreen={() => setFullscreen(true)}
+        cursor={cursor}
         className="h-56 md:h-105"
       />
       {fullscreen && (

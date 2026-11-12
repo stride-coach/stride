@@ -28,12 +28,9 @@ import {
   strategyChanges,
   type RaceProposal,
 } from "@/features/races/proposals";
-import { raceAllocation } from "@/features/races/race-nutrition";
 import { raceStrategy } from "@/features/races/reading";
 import {
   planProfile,
-  raceTimeline,
-  timelineFueling,
   type PlanProfileData,
   type TimelineTotals,
 } from "@/features/races/timeline";
@@ -48,7 +45,7 @@ import {
   readReadyRaceProposals,
 } from "@/server/races/proposals";
 import type { RaceWorkspaceData } from "@/server/races/races";
-import { planFor, weatherFor } from "@/server/races/views";
+import { planFor, timelineFor, weatherFor } from "@/server/races/views";
 
 const scenarioSchema = z
   .enum(["ambitious", "target", "cautious"])
@@ -329,25 +326,12 @@ function PlanBody({
   weather,
 }: BodyProps & { weather: RaceWeather | null }) {
   const base = `/races/${data.race.id}`;
-  const timeline = raceTimeline({
+  const timeline = timelineFor({
+    data,
     model: views.model,
     planned,
     weather,
-    strategy: data.strategy,
-    fueling: timelineFueling(
-      raceAllocation({
-        model: views.model,
-        planned,
-        plan: data.plan,
-        nutritionPlan: data.nutritionPlan?.plan ?? null,
-        dropBagExtras: data.dropBag?.extras ?? [],
-        products: products.active,
-        archivedProducts: products.archived,
-        weather,
-      }),
-    ),
-    stops: data.plan,
-    walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
+    products,
   });
   const profile = planProfile(
     profileData({

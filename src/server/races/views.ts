@@ -20,6 +20,9 @@ import {
 } from "@/features/races/workspace";
 import { paceFactorsOf, type RaceStrategy } from "@/features/races/proposals";
 import { raceWeather } from "./weather";
+import type { NutritionProduct } from "@/features/fueling/products";
+import { raceAllocation } from "@/features/races/race-nutrition";
+import { raceTimeline, timelineFueling } from "@/features/races/timeline";
 
 export type CourseViews = {
   model: CourseModel;
@@ -114,4 +117,39 @@ export function chartViews(
     weather,
   });
   return { profile, map: mapData(model.course, profile) };
+}
+
+export function timelineFor({
+  data,
+  model,
+  planned,
+  weather,
+  products,
+}: {
+  data: RaceWorkspaceData;
+  model: CourseModel;
+  planned: RacePlanModel;
+  weather: RaceWeather | null;
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] };
+}) {
+  return raceTimeline({
+    model,
+    planned,
+    weather,
+    strategy: data.strategy,
+    fueling: timelineFueling(
+      raceAllocation({
+        model,
+        planned,
+        plan: data.plan,
+        nutritionPlan: data.nutritionPlan?.plan ?? null,
+        dropBagExtras: data.dropBag?.extras ?? [],
+        products: products.active,
+        archivedProducts: products.archived,
+        weather,
+      }),
+    ),
+    stops: data.plan,
+    walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
+  });
 }
