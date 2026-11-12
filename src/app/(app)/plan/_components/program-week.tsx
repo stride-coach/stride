@@ -99,7 +99,10 @@ function SessionLink({
       onClick={session.raceId ? undefined : markSessionOpened}
       data-session-key={session.sessionKey}
       aria-current={current ? "date" : undefined}
-      className={className}
+      className={cn(
+        className,
+        "data-panel-source:bg-muted data-panel-source:shadow-[inset_2px_0_0_var(--foreground)]",
+      )}
     >
       {children}
     </Link>

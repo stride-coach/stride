@@ -110,7 +110,7 @@ function DaySessionRow({ session }: { session: TodayDaySession }) {
     <Link
       href={session.href}
       aria-label={session.label}
-      className="flex min-h-row-touch items-center gap-3 border-t border-border py-2 transition-colors duration-150 ease-stride hover:bg-muted sm:min-h-row"
+      className="flex min-h-row-touch items-center gap-3 border-t border-border py-2 transition-colors duration-150 ease-stride hover:bg-muted data-panel-source:bg-muted data-panel-source:shadow-[inset_2px_0_0_var(--foreground)] sm:min-h-row"
     >
       <span className="min-w-0 flex-1 truncate font-medium">
         {session.title}

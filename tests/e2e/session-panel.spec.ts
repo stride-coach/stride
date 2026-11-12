@@ -184,3 +184,56 @@ test("a link inside the panel leaves it for the target page", async ({
   await expect(page).toHaveURL(/\/activities\/gear$/, { timeout: 20_000 });
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+const weekRow = (page: Page) =>
+  page
+    .locator('[data-slot="session-row"] a[href^="/plan/sessions/"]')
+    .filter({ visible: true })
+    .first();
+
+const panelMotion = (page: Page) =>
+  page.getByRole("dialog").evaluate((panel) => {
+    const style = getComputedStyle(panel);
+    return {
+      duration: Number.parseFloat(style.animationDuration),
+      easing: style.animationTimingFunction,
+      from: style.getPropertyValue("--tw-enter-translate-x").trim(),
+    };
+  });
+
+test("the panel slides in from the edge and keeps its row highlighted", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  const row = weekRow(page);
+  test.skip((await row.count()) === 0, "No planned session this week");
+  const idle = await row.evaluate((link) => getComputedStyle(link).boxShadow);
+  await row.click();
+  await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
+  expect(await panelMotion(page)).toEqual({
+    duration: 0.22,
+    easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    from: "100%",
+  });
+  await expect(row).toHaveAttribute("data-panel-source", "");
+  expect(
+    await row.evaluate((link) => getComputedStyle(link).boxShadow),
+  ).not.toBe(idle);
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(row).not.toHaveAttribute("data-panel-source");
+});
+
+test("the panel opens instantly with reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  const row = weekRow(page);
+  test.skip((await row.count()) === 0, "No planned session this week");
+  await row.click();
+  await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
+  expect((await panelMotion(page)).duration).toBeLessThan(0.001);
+  await expect(row).toHaveAttribute("data-panel-source", "");
+});

@@ -150,7 +150,7 @@ export function SessionRow({
           aria-current={selected ? "true" : undefined}
           className={cn(
             layout,
-            "transition-colors duration-150 ease-stride not-aria-[current]:hover:bg-muted focus-visible:outline-offset-[-2px]",
+            "transition-colors duration-150 ease-stride not-aria-[current]:hover:bg-muted focus-visible:outline-offset-[-2px] data-panel-source:bg-muted data-panel-source:shadow-[inset_2px_0_0_var(--foreground)]",
           )}
         >
           {cells}
