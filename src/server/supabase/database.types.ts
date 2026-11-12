@@ -2419,6 +2419,9 @@ export type Database = {
         Row: {
           alert_distance_m: number;
           created_at: string;
+          crew_access: string | null;
+          crew_prepare: string | null;
+          crew_reason: string | null;
           cutoff_time: string | null;
           distance_m: number;
           id: string;
@@ -2441,6 +2444,9 @@ export type Database = {
         Insert: {
           alert_distance_m?: number;
           created_at?: string;
+          crew_access?: string | null;
+          crew_prepare?: string | null;
+          crew_reason?: string | null;
           cutoff_time?: string | null;
           distance_m: number;
           id?: string;
@@ -2462,6 +2468,9 @@ export type Database = {
         Update: {
           alert_distance_m?: number;
           created_at?: string;
+          crew_access?: string | null;
+          crew_prepare?: string | null;
+          crew_reason?: string | null;
           cutoff_time?: string | null;
           distance_m?: number;
           id?: string;
