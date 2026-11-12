@@ -43,3 +43,14 @@ export function sessionDistance(
       }
     : null;
 }
+
+const easyIntensities = new Set<string>(["recovery", "easy"]);
+
+export function hasQualityWork(session: PlanSession) {
+  if (!isRunningSession(session) || session.kind === "race") return false;
+  return Object.entries(
+    structureTotals(session.structure).secondsByIntensity,
+  ).some(
+    ([intensity, seconds]) => seconds > 0 && !easyIntensities.has(intensity),
+  );
+}
