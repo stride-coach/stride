@@ -146,16 +146,27 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     await expect(list).toBeVisible();
     if (viewport.width < 500) await expect(list).toContainText("4 points");
     await expect(page.getByRole("button", { name: /Départ/ })).toHaveCount(0);
-    const row = page.getByRole("button", { name: /Ravito du Bois/ });
-    await expect(row).toContainText("km 10,0");
-    await expect(row).toContainText("Alerte");
-    await row.click();
-    await expect(row).toHaveAttribute("aria-current", "true");
+    if (viewport.width < 1024) {
+      const row = page.getByRole("button", { name: /Ravito du Bois/ });
+      await expect(row).toContainText("km 10,0");
+      await expect(row).toContainText("Alerte");
+      await row.click();
+    } else {
+      const row = page.getByRole("row", { name: /Ravito du Bois/ });
+      await expect(row).toContainText("10,0");
+      await expect(row).toContainText("Ravitaillement");
+      await expect(row).toContainText("5 min");
+      await row.getByRole("button", { name: "Ravito du Bois" }).click();
+      await expect(row).toHaveAttribute("aria-current", "true");
+    }
     const editor = page.getByRole("region", {
       name: "Modifier Ravito du Bois",
     });
     await expect(
-      editor.getByRole("heading", { name: "Modifier · Ravito du Bois" }),
+      page.getByRole("heading", { name: "Modifier · Ravito du Bois" }),
+    ).toBeVisible();
+    await expect(
+      editor.getByText("Vide : 5 min, comme les autres ravitos"),
     ).toBeVisible();
     await expect(
       editor.getByRole("button", { name: "Ravitaillement" }),
@@ -856,4 +867,39 @@ test("a race without a course reads as an estimate and takes manual aid stations
   await expect(
     roadbook.getByRole("row", { name: /→ Base de Chaville/ }),
   ).toBeVisible();
+});
+
+test("a waypoint keeps its own planned stop from the table editor", async ({
+  page,
+  request,
+}) => {
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/waypoints");
+  const row = page.getByRole("row", { name: /Ravito du Bois/ });
+  await expect(row).toContainText("5 min");
+  await row.getByRole("button", { name: "Ravito du Bois" }).click();
+  const editor = page.getByRole("region", { name: "Modifier Ravito du Bois" });
+  await editor.getByRole("textbox", { name: /^Arrêt prévu/ }).fill("12");
+  await editor.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByText("Point enregistré.")).toBeVisible();
+  await expect(row).toContainText("12 min");
+  await editor.getByRole("button", { name: "Annuler" }).click();
+  await expect(editor).toBeHidden();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("listitem")
+    .filter({ hasText: "Ravito du Bois" })
+    .getByRole("button")
+    .click();
+  const sheet = page.getByRole("dialog", { name: "Modifier · Ravito du Bois" });
+  await expect(
+    sheet.getByRole("textbox", { name: /^Arrêt prévu/ }),
+  ).toHaveValue("12");
+  await sheet.getByRole("button", { name: "Fermer" }).click();
+  await expect(sheet).toBeHidden();
 });

@@ -93,6 +93,7 @@ function waypoint(
     voiceNote: kind === "aid" ? "Remplis les flasques" : null,
     todo: null,
     nutritionNote: null,
+    stopSeconds: null,
     source: "athlete",
     needsReview: false,
     revision: 1,

@@ -79,8 +79,11 @@ type StopSettings = Pick<
 >;
 
 function stopSeconds(waypoint: Waypoint, settings: StopSettings) {
-  if (waypoint.kind === "water") return settings.waterStopSeconds;
-  return isStation(waypoint.kind) ? settings.aidStopSeconds : 0;
+  if (!isStation(waypoint.kind)) return 0;
+  if (waypoint.stopSeconds !== null) return waypoint.stopSeconds;
+  return waypoint.kind === "water"
+    ? settings.waterStopSeconds
+    : settings.aidStopSeconds;
 }
 
 function stopsOf(

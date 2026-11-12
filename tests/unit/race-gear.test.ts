@@ -55,6 +55,7 @@ function waypoint(
     voiceNote: null,
     todo: null,
     nutritionNote: null,
+    stopSeconds: null,
     source: "course",
     needsReview: false,
     revision: 1,

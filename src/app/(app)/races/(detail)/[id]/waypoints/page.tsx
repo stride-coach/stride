@@ -30,6 +30,7 @@ export default async function WaypointsPage({
         map={null}
         passages={estimateFor(data)?.planned.simulation.passages ?? []}
         distanceM={estimated.course.distanceM}
+        stops={data.plan}
       />
     );
   if (!data.course)
@@ -65,6 +66,7 @@ export default async function WaypointsPage({
       map={mapData(model.course, profile)}
       passages={planned?.simulation.passages ?? []}
       distanceM={model.course.distanceM}
+      stops={data.plan}
     />
   );
 }

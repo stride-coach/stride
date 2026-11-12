@@ -184,8 +184,9 @@ function stopOf(
   waypoint: Waypoint,
   stops: { aidStopSeconds: number; waterStopSeconds: number },
 ) {
-  if (waypoint.kind === "water") return stops.waterStopSeconds;
   if (waypoint.kind === "start" || waypoint.kind === "finish") return 0;
+  if (waypoint.stopSeconds !== null) return waypoint.stopSeconds;
+  if (waypoint.kind === "water") return stops.waterStopSeconds;
   return stops.aidStopSeconds;
 }
 
