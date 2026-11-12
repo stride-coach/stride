@@ -248,6 +248,33 @@ function DemandRow({ demand }: { demand: RaceDemand }) {
   );
 }
 
+export function DemandList({
+  demands,
+  headingId,
+}: {
+  demands: RaceDemand[];
+  headingId: string;
+}) {
+  return (
+    <section aria-labelledby={headingId} className="flex flex-col">
+      <h3
+        id={headingId}
+        className="pb-2 text-label font-medium text-secondary-foreground"
+      >
+        Où tu en es → ce que la course demande
+      </h3>
+      <ul className="flex flex-col">
+        {demands.map((demand) => (
+          <DemandRow key={demand.key} demand={demand} />
+        ))}
+      </ul>
+      <p className="border-t border-border pt-2 text-label text-muted-foreground">
+        Tes meilleures marques des 6 derniers mois.
+      </p>
+    </section>
+  );
+}
+
 export function FeaturedRace({
   race,
   plan,
@@ -322,22 +349,7 @@ export function FeaturedRace({
           <Figure label="Allure moyenne">{pace ?? "—"}</Figure>
         </dl>
         {demands.length > 0 && (
-          <section aria-labelledby="races-demands" className="flex flex-col">
-            <h3
-              id="races-demands"
-              className="pb-2 text-label font-medium text-secondary-foreground"
-            >
-              Où tu en es → ce que la course demande
-            </h3>
-            <ul className="flex flex-col">
-              {demands.map((demand) => (
-                <DemandRow key={demand.key} demand={demand} />
-              ))}
-            </ul>
-            <p className="border-t border-border pt-2 text-label text-muted-foreground">
-              Tes meilleures marques des 6 derniers mois.
-            </p>
-          </section>
+          <DemandList demands={demands} headingId="races-demands" />
         )}
       </div>
       <div className="flex flex-wrap gap-2 max-md:grid max-md:grid-cols-2">
