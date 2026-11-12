@@ -101,7 +101,9 @@ test("a session opens over Récupération", async ({ page }) => {
   await link.click();
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
   await expect(page).toHaveURL(/\/plan\/sessions\//);
-  await expect(page.locator("main h1")).toBeAttached();
+  await expect(
+    page.locator("main h1").filter({ visible: true }),
+  ).toBeAttached();
   await page.getByRole("button", { name: "Fermer" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page).toHaveURL(/\/health\/recovery$/);

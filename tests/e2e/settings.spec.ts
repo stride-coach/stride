@@ -419,36 +419,34 @@ test("profile mobile sheet traps focus, Escape discards and restores focus", asy
   ).toBe(true);
 });
 
-test(
-  "profile stale save preserves the draft and photo uploads persist",
-  { tag: "@quarantine" },
-  async ({ page, context }) => {
-    await signIn(page);
-    await page.goto("/settings/profile");
-    const other = await context.newPage();
-    await other.goto("/settings/profile");
-    await other.getByLabel("Prénom", { exact: true }).fill("Jules concurrent");
-    await other
-      .getByRole("button", { name: "Enregistrer", exact: true })
-      .click();
-    await expect(
-      other
-        .locator("[data-sonner-toast]")
-        .filter({ hasText: "Profil enregistré." }),
-    ).toBeVisible();
-    await page.getByLabel("Prénom", { exact: true }).fill("Brouillon conservé");
-    await page
-      .getByRole("button", { name: "Enregistrer", exact: true })
-      .click();
-    await expect(
-      page.locator("[data-sonner-toast]").filter({ hasText: "autre onglet" }),
-    ).toBeVisible();
-    await expect(page.getByLabel("Prénom", { exact: true })).toHaveValue(
-      "Brouillon conservé",
-    );
-    await other.close();
-    await page.reload();
-    await page.getByLabel("Importer une photo de profil").setInputFiles({
+test("profile stale save preserves the draft and photo uploads persist", async ({
+  page,
+  context,
+}) => {
+  await signIn(page);
+  await page.goto("/settings/profile");
+  const other = await context.newPage();
+  await other.goto("/settings/profile");
+  await other.getByLabel("Prénom", { exact: true }).fill("Jules concurrent");
+  await other.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(
+    other
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: "Profil enregistré." }),
+  ).toBeVisible();
+  await page.getByLabel("Prénom", { exact: true }).fill("Brouillon conservé");
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(
+    page.locator("[data-sonner-toast]").filter({ hasText: "autre onglet" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Prénom", { exact: true })).toHaveValue(
+    "Brouillon conservé",
+  );
+  await other.close();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Importer une photo de profil" })
+    .setInputFiles({
       name: "photo.png",
       mimeType: "image/png",
       buffer: await sharp({
@@ -457,23 +455,20 @@ test(
         .png()
         .toBuffer(),
     });
-    await expect(
-      page.getByRole("img", { name: "Ta photo de profil" }),
-    ).toBeVisible();
-    await page
-      .getByRole("button", { name: "Enregistrer", exact: true })
-      .click();
-    await expect(
-      page
-        .locator("[data-sonner-toast]")
-        .filter({ hasText: "Profil enregistré." }),
-    ).toBeVisible();
-    await page.reload();
-    await expect(
-      page.getByRole("img", { name: "Ta photo de profil" }),
-    ).toBeVisible();
-  },
-);
+  await expect(
+    page.getByRole("img", { name: "Ta photo de profil" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(
+    page
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: "Profil enregistré." }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("img", { name: "Ta photo de profil" }),
+  ).toBeVisible();
+});
 
 test("profile keeps all metric containers when athlete data is absent", async ({
   page,
@@ -559,20 +554,24 @@ test("profile preserves partial French dates and decimal input and rejects inval
   await weight.fill("");
   await weight.pressSequentially("68,7");
   await expect(weight).toHaveValue("68,7");
-  await page.getByLabel("Importer une photo de profil").setInputFiles({
-    name: "invalid.png",
-    mimeType: "image/png",
-    buffer: Buffer.from("invalid image"),
-  });
+  await page
+    .getByRole("button", { name: "Importer une photo de profil" })
+    .setInputFiles({
+      name: "invalid.png",
+      mimeType: "image/png",
+      buffer: Buffer.from("invalid image"),
+    });
   await expect(
     page.locator("[data-sonner-toast]").filter({ hasText: "image valide" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Annuler", exact: true }).click();
-  await page.getByLabel("Importer une photo de profil").setInputFiles({
-    name: "huge.png",
-    mimeType: "image/png",
-    buffer: Buffer.alloc(2 * 1024 * 1024 + 1),
-  });
+  await page
+    .getByRole("button", { name: "Importer une photo de profil" })
+    .setInputFiles({
+      name: "huge.png",
+      mimeType: "image/png",
+      buffer: Buffer.alloc(2 * 1024 * 1024 + 1),
+    });
   await expect(
     page.locator("[data-sonner-toast]").filter({ hasText: "moins de 2 Mo" }),
   ).toBeVisible();
