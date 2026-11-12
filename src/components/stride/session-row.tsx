@@ -69,7 +69,11 @@ export function SessionRow({
   label,
   current,
   className,
+  sessionKey,
+  onClick,
 }: {
+  sessionKey?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   state: SessionRowState;
   past?: boolean;
   selected?: boolean;
@@ -140,6 +144,8 @@ export function SessionRow({
       {href ? (
         <Link
           href={href}
+          onClick={onClick}
+          data-session-key={sessionKey}
           aria-label={label}
           aria-current={selected ? "true" : undefined}
           className={cn(
