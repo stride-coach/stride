@@ -519,6 +519,8 @@ export function RaceAxis({
   walkThreshold,
   map,
   settings,
+  alert,
+  context,
 }: {
   lanes: AxisLanes;
   readings: AxisReading[];
@@ -533,6 +535,8 @@ export function RaceAxis({
     hasWeather: boolean;
   };
   settings?: React.ReactNode;
+  alert?: React.ReactNode;
+  context?: React.ReactNode;
 }) {
   const [index, setIndex] = useState(0);
   const reading = readings[index] ?? readings[0];
@@ -576,6 +580,7 @@ export function RaceAxis({
   const left = `${(reading.distanceM / lanes.distanceM) * 100}%`;
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
+      {alert && <div className="min-w-0 xl:col-start-1">{alert}</div>}
       <div className="min-w-0 xl:col-start-1">
         <MapCard
           data={map.data}
@@ -629,8 +634,14 @@ export function RaceAxis({
           <span>km {km(lanes.distanceM)}</span>
         </p>
       </section>
-      <div className="min-w-0 xl:col-start-2 xl:row-span-3 xl:row-start-1">
+      <div
+        className={cn(
+          "min-w-0 xl:col-start-2 xl:row-start-1",
+          alert ? "xl:row-span-4" : "xl:row-span-3",
+        )}
+      >
         <div className="flex flex-col gap-5 xl:sticky xl:top-4">
+          {context}
           <CursorPanel reading={reading} />
           {settings}
         </div>

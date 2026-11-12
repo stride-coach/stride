@@ -19,6 +19,7 @@ import {
   type RacePlanModel,
   type ScenarioKey,
 } from "@/features/races/workspace";
+import { barriersOf, cutoffAlert } from "@/features/races/cutoff-alert";
 import { paceFactorsOf, type RaceStrategy } from "@/features/races/proposals";
 import { raceWeather } from "./weather";
 import type { NutritionProduct } from "@/features/fueling/products";
@@ -60,6 +61,21 @@ export function planFor(
       })
     : null;
   return { model, planned, scenarios };
+}
+
+export function cutoffFor(
+  data: RaceWorkspaceData,
+  model: CourseModel,
+  planned: RacePlanModel,
+) {
+  const inputs = {
+    model,
+    planned,
+    plan: data.plan,
+    paceFactors: data.strategy ? paceFactorsOf(data.strategy) : undefined,
+  };
+  const alert = cutoffAlert(inputs);
+  return alert ? { alert, barriers: barriersOf(inputs) } : null;
 }
 
 export async function weatherFor(

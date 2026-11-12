@@ -709,3 +709,45 @@ test("a carbohydrate intake validated in training caps the race plan", async ({
     .click();
   await expect(card).toContainText("Aucun apport n’est encore validé");
 });
+
+test("a threatened cutoff offers remedies that apply and undo", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?tight=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+
+  const alert = page.getByRole("region", {
+    name: "Barrière horaire à l’arrivée",
+  });
+  await expect(alert).toContainText("Marge de 20 min");
+  await expect(alert).toContainText(
+    "Je te fais arriver à 14:00 pour une barrière à 14:20.",
+  );
+  await expect(
+    page.getByRole("region", { name: "Tes barrières" }),
+  ).toContainText("20 min");
+  const remedies = alert.getByRole("list", { name: "Réglages proposés" });
+  const goal = remedies
+    .getByRole("listitem")
+    .filter({ hasText: /^Viser \dh\d\d au lieu de 6h00/ });
+  await expect(goal).toContainText(/marge (3\d|4\d) min/);
+  await goal.getByRole("button", { name: /^Appliquer/ }).click();
+
+  await expect(alert).toBeHidden({ timeout: 15_000 });
+  const toast = page
+    .locator("[data-sonner-toast]")
+    .filter({ hasText: /^Viser / });
+  await toast.getByRole("button", { name: "Annuler" }).click();
+  await expect(alert).toContainText("Marge de 20 min", { timeout: 15_000 });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    remedies.getByRole("button", { name: /^Appliquer/ }).first(),
+  ).toBeVisible();
+});

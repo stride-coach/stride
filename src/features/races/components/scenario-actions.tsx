@@ -47,7 +47,7 @@ export function ScenarioRevisions({
   );
 }
 
-function useRevisions() {
+export function useRevisions() {
   const ref = useContext(RevisionContext);
   if (!ref) throw new Error("ScenarioRevisions is missing");
   return ref;
