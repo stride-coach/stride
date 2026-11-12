@@ -2300,6 +2300,45 @@ export type Database = {
           },
         ];
       };
+      race_setting_changes: {
+        Row: {
+          created_at: string;
+          id: string;
+          previous_value: number | null;
+          race_id: string;
+          setting: string;
+          user_id: string;
+          value: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          previous_value?: number | null;
+          race_id: string;
+          setting: string;
+          user_id: string;
+          value: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          previous_value?: number | null;
+          race_id?: string;
+          setting?: string;
+          user_id?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_setting_changes_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       race_strategies: {
         Row: {
           consignes: NonNullable<Json>;

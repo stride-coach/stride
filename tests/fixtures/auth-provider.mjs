@@ -344,6 +344,7 @@ const tables = {
   race_proposals: [],
   race_nutrition_plans: [],
   race_drop_bags: [],
+  race_setting_changes: [],
   athlete_nutrition_products: [],
   activity_shoe_decisions: [],
   activity_feelings: [],
@@ -2297,6 +2298,12 @@ function selectRows(table, params) {
       if (filter?.startsWith("eq."))
         rows = rows.filter((row) => `eq.${row[key]}` === filter);
     }
+  if (table === "race_setting_changes") {
+    const race = params.get("race_id");
+    if (race?.startsWith("eq."))
+      rows = rows.filter((row) => row.race_id === race.slice(3));
+    rows = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
   if (table === "plan_proposals") {
     const thread = params.get("coach_session_id");
     if (thread?.startsWith("eq."))
@@ -2906,6 +2913,7 @@ createServer(async (request, response) => {
     tables.race_strategies = [];
     tables.race_nutrition_plans = [];
     tables.race_drop_bags = [];
+    tables.race_setting_changes = [];
     const checklistItem = (index, list, label, values = {}) => ({
       id: `e2000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       race_id: race.id,
@@ -3783,6 +3791,20 @@ createServer(async (request, response) => {
         (row) => url.searchParams.get("id") !== `eq.${row.id}`,
       );
       return send(204, undefined);
+    }
+    if (
+      url.pathname === "/rest/v1/race_setting_changes" &&
+      request.method === "POST"
+    ) {
+      const value = Array.isArray(body) ? body[0] : body;
+      const row = {
+        id: randomUUID(),
+        previous_value: null,
+        ...value,
+        created_at: new Date().toISOString(),
+      };
+      tables.race_setting_changes.push(row);
+      return send(201, [row]);
     }
     const raceRowTable = {
       "/rest/v1/race_nutrition_plans": "race_nutrition_plans",

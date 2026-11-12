@@ -27,12 +27,15 @@ import { SimulationPanel } from "@/features/races/components/simulation-panel";
 import { simulationSummary } from "@/features/races/simulation-settings";
 import { defaultStartMinutes } from "@/features/races/race";
 import { readNutritionLibrary } from "@/server/fueling/products";
+import { readSettingChanges } from "@/server/races/settings-history";
+import type { SettingChange } from "@/features/races/settings-history";
 import { listCourseActivities } from "@/server/races/activities";
 
 type Workspace = {
   data: RaceWorkspaceData;
   views: NonNullable<ReturnType<typeof planFor>>;
   products: { active: NutritionProduct[]; archived: NutritionProduct[] };
+  history: SettingChange[];
 };
 
 async function CourseWithWeather({
@@ -46,6 +49,7 @@ function CourseWorkspace({
   data,
   views,
   products,
+  history,
   weather,
 }: Workspace & { weather: RaceWeather | null }) {
   const { model, planned } = views;
@@ -106,6 +110,7 @@ function CourseWorkspace({
                 raceDate: data.race.date,
                 startMinutes: data.plan.startMinutes ?? defaultStartMinutes,
               })}
+              history={history}
               weatherNote={
                 weather === null
                   ? null
@@ -202,11 +207,12 @@ export default async function RaceCoursePage({
     );
   }
   const views = planFor(data)!;
-  const products =
-    data.race.kind === "trail" && views.planned
-      ? await readNutritionLibrary(context)
-      : { active: [], archived: [] };
-  const props = { data, views, products };
+  const trailPlan = data.race.kind === "trail" && views.planned !== null;
+  const [products, history] = await Promise.all([
+    trailPlan ? readNutritionLibrary(context) : { active: [], archived: [] },
+    trailPlan ? readSettingChanges(context, data.race.id) : [],
+  ]);
+  const props = { data, views, products, history };
   const { planned } = views;
   if (!planned || !data.race.date || planned.startEpochMs === null)
     return (

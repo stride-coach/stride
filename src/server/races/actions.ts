@@ -16,6 +16,7 @@ import { waypointInputSchema } from "@/features/races/waypoints";
 import { saveRace } from "@/server/onboarding/goals";
 import { getOnboardingContext } from "@/server/onboarding/context";
 import { importActivity } from "./course";
+import { storedSettings } from "@/features/races/settings-history";
 
 export type ActionResult =
   | { status: "saved" }
@@ -494,4 +495,49 @@ export async function showImportedRace(
   if (!race.success || !page.success) return { status: "invalid" };
   refresh(race.data);
   redirect(`/races/${race.data}${importedRacePages[page.data]}`);
+}
+
+const settingChangeSchema = z.strictObject({
+  raceId: idSchema,
+  setting: z.enum(["target", "walkGrade", "aidStop"]),
+  value: z.number().int().min(0).max(1_209_599),
+  previous: z.number().int().min(0).max(1_209_599).nullable(),
+  raceRevision: z.number().int().positive().nullable(),
+  planRevision: z.number().int().positive().nullable(),
+  kind: z.enum(["road", "trail"]),
+});
+
+export async function changeRaceSetting(input: unknown): Promise<ActionResult> {
+  const parsed = settingChangeSchema.safeParse(input);
+  if (!parsed.success) return { status: "invalid" };
+  const change = parsed.data;
+  if (change.setting === "target" && change.raceRevision === null)
+    return { status: "invalid" };
+  const result =
+    change.setting === "target"
+      ? await saveRaceTarget(
+          change.raceId,
+          change.raceRevision!,
+          change.value,
+          change.kind,
+        )
+      : await saveRacePlan(
+          change.raceId,
+          change.planRevision,
+          change.setting === "walkGrade"
+            ? { walkGradePercent: change.value }
+            : { aidStopSeconds: change.value },
+        );
+  if (result.status !== "saved") return result;
+  const current = await context();
+  if (current)
+    await current.client.from("race_setting_changes").insert({
+      race_id: change.raceId,
+      user_id: current.userId,
+      setting: storedSettings[change.setting],
+      previous_value: change.previous,
+      value: change.value,
+    });
+  refresh(change.raceId);
+  return { status: "saved" };
 }

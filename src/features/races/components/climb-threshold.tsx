@@ -3,7 +3,7 @@
 import { useEffect, useOptimistic, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { saveRacePlan } from "@/server/races/actions";
+import { changeRaceSetting } from "@/server/races/actions";
 import { actionMessage } from "../messages";
 
 export function ClimbThreshold({
@@ -24,23 +24,29 @@ export function ClimbThreshold({
     latest.current = revision;
   }, [revision]);
 
-  function choose(value: number, previous: number) {
+  function choose(value: number, previous: number, undo = false) {
     startTransition(async () => {
       setShown(value);
-      const result = await saveRacePlan(raceId, latest.current, {
-        walkGradePercent: value,
+      const result = await changeRaceSetting({
+        raceId,
+        setting: "walkGrade",
+        value,
+        previous,
+        raceRevision: null,
+        planRevision: latest.current,
+        kind: "trail",
       });
       if (result.status !== "saved") {
         toast.error(actionMessage(result.status));
         return;
       }
-      if (value === previous) return;
+      if (undo || value === previous) return;
       toast.success(`Marcher dès : ${value} %`, {
         id: "climb-threshold",
         duration: 10_000,
         action: {
           label: "Annuler",
-          onClick: () => choose(previous, previous),
+          onClick: () => choose(previous, value, true),
         },
       });
     });
