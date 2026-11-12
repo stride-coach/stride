@@ -145,7 +145,9 @@ test("a fresh Garmin run reaches the bell on the next load", async ({
     page.getByRole("button", { name: /Nouvelle activité : Sortie longue/ }),
   ).toBeVisible();
   await expect(
-    page.getByText("Sans séance prévue · 21,0 km · 2:20:00 · 6:40 /km"),
+    page
+      .getByText("Sans séance prévue · 21,0 km · 2:20:00 · 6:40 /km")
+      .filter({ visible: true }),
   ).toBeVisible();
 });
 

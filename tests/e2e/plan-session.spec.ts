@@ -29,7 +29,9 @@ test("a session opens in a side panel and navigates within the week", async ({
   await expect(
     panel.getByText(/^≈ \d+:\d{2}–\d+:\d{2}\/km$/).first(),
   ).toBeVisible();
-  await expect(page.locator("main h1")).toContainText("Marathon de Paris");
+  await expect(page.locator("main h1").filter({ visible: true })).toContainText(
+    "Marathon de Paris",
+  );
   await page.screenshot({ path: "test-results/plan-session-desktop.png" });
 
   const first = page.url();
@@ -128,7 +130,9 @@ test("a session link loaded directly opens the panel", async ({ page }) => {
   await expect(
     page.getByRole("dialog").getByRole("heading", { level: 2 }),
   ).toHaveText(title ?? "");
-  await expect(page.locator("main h1")).toContainText("Marathon de Paris");
+  await expect(page.locator("main h1").filter({ visible: true })).toContainText(
+    "Marathon de Paris",
+  );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page).not.toHaveURL(/session=/);

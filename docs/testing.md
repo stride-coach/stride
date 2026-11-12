@@ -10,6 +10,28 @@
 
 Run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` before a pull request when relevant. Locally, run only the Playwright specs the change touches, such as `npx playwright test tests/e2e/<area>.spec.ts --project=chromium`. Pull requests run the browser specs selected from their changes, `main` runs the full browser suite, and onboarding runs only with migrations (see [CI design](ci.md)). CI retries a failed browser test once. A test that passes only on retry keeps the job green but is listed as flaky in the job's browser report (see [CI design](ci.md)); treat it as a failure to fix, not as noise.
 
+### Writing stable browser specs
+
+These rules come from the browser failures measured in #515.
+
+- **Locate by role.** While a page streams, React briefly keeps a hidden copy of the content, so `getByLabel`, `getByText` and CSS locators can match two elements in strict mode. `getByRole` ignores hidden elements. When a modal makes the rest of the page `aria-hidden`, use a CSS or text locator with `.filter({ visible: true })` instead.
+- **Click once the page answers.** A click right after a load or a client navigation can land before hydration or be swallowed while the navigation finishes. Only there, use `clickUntil` or `clickToUrl` from `tests/e2e/support/navigation.ts` to click until the expected outcome appears; everywhere else keep a single `click()` followed by its assertion, so a control that really needs two clicks still fails the spec.
+- **Make loading states deterministic.** A test that asserts a skeleton or loading motion delays the reads with `/__test__/rest-delay`, and aborts `next-router-prefetch` requests to that route so a finished prefetch cannot skip the loading state.
+- **Own the fixture state you change.** Remove only what the test added (`/__test__/rest-delay` returns an `id`), reset what it mutates before it starts, and prefer a dedicated seeded athlete for a journey that writes data other specs read.
+- **Anchor dates on the fixture, never on the real weekday.** Plan fixtures start relative to the current week, so pick days from the plan itself.
+- **Wait on visible outcomes**, not on timeouts or network idle. Give an explicit longer timeout only to steps that load heavy client code, such as maps, and say so in the PR.
+- **Prove stability before the PR.** Run a new or changed spec with `--retries=0` several times: `--repeat-each=5` for read-only journeys, separate runs with fresh fixtures for journeys that write data.
+
+### Quarantine
+
+A browser test that fails on `main` without a related change can be quarantined with `test("…", { tag: "@quarantine" }, …)`. Every project of the main Playwright config skips tagged tests unless `PLAYWRIGHT_QUARANTINE=true`, which runs only them. On `main` pushes, the non-blocking `browser-quarantine` job runs the quarantined `chromium` and `chromium-race-course` tests on a production build and publishes their browser report, so they keep running without turning `main` red.
+
+- Quarantine a test only with its failure rate from the browser reports, and list it in the tracking issue (#515).
+- Remove the tag in the pull request that fixes the cause.
+- Never quarantine a test that fails because of the change under review.
+- In a `test.describe.configure({ mode: "serial" })` group, later tests may depend on earlier ones: quarantine the whole group or none of it. A single tagged test would leave the blocking run without one of its steps and run alone in the quarantine job, where it fails for missing setup.
+- Onboarding tests use their own config and cannot be quarantined.
+
 ### Reusing the app between local runs
 
 Each Playwright invocation otherwise builds or compiles the app before its first test. Keep one app running instead, and let Playwright start fresh auth and Garmin fixtures for every run:

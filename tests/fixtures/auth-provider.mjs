@@ -2608,8 +2608,9 @@ createServer(async (request, response) => {
     return send(204, undefined);
   }
   if (url.pathname === "/__test__/rest-delay" && request.method === "POST") {
-    restDelays.push({ match: String(body.match), ms: Number(body.ms) });
-    return send(200, { delayed: restDelays.length });
+    const id = randomUUID();
+    restDelays.push({ id, match: String(body.match), ms: Number(body.ms) });
+    return send(200, { id, delayed: restDelays.length });
   }
   if (url.pathname === "/__test__/rest-failure" && request.method === "POST") {
     restFailures.push(String(body.match));
@@ -2624,8 +2625,11 @@ createServer(async (request, response) => {
     return send(200, { failing: restFailures.length });
   }
   if (url.pathname === "/__test__/rest-delay" && request.method === "DELETE") {
+    const id = url.searchParams.get("id");
     const match = url.searchParams.get("match");
-    restDelays = restDelays.filter((rule) => rule.match !== match);
+    restDelays = restDelays.filter((rule) =>
+      id ? rule.id !== id : rule.match !== match,
+    );
     return send(200, { delayed: restDelays.length });
   }
   if (

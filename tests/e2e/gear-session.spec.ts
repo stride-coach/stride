@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { clickUntil } from "./support/navigation";
 import { signInAs } from "./support/session";
 
 test.describe.configure({ mode: "default" });
@@ -128,12 +129,17 @@ test("a run with another pair in Garmin asks which one was worn", async ({
   await expect(
     page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
   ).toHaveCount(0);
-  await latest
-    .getByRole("radiogroup", {
-      name: "Comment c’était ? Effort perçu, de 1 à 10",
-    })
-    .getByRole("radio", { name: "4" })
-    .click();
+  await clickUntil(
+    latest
+      .getByRole("radiogroup", {
+        name: "Comment c’était ? Effort perçu, de 1 à 10",
+      })
+      .getByRole("radio", { name: "4" }),
+    () =>
+      expect(
+        latest.getByRole("radiogroup", { name: "Sensations" }),
+      ).toBeVisible({ timeout: 2_000 }),
+  );
   await latest
     .getByRole("radiogroup", { name: "Sensations" })
     .getByRole("radio", { name: "Bien", exact: true })

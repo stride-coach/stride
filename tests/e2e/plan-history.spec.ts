@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { clickToUrl } from "./support/navigation";
 import { signInAs } from "./support/session";
 
 function signIn(page: Page) {
@@ -70,8 +71,11 @@ test("Historique lists proposals by month with decisions and versions", async ({
   await page.keyboard.press("Escape");
   await expect(page).toHaveURL("/plan/history");
 
-  await page.getByRole("link", { name: /^Refusées · / }).click();
-  await expect(page).toHaveURL("/plan/history?filter=rejected");
+  await clickToUrl(
+    page,
+    page.getByRole("link", { name: /^Refusées · / }),
+    "/plan/history?filter=rejected",
+  );
   await expect(
     page.getByRole("article", { name: "Ajouter des côtes courtes" }),
   ).toBeVisible();

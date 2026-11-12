@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { clickToUrl } from "./support/navigation";
 import { signInAs } from "./support/session";
 
 const monthTitle = /^[A-ZÀ-Ý][a-zà-ÿ]+ \d{4}$/;
@@ -54,11 +55,13 @@ test("Calendrier shows the plan as a month and opens a session", async ({
   const shown = await title.textContent();
   const months = page.getByRole("navigation", { name: "Changer de mois" });
   const next = months.getByRole("link", { name: "Mois suivant" });
-  await next.click();
-  await expect(page).toHaveURL(/\/plan\/calendar\?month=\d{4}-\d{2}$/);
+  await clickToUrl(page, next, /\/plan\/calendar\?month=\d{4}-\d{2}$/);
   await expect(title).not.toHaveText(shown ?? "");
-  await months.getByRole("link", { name: "Aujourd’hui" }).click();
-  await expect(page).toHaveURL(/\/plan\/calendar$/);
+  await clickToUrl(
+    page,
+    months.getByRole("link", { name: "Aujourd’hui" }),
+    /\/plan\/calendar$/,
+  );
   await expect(title).toHaveText(shown ?? "");
 });
 

@@ -97,6 +97,26 @@ describe("browser report summary", () => {
     expect(summary.failed.map((test) => test.title)).toEqual(["nested"]);
   });
 
+  it("says no test ran when a readable report holds none", () => {
+    const markdown = renderSummary(summarized({ suites: [], errors: [] }));
+    expect(markdown).toContain("No test ran");
+    expect(markdown).not.toContain("Report missing");
+  });
+
+  it("shows the run errors a report carries outside any test", () => {
+    const markdown = renderSummary(
+      summarized({
+        suites: [],
+        errors: [
+          { message: "Timed out waiting 300000ms from config.webServer." },
+        ],
+      }),
+    );
+    expect(markdown).toContain(
+      "Timed out waiting 300000ms from config.webServer.",
+    );
+  });
+
   it("says the report is missing when it cannot be read", () => {
     expect(renderSummary(null)).toContain("Report missing");
     expect(renderSummary(summarize({ nothing: true }))).toContain(

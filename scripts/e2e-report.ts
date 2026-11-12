@@ -11,6 +11,8 @@ export type ReportedTest = {
 };
 
 export type ReportSummary = {
+  ran: number;
+  errors: string[];
   passed: number;
   failed: ReportedTest[];
   flaky: ReportedTest[];
@@ -38,7 +40,12 @@ function specsOf(suites: unknown): JsonSpec[] {
 export function summarize(report: unknown): ReportSummary | null {
   if (!report || typeof report !== "object" || !("suites" in report))
     return null;
+  const errors = list<{ message?: unknown }>(
+    (report as { errors?: unknown }).errors,
+  ).map((error) => String(error.message ?? "").trim());
   const summary: ReportSummary = {
+    ran: 0,
+    errors: errors.filter(Boolean),
     passed: 0,
     failed: [],
     flaky: [],
@@ -69,6 +76,7 @@ export function summarize(report: unknown): ReportSummary | null {
       else summary.passed += 1;
     }
   }
+  summary.ran = all.length;
   summary.slowest = [...all]
     .sort((first, second) => second.durationMs - first.durationMs)
     .slice(0, slowestCount);
@@ -87,14 +95,24 @@ function rows(tests: ReportedTest[], withRetries: boolean) {
 }
 
 export function renderSummary(summary: ReportSummary | null): string {
-  if (!summary || summary.slowest.length === 0)
+  if (!summary)
     return "### Browser report\n\nReport missing: the run produced no readable Playwright JSON report.\n";
-  const lines = [
-    "### Browser report",
-    "",
+  const lines = ["### Browser report", ""];
+  if (summary.errors.length > 0)
+    lines.push(
+      "#### Run errors",
+      "",
+      ...summary.errors.map((error) => `- ${error.split("\n")[0]}`),
+      "",
+    );
+  if (summary.ran === 0) {
+    lines.push("No test ran.", "");
+    return lines.join("\n");
+  }
+  lines.push(
     `${summary.passed} passed · ${summary.failed.length} failed · ${summary.flaky.length} flaky`,
     "",
-  ];
+  );
   if (summary.failed.length > 0)
     lines.push(
       "#### Failed",

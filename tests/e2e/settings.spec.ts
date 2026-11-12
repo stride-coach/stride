@@ -444,15 +444,17 @@ test("profile stale save preserves the draft and photo uploads persist", async (
   );
   await other.close();
   await page.reload();
-  await page.getByLabel("Importer une photo de profil").setInputFiles({
-    name: "photo.png",
-    mimeType: "image/png",
-    buffer: await sharp({
-      create: { width: 2, height: 2, channels: 4, background: "#ffffff" },
-    })
-      .png()
-      .toBuffer(),
-  });
+  await page
+    .getByRole("button", { name: "Importer une photo de profil" })
+    .setInputFiles({
+      name: "photo.png",
+      mimeType: "image/png",
+      buffer: await sharp({
+        create: { width: 2, height: 2, channels: 4, background: "#ffffff" },
+      })
+        .png()
+        .toBuffer(),
+    });
   await expect(
     page.getByRole("img", { name: "Ta photo de profil" }),
   ).toBeVisible();
@@ -552,20 +554,24 @@ test("profile preserves partial French dates and decimal input and rejects inval
   await weight.fill("");
   await weight.pressSequentially("68,7");
   await expect(weight).toHaveValue("68,7");
-  await page.getByLabel("Importer une photo de profil").setInputFiles({
-    name: "invalid.png",
-    mimeType: "image/png",
-    buffer: Buffer.from("invalid image"),
-  });
+  await page
+    .getByRole("button", { name: "Importer une photo de profil" })
+    .setInputFiles({
+      name: "invalid.png",
+      mimeType: "image/png",
+      buffer: Buffer.from("invalid image"),
+    });
   await expect(
     page.locator("[data-sonner-toast]").filter({ hasText: "image valide" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Annuler", exact: true }).click();
-  await page.getByLabel("Importer une photo de profil").setInputFiles({
-    name: "huge.png",
-    mimeType: "image/png",
-    buffer: Buffer.alloc(2 * 1024 * 1024 + 1),
-  });
+  await page
+    .getByRole("button", { name: "Importer une photo de profil" })
+    .setInputFiles({
+      name: "huge.png",
+      mimeType: "image/png",
+      buffer: Buffer.alloc(2 * 1024 * 1024 + 1),
+    });
   await expect(
     page.locator("[data-sonner-toast]").filter({ hasText: "moins de 2 Mo" }),
   ).toBeVisible();
