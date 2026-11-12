@@ -3,7 +3,11 @@ import lanes from "./tests/e2e/lanes.json";
 import { acquireE2eLock } from "./tests/fixtures/e2e-lock";
 
 // The config is also loaded by every worker; only the runner (no IPC channel) takes the lock.
-if (!process.env.CI && !process.send && process.env.PLAYWRIGHT_NO_LOCK !== "true") {
+if (
+  !process.env.CI &&
+  !process.send &&
+  process.env.PLAYWRIGHT_NO_LOCK !== "true"
+) {
   acquireE2eLock();
 }
 
@@ -17,6 +21,7 @@ const courseSpecs = specFiles(lanes.course);
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/fixtures/dev-warmup.ts",
   fullyParallel: true,
   workers: process.env.CI ? 4 : Number(process.env.PLAYWRIGHT_WORKERS ?? 1),
   retries: process.env.CI ? 1 : 0,
