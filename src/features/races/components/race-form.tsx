@@ -26,6 +26,7 @@ import {
   formatRaceLongDate,
   formatTarget,
 } from "../goal-format";
+import { RacePlanEffect } from "./race-plan-effect";
 import { RemoveRaceButton } from "./remove-race-button";
 import { submitRace } from "@/server/races/goals";
 
@@ -543,33 +544,42 @@ export function RaceForm({
 
       {step === 3 && (
         <>
-          <div className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-3.5">
-            <StrideMark className="mt-0.5 size-3.5 shrink-0" />
-            <div className="flex flex-col gap-1.5">
-              <p className="font-medium">
-                {hasPlan
-                  ? "Ton plan n’a pas changé."
-                  : "Aucun plan n’est défini pour l’instant."}
-              </p>
-              <p className="text-secondary-foreground">
-                {hasPlan
-                  ? "Le coach peut l’adapter à cette course. Il te proposera les ajustements à relire avant de les appliquer."
-                  : "Cette course est enregistrée sans modifier aucune semaine. Quand tu auras un plan, Stride s’appuiera sur elle pour le construire et te proposera les ajustements à relire avant de les appliquer."}
-              </p>
-              {hasPlan && savedId && (
-                <Link
-                  href={coachRequestHref(
-                    `Adapte mon plan à ${raceName}.`,
-                    null,
-                    savedId,
-                  )}
-                  className="self-start font-medium text-primary hover:text-foreground"
-                >
-                  Demander au coach
-                </Link>
-              )}
+          {mode === "create" && hasPlan && savedId ? (
+            <RacePlanEffect
+              raceId={savedId}
+              name={raceName}
+              priority={priority}
+              dateLabel={isoDate ? formatLongFrenchDate(isoDate) : null}
+            />
+          ) : (
+            <div className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-3.5">
+              <StrideMark className="mt-0.5 size-3.5 shrink-0" />
+              <div className="flex flex-col gap-1.5">
+                <p className="font-medium">
+                  {hasPlan
+                    ? "Ton plan n’a pas changé."
+                    : "Aucun plan n’est défini pour l’instant."}
+                </p>
+                <p className="text-secondary-foreground">
+                  {hasPlan
+                    ? "Le coach peut l’adapter à cette course. Il te proposera les ajustements à relire avant de les appliquer."
+                    : "Cette course est enregistrée sans modifier aucune semaine. Quand tu auras un plan, Stride s’appuiera sur elle pour le construire et te proposera les ajustements à relire avant de les appliquer."}
+                </p>
+                {hasPlan && savedId && (
+                  <Link
+                    href={coachRequestHref(
+                      `Adapte mon plan à ${raceName}.`,
+                      null,
+                      savedId,
+                    )}
+                    className="self-start font-medium text-primary hover:text-foreground"
+                  >
+                    Demander au coach
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
+          )}
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-y border-border py-3.5 md:grid-cols-4">
             {[
               {

@@ -217,3 +217,79 @@ test("a past race opens its after-race tab", async ({ page }) => {
   await expect(page.getByLabel("Distance", { exact: true })).toHaveValue("30");
   await expect(page.getByLabel("Date", { exact: true })).not.toHaveValue("");
 });
+
+test("adding a race asks the coach for its effect on the plan", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const authPort = process.env.PLAYWRIGHT_AUTH_PORT ?? "3200";
+  const thread = "c0c0c0c0-0000-4000-8000-0000000005a0";
+  const posts: {
+    target?: { kind: string; raceId: string | null };
+    mode?: string;
+    input?: { consult?: string; text?: string };
+  }[] = [];
+  await page.route("**/api/coach/turns", async (route) => {
+    const posted = route.request().postDataJSON();
+    posts.push(posted);
+    const now = new Date().toISOString();
+    await fetch(`http://127.0.0.1:${authPort}/__test__/coach-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session: {
+          id: thread,
+          user_id: "55555555-5555-4555-8555-555555555555",
+          managed_session_id: "sesn_01Course",
+          mode: "plan",
+          status: "awaiting_athlete",
+          title: "Ajouter Trail des Étangs",
+          race_id: posted?.target?.raceId ?? null,
+          last_activity_at: now,
+          created_at: now,
+        },
+      }),
+    });
+    await route.fulfill({
+      status: 200,
+      headers: { "Content-Type": "text/event-stream; charset=utf-8" },
+      body: `data: ${JSON.stringify({ type: "session", sessionId: "sesn_01Course", threadId: thread, consoleUrl: "" })}\n\n`,
+    });
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAs(page, "plan@example.com");
+  await page.goto("/races/new?priority=C");
+  await page.getByLabel("Nom", { exact: true }).fill("Trail des Étangs");
+  await page.getByLabel("Date", { exact: true }).fill("10/08/2027");
+  await page.getByLabel("Distance", { exact: true }).fill("21");
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByRole("button", { name: "Voir l’effet sur le plan" }).click();
+  await expect(page.getByText("Le coach prépare ton plan…")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Le coach a une question avant de te proposer un changement.",
+    ),
+  ).toBeVisible({ timeout: 20_000 });
+  await expect(
+    page.getByRole("link", { name: "Répondre au coach" }),
+  ).toHaveAttribute("href", `/coach/${thread}`);
+  expect(posts).toHaveLength(1);
+  expect(posts[0]).toMatchObject({
+    target: { kind: "new_topic" },
+    mode: "plan",
+    input: { consult: "director" },
+  });
+  expect(posts[0].input?.text).toContain("Trail des Étangs, course C");
+
+  await page.getByRole("link", { name: "Voir la course" }).click();
+  await page
+    .getByRole("link", { name: "Modifier l’objectif" })
+    .filter({ visible: true })
+    .click();
+  await page.getByRole("button", { name: "Supprimer la course" }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Supprimer la course" })
+    .click();
+  await expect(page).toHaveURL(/\/races$/);
+});

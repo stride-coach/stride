@@ -2297,6 +2297,11 @@ function selectRows(table, params) {
       if (filter?.startsWith("eq."))
         rows = rows.filter((row) => `eq.${row[key]}` === filter);
     }
+  if (table === "plan_proposals") {
+    const thread = params.get("coach_session_id");
+    if (thread?.startsWith("eq."))
+      rows = rows.filter((row) => row.coach_session_id === thread.slice(3));
+  }
   if (table.startsWith("plan_") || table === "session_activity_matches") {
     for (const key of ["plan_id", "version"]) {
       const filter = params.get(key);
