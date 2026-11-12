@@ -21,7 +21,7 @@ export function PlanEmpty() {
           <Link href="/coach?request=plan">Demander un plan</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/settings/goals">Vérifier mes objectifs</Link>
+          <Link href="/races">Vérifier mes courses</Link>
         </Button>
         <Button asChild variant="outline">
           <Link href="/settings/training">Mes disponibilités</Link>

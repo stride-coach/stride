@@ -146,7 +146,7 @@ export async function saveRaceTarget(
   );
   if (result.status === "saved") {
     refresh(raceId);
-    revalidatePath("/settings/goals");
+    revalidatePath("/races");
     return { status: "saved" };
   }
   return { status: result.status };

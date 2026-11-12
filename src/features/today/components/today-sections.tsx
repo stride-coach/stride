@@ -298,7 +298,7 @@ export function SessionSection({
           </p>
           <div className="flex flex-wrap gap-1.5">
             <Button asChild size="md">
-              <Link href="/races">Ajouter une course</Link>
+              <Link href="/races/new">Ajouter une course</Link>
             </Button>
             <Button asChild variant="outline" size="md">
               <Link

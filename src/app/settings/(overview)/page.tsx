@@ -13,7 +13,6 @@ import { SettingsLinkRow } from "@/features/settings/components/settings-shell";
 import { Widget } from "@/components/stride/widget";
 import { loadAthleteProfile } from "@/server/onboarding/athlete-profile";
 import { readProfile } from "@/server/onboarding/profile";
-import { readGoals } from "@/server/onboarding/goals";
 import { requireAthleteAccount } from "@/server/app/session";
 import { getShellIdentity } from "@/server/app/shell";
 import { SignOutButton } from "@/features/app-shell/components/sign-out-menu-item";
@@ -25,23 +24,13 @@ export const metadata: Metadata = { title: "Réglages" };
 
 export default async function SettingsOverviewPage() {
   const context = await requireAthleteAccount();
-  const [profile, goals, shell, athleteProfile, push, metrics] =
-    await Promise.all([
-      readProfile(context),
-      readGoals(context),
-      getShellIdentity(),
-      loadAthleteProfile(context, new Date()),
-      readPushSettings(context),
-      readProfileMetrics(context),
-    ]);
-  const races = goals.races
-    .filter((item) => item.values.name)
-    .toSorted((a, b) =>
-      (a.values.race_date ?? "9999").localeCompare(
-        b.values.race_date ?? "9999",
-      ),
-    )
-    .map((item) => `${item.values.name} (${item.values.priority})`);
+  const [profile, shell, athleteProfile, push, metrics] = await Promise.all([
+    readProfile(context),
+    getShellIdentity(),
+    loadAthleteProfile(context, new Date()),
+    readPushSettings(context),
+    readProfileMetrics(context),
+  ]);
   const age = ageOn(profile.values.birth_date, localToday(new Date()));
   const days = profile.values.available_weekdays?.length;
   const counts = athleteModelCounts(athleteProfile);
@@ -182,11 +171,6 @@ export default async function SettingsOverviewPage() {
           href="/settings/appearance"
           title="Apparence et raccourcis"
           detail="Thème · raccourcis clavier"
-        />
-        <SettingsLinkRow
-          href="/settings/goals"
-          title="Objectifs et courses"
-          detail={races.join(" · ") || "Aucune course"}
         />
         <SettingsLinkRow
           href="/settings/connections"

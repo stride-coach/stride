@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
+import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import {
   PreferenceRow,
   PreferenceSection,
@@ -8,10 +9,12 @@ import {
 } from "@/features/settings/components/preferences";
 import { SettingsNotice } from "@/features/settings/components/settings-notice";
 import { requireAthleteAccount } from "@/server/app/session";
+import { readGoals } from "@/server/onboarding/goals";
 import { readProfile } from "@/server/onboarding/profile";
 import {
   addSettingsUnavailability,
   removeSettingsUnavailability,
+  saveSettingsGoal,
   saveSettingsPlanning,
   saveSettingsTraining,
 } from "@/server/settings/actions";
@@ -22,6 +25,7 @@ import {
 import { localToday } from "@/features/plans/constraints";
 import { currentPeriods } from "@/features/settings/planning";
 import { readPlanningConstraints } from "@/server/plans/constraints";
+import { goalFocuses, type GoalFocus } from "@/features/onboarding/goals";
 
 export const metadata: Metadata = { title: "Entraînement et staff · Réglages" };
 
@@ -40,6 +44,15 @@ const access = [
   { value: "gym", label: "Salle" },
   { value: "track", label: "Piste" },
 ];
+const focusLabels: Record<GoalFocus, string> = {
+  general_fitness: "Forme générale",
+  faster: "Courir plus vite",
+  short_distance: "5 km ou 10 km",
+  half_marathon_marathon: "Semi-marathon ou marathon",
+  trail: "Trail",
+  ultra_trail: "Ultra-trail",
+};
+
 export default async function TrainingSettingsPage({
   searchParams,
 }: {
@@ -49,9 +62,10 @@ export default async function TrainingSettingsPage({
     requireAthleteAccount(),
     searchParams,
   ]);
-  const [profile, planning] = await Promise.all([
+  const [profile, planning, goals] = await Promise.all([
     readProfile(context),
     readPlanningConstraints(context),
+    readGoals(context),
   ]);
   const values = profile.values;
   return (
@@ -133,6 +147,48 @@ export default async function TrainingSettingsPage({
         </PreferenceSection>
         <Button type="submit" className="self-start">
           Enregistrer les préférences
+        </Button>
+      </form>
+      <form action={saveSettingsGoal} className="flex flex-col gap-6">
+        <input
+          type="hidden"
+          name="revision"
+          value={goals.goal.revision ?? ""}
+        />
+        <PreferenceSection
+          id="objectif"
+          title="Objectif de saison"
+          description={
+            <>
+              Tes courses se gèrent depuis{" "}
+              <Link
+                href="/races"
+                className="font-medium text-primary hover:text-foreground"
+              >
+                Courses
+              </Link>
+              .
+            </>
+          }
+        >
+          <PreferenceRow labelId="t-focus" label="Quel est ton objectif ?">
+            <select
+              id="focus"
+              name="focus"
+              aria-labelledby="t-focus"
+              defaultValue={goals.goal.values.focus ?? ""}
+              className="h-control-auto w-full rounded-lg border border-input bg-card px-3 md:w-64"
+            >
+              {goalFocuses.map((focus) => (
+                <option key={focus} value={focus}>
+                  {focusLabels[focus]}
+                </option>
+              ))}
+            </select>
+          </PreferenceRow>
+        </PreferenceSection>
+        <Button type="submit" className="self-start">
+          Enregistrer l’objectif
         </Button>
       </form>
       <PlanningSection

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { UploadIcon } from "lucide-react";
+import { PencilIcon, UploadIcon } from "lucide-react";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { localToday } from "@/features/app-shell/shell";
 import { coachRequestHref } from "@/features/coach/request";
@@ -47,6 +47,26 @@ export default async function RaceLayout({
         className="print:hidden"
         actions={
           <>
+            <Button
+              asChild
+              variant="ghost"
+              className="shrink-0 max-md:hidden"
+            >
+              <Link href={`${base}/edit`}>
+                <PencilIcon aria-hidden="true" className="size-3.5" />
+                Modifier l’objectif
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="size-control-touch shrink-0 md:hidden"
+            >
+              <Link href={`${base}/edit`} aria-label="Modifier l’objectif">
+                <PencilIcon aria-hidden="true" className="size-4" />
+              </Link>
+            </Button>
             <Button
               asChild
               variant="outline"

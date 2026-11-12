@@ -3570,11 +3570,12 @@ createServer(async (request, response) => {
       }
     }
     if (request.method === "PATCH" && url.pathname === "/rest/v1/race_plans") {
-      const plan = tables.race_plans.find(
+      const revision = url.searchParams.get("revision");
+      const plan = (tables.race_plans ?? []).find(
         (item) =>
           url.searchParams.get("race_id") === `eq.${item.race_id}` &&
           url.searchParams.get("user_id") === `eq.${item.user_id}` &&
-          url.searchParams.get("revision") === `eq.${item.revision}`,
+          (revision === null || revision === `eq.${item.revision}`),
       );
       if (!plan) return send(200, []);
       Object.assign(plan, body, { revision: plan.revision + 1 });
@@ -3678,7 +3679,10 @@ createServer(async (request, response) => {
           updated_at: new Date().toISOString(),
         };
         tables.athlete_races.push(race);
-        return send(201, [race]);
+        return send(
+          201,
+          request.headers.accept?.includes("vnd.pgrst.object") ? race : [race],
+        );
       }
       if (request.method === "PATCH") {
         const race = tables.athlete_races.find(
