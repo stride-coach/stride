@@ -809,7 +809,12 @@ function programBands(weeks: ProgramWeek[]): ProgramBand[] {
   weeks.forEach((week, index) => {
     const block = week.block;
     const last = bands.at(-1);
-    if (last && block && last.key === block.key) {
+    if (
+      last &&
+      block &&
+      last.key === block.key &&
+      weeks[index - 1].planId === week.planId
+    ) {
       last.span += 1;
       last.current ||= week.status === "current";
       return;

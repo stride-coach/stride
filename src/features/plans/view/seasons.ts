@@ -229,6 +229,11 @@ function withWeeks(
   races: SeasonRace[],
   today: string,
 ): PlanSeason {
+  if (weeks.length === 0)
+    return {
+      ...season,
+      previousPlans: [...season.previousPlans, { planId, weekStarts: [] }],
+    };
   const weekStarts = [...season.weekStarts, ...weeks].sort();
   const startsOn = weekStarts[0];
   const status: SeasonStatus =
@@ -296,7 +301,7 @@ export function withPreviousPlans({
           )
           .sort()
       : [];
-    if (target && weeks.length > 0) {
+    if (target) {
       target.season = withWeeks(
         target.season,
         plan.planId,

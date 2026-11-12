@@ -166,12 +166,14 @@ export async function loadPreviousWeeks(
   paces: IntensityPaces | null,
 ): Promise<ProgramWeek[]> {
   const weeks = await Promise.all(
-    plans.map(async ({ planId, weekStarts }) => {
-      const overview = await loadArchivedPlanOverview(context, planId);
-      return overview
-        ? previousWeeks(programInput(overview, paces), planId, weekStarts)
-        : [];
-    }),
+    plans
+      .filter((plan) => plan.weekStarts.length > 0)
+      .map(async ({ planId, weekStarts }) => {
+        const overview = await loadArchivedPlanOverview(context, planId);
+        return overview
+          ? previousWeeks(programInput(overview, paces), planId, weekStarts)
+          : [];
+      }),
   );
   return weeks.flat();
 }

@@ -67,9 +67,8 @@ export default async function PlanPage({
       : null;
   const sessionKey =
     typeof query.session === "string" && !proposalId ? query.session : null;
-  const [overview, archived, allSeasons, paces, review] = await Promise.all([
+  const [overview, allSeasons, paces, review] = await Promise.all([
     loadPlanOverview(context),
-    archivedPlanId ? loadArchivedPlanOverview(context, archivedPlanId) : null,
     loadPlanSeasons(context),
     loadIntensityPaces(context),
     proposalId ? loadProposalReview(context, proposalId) : null,
@@ -78,11 +77,23 @@ export default async function PlanPage({
   const archivedSeasons = allSeasons.filter((item) =>
     isArchivedSeason(item.id),
   );
-  const archivedIndex = archivedSeasons.findIndex(
-    (item) => item.id === param("season"),
+  const merged = ownSeasons.some((item) =>
+    item.previousPlans.some((plan) => plan.planId === archivedPlanId),
   );
-  const archivedTarget =
-    archived && archivedIndex >= 0 ? archivedSeasons[archivedIndex] : null;
+  const archivedSelected =
+    archivedPlanId && !merged
+      ? seasonFor(archivedSeasons, { season: param("season") })
+      : null;
+  const archivedIndex = archivedSelected
+    ? archivedSeasons.indexOf(archivedSelected)
+    : -1;
+  const archived = archivedSelected
+    ? await loadArchivedPlanOverview(
+        context,
+        archivedSeasonPlanId(archivedSelected.id)!,
+      )
+    : null;
+  const archivedTarget = archived ? archivedSelected : null;
   const session = overview?.plan.state.sessions.find(
     (item) => item.sessionKey === sessionKey,
   );

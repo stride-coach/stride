@@ -160,6 +160,33 @@ describe("seasons across plans", () => {
     });
   });
 
+  it("drops a replaced plan whose weeks the newer plan all holds", () => {
+    const seasons = merged([archived({ weekStarts: ["2026-10-19"] })]);
+    expect(seasons.map((season) => season.id)).toEqual(["race-a"]);
+    expect(seasons[0].previousPlans).toEqual([
+      { planId: "p1", weekStarts: [] },
+    ]);
+    expect(seasonFor(seasons, { season: "plan-p1" })?.id).toBe("race-a");
+  });
+
+  it("opens the archived season that took an older archived plan", () => {
+    const seasons = withPreviousPlans({
+      seasons: [],
+      archived: [
+        archived({
+          planId: "p0",
+          archivedOn: "2026-10-04",
+          weekStarts: ["2026-09-28"],
+        }),
+        archived({ weekStarts: ["2026-10-05", "2026-10-12"] }),
+      ],
+      races: [marathon],
+      today,
+    });
+    expect(seasonFor(seasons, { season: "plan-p0" })?.id).toBe("plan-p1");
+    expect(seasonFor(seasons, { season: "plan-p9" })).toBeNull();
+  });
+
   it("opens the season that took the weeks of an old archived link", () => {
     const seasons = merged([archived()]);
     expect(seasonFor(seasons, { season: "plan-p1" })?.id).toBe("race-a");
@@ -223,6 +250,18 @@ describe("programs across plans", () => {
     ).toEqual([
       ["Base", 0, 1],
       ["Spécifique", 1, 3],
+    ]);
+  });
+
+  it("starts a new band when the next plan reuses a block key", () => {
+    const sameKey = previous.map((week) => ({
+      ...week,
+      block: { key: "b-specific-2", kind: "specific" as const },
+    }));
+    const [season] = buildProgram(input, merged([archived()]), sameKey).seasons;
+    expect(season.bands.map((band) => [band.start, band.span])).toEqual([
+      [0, 1],
+      [1, 3],
     ]);
   });
 });
