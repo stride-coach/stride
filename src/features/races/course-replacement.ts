@@ -99,7 +99,10 @@ function hasSettings(point: Waypoint) {
     point.watchLabel !== null ||
     point.voiceNote !== null ||
     point.nutritionNote !== null ||
-    point.stopSeconds !== null
+    point.stopSeconds !== null ||
+    point.crewAccess !== null ||
+    point.crewPrepare !== null ||
+    point.crewReason !== null
   );
 }
 

@@ -142,6 +142,9 @@ async function carryOver(
           voice_note: source.voiceNote,
           nutrition_note: source.nutritionNote,
           stop_seconds: source.stopSeconds,
+          crew_access: source.crewAccess,
+          crew_prepare: source.crewPrepare,
+          crew_reason: source.crewReason,
           ...(source.todo ? { todo: source.todo } : {}),
         })
         .eq("user_id", context.userId)

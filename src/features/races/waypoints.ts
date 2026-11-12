@@ -75,13 +75,16 @@ export type Waypoint = {
   todo: string | null;
   nutritionNote: string | null;
   stopSeconds: number | null;
+  crewAccess: string | null;
+  crewPrepare: string | null;
+  crewReason: string | null;
   source: (typeof waypointSources)[number];
   needsReview: boolean;
   revision: number;
 };
 
 export const waypointColumns =
-  "id, kind, name, distance_m, cutoff_time, services, watch_label, alert_distance_m, voice_note, todo, nutrition_note, stop_seconds, source, needs_review, revision";
+  "id, kind, name, distance_m, cutoff_time, services, watch_label, alert_distance_m, voice_note, todo, nutrition_note, stop_seconds, crew_access, crew_prepare, crew_reason, source, needs_review, revision";
 
 const clockSchema = z
   .string()
@@ -110,6 +113,9 @@ export const waypointRowSchema = z
     todo: z.string().nullable(),
     nutrition_note: z.string().nullable(),
     stop_seconds: z.number().int().nullable().optional(),
+    crew_access: z.string().nullable().optional(),
+    crew_prepare: z.string().nullable().optional(),
+    crew_reason: z.string().nullable().optional(),
     source: z.enum(waypointSources),
     needs_review: z.boolean(),
     revision: z.number().int().positive(),
@@ -127,6 +133,9 @@ export const waypointRowSchema = z
     todo: row.todo,
     nutritionNote: row.nutrition_note,
     stopSeconds: row.stop_seconds ?? null,
+    crewAccess: row.crew_access ?? null,
+    crewPrepare: row.crew_prepare ?? null,
+    crewReason: row.crew_reason ?? null,
     source: row.source,
     needsReview: row.needs_review,
     revision: row.revision,
