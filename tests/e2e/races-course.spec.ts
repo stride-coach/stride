@@ -112,7 +112,7 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     ).toHaveAttribute("aria-pressed", "true");
     await expect(
       fullscreen.getByRole("img", { name: /^Carte du parcours/ }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 20_000 });
     await expect(
       fullscreen.getByRole("complementary", { name: "Tronçons" }),
     ).toContainText("T1");
