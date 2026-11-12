@@ -39,6 +39,7 @@ import { ScenarioRevisions } from "@/features/races/components/scenario-actions"
 import { CoachNote } from "@/components/stride/coach-note";
 import { CourseDropZone } from "@/features/races/components/course-drop-zone";
 import { EstimateContext } from "@/features/races/components/estimate-context";
+import { TakeAlong } from "@/features/races/components/take-along";
 import { formatClock } from "@/features/races/format";
 import type { CourseModel, RacePlanModel } from "@/features/races/workspace";
 
@@ -124,32 +125,48 @@ function CourseWorkspace({
           totals={roadbookTotals(timeline, model.course.distanceM)}
           walkThreshold={data.plan.walkGradePercent}
           settings={
-            <SimulationPanel
-              raceId={data.race.id}
-              raceRevision={data.race.revision}
-              planRevision={data.plan.revision}
-              kind={data.race.kind}
-              values={{
-                target: planned.scenario.seconds,
-                walkGrade: data.plan.walkGradePercent,
-                aidStop: data.plan.aidStopSeconds,
-              }}
-              summary={simulationSummary({
-                planned,
-                timeline,
-                distanceM: model.course.distanceM,
-                raceDate: data.race.date,
-                startMinutes: data.plan.startMinutes ?? defaultStartMinutes,
-              })}
-              history={history}
-              weatherNote={
-                weather === null
-                  ? null
-                  : weather.mode === "forecast"
-                    ? "La météo suit la prévision du jour."
-                    : "Avant J-10, la météo suit les moyennes de saison."
-              }
-            />
+            <>
+              <SimulationPanel
+                raceId={data.race.id}
+                raceRevision={data.race.revision}
+                planRevision={data.plan.revision}
+                kind={data.race.kind}
+                values={{
+                  target: planned.scenario.seconds,
+                  walkGrade: data.plan.walkGradePercent,
+                  aidStop: data.plan.aidStopSeconds,
+                }}
+                summary={simulationSummary({
+                  planned,
+                  timeline,
+                  distanceM: model.course.distanceM,
+                  raceDate: data.race.date,
+                  startMinutes: data.plan.startMinutes ?? defaultStartMinutes,
+                })}
+                history={history}
+                weatherNote={
+                  weather === null
+                    ? null
+                    : weather.mode === "forecast"
+                      ? "La météo suit la prévision du jour."
+                      : "Avant J-10, la météo suit les moyennes de saison."
+                }
+              />
+              <TakeAlong
+                raceId={data.race.id}
+                watch={{
+                  distanceM: model.course.distanceM,
+                  points: model.waypoints.filter(
+                    (point) =>
+                      point.kind !== "instruction" && point.kind !== "caution",
+                  ).length,
+                  instructions: model.waypoints.filter(
+                    (point) =>
+                      point.kind === "instruction" || point.kind === "caution",
+                  ).length,
+                }}
+              />
+            </>
           }
           map={{
             data: map,
@@ -261,7 +278,12 @@ function EstimateWorkspace({
         totals={{ ...totals, walk: "—", finish: `≈ ${totals.finish}` }}
         walkThreshold={data.plan.walkGradePercent}
         map={null}
-        context={<EstimateContext raceId={data.race.id} />}
+        context={
+          <>
+            <EstimateContext raceId={data.race.id} />
+            <TakeAlong raceId={data.race.id} watch={null} />
+          </>
+        }
       />
     </>
   );

@@ -58,7 +58,8 @@
     var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-:root[data-theme="light"] {
+:root[data-theme="light"],
+[data-surface="paper"] {
   color-scheme: light;
   --shell: #efefec;
   --background: #fafaf9;
