@@ -64,6 +64,7 @@ for (const viewport of [
     await expect(views.getByRole("link")).toHaveText([
       "Plan",
       "Côtes",
+      "Météo",
       "Scénarios",
     ]);
     await views.getByRole("link", { name: "Scénarios" }).click();
