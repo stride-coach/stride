@@ -22,6 +22,7 @@ import {
 } from "@/features/races/workspace";
 import { roadbookRows, roadbookTotals } from "@/features/races/axis";
 import { barriersOf, cutoffAlert } from "@/features/races/cutoff-alert";
+import { crewPlan } from "@/features/races/crew";
 import { printedRoadbook } from "@/features/races/printed-roadbook";
 import { paceFactorsOf, type RaceStrategy } from "@/features/races/proposals";
 import { raceWeather } from "./weather";
@@ -90,6 +91,24 @@ export async function printedRoadbookFor(
     rain: weather?.mode === "forecast" ? profile.rain : [],
     estimate,
   });
+}
+
+export function crewFor(data: RaceWorkspaceData) {
+  const views = planFor(data);
+  if (!views?.planned) return null;
+  const alternative = (key: "ambitious" | "cautious") =>
+    views.scenarios.some((scenario) => scenario.key === key)
+      ? (planFor(data, key)?.planned ?? null)
+      : null;
+  return {
+    views,
+    crew: crewPlan({
+      model: views.model,
+      planned: views.planned,
+      ambitious: alternative("ambitious"),
+      cautious: alternative("cautious"),
+    }),
+  };
 }
 
 export function estimateFor(data: RaceWorkspaceData) {

@@ -15,6 +15,7 @@ import { raceValueSchemas, type RaceKind } from "@/features/onboarding/goals";
 import { waypointInputSchema } from "@/features/races/waypoints";
 import { saveRace } from "@/server/onboarding/goals";
 import { getOnboardingContext } from "@/server/onboarding/context";
+import { crewDetailsSchema } from "@/features/races/crew";
 import { importActivity, type CoursePreview } from "./course";
 import { storedSettings } from "@/features/races/settings-history";
 
@@ -240,6 +241,36 @@ export async function saveWaypointNote(
         ? { todo: text.data || null }
         : { nutrition_note: text.data || null },
     )
+    .eq("user_id", current.userId)
+    .eq("race_id", race.data)
+    .eq("id", id.data)
+    .select("id")
+    .maybeSingle();
+  if (response.error) return { status: "error" };
+  if (!response.data) return { status: "missing" };
+  refresh(race.data);
+  return { status: "saved" };
+}
+
+export async function saveCrewDetails(
+  raceId: string,
+  waypointId: string,
+  input: unknown,
+): Promise<ActionResult> {
+  const race = idSchema.safeParse(raceId);
+  const id = idSchema.safeParse(waypointId);
+  const details = crewDetailsSchema.safeParse(input);
+  if (!race.success || !id.success || !details.success)
+    return { status: "invalid" };
+  const current = await context();
+  if (!current) return { status: "session-expired" };
+  const response = await current.client
+    .from("race_waypoints")
+    .update({
+      crew_access: details.data.access,
+      crew_prepare: details.data.prepare,
+      crew_reason: details.data.reason,
+    })
     .eq("user_id", current.userId)
     .eq("race_id", race.data)
     .eq("id", id.data)

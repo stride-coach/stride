@@ -955,3 +955,53 @@ test("the plan goes to the watch and into a printable roadbook", async ({
     "Ravito du Bois",
   );
 });
+
+test("the crew view says where and when to meet the athlete", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?crew=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  await page.getByRole("link", { name: "Assistance" }).click();
+  await expect(page).toHaveURL(/\/crew$/);
+  await expect(
+    page.getByText(
+      /^Ton assistance peut te voir à un ravito et à l’arrivée\. La fenêtre va de ton scénario ambitieux au prudent/,
+    ),
+  ).toBeVisible();
+  const points = page.getByRole("region", { name: "Où et quand te retrouver" });
+  const row = points.getByRole("row", { name: /Ravito du Bois/ });
+  await expect(row).toContainText(/\d\d:\d\d – \d\d:\d\d/);
+  await row
+    .getByRole("button", { name: "Modifier l’assistance à Ravito du Bois" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Ravito du Bois" });
+  await dialog
+    .getByRole("textbox", { name: "Accès" })
+    .fill("Parking du gymnase");
+  await dialog
+    .getByRole("textbox", { name: "À préparer" })
+    .fill("2 flasques iso");
+  await dialog.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(row).toContainText("Parking du gymnase");
+  await expect(row).toContainText("2 flasques iso");
+
+  const gaps = page.getByRole("region", { name: "Sans assistance" });
+  await expect(gaps).toContainText("Point d’eau");
+  await expect(gaps).toContainText("Assistance non prévue");
+
+  await page.goto(
+    "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/print?sheet=crew",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Feuille d’assistance" }),
+  ).toBeVisible();
+  await expect(page.getByRole("row", { name: /Ravito du Bois/ })).toContainText(
+    "Parking du gymnase",
+  );
+});

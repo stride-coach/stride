@@ -25,6 +25,7 @@ export const raceViews = [
   { path: "/climbs", label: "Côtes" },
   { path: "/weather", label: "Météo" },
   { path: "/scenarios", label: "Scénarios" },
+  { path: "/crew", label: "Assistance" },
 ] as const;
 
 const afterSection = { path: "/after", label: "Après-course" } as const;
