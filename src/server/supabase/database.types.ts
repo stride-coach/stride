@@ -2102,6 +2102,42 @@ export type Database = {
           },
         ];
       };
+      race_crew_links: {
+        Row: {
+          created_at: string;
+          enabled: boolean;
+          race_id: string;
+          token: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          enabled?: boolean;
+          race_id: string;
+          token: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          enabled?: boolean;
+          race_id?: string;
+          token?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_crew_links_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: true;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       race_drop_bags: {
         Row: {
           created_at: string;
@@ -2890,6 +2926,7 @@ export type Database = {
         Args: { p_connection_id: string };
         Returns: number;
       };
+      crew_link_view: { Args: { p_token: string }; Returns: Json };
       delete_garmin_data: { Args: { p_user_id: string }; Returns: undefined };
       disconnect_garmin_connection: {
         Args: { p_user_id: string };
