@@ -30,7 +30,11 @@ import { loadGear } from "@/server/gear/load";
 import { readRaceFacts } from "@/server/gear/planned";
 import { loadRace } from "@/server/races/load";
 import type { RaceWorkspaceData } from "@/server/races/races";
-import { planFor } from "@/server/races/views";
+import { planFor, weatherFor } from "@/server/races/views";
+import { Suspense } from "react";
+import { weatherGear } from "@/features/races/gear-weather";
+import { GearAlongRace } from "@/features/races/components/gear-along-race";
+import type { RacePlanModel } from "@/features/races/workspace";
 
 function Readiness({
   items,
@@ -119,6 +123,11 @@ function PairLead({ pair }: { pair: RacePairView | null }) {
             {pair.facts}
             <span className="max-md:hidden"> · {pair.terrain}</span>
           </span>
+          {pair.raceDay && (
+            <span className="text-label text-muted-foreground">
+              {pair.raceDay}
+            </span>
+          )}
         </span>
         <Status level="ok">{pair.badge}</Status>
       </div>
@@ -171,6 +180,29 @@ function shoesFor(
           })
         : null,
   };
+}
+
+async function GearWithWeather({
+  data,
+  views,
+}: {
+  data: RaceWorkspaceData;
+  views: NonNullable<ReturnType<typeof planFor>> & { planned: RacePlanModel };
+}) {
+  const weather = data.race.date
+    ? await weatherFor(data, views.model, views.planned)
+    : null;
+  return (
+    <GearAlongRace
+      items={weatherGear({
+        weather,
+        planned: views.planned,
+        distanceM: views.model.course.distanceM,
+      })}
+      distanceM={views.model.course.distanceM}
+      normals={weather?.mode === "normals"}
+    />
+  );
 }
 
 export default async function RaceGearPage({
@@ -245,7 +277,17 @@ export default async function RaceGearPage({
   return (
     <div className="flex flex-col gap-4.5 xl:grid xl:grid-cols-[minmax(0,1fr)_var(--spacing-panel)] xl:items-start">
       <Readiness items={data.checklist} lists={trailChecklistLists} />
-      <div className="grid items-start gap-3 lg:grid-cols-2 xl:col-start-1 xl:row-start-1 print:grid-cols-2">
+      {views?.planned && (
+        <div className="xl:col-start-1 xl:row-start-1 print:hidden">
+          <Suspense fallback={null}>
+            <GearWithWeather
+              data={data}
+              views={{ ...views, planned: views.planned }}
+            />
+          </Suspense>
+        </div>
+      )}
+      <div className="grid items-start gap-3 lg:grid-cols-2 xl:col-start-1 print:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
           {group("gear_kit", {
             pairs,

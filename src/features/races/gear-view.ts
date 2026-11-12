@@ -3,7 +3,7 @@ import {
   breakInBudgetKm,
   type BreakInStatus,
 } from "@/features/gear/break-in";
-import { pairWear, replacementDate } from "@/features/gear/mileage";
+import { pairWear, replacementDate, weeklyKm } from "@/features/gear/mileage";
 import type { ShoeTerrain } from "@/features/gear/model";
 import { formatKm, modelName, type ShoeInput } from "@/features/gear/view";
 import {
@@ -32,7 +32,10 @@ export type RacePairView = {
   terrain: string;
   badge: string;
   advice: string;
+  raceDay: string | null;
 };
+
+const dayMs = 86_400_000;
 
 export function racePairView({
   shoe,
@@ -64,12 +67,25 @@ export function racePairView({
           (replacement !== null && raceDate !== null && replacement <= raceDate)
         ? `Elles atteindront ${lifespan} km avant la course : prévois une paire neuve et rodée.`
         : `Change-les après ${lifespan} km : il te reste la marge jusqu’à la course.`;
+  const perWeek = weeklyKm(shoe.activities, today);
+  const days =
+    raceDate === null
+      ? 0
+      : (Date.parse(`${raceDate}T00:00:00Z`) -
+          Date.parse(`${today}T00:00:00Z`)) /
+        dayMs;
+  const projected =
+    days > 0 && perWeek >= 1 ? wear.totalKm + (perWeek * days) / 7 : null;
   return {
     id: shoe.id,
     name: `${shoe.spec.brand} ${modelName(shoe.spec)}`,
     facts: `${formatKm(wear.totalKm)} km · ${breakInLabels[state.status]}`,
     terrain: terrainWords[shoe.spec.terrain],
     badge: source === "checklist" ? "Choisie" : "Recommandée",
+    raceDay:
+      projected === null
+        ? null
+        : `≈ ${formatKm(projected)} km le jour J, ${projected < wear.lifespanKm ? "sous" : "au-delà de"} sa limite de ${lifespan} km`,
     advice: dropBag
       ? `${wearAdvice} Une paire de rechange dans le sac d’allègement est conseillée.`
       : wearAdvice,
