@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { roadPredictionKey } from "@/features/progress/goal";
 import { raceOnTrack } from "@/features/races/on-track";
+import { currentValues } from "@/features/races/season";
 import {
   planPhases,
   preparationProgress,
@@ -33,6 +34,12 @@ export const readRacesOverview = cache(
         return onTrack ? [[race.id, onTrack.goal]] : [];
       }),
     );
+    const marks = {
+      longestRunMeters: inputs.longestRunMeters,
+      maxWeeklyGainMeters: inputs.maxWeeklyGainMeters,
+      maxWeeklyRunSeconds: inputs.maxWeeklyRunSeconds,
+    };
+    const values = currentValues(inputs.predictions);
     if (!data)
       return {
         ...split,
@@ -41,6 +48,8 @@ export const readRacesOverview = cache(
         phases,
         roadGoals,
         results,
+        marks,
+        values,
       };
     const progress = preparationProgress(preparationRows(data));
     return {
@@ -52,6 +61,8 @@ export const readRacesOverview = cache(
       phases,
       roadGoals,
       results,
+      marks,
+      values,
     };
   },
 );

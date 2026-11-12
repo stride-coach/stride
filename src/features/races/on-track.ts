@@ -8,6 +8,7 @@ import type { RaceSummary } from "./race";
 
 export type OnTrackInputs = Omit<GoalInputs, "preparation"> & {
   nextKey: KeySession | null;
+  maxWeeklyRunSeconds: number | null;
 };
 
 export type RaceOnTrack = {

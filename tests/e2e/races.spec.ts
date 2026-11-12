@@ -23,15 +23,19 @@ for (const viewport of [
     await expect(
       page.getByRole("heading", { level: 1, name: "Courses" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Suis-je dans les temps ?" }),
-    ).toBeVisible();
-    await expect(
-      page
-        .getByText("pas de prévision fiable en ultra")
-        .filter({ visible: true }),
-    ).toBeVisible();
-    await page.getByRole("link", { name: "Ouvrir la course" }).click();
+    const demands = page.getByRole("region", {
+      name: "Où tu en es → ce que la course demande",
+    });
+    await expect(demands.getByRole("listitem")).toHaveText([
+      /^Sortie la plus longue/,
+      /^Dénivelé \/ semaine/,
+      /^Volume \/ semaine/,
+    ]);
+    if (viewport.width >= 1024)
+      await expect(
+        page.getByText("Objectif de la saison", { exact: true }),
+      ).toBeVisible();
+    await page.getByRole("link", { name: "Voir le plan de course" }).click();
     await expect(page).toHaveURL(
       /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb$/,
     );

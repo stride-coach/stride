@@ -19,7 +19,7 @@ test("a populated race opens every workspace section on desktop and mobile", asy
   ]) {
     await page.setViewportSize(viewport);
     await page.goto("/races");
-    await page.getByRole("link", { name: "Ouvrir la course" }).click();
+    await page.getByRole("link", { name: "Voir le plan de course" }).click();
     await expect(
       page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
     ).toBeVisible();
@@ -445,7 +445,7 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
   );
   await signInAs(page, "athlete@example.com");
   await page.goto("/races");
-  await page.getByRole("link", { name: "Ouvrir la course" }).click();
+  await page.getByRole("link", { name: "Voir le plan de course" }).click();
 
   await expect(
     page.getByRole("heading", { level: 1, name: "10 km de Paris" }),
