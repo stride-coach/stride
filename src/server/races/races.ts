@@ -1,6 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import {
+  raceDetailColumns,
+  raceDetailsOf,
+  type RaceDetails,
+} from "@/features/races/race-details";
+import {
   raceColumns,
   raceRowSchema,
   withRaceCourse,
@@ -52,6 +57,7 @@ export type RaceWorkspaceData = {
     updatedAt: string;
   } | null;
   dropBag: { extras: string[]; revision: number } | null;
+  details: RaceDetails;
 };
 
 function nutritionPlanOf(
@@ -120,7 +126,7 @@ export const readWorkspace = cache(
     ] = await Promise.all([
       context.client
         .from("athlete_races")
-        .select(raceColumns)
+        .select(`${raceColumns}, ${raceDetailColumns}`)
         .eq("user_id", context.userId)
         .eq("id", raceId)
         .maybeSingle(),
@@ -182,6 +188,7 @@ export const readWorkspace = cache(
       throw new Error("Unable to read race workspace");
     if (!race.data) return null;
     return {
+      details: raceDetailsOf(race.data),
       race: summary(race.data),
       plan: plan.data ? planRowSchema.parse(plan.data) : defaultPlan,
       course: course.data ? courseRowSchema.parse(course.data) : null,

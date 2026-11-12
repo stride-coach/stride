@@ -13,7 +13,11 @@ import {
   formatLongFrenchDate,
   parseFrenchDate,
 } from "@/features/onboarding/dates";
-import type { RacePriority, RaceValues } from "@/features/onboarding/goals";
+import {
+  maxRaceTestItems,
+  type RacePriority,
+  type RaceValues,
+} from "@/features/onboarding/goals";
 import { coachRequestHref } from "@/features/coach/request";
 import {
   DataActivityLink as Link,
@@ -27,6 +31,14 @@ import {
   formatTarget,
 } from "../goal-format";
 import { RacePlanEffect } from "./race-plan-effect";
+import {
+  expectationLabels,
+  poleLabels,
+  targetEstimate,
+  testSuggestions,
+  type RaceDetails,
+  type ReferenceRace,
+} from "../race-details";
 import { RemoveRaceButton } from "./remove-race-button";
 import { submitRace } from "@/server/races/goals";
 
@@ -36,6 +48,7 @@ export type RaceFormRace = {
   values: RaceValues;
   startTime: string | null;
   cutoffSeconds: number | null;
+  details: RaceDetails;
 };
 
 const steps = ["La course", "Ton objectif", "Effet sur le plan"] as const;
@@ -71,7 +84,7 @@ const fieldLabel =
   "flex items-center justify-between gap-2 text-body text-secondary-foreground";
 const fieldInput = "h-control-auto bg-card px-3";
 const segment =
-  "min-h-control-touch flex-1 rounded-md px-2.5 text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground aria-pressed:bg-muted aria-pressed:font-medium aria-pressed:text-foreground md:min-h-6";
+  "min-h-control-touch flex-1 rounded-md px-2.5 whitespace-nowrap text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground aria-pressed:bg-muted aria-pressed:font-medium aria-pressed:text-foreground md:min-h-6";
 
 function Field({
   label,
@@ -162,6 +175,7 @@ export function RaceForm({
   mode,
   race,
   template,
+  references = [],
   defaultPriority,
   primaryName,
   hasPlan,
@@ -171,6 +185,7 @@ export function RaceForm({
   mode: "create" | "edit";
   race?: RaceFormRace;
   template?: Omit<RaceFormRace, "id" | "revision"> & { note: string };
+  references?: ReferenceRace[];
   defaultPriority: RacePriority;
   primaryName: string | null;
   hasPlan: boolean;
@@ -212,6 +227,18 @@ export function RaceForm({
       ? formatTarget(values.target_duration_seconds)
       : "",
   );
+  const details = initial?.details;
+  const [location, setLocation] = useState(details?.location ?? "");
+  const [poles, setPoles] = useState<RaceDetails["poles"]>(
+    details?.poles ?? null,
+  );
+  const [expectation, setExpectation] = useState<RaceDetails["expectation"]>(
+    details?.expectation ?? null,
+  );
+  const [testItems, setTestItems] = useState<string[]>(
+    details?.testItems ?? [],
+  );
+  const [customTest, setCustomTest] = useState("");
 
   const isoDate = parseFrenchDate(dateText);
   const distanceKm = Number(distance.replace(/\s/g, "").replace(",", "."));
@@ -280,6 +307,10 @@ export function RaceForm({
       "cutoff_duration",
       cutoffSeconds ? formatTarget(cutoffSeconds) : "",
     );
+    data.set("location", location);
+    data.set("poles", kind === "trail" ? (poles ?? "") : "");
+    data.set("expectation", expectation ?? "");
+    data.set("test_items", JSON.stringify(testItems));
     startSaving(async () => {
       const result = await submitRace(data);
       if (result.status === "saved") {
@@ -320,6 +351,20 @@ export function RaceForm({
       ? `Tu as déjà une course A : ${primaryName}. L’objectif principal reste la plus proche.`
       : null;
   const raceName = name.trim() || "cette course";
+  const estimate = targetEstimate(references, {
+    kind,
+    distanceKm:
+      Number.isFinite(distanceKm) && distanceKm > 0 ? distanceKm : null,
+    elevationGainM: elevationM,
+  });
+  function addCustomTest() {
+    const item = customTest.trim().slice(0, 60);
+    if (!item || testItems.length >= maxRaceTestItems) return;
+    setTestItems((current) =>
+      current.includes(item) ? current : [...current, item],
+    );
+    setCustomTest("");
+  }
 
   return (
     <form
@@ -396,7 +441,7 @@ export function RaceForm({
               />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3.5 pb-5 md:grid-cols-[6rem_6rem_8.125rem]">
+          <div className="grid grid-cols-2 gap-3.5 pb-5 md:grid-cols-[6rem_6rem_8.125rem_minmax(0,1fr)]">
             <Field
               label="Distance"
               htmlFor="race-distance"
@@ -453,6 +498,21 @@ export function RaceForm({
                 className={fieldInput}
               />
             </Field>
+            <Field
+              label="Lieu"
+              htmlFor="race-location"
+              className="col-span-2 md:col-span-1"
+              hint="Facultatif"
+            >
+              <Input
+                id="race-location"
+                value={location}
+                maxLength={120}
+                placeholder="Chevreuse (78)"
+                onChange={(event) => setLocation(event.target.value)}
+                className={fieldInput}
+              />
+            </Field>
           </div>
           <div className="flex items-center justify-between gap-4 border-t border-border py-4">
             <span id="race-kind" className="font-medium">
@@ -476,6 +536,36 @@ export function RaceForm({
               ))}
             </div>
           </div>
+          {kind === "trail" && (
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border py-4">
+              <span id="race-poles" className="font-medium">
+                Bâtons
+              </span>
+              <div
+                role="group"
+                aria-labelledby="race-poles"
+                className="flex gap-0.5 rounded-md border border-border bg-card p-0.5"
+              >
+                {(["allowed", "forbidden", "unknown"] as const).map(
+                  (option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={poles === option}
+                      onClick={() =>
+                        setPoles((current) =>
+                          current === option ? null : option,
+                        )
+                      }
+                      className={segment}
+                    >
+                      {poleLabels[option]}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -522,13 +612,42 @@ export function RaceForm({
               <p className="text-label text-secondary-foreground">{warning}</p>
             )}
           </fieldset>
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+            <span id="race-expectation" className="font-medium">
+              Ce que tu en attends
+            </span>
+            <div
+              role="group"
+              aria-labelledby="race-expectation"
+              className="flex gap-0.5 rounded-md border border-border bg-card p-0.5"
+            >
+              {(["performance", "rehearsal", "fun"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={expectation === option}
+                  onClick={() =>
+                    setExpectation((current) =>
+                      current === option ? null : option,
+                    )
+                  }
+                  className={segment}
+                >
+                  {expectationLabels[option]}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="border-t border-border pt-5">
             <Field
               label="Temps visé · facultatif"
               htmlFor="race-target"
               className="max-w-sm"
               error={show(errors.target)}
-              hint="Format 18h30. Tu pourras l’ajuster depuis le plan de course."
+              hint={
+                estimate?.text ??
+                "Format 18h30. Tu pourras l’ajuster depuis le plan de course."
+              }
             >
               <Input
                 id="race-target"
@@ -539,6 +658,64 @@ export function RaceForm({
               />
             </Field>
           </div>
+          <fieldset className="flex flex-col gap-2.5 border-t border-border pt-5">
+            <legend className="float-left mb-2.5 font-medium">
+              À tester ce jour-là
+              <span className="ml-2 font-normal text-muted-foreground">
+                facultatif · {testItems.length} / {maxRaceTestItems}
+              </span>
+            </legend>
+            <div className="clear-left flex flex-wrap gap-1.5">
+              {[...new Set([...testSuggestions(kind), ...testItems])].map(
+                (item) => {
+                  const chosen = testItems.includes(item);
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={chosen}
+                      disabled={!chosen && testItems.length >= maxRaceTestItems}
+                      onClick={() =>
+                        setTestItems((current) =>
+                          chosen
+                            ? current.filter((value) => value !== item)
+                            : [...current, item],
+                        )
+                      }
+                      className="inline-flex min-h-control-touch items-center rounded-md border border-border bg-card px-2.5 text-secondary-foreground transition-colors duration-150 ease-stride hover:text-foreground disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:text-foreground md:min-h-7"
+                    >
+                      {item}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+            <div className="flex max-w-sm gap-2">
+              <Input
+                aria-label="Autre chose à tester"
+                placeholder="Autre chose à tester"
+                value={customTest}
+                maxLength={60}
+                onChange={(event) => setCustomTest(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+                  event.preventDefault();
+                  addCustomTest();
+                }}
+                className={fieldInput}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={
+                  !customTest.trim() || testItems.length >= maxRaceTestItems
+                }
+                onClick={addCustomTest}
+              >
+                Ajouter
+              </Button>
+            </div>
+          </fieldset>
         </>
       )}
 

@@ -13,6 +13,11 @@ export const racePriorities = ["A", "B", "C"] as const;
 export type RacePriority = (typeof racePriorities)[number];
 export const raceKinds = ["road", "trail"] as const;
 export type RaceKind = (typeof raceKinds)[number];
+export const racePoles = ["allowed", "forbidden", "unknown"] as const;
+export type RacePoles = (typeof racePoles)[number];
+export const raceExpectations = ["performance", "rehearsal", "fun"] as const;
+export type RaceExpectation = (typeof raceExpectations)[number];
+export const maxRaceTestItems = 8;
 export const roadDistancePresets = [5, 10, 21.1, 42.2] as const;
 export const maxRaces = 10;
 export const maxTargetSeconds = 1_209_599;
@@ -57,6 +62,13 @@ export const raceValueSchemas = {
   elevation_gain_m: z.number().int().min(0).max(30_000),
   priority: z.enum(racePriorities),
   target_duration_seconds: z.number().int().min(1).max(maxTargetSeconds),
+  location: z.string().trim().min(1).max(120),
+  poles: z.enum(racePoles),
+  expectation: z.enum(raceExpectations),
+  test_items: z
+    .array(z.string().trim().min(1).max(60))
+    .min(1)
+    .max(maxRaceTestItems),
 };
 
 export const raceSaveSchema = z.strictObject({
@@ -71,6 +83,10 @@ export const raceSaveSchema = z.strictObject({
     target_duration_seconds: raceValueSchemas.target_duration_seconds
       .nullable()
       .optional(),
+    location: raceValueSchemas.location.nullable().optional(),
+    poles: raceValueSchemas.poles.nullable().optional(),
+    expectation: raceValueSchemas.expectation.nullable().optional(),
+    test_items: raceValueSchemas.test_items.nullable().optional(),
   }),
   revision: z.number().int().positive(),
 });

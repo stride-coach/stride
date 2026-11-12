@@ -287,6 +287,22 @@ export default async function RaceGearPage({
           </Suspense>
         </div>
       )}
+      {data.details.poles && data.details.poles !== "unknown" && (
+        <p className="flex items-center gap-2 text-body xl:col-start-1">
+          <span className="font-medium">Bâtons</span>
+          <span
+            className={
+              data.details.poles === "forbidden"
+                ? "text-warning"
+                : "text-secondary-foreground"
+            }
+          >
+            {data.details.poles === "forbidden"
+              ? "interdits sur cette course"
+              : "autorisés sur cette course"}
+          </span>
+        </p>
+      )}
       <div className="grid items-start gap-3 lg:grid-cols-2 xl:col-start-1 print:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
           {group("gear_kit", {

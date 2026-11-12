@@ -1,6 +1,8 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { Status } from "@/components/stride/status";
+import { Chip } from "@/components/stride/chip";
+import { expectationLabels } from "@/features/races/race-details";
 import { cn } from "@/lib/utils";
 import { localToday } from "@/features/app-shell/shell";
 import { sessionStatuses } from "@/features/plans/matching/adherence";
@@ -229,6 +231,39 @@ export default async function RacePreparationPage({
               ))}
             </ul>
           </RaceCard>
+          {(data.details.expectation || data.details.testItems.length > 0) && (
+            <RaceCard aria-labelledby="prep-tests">
+              <h2
+                id="prep-tests"
+                className="text-label font-medium text-muted-foreground"
+              >
+                À tester ce jour-là
+              </h2>
+              {data.details.expectation && (
+                <p className="text-secondary-foreground">
+                  Ce que tu en attends :{" "}
+                  <span className="font-medium text-foreground">
+                    {expectationLabels[data.details.expectation]}
+                  </span>
+                </p>
+              )}
+              {data.details.testItems.length > 0 && (
+                <ul className="flex flex-wrap gap-1.5">
+                  {data.details.testItems.map((item) => (
+                    <li key={item}>
+                      <Chip>{item}</Chip>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Link
+                href={`/races/${data.race.id}/edit`}
+                className="self-start text-label text-primary hover:text-foreground"
+              >
+                Modifier
+              </Link>
+            </RaceCard>
+          )}
           {prep.length > 0 && (
             <RaceCard aria-labelledby="prep-races">
               <h2
