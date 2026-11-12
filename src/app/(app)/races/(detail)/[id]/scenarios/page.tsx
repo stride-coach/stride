@@ -15,16 +15,13 @@ import { RaceProposalSheet } from "@/features/races/components/race-proposal-she
 import { EmptyState } from "@/features/races/components/race-ui";
 import { StopsEditor } from "@/features/races/components/stops-editor";
 import { TargetMissing } from "@/features/races/components/target-missing";
-import {
-  formatClock,
-  formatDuration,
-  formatHours,
-} from "@/features/races/format";
+import { formatClock, formatHours } from "@/features/races/format";
 import { profileData } from "@/features/races/profile";
 import { reviewSegments } from "@/features/races/proposal-review";
 import {
   changeCountLabel,
   emptyStrategy,
+  paceFactorsOf,
   strategyChanges,
   type RaceProposal,
 } from "@/features/races/proposals";
@@ -35,8 +32,10 @@ import {
   type TimelineTotals,
 } from "@/features/races/timeline";
 import { isStation } from "@/features/races/waypoints";
+import { compareScenarios } from "@/features/races/scenario-compare";
+import { ScenarioComparisonView } from "@/features/races/components/scenario-comparison";
 import type { RaceWeather } from "@/features/races/weather";
-import type { Scenario, ScenarioKey } from "@/features/races/workspace";
+import type { ScenarioKey } from "@/features/races/workspace";
 import type { NutritionProduct } from "@/features/fueling/products";
 import { readNutritionLibrary } from "@/server/fueling/products";
 import { loadRace } from "@/server/races/load";
@@ -63,44 +62,6 @@ type StrategyProposal = Extract<RaceProposal, { kind: "strategy" }>;
 
 function marginText(seconds: number) {
   return `${seconds < 0 ? "−" : ""}${formatHours(Math.abs(seconds))}`;
-}
-
-function ScenarioChips({
-  scenarios,
-  current,
-  base,
-}: {
-  scenarios: Scenario[];
-  current: ScenarioKey;
-  base: string;
-}) {
-  return (
-    <nav
-      aria-label="Scénario"
-      className="flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-lg border border-border bg-card p-0.5 max-sm:w-full"
-    >
-      {scenarios.map((scenario) => (
-        <Link
-          key={scenario.key}
-          href={
-            scenario.key === "target"
-              ? `${base}/scenarios`
-              : `${base}/scenarios?scenario=${scenario.key}`
-          }
-          scroll={false}
-          aria-current={scenario.key === current ? "true" : undefined}
-          className={cn(
-            "flex min-h-control-touch shrink-0 items-center justify-center gap-1 rounded-md px-2.5 whitespace-nowrap text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground max-sm:flex-1 md:min-h-6",
-            scenario.key === current && "bg-muted font-medium text-foreground",
-          )}
-        >
-          {scenarioNames[scenario.key]} ·{" "}
-          <span className="max-md:hidden">{formatHours(scenario.seconds)}</span>
-          <span className="md:hidden">{formatDuration(scenario.seconds)}</span>
-        </Link>
-      ))}
-    </nav>
-  );
 }
 
 function StrategistCard({
@@ -355,6 +316,24 @@ function PlanBody({
     .join(" · ");
   return (
     <>
+      <ScenarioComparisonView
+        comparison={compareScenarios({
+          model: views.model,
+          race: data.race,
+          plan: data.plan,
+          scenarios: views.scenarios,
+          shown: planned.scenario.key,
+          timeZone: data.course!.timeZone,
+          timeline,
+          paceFactors: data.strategy ? paceFactorsOf(data.strategy) : undefined,
+        })}
+        base={base}
+        raceId={data.race.id}
+        raceRevision={data.race.revision}
+        planRevision={data.plan.revision}
+        kind={data.race.kind}
+        targetSeconds={data.race.targetSeconds}
+      />
       <div className="sticky top-0 z-10 flex flex-col gap-1 border-b border-border bg-background py-1.5 xl:hidden print:hidden">
         <PlanProfile data={profile} variant="sticky" caption={caption} />
       </div>
@@ -362,11 +341,6 @@ function PlanBody({
         aria-label="Scénario et actions"
         className="flex flex-wrap items-center gap-2 print:hidden"
       >
-        <ScenarioChips
-          scenarios={views.scenarios}
-          current={planned.scenario.key}
-          base={base}
-        />
         <div className="ml-auto flex gap-2 max-md:hidden">
           <PrintSheetButton
             label="Imprimer le roadbook"
