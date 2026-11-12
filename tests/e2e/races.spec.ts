@@ -80,8 +80,14 @@ for (const viewport of [
         page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
       ).toBeVisible();
     }
+    const before = page.getByRole("complementary", {
+      name: "Avant la course",
+    });
+    await expect(before).toContainText("GPX importé");
     await expect(
-      page.getByRole("heading", { name: "Suis-je dans les temps ?" }),
+      page.getByRole("region", {
+        name: "Où tu en es → ce que la course demande",
+      }),
     ).toBeVisible();
     await sections.getByRole("link", { name: "Équipement" }).click();
     await expect(

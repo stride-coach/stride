@@ -652,8 +652,8 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
 
   await sections.getByRole("link", { name: "Préparation" }).click();
   await expect(
-    page.getByRole("region", { name: "Suis-je dans les temps ?" }),
-  ).toBeVisible();
+    page.getByRole("complementary", { name: "Avant la course" }),
+  ).toContainText("Heure de départ");
   await sections.getByRole("link", { name: "Équipement" }).click();
   await expect(
     sections.getByRole("link", { name: "Équipement" }),
