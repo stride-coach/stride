@@ -141,6 +141,7 @@ async function carryOver(
           alert_distance_m: source.alertDistanceM,
           voice_note: source.voiceNote,
           nutrition_note: source.nutritionNote,
+          stop_seconds: source.stopSeconds,
           ...(source.todo ? { todo: source.todo } : {}),
         })
         .eq("user_id", context.userId)

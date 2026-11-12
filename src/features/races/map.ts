@@ -69,6 +69,7 @@ export function nearestRouteDistance(data: MapData, lat: number, lon: number) {
     }
   });
   return {
+    index: best,
     distanceM: data.distances[best],
     offsetM: Math.sqrt(bestScore) * 111_195,
   };

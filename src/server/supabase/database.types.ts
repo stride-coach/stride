@@ -2430,6 +2430,7 @@ export type Database = {
           revision: number;
           services: string[];
           source: string;
+          stop_seconds: number | null;
           todo: string | null;
           updated_at: string;
           user_id: string;
@@ -2451,6 +2452,7 @@ export type Database = {
           revision?: number;
           services?: string[];
           source?: string;
+          stop_seconds?: number | null;
           todo?: string | null;
           updated_at?: string;
           user_id: string;
@@ -2471,6 +2473,7 @@ export type Database = {
           revision?: number;
           services?: string[];
           source?: string;
+          stop_seconds?: number | null;
           todo?: string | null;
           updated_at?: string;
           user_id?: string;

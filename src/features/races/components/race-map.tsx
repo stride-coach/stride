@@ -116,6 +116,7 @@ function RaceMapView({
   activeId = null,
   onSelect,
   onPick,
+  onMove,
   onFullscreen,
   fullscreenRef,
   onClose,
@@ -132,6 +133,7 @@ function RaceMapView({
   activeId?: string | null;
   onSelect?: (id: string) => void;
   onPick?: (distanceM: number) => void;
+  onMove?: (id: string, distanceM: number) => void;
   onFullscreen?: () => void;
   fullscreenRef?: React.Ref<HTMLButtonElement>;
   onClose?: () => void;
@@ -150,6 +152,7 @@ function RaceMapView({
   const cursorRef = useRef<Marker | null>(null);
   const pickRef = useRef(onPick);
   const selectRef = useRef(onSelect);
+  const moveRef = useRef(onMove);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -162,8 +165,9 @@ function RaceMapView({
   useEffect(() => {
     pickRef.current = onPick;
     selectRef.current = onSelect;
+    moveRef.current = onMove;
     dataRef.current = data;
-  }, [onPick, onSelect, data]);
+  }, [onPick, onSelect, onMove, data]);
   const routeKey = `${data.route.length}:${data.route[0]?.join(",")}:${data.route.at(-1)?.join(",")}`;
 
   const bounds = useMemo(() => boundsOf(data.route), [data.route]);
@@ -362,14 +366,30 @@ function RaceMapView({
         )
         .map((marker) => {
           const element = markerElement(marker, marker.id === activeId);
+          const draggable = marker.id === activeId && Boolean(moveRef.current);
+          let dragged = false;
           element.addEventListener("click", (event) => {
             event.stopPropagation();
+            if (dragged) {
+              dragged = false;
+              return;
+            }
             setSelected((value) => (value === marker.id ? null : marker.id));
             selectRef.current?.(marker.id);
           });
-          return new maplibre.Marker({ element })
+          const instance = new maplibre.Marker({ element, draggable })
             .setLngLat([marker.lon, marker.lat])
             .addTo(map);
+          if (draggable)
+            instance.on("dragend", () => {
+              dragged = true;
+              const { lat, lng } = instance.getLngLat();
+              const nearest = nearestRouteDistance(dataRef.current, lat, lng);
+              const [routeLat, routeLon] = dataRef.current.route[nearest.index];
+              instance.setLngLat([routeLon, routeLat]);
+              moveRef.current?.(marker.id, nearest.distanceM);
+            });
+          return instance;
         });
     })();
     return () => {

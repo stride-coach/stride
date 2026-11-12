@@ -16,9 +16,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
 import { StrideMark } from "@/components/stride/stride-mark";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileChart } from "./profile-chart";
 import { RaceMap, type MapLayers } from "./race-map";
 import { CardLabel, RaceCard } from "./race-ui";
@@ -39,6 +46,7 @@ import {
   kindLabels,
   serviceLabels,
   services,
+  stationKinds,
   type Waypoint,
   type WaypointInput,
   type WaypointMark,
@@ -232,8 +240,13 @@ function WaypointEditor({
   courseDistanceM,
   passage,
   estimate,
+  km,
+  onKmChange,
+  stops,
+  titled = true,
   onSaved,
   onDeleted,
+  onCancel,
 }: {
   raceId: string;
   point: Waypoint | null;
@@ -242,14 +255,21 @@ function WaypointEditor({
   courseDistanceM: number;
   passage: Passage | undefined;
   estimate: boolean;
+  km: string;
+  onKmChange: (value: string) => void;
+  stops: { aidStopSeconds: number; waterStopSeconds: number };
+  titled?: boolean;
   onSaved: (id: string | null) => void;
   onDeleted: () => void;
+  onCancel: () => void;
 }) {
   const [input, setInput] = useState(() =>
     initialInput(point, pickedDistanceM),
   );
-  const [km, setKm] = useState(() =>
-    formatKm(point?.distanceM ?? pickedDistanceM),
+  const [stop, setStop] = useState(() =>
+    point?.stopSeconds == null
+      ? ""
+      : String(Math.round(point.stopSeconds / 60)),
   );
   const [cutoff, setCutoff] = useState(() =>
     point?.cutoffMinutes == null ? "" : formatClock(point.cutoffMinutes),
@@ -265,9 +285,14 @@ function WaypointEditor({
   const watchLabel = input.watchLabel ?? fallbackLabel;
   const previewDistance = parseKm(km) ?? point?.distanceM ?? pickedDistanceM;
 
+  const station = stationKinds.includes(input.kind);
+  const defaultStop =
+    input.kind === "water" ? stops.waterStopSeconds : stops.aidStopSeconds;
+
   function save() {
     const meters = parseKm(km);
     const minutes = cutoff.trim() ? parseClock(cutoff) : null;
+    const stopMinutes = stop.trim() === "" ? null : Number(stop.trim());
     if (
       meters === null ||
       meters < 0 ||
@@ -275,12 +300,18 @@ function WaypointEditor({
       (cutoff.trim() && minutes === null)
     )
       return setError("Vérifie le kilomètre et la barrière horaire.");
+    if (
+      stopMinutes !== null &&
+      (!Number.isInteger(stopMinutes) || stopMinutes < 0 || stopMinutes > 120)
+    )
+      return setError("L’arrêt prévu va de 0 à 120 minutes.");
     setError(null);
     startTransition(async () => {
       const result = await saveWaypoint(raceId, point?.id ?? null, {
         ...input,
         distanceM: meters,
         cutoffMinutes: minutes,
+        stopSeconds: station && stopMinutes !== null ? stopMinutes * 60 : null,
       });
       if (result.status === "saved") {
         toast.success("Point enregistré.");
@@ -303,16 +334,24 @@ function WaypointEditor({
   return (
     <section
       aria-label={point ? `Modifier ${point.name}` : "Ajouter un point"}
-      className="flex min-w-0 flex-col gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5 lg:rounded-none lg:border-0 lg:border-t lg:bg-transparent lg:px-0 lg:pt-4 lg:pb-0"
+      className={cn(
+        "flex min-w-0 flex-col gap-3.5",
+        titled &&
+          "rounded-xl border border-border bg-card px-4 py-3.5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0",
+      )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-body-lg font-semibold">
-          {point ? `Modifier · ${point.name}` : "Ajouter un point"}
-        </h3>
-        <span className="text-label text-muted-foreground tabular-nums lg:hidden">
-          km {formatKm(previewDistance)}
-        </span>
-      </div>
+      {titled && (
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="text-body-lg font-semibold">
+            {point ? `Modifier · ${point.name}` : "Ajouter un point"}
+          </h3>
+          <span className="text-label text-muted-foreground tabular-nums">
+            {passage
+              ? `passage prévu ${formatClock(passage.clockMinutes)}`
+              : `km ${formatKm(previewDistance)}`}
+          </span>
+        </div>
+      )}
       <div className="flex flex-col gap-1.5">
         <span
           id="waypoint-kind"
@@ -354,7 +393,7 @@ function WaypointEditor({
             value={km}
             inputMode="decimal"
             className="h-control-touch rounded-lg bg-card lg:h-control"
-            onChange={(event) => setKm(event.target.value)}
+            onChange={(event) => onKmChange(event.target.value)}
           />
           <span className="text-label text-muted-foreground">
             {estimate ? "Kilomètre annoncé" : "Accroché au tracé"}
@@ -382,6 +421,24 @@ function WaypointEditor({
             </span>
           )}
         </label>
+        {station && (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label text-secondary-foreground">
+              Arrêt prévu (min)
+            </span>
+            <Input
+              value={stop}
+              inputMode="numeric"
+              placeholder={String(Math.round(defaultStop / 60))}
+              className="h-control-touch rounded-lg bg-card lg:h-control"
+              onChange={(event) => setStop(event.target.value)}
+            />
+            <span className="text-label text-muted-foreground">
+              Vide : {Math.round(defaultStop / 60)} min, comme les autres{" "}
+              {input.kind === "water" ? "points d’eau" : "ravitos"}
+            </span>
+          </label>
+        )}
       </div>
       <fieldset className="flex flex-col gap-1">
         <legend className="text-label text-secondary-foreground">
@@ -495,27 +552,43 @@ function WaypointEditor({
           {error}
         </p>
       )}
-      <div className="flex gap-2 lg:justify-between">
-        {point && (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={pending}
-            onClick={remove}
-            className="flex-1 text-destructive lg:flex-none"
-          >
-            Supprimer
-          </Button>
-        )}
+      <div className="flex flex-wrap gap-2">
         <Button
           type="button"
           disabled={pending}
           onClick={save}
-          className="flex-1 lg:ml-auto lg:flex-none"
+          className="flex-1 lg:flex-none"
         >
           Enregistrer
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={pending}
+          onClick={onCancel}
+          className="flex-1 lg:flex-none"
+        >
+          Annuler
+        </Button>
+        {point && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={pending}
+            onClick={remove}
+            className="text-destructive lg:ml-auto"
+          >
+            Supprimer
+          </Button>
+        )}
       </div>
+      {!estimate && point && (
+        <p className="text-label text-muted-foreground">
+          Pour le déplacer, glisse le point sur la carte ou change son
+          kilomètre. Le passage prévu, la météo et le ravitaillement se
+          recalculent.
+        </p>
+      )}
     </section>
   );
 }
@@ -734,6 +807,130 @@ function WatchExport({
   );
 }
 
+function stopLabel(
+  point: Waypoint,
+  stops: { aidStopSeconds: number; waterStopSeconds: number },
+) {
+  if (!stationKinds.includes(point.kind)) return "—";
+  const seconds =
+    point.stopSeconds ??
+    (point.kind === "water" ? stops.waterStopSeconds : stops.aidStopSeconds);
+  return `${Math.round(seconds / 60)} min`;
+}
+
+function WaypointTable({
+  waypoints,
+  marks,
+  passages,
+  stops,
+  selectedId,
+  onSelect,
+}: {
+  waypoints: Waypoint[];
+  marks: WaypointMark[];
+  passages: Passage[];
+  stops: { aidStopSeconds: number; waterStopSeconds: number };
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const head =
+    "px-2 py-2 text-left text-label font-normal text-muted-foreground";
+  const cell = "px-2 py-2 align-middle tabular-nums";
+  return (
+    <table className="w-full border-collapse text-body max-lg:hidden">
+      <thead className="border-b border-border">
+        <tr>
+          <th scope="col" className={cn(head, "w-8")}>
+            <span className="sr-only">Repère</span>
+          </th>
+          <th scope="col" className={head}>
+            Point
+          </th>
+          <th scope="col" className={cn(head, "text-right")}>
+            Au km
+          </th>
+          <th scope="col" className={head}>
+            Type
+          </th>
+          <th scope="col" className={head}>
+            Sur place
+          </th>
+          <th scope="col" className={cn(head, "text-right")}>
+            Barrière
+          </th>
+          <th scope="col" className={cn(head, "text-right")}>
+            Arrêt
+          </th>
+          <th scope="col" className={cn(head, "text-right")}>
+            Passage
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {waypoints.map((point, index) => {
+          const fixed = point.kind === "start" || point.kind === "finish";
+          const passage = passages.find((item) => item.waypointId === point.id);
+          const active = selectedId === point.id;
+          return (
+            <tr
+              key={point.id}
+              aria-current={active ? "true" : undefined}
+              className="border-b border-border last:border-b-0 aria-current:bg-muted"
+            >
+              <td className={cell}>
+                <WaypointBadge mark={marks[index]} active={active} />
+              </td>
+              <td className={cn(cell, "font-medium")}>
+                {fixed ? (
+                  point.name
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(point.id)}
+                    className="rounded-sm text-left hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                  >
+                    {point.name}
+                  </button>
+                )}
+                {point.needsReview && (
+                  <span className="ml-2 text-label text-warning">
+                    À vérifier
+                  </span>
+                )}
+              </td>
+              <td className={cn(cell, "text-right")}>
+                {formatKm(point.distanceM)}
+              </td>
+              <td className={cn(cell, "text-secondary-foreground")}>
+                {kindLabels[point.kind]}
+              </td>
+              <td className={cn(cell, "text-secondary-foreground")}>
+                {point.services.length
+                  ? point.services
+                      .map((service) => serviceLabels[service].toLowerCase())
+                      .join(", ")
+                      .replace(/^./, (letter) => letter.toUpperCase())
+                  : "—"}
+              </td>
+              <td className={cn(cell, "text-right")}>
+                {point.cutoffMinutes === null
+                  ? "—"
+                  : formatClock(point.cutoffMinutes)}
+              </td>
+              <td className={cn(cell, "text-right")}>
+                {stopLabel(point, stops)}
+              </td>
+              <td className={cn(cell, "text-right font-medium")}>
+                {passage ? formatClock(passage.clockMinutes) : "—"}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 export function WaypointWorkspace({
   raceId,
   waypoints,
@@ -742,6 +939,7 @@ export function WaypointWorkspace({
   map,
   passages,
   distanceM,
+  stops,
 }: {
   raceId: string;
   waypoints: Waypoint[];
@@ -750,10 +948,13 @@ export function WaypointWorkspace({
   map: MapData | null;
   passages: Passage[];
   distanceM: number;
+  stops: { aidStopSeconds: number; waterStopSeconds: number };
 }) {
   const estimate = map === null || profile === null;
+  const mobile = useIsMobile();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newDistance, setNewDistance] = useState<number | null>(null);
+  const [km, setKm] = useState("");
   const selected = waypoints.find((point) => point.id === selectedId) ?? null;
   const selectedIndex = selected ? waypoints.indexOf(selected) : -1;
   const stations = waypoints.filter(
@@ -764,18 +965,62 @@ export function WaypointWorkspace({
   ).length;
   const instructions = waypoints.filter(isInstruction).length;
   const points = waypoints.length - instructions;
+  const fromGpx = waypoints.filter((point) => point.source === "gpx").length;
+  const added = waypoints.filter(
+    (point) => point.source === "athlete" || point.source === "roadbook",
+  ).length;
   const summary = `${counted(points, "point", "points")} · ${counted(instructions, "consigne", "consignes")}`;
+  const origin = [
+    fromGpx ? `${fromGpx} trouvés dans le GPX` : null,
+    added ? counted(added, "ajouté", "ajoutés") : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const close = () => {
+    setSelectedId(null);
+    setNewDistance(null);
+  };
   const pick = (distance: number) => {
     setSelectedId(null);
     setNewDistance(Math.round(distance));
+    setKm(formatKm(Math.round(distance)));
   };
   const select = (id: string) => {
     const point = waypoints.find((item) => item.id === id);
     if (!point || point.kind === "start" || point.kind === "finish") return;
     setNewDistance(null);
-    setSelectedId((current) => (current === id ? null : id));
+    if (selectedId === id) return setSelectedId(null);
+    setSelectedId(id);
+    setKm(formatKm(point.distanceM));
+  };
+  const move = (id: string, distance: number) => {
+    if (id === selectedId) setKm(formatKm(distance));
+  };
+  const add = () => {
+    setSelectedId(null);
+    setNewDistance(0);
+    setKm(formatKm(0));
   };
   const editing = selected !== null || newDistance !== null;
+  const editorProps = {
+    raceId,
+    point: selected,
+    mark: selectedIndex >= 0 ? marks[selectedIndex] : null,
+    pickedDistanceM: newDistance ?? selected?.distanceM ?? 0,
+    courseDistanceM: distanceM,
+    passage: passages.find((passage) => passage.waypointId === selected?.id),
+    estimate,
+    km,
+    onKmChange: setKm,
+    stops,
+    onSaved: (id: string | null) => {
+      setSelectedId(id);
+      setNewDistance(null);
+    },
+    onDeleted: close,
+    onCancel: close,
+  };
+  const editorKey = selected?.id ?? `new-${newDistance}`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -788,15 +1033,17 @@ export function WaypointWorkspace({
         </p>
       )}
       <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
-        {map && profile && (
-          <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
+          {map && (
             <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-muted p-1 lg:pt-0">
               <div className="flex min-h-row items-center justify-between gap-3 px-2.5 max-lg:hidden">
                 <span className="font-medium text-secondary-foreground">
-                  Clique sur le tracé pour ajouter un point
+                  Carte
                 </span>
                 <span className="text-label text-muted-foreground">
-                  {summary}
+                  {selected
+                    ? "Glisse le point sur le tracé pour le déplacer"
+                    : "Clique sur le tracé pour ajouter un point"}
                 </span>
               </div>
               <RaceMap
@@ -805,48 +1052,43 @@ export function WaypointWorkspace({
                 activeId={selectedId}
                 onSelect={select}
                 onPick={pick}
+                onMove={move}
                 label={`Carte du parcours, ${formatKm(map.distanceM)} km, ${map.markers.length} points de passage`}
-                className="h-50 overflow-hidden rounded-lg border border-border lg:h-62.5"
+                className="h-50 overflow-hidden rounded-lg border border-border lg:h-75"
               />
             </section>
-            <RaceCard className="relative max-md:hidden">
-              <CardLabel>Profil · survole pour placer un point</CardLabel>
-              <ProfileChart
-                data={profile}
-                variant="editor"
-                activeId={selectedId}
-                onPick={pick}
-                label="Profil altimétrique interactif : cliquer pour ajouter un point"
-              />
-            </RaceCard>
-            <WatchExport
-              raceId={raceId}
-              points={points}
-              instructions={instructions}
-              compact={false}
-            />
-          </div>
-        )}
-        <aside className="flex min-w-0 flex-col gap-3 lg:rounded-xl lg:border lg:border-border lg:bg-card lg:px-4 lg:py-3.5">
-          <section className="flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card p-3 lg:gap-2.5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0">
+          )}
+          <section className="flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card p-3 lg:gap-2.5 lg:px-4 lg:py-3.5">
             <div className="flex items-center justify-between gap-3 px-1 pb-1.5 lg:p-0">
               <h2 className="text-label font-medium text-secondary-foreground">
                 <span className="max-lg:sr-only">Points de passage</span>
                 <span className="lg:hidden"> {summary}</span>
               </h2>
-              <Toggle
-                variant="segment"
-                pressed={newDistance !== null}
-                onPressedChange={(pressed) => {
-                  setSelectedId(null);
-                  setNewDistance(pressed ? 0 : null);
-                }}
-                className={chipClass}
-              >
-                + Ajouter
-              </Toggle>
+              <div className="flex items-center gap-3">
+                {origin && (
+                  <span className="text-label text-muted-foreground max-lg:hidden">
+                    {origin}
+                  </span>
+                )}
+                <Toggle
+                  variant="segment"
+                  pressed={newDistance !== null}
+                  onPressedChange={(pressed) => (pressed ? add() : close())}
+                  className={chipClass}
+                >
+                  + Ajouter
+                </Toggle>
+              </div>
             </div>
-            <ol className="flex flex-col">
+            <WaypointTable
+              waypoints={waypoints}
+              marks={marks}
+              passages={passages}
+              stops={stops}
+              selectedId={selectedId}
+              onSelect={select}
+            />
+            <ol className="flex flex-col lg:hidden">
               {waypoints.map((point, index) => (
                 <li key={point.id}>
                   <WaypointRow
@@ -859,38 +1101,59 @@ export function WaypointWorkspace({
               ))}
             </ol>
           </section>
-          {editing && (
-            <WaypointEditor
-              key={selected?.id ?? `new-${newDistance}`}
-              raceId={raceId}
-              point={selected}
-              mark={selectedIndex >= 0 ? marks[selectedIndex] : null}
-              pickedDistanceM={newDistance ?? selected?.distanceM ?? 0}
-              courseDistanceM={distanceM}
-              passage={passages.find(
-                (passage) => passage.waypointId === selected?.id,
-              )}
-              estimate={estimate}
-              onSaved={(id) => {
-                setSelectedId(id);
-                setNewDistance(null);
-              }}
-              onDeleted={() => {
-                setSelectedId(null);
-                setNewDistance(null);
-              }}
-            />
+          {map && profile && (
+            <RaceCard className="relative max-md:hidden">
+              <CardLabel>Profil · survole pour placer un point</CardLabel>
+              <ProfileChart
+                data={profile}
+                variant="editor"
+                activeId={selectedId}
+                onPick={pick}
+                label="Profil altimétrique interactif : cliquer pour ajouter un point"
+              />
+            </RaceCard>
+          )}
+        </div>
+        <aside className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-4 lg:rounded-xl lg:border lg:border-border lg:bg-card lg:px-4 lg:py-3.5">
+          {editing && !mobile ? (
+            <WaypointEditor key={editorKey} {...editorProps} />
+          ) : (
+            !estimate && (
+              <WatchExport
+                raceId={raceId}
+                points={points}
+                instructions={instructions}
+                compact={false}
+              />
+            )
           )}
         </aside>
-        {!estimate && (
-          <WatchExport
-            raceId={raceId}
-            points={points}
-            instructions={instructions}
-            compact
-          />
-        )}
       </div>
+      <Sheet open={editing && mobile} onOpenChange={(open) => !open && close()}>
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="max-h-[90dvh] gap-3 overflow-y-auto rounded-t-2xl border-control-border bg-card px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+        >
+          <span
+            aria-hidden="true"
+            className="h-1 w-9 self-center rounded-mark bg-control-border"
+          />
+          <div className="flex items-baseline justify-between gap-3">
+            <SheetTitle className="text-body-lg font-semibold">
+              {selected ? `Modifier · ${selected.name}` : "Ajouter un point"}
+            </SheetTitle>
+            <SheetClose asChild>
+              <Button type="button" variant="ghost" size="sm">
+                Fermer
+              </Button>
+            </SheetClose>
+          </div>
+          {editing && mobile && (
+            <WaypointEditor key={editorKey} {...editorProps} titled={false} />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
