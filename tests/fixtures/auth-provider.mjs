@@ -2838,7 +2838,11 @@ createServer(async (request, response) => {
         start_time_confirmed: true,
         ambitious_duration_seconds: road ? null : 19800,
         cautious_duration_seconds: road ? null : 25200,
-        cutoff_duration_seconds: road ? null : 28800,
+        cutoff_duration_seconds: road
+          ? null
+          : url.searchParams.get("tight")
+            ? 22800
+            : 28800,
         labels: [],
         walk_grade_percent: 10,
         walk_pace_seconds_per_km: 690,

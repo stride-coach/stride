@@ -46,6 +46,8 @@ export type Simulation = {
   passages: Passage[];
   segments: Segment[];
   finishSeconds: number;
+  walkSeconds: number;
+  secondsPerCost: number;
 };
 
 const minimumRunPaceSecondsPerKm = 150;
@@ -269,6 +271,8 @@ export function simulate(
     passages,
     segments,
     finishSeconds: Math.round(movingAt(course.distanceM) + stopTotal),
+    walkSeconds,
+    secondsPerCost,
   };
 }
 

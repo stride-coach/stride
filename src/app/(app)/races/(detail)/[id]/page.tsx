@@ -10,6 +10,7 @@ import type { RaceWorkspaceData } from "@/server/races/races";
 import { loadRace } from "@/server/races/load";
 import {
   chartViews,
+  cutoffFor,
   planFor,
   timelineFor,
   weatherFor,
@@ -30,6 +31,10 @@ import { readNutritionLibrary } from "@/server/fueling/products";
 import { readSettingChanges } from "@/server/races/settings-history";
 import type { SettingChange } from "@/features/races/settings-history";
 import { listCourseActivities } from "@/server/races/activities";
+import { coachRequestHref } from "@/features/coach/request";
+import { CutoffAlertCard } from "@/features/races/components/cutoff-alert";
+import { CutoffContext } from "@/features/races/components/cutoff-context";
+import { ScenarioRevisions } from "@/features/races/components/scenario-actions";
 
 type Workspace = {
   data: RaceWorkspaceData;
@@ -78,9 +83,29 @@ function CourseWorkspace({
       timeline,
       weather,
     });
+    const cutoff = cutoffFor(data, model, planned);
     return (
-      <>
+      <ScenarioRevisions race={data.race.revision} plan={data.plan.revision}>
         <RaceAxis
+          alert={
+            cutoff && (
+              <CutoffAlertCard
+                raceId={data.race.id}
+                kind={data.race.kind}
+                alert={cutoff.alert}
+                coachHref={coachRequestHref(null, null, data.race.id)}
+              />
+            )
+          }
+          context={
+            cutoff && (
+              <CutoffContext
+                barriers={cutoff.barriers}
+                weights={cutoff.alert.weights}
+                barrierAt={cutoff.alert.barrier.at}
+              />
+            )
+          }
           lanes={lanes}
           readings={axisReadings({
             model,
@@ -128,7 +153,7 @@ function CourseWorkspace({
             hasWeather: profile.rain.length > 0,
           }}
         />
-      </>
+      </ScenarioRevisions>
     );
   }
   const roadProfile = road
