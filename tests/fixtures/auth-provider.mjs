@@ -345,6 +345,7 @@ const tables = {
   race_nutrition_plans: [],
   race_drop_bags: [],
   race_setting_changes: [],
+  fueling_tests: [],
   athlete_nutrition_products: [],
   activity_shoe_decisions: [],
   activity_feelings: [],
@@ -2914,6 +2915,7 @@ createServer(async (request, response) => {
     tables.race_nutrition_plans = [];
     tables.race_drop_bags = [];
     tables.race_setting_changes = [];
+    tables.fueling_tests = [];
     const checklistItem = (index, list, label, values = {}) => ({
       id: `e2000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       race_id: race.id,
@@ -3805,6 +3807,32 @@ createServer(async (request, response) => {
       };
       tables.race_setting_changes.push(row);
       return send(201, [row]);
+    }
+    if (
+      url.pathname === "/rest/v1/fueling_tests" &&
+      request.method === "POST"
+    ) {
+      const value = Array.isArray(body) ? body[0] : body;
+      const row = {
+        id: randomUUID(),
+        activity_id: null,
+        note: null,
+        ...value,
+        created_at: new Date().toISOString(),
+      };
+      tables.fueling_tests.push(row);
+      return send(201, [row]);
+    }
+    if (
+      url.pathname === "/rest/v1/fueling_tests" &&
+      request.method === "DELETE"
+    ) {
+      tables.fueling_tests = tables.fueling_tests.filter(
+        (row) =>
+          url.searchParams.get("id") !== `eq.${row.id}` ||
+          url.searchParams.get("user_id") !== `eq.${row.user_id}`,
+      );
+      return send(204, undefined);
     }
     const raceRowTable = {
       "/rest/v1/race_nutrition_plans": "race_nutrition_plans",

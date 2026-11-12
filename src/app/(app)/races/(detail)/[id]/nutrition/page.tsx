@@ -5,6 +5,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { fuelingRehearsals, type FuelingRace } from "@/features/fueling/base";
 import { emptyNutritionPlan } from "@/features/fueling/race-plan";
+import { fuelingCapMessage } from "@/features/fueling/tests";
+import { FuelingTestsCard } from "@/features/races/components/fueling-tests-card";
 import {
   CardLabel,
   EmptyState,
@@ -27,6 +29,7 @@ import {
 } from "@/features/races/proposals";
 import type { RaceWeather } from "@/features/races/weather";
 import { readNutritionLibrary } from "@/server/fueling/products";
+import { readFuelingTests, readLongRuns } from "@/server/fueling/tests";
 import { readActivePlan } from "@/server/plans/stored";
 import { loadRace } from "@/server/races/load";
 import {
@@ -78,18 +81,21 @@ export default async function NutritionPage({
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const { context, data, today } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
-  const [review, proposals, products, stored, names] = await Promise.all([
-    loadRaceProposalReview(
-      context,
-      data,
-      typeof query.proposal === "string" ? query.proposal : undefined,
-      scenarioSchema.parse(query.scenario),
-    ),
-    readReadyRaceProposals(context, data.race.id),
-    readNutritionLibrary(context),
-    readActivePlan(context).catch(() => null),
-    readProductNames(context),
-  ]);
+  const [review, proposals, products, stored, names, tests, longRuns] =
+    await Promise.all([
+      loadRaceProposalReview(
+        context,
+        data,
+        typeof query.proposal === "string" ? query.proposal : undefined,
+        scenarioSchema.parse(query.scenario),
+      ),
+      readReadyRaceProposals(context, data.race.id),
+      readNutritionLibrary(context),
+      readActivePlan(context).catch(() => null),
+      readProductNames(context),
+      readFuelingTests(context),
+      readLongRuns(context, today),
+    ]);
   const sheet = review && <RaceProposalSheet key={review.id} review={review} />;
   const fuelingRace: FuelingRace | null = data.race.date
     ? {
@@ -107,7 +113,15 @@ export default async function NutritionPage({
   const sessions = upcomingSessions(stored, today, fuelingRace);
   const views = planFor(data, scenarioSchema.parse(query.scenario));
   const productsCard = (
-    <ProductsCard products={products.active} sessions={sessions} />
+    <>
+      <FuelingTestsCard
+        tests={tests}
+        longRuns={longRuns}
+        today={today}
+        message={fuelingCapMessage(data.plan.carbsPerHourG, data.fuelingCapG)}
+      />
+      <ProductsCard products={products.active} sessions={sessions} />
+    </>
   );
 
   if (!views?.planned)

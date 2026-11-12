@@ -676,3 +676,36 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
     ).toBeVisible();
   await expect(page.getByText("Obligatoire", { exact: true })).toHaveCount(0);
 });
+
+test("a carbohydrate intake validated in training caps the race plan", async ({
+  page,
+  request,
+}) => {
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAs(page, "athlete@example.com");
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/nutrition");
+
+  const card = page.getByRole("region", { name: "Testé à l’entraînement" });
+  await expect(card).toContainText("Aucun apport n’est encore validé");
+  await card.getByRole("combobox", { name: "Sortie" }).click();
+  await page.getByRole("option", { name: "Autre sortie" }).click();
+  await card.getByLabel("Durée").fill("2h20");
+  await card.getByLabel("Glucides (g/h)").fill("50");
+  await card.getByRole("button", { name: "Validé avec gêne" }).click();
+  await card.getByRole("button", { name: "Enregistrer le test" }).click();
+
+  await expect(card).toContainText(
+    "Ta cible de 60 g/h est plafonnée à 50 g/h, le plus haut apport validé à l’entraînement.",
+  );
+  const tests = card.getByRole("list", { name: "Tests de ravitaillement" });
+  await expect(tests).toContainText("50 g/h pendant 2h20");
+  await expect(tests).toContainText("Validé avec gêne");
+
+  await tests
+    .getByRole("button", { name: /^Supprimer le test 50 g\/h/ })
+    .click();
+  await expect(card).toContainText("Aucun apport n’est encore validé");
+});
