@@ -5,7 +5,8 @@ import { MinusIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { saveRacePlan, saveRaceTarget } from "@/server/races/actions";
+import { changeRaceSetting } from "@/server/races/actions";
+import type { SettingChange } from "../settings-history";
 import { actionMessage } from "../messages";
 import type { RaceKind } from "@/features/onboarding/goals";
 import {
@@ -122,6 +123,7 @@ export function SimulationPanel({
   values,
   summary,
   weatherNote,
+  history = [],
 }: {
   raceId: string;
   raceRevision: number;
@@ -130,6 +132,7 @@ export function SimulationPanel({
   values: Values;
   summary: SimulationSummary;
   weatherNote: string | null;
+  history?: SettingChange[];
 }) {
   const [pending, startTransition] = useTransition();
   const [shown, setShown] = useOptimistic(
@@ -144,27 +147,37 @@ export function SimulationPanel({
     revisions.current = { race: raceRevision, plan: planRevision };
   }, [raceRevision, planRevision]);
 
-  function persist(setting: SimulationSetting, value: number) {
+  function persist(
+    setting: SimulationSetting,
+    value: number,
+    previous: number,
+  ) {
     const { race, plan } = revisions.current;
-    if (setting === "target") return saveRaceTarget(raceId, race, value, kind);
-    return saveRacePlan(
+    return changeRaceSetting({
       raceId,
-      plan,
-      setting === "walkGrade"
-        ? { walkGradePercent: value }
-        : { aidStopSeconds: value },
-    );
+      setting,
+      value,
+      previous,
+      raceRevision: race,
+      planRevision: plan,
+      kind,
+    });
   }
 
-  function change(setting: SimulationSetting, value: number, previous: number) {
+  function change(
+    setting: SimulationSetting,
+    value: number,
+    previous: number,
+    undo = false,
+  ) {
     startTransition(async () => {
       setShown([setting, value]);
-      const result = await persist(setting, value);
+      const result = await persist(setting, value, previous);
       if (result.status !== "saved") {
         toast.error(actionMessage(result.status));
         return;
       }
-      if (previous === value) return;
+      if (undo || previous === value) return;
       toast.success(
         `${names[setting].label} : ${settingValue(setting, value)}`,
         {
@@ -172,7 +185,7 @@ export function SimulationPanel({
           duration: undoMilliseconds,
           action: {
             label: "Annuler",
-            onClick: () => change(setting, previous, previous),
+            onClick: () => change(setting, previous, value, true),
           },
         },
       );
@@ -240,6 +253,47 @@ export function SimulationPanel({
         le ravitaillement. Tu peux annuler pendant 10 secondes.
         {weatherNote && ` ${weatherNote}`}
       </p>
+      {history.length > 0 && (
+        <details className="border-t border-border pt-3">
+          <summary className="inline-flex min-h-control-touch cursor-pointer items-center text-label text-primary hover:text-foreground md:min-h-0">
+            Historique des réglages
+          </summary>
+          <ul className="flex flex-col pt-2">
+            {history.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-2 border-t border-border py-2 first:border-t-0"
+              >
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-label text-muted-foreground tabular-nums">
+                    {item.when}
+                  </span>
+                  <span className="tabular-nums">
+                    {item.label}
+                    {item.from ? ` ${item.from} → ` : " → "}
+                    <span className="font-medium">{item.to}</span>
+                  </span>
+                </span>
+                {item.restore !== null &&
+                  item.restore !== shown[item.setting] && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() =>
+                        change(item.setting, item.restore!, shown[item.setting])
+                      }
+                      aria-label={`Rétablir ${item.label.toLowerCase()} à ${item.from}`}
+                    >
+                      Rétablir
+                    </Button>
+                  )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }

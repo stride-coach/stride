@@ -200,6 +200,18 @@ test("the simulation settings recalculate the plan and can be undone", async ({
     timeout: 15_000,
   });
   await expect(stops).toHaveText(first ?? "", { timeout: 15_000 });
+  await panel.getByText("Historique des réglages").click();
+  const history = panel.locator("details li");
+  await expect(history).toHaveCount(2, { timeout: 15_000 });
+  const raised = (await stop.locator("output").textContent()) ?? "";
+  await history
+    .first()
+    .getByRole("button", { name: /^Rétablir/ })
+    .click();
+  await expect(stop.locator("output")).not.toHaveText(raised, {
+    timeout: 15_000,
+  });
+  await expect(history).toHaveCount(3, { timeout: 15_000 });
   await expect(panel.getByText("Arrivée", { exact: true })).toBeVisible();
 });
 
