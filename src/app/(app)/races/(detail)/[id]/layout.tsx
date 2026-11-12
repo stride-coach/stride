@@ -52,9 +52,9 @@ export default async function RaceLayout({
         actions={
           <>
             <Button asChild variant="ghost" className="shrink-0 max-md:hidden">
-              <Link href={`${base}/edit`}>
+              <Link href={`${base}/edit`} title="Modifier l’objectif">
                 <PencilIcon aria-hidden="true" className="size-3.5" />
-                Modifier l’objectif
+                <span className="max-2xl:sr-only">Modifier l’objectif</span>
               </Link>
             </Button>
             <Button
@@ -72,9 +72,9 @@ export default async function RaceLayout({
               variant="outline"
               className="shrink-0 max-md:hidden"
             >
-              <Link href={`${base}/course`}>
+              <Link href={`${base}/course`} title="Importer un GPX">
                 <UploadIcon aria-hidden="true" className="size-3.5" />
-                Importer un GPX
+                <span className="max-2xl:sr-only">Importer un GPX</span>
               </Link>
             </Button>
 

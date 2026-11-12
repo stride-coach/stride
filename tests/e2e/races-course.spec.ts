@@ -252,6 +252,40 @@ test("the climbs view lists the climbs and switches the walking threshold", asyn
   );
 });
 
+test("the weather view reads the weather at the athlete's passage", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  for (const viewport of [
+    { width: 1440, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    await page
+      .getByRole("navigation", { name: "Vues du plan de course" })
+      .filter({ visible: true })
+      .getByRole("link", { name: "Météo" })
+      .click();
+    await expect(page).toHaveURL(/\/weather$/);
+    await expect(
+      page
+        .getByRole("heading", { name: "La météo au fil de ta course" })
+        .or(page.getByText("Météo indisponible pour l’instant")),
+    ).toBeVisible({ timeout: 20_000 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+  }
+});
+
 test("the plan de course follows the timeline and applies a strategy proposal", async ({
   page,
   request,
