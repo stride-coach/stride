@@ -903,3 +903,55 @@ test("a waypoint keeps its own planned stop from the table editor", async ({
   await sheet.getByRole("button", { name: "Fermer" }).click();
   await expect(sheet).toBeHidden();
 });
+
+test("the plan goes to the watch and into a printable roadbook", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const firstRow = page
+    .getByRole("region", { name: "Carnet de route" })
+    .getByRole("row", { name: /Départ → Ravito du Bois/ });
+  const passage = (await firstRow.textContent())?.match(/\d\d:\d\d/g)?.at(-1);
+  expect(passage).toBeTruthy();
+
+  const takeAlong = page.getByRole("region", { name: "Emporter le plan" });
+  await takeAlong
+    .getByRole("button", { name: "Envoyer sur la montre" })
+    .click();
+  const watch = page.getByRole("dialog", { name: "Envoyer sur la montre" });
+  await expect(watch).toContainText("Le tracé de 30,0 km, 4 points de passage");
+  const download = page.waitForEvent("download");
+  await watch
+    .getByRole("button", { name: "Télécharger la course .fit" })
+    .click();
+  expect((await download).suggestedFilename()).toMatch(/\.fit$/);
+  await expect(page.getByText(/^Course \.fit téléchargé/)).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await takeAlong.getByRole("button", { name: "Carnet de route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Carnet de route" });
+  const preview = page.frameLocator(
+    'iframe[title="Aperçu du carnet de route"]',
+  );
+  await expect(
+    preview.getByRole("heading", { name: "EcoTrail Paris 120K" }),
+  ).toBeVisible({ timeout: 20_000 });
+  await expect(
+    preview.getByRole("row", { name: /Départ → Ravito du Bois/ }),
+  ).toContainText(passage!);
+  await dialog.getByRole("switch", { name: "Météo" }).click();
+  await expect(
+    preview.getByRole("columnheader", { name: "Météo" }),
+  ).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Bracelet" }).click();
+  await expect(preview.getByRole("region", { name: "Bracelet" })).toContainText(
+    "Ravito du Bois",
+  );
+});
