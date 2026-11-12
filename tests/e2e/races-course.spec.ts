@@ -1005,3 +1005,52 @@ test("the crew view says where and when to meet the athlete", async ({
     "Parking du gymnase",
   );
 });
+
+test("the crew follows a secret link that can be replaced or switched off", async ({
+  page,
+  request,
+  browser,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?crew=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/crew");
+  const linkSwitch = page.getByRole("switch", { name: "Lien de suivi" });
+  await expect(page.getByText(/^actif du \d+ \S+ au \d+ \S+$/)).toBeVisible();
+  await linkSwitch.click();
+  const address = page.getByRole("textbox", {
+    name: "Adresse du lien de suivi",
+  });
+  await expect(address).toHaveValue(/\/crew\/[A-Za-z0-9_-]{32}$/);
+  const first = new URL(await address.inputValue(), page.url()).pathname;
+
+  const crew = await browser.newContext();
+  const visitor = await crew.newPage();
+  await visitor.goto(first);
+  await expect(
+    visitor.getByRole("heading", { name: "EcoTrail Paris 120K" }),
+  ).toBeVisible();
+  await expect(
+    visitor.getByRole("region", { name: "Où et quand se retrouver" }),
+  ).toContainText("Ravito du Bois");
+  await expect(visitor.getByText(/FC|fréquence/)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Créer un nouveau lien" }).click();
+  await expect(address).not.toHaveValue(new RegExp(`${first}$`));
+  await visitor.goto(first);
+  await expect(
+    visitor.getByRole("heading", { name: "Ce lien de suivi n’est pas actif" }),
+  ).toBeVisible();
+
+  const second = new URL(await address.inputValue(), page.url()).pathname;
+  await linkSwitch.click();
+  await expect(address).toBeHidden();
+  await visitor.goto(second);
+  await expect(
+    visitor.getByRole("heading", { name: "Ce lien de suivi n’est pas actif" }),
+  ).toBeVisible();
+  await crew.close();
+});

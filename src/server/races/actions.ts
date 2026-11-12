@@ -17,6 +17,7 @@ import { saveRace } from "@/server/onboarding/goals";
 import { getOnboardingContext } from "@/server/onboarding/context";
 import { crewDetailsSchema } from "@/features/races/crew";
 import { importActivity, type CoursePreview } from "./course";
+import { newCrewToken, readCrewLink } from "./crew-link";
 import { storedSettings } from "@/features/races/settings-history";
 
 export type ActionResult =
@@ -275,6 +276,52 @@ export async function saveCrewDetails(
     .eq("race_id", race.data)
     .eq("id", id.data)
     .select("id")
+    .maybeSingle();
+  if (response.error) return { status: "error" };
+  if (!response.data) return { status: "missing" };
+  refresh(race.data);
+  return { status: "saved" };
+}
+
+export async function setCrewLink(
+  raceId: string,
+  enabled: boolean,
+): Promise<ActionResult> {
+  const race = idSchema.safeParse(raceId);
+  const flag = z.boolean().safeParse(enabled);
+  if (!race.success || !flag.success) return { status: "invalid" };
+  const current = await context();
+  if (!current) return { status: "session-expired" };
+  const existing = await readCrewLink(current, race.data);
+  const response = existing
+    ? await current.client
+        .from("race_crew_links")
+        .update({ enabled: flag.data, updated_at: new Date().toISOString() })
+        .eq("user_id", current.userId)
+        .eq("race_id", race.data)
+    : await current.client.from("race_crew_links").insert({
+        race_id: race.data,
+        user_id: current.userId,
+        token: newCrewToken(),
+        enabled: flag.data,
+      });
+  if (response.error)
+    return { status: response.error.code === "42501" ? "missing" : "error" };
+  refresh(race.data);
+  return { status: "saved" };
+}
+
+export async function renewCrewLink(raceId: string): Promise<ActionResult> {
+  const race = idSchema.safeParse(raceId);
+  if (!race.success) return { status: "invalid" };
+  const current = await context();
+  if (!current) return { status: "session-expired" };
+  const response = await current.client
+    .from("race_crew_links")
+    .update({ token: newCrewToken(), updated_at: new Date().toISOString() })
+    .eq("user_id", current.userId)
+    .eq("race_id", race.data)
+    .select("race_id")
     .maybeSingle();
   if (response.error) return { status: "error" };
   if (!response.data) return { status: "missing" };

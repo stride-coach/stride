@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import { CrewDetailsButton } from "@/features/races/components/crew-details";
 import { MapCard } from "@/features/races/components/map-card";
 import { EmptyState } from "@/features/races/components/race-ui";
+import { crewLinkPeriod } from "@/features/races/crew-link";
+import { CrewLinkPanel } from "@/features/races/components/crew-link-panel";
+import { readCrewLink, siteOrigin } from "@/server/races/crew-link";
 import { loadRace } from "@/server/races/load";
 import { chartViews, crewFor } from "@/server/races/views";
 
@@ -19,8 +22,9 @@ export default async function CrewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { data } = await loadRace(id);
+  const { context, data } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
+  const link = await readCrewLink(context, id);
   const result = crewFor(data);
   if (!result)
     return (
@@ -195,11 +199,12 @@ export default async function CrewPage({
         <h2 className="text-body font-medium text-secondary-foreground">
           Partager avec ton assistance
         </h2>
-        <p className="text-body text-secondary-foreground">
-          La feuille d’assistance reprend chaque point, son heure prévue, sa
-          fenêtre, l’accès et ce qu’il faut te préparer. Elle ne contient aucune
-          donnée de santé.
-        </p>
+        <CrewLinkPanel
+          raceId={id}
+          link={link}
+          origin={siteOrigin()}
+          period={crewLinkPeriod(data.race.date)}
+        />
         <Button asChild variant="outline">
           <a
             href={`/races/${id}/print?sheet=crew&print=1`}
