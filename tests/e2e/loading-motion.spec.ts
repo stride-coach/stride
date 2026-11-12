@@ -41,23 +41,32 @@ async function record(page: Page) {
 const authPort = Number(process.env.PLAYWRIGHT_AUTH_PORT ?? 3200);
 const delays = `http://127.0.0.1:${authPort}/__test__/rest-delay`;
 const planReads = "/rest/v1/plan_proposals?";
+let delay: string | null = null;
 
 test.beforeEach(async () => {
-  await fetch(delays, {
+  const response = await fetch(delays, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ match: planReads, ms: 1_500 }),
   });
+  delay = ((await response.json()) as { id: string }).id;
 });
 
 test.afterEach(async () => {
-  await fetch(`${delays}?match=${encodeURIComponent(planReads)}`, {
-    method: "DELETE",
-  });
+  if (delay)
+    await fetch(`${delays}?id=${encodeURIComponent(delay)}`, {
+      method: "DELETE",
+    });
+  delay = null;
 });
 
 async function openPlanSlowly(page: Page) {
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.route("**/plan**", (route) =>
+    route.request().headers()["next-router-prefetch"]
+      ? route.abort()
+      : route.fallback(),
+  );
   await signInAs(page, "plan@example.com");
   await page.getByRole("link", { name: "Plan", exact: true }).first().click();
   await expect(
@@ -88,14 +97,10 @@ test("content fades in over its still skeleton", async ({ page }) => {
   }
 });
 
-test(
-  "content swaps without fading with reduced motion",
-  { tag: "@quarantine" },
-  async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await record(page);
-    const recorded = await openPlanSlowly(page);
-    expect(recorded.scopes).toBeGreaterThan(0);
-    expect(recorded.reveals).toEqual([]);
-  },
-);
+test("content swaps without fading with reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await record(page);
+  const recorded = await openPlanSlowly(page);
+  expect(recorded.scopes).toBeGreaterThan(0);
+  expect(recorded.reveals).toEqual([]);
+});
