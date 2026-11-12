@@ -262,7 +262,7 @@ function ProposalCard({
             (block.scope === "race_strategy" ||
               block.scope === "race_nutrition") ? (
               <Link
-                href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "roadbook" : "nutrition"}?proposal=${block.proposalId}`}
+                href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "scenarios" : "nutrition"}?proposal=${block.proposalId}`}
                 data-proposal-id={block.proposalId}
               >
                 {block.status === "pending"

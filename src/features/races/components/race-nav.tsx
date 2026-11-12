@@ -5,19 +5,27 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { fullscreenMapParam } from "../map";
 
+type RaceKind = "road" | "trail";
+
 export const raceSections = [
-  { path: "", label: "Parcours" },
-  { path: "/roadbook", label: "Stratégie" },
-  { path: "/nutrition", label: "Alimentation" },
+  { path: "", label: "Plan de course" },
+  { path: "/nutrition", label: "Ravitaillement" },
   { path: "/gear", label: "Équipement" },
+  { path: "/preparation", label: "Préparation" },
 ] as const;
 
 const roadSections = [
   raceSections[0],
-  { path: "/gear", label: "Check-lists" },
+  raceSections[2],
+  raceSections[3],
 ] as const;
 
-function sectionsOf(kind: "road" | "trail") {
+export const raceViews = [
+  { path: "", label: "Plan" },
+  { path: "/scenarios", label: "Scénarios" },
+] as const;
+
+function sectionsOf(kind: RaceKind) {
   return kind === "road" ? roadSections : raceSections;
 }
 
@@ -26,12 +34,17 @@ const extraCrumbs: Record<string, { crumb: string; tab: string }> = {
   "/course": { crumb: "Ajouter le GPX", tab: "" },
 };
 
-function sectionOf(pathname: string, base: string, kind: "road" | "trail") {
+function sectionOf(pathname: string, base: string, kind: RaceKind) {
   const rest = pathname.slice(base.length).replace(/\/$/, "");
   const extra = extraCrumbs[rest];
-  if (extra) return { tab: extra.tab, crumb: extra.crumb };
+  if (extra) return { tab: extra.tab, view: null, crumb: extra.crumb };
+  const view =
+    kind === "trail"
+      ? (raceViews.find((item) => item.path === rest)?.path ?? null)
+      : null;
+  if (view !== null) return { tab: "", view, crumb: null };
   const section = sectionsOf(kind).find((item) => item.path === rest);
-  return { tab: section?.path ?? "", crumb: null };
+  return { tab: section?.path ?? "", view: null, crumb: null };
 }
 
 export function RaceBreadcrumb({
@@ -43,7 +56,7 @@ export function RaceBreadcrumb({
   raceId: string;
   name: string;
   replacing: boolean;
-  kind: "road" | "trail";
+  kind: RaceKind;
 }) {
   const pathname = usePathname();
   const fullscreenMap = useSearchParams().has(fullscreenMapParam);
@@ -102,7 +115,7 @@ export function RaceTabs({
   variant,
 }: {
   raceId: string;
-  kind: "road" | "trail";
+  kind: RaceKind;
   variant: "header" | "pills";
 }) {
   const pathname = usePathname();
@@ -142,6 +155,52 @@ export function RaceTabs({
             )}
           >
             {section.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function RaceViews({
+  raceId,
+  kind,
+  variant,
+}: {
+  raceId: string;
+  kind: RaceKind;
+  variant: "header" | "row";
+}) {
+  const pathname = usePathname();
+  const base = `/races/${raceId}`;
+  const { view } = sectionOf(pathname, base, kind);
+  if (view === null) return null;
+  const header = variant === "header";
+  return (
+    <nav
+      aria-label="Vues du plan de course"
+      className={cn(
+        "print:hidden",
+        header
+          ? "flex shrink-0 gap-0.5 rounded-lg border border-border bg-card p-0.5 max-lg:hidden"
+          : "flex gap-1 overflow-x-auto border-b border-border px-4 py-2 lg:hidden",
+      )}
+    >
+      {raceViews.map((item) => {
+        const current = item.path === view;
+        return (
+          <Link
+            key={item.path}
+            href={`${base}${item.path}`}
+            aria-current={current ? "page" : undefined}
+            scroll={false}
+            className={cn(
+              "inline-flex shrink-0 items-center rounded-md px-2.5 whitespace-nowrap text-muted-foreground transition-colors duration-150 ease-stride hover:text-foreground",
+              header ? "min-h-6" : "min-h-control-touch",
+              current && "bg-muted font-medium text-foreground",
+            )}
+          >
+            {item.label}
           </Link>
         );
       })}

@@ -53,21 +53,32 @@ for (const viewport of [
       name: "Sections de la course",
     });
     await expect(sections.getByRole("link")).toHaveText([
-      "Parcours",
-      "Stratégie",
-      "Alimentation",
+      "Plan de course",
+      "Ravitaillement",
       "Équipement",
+      "Préparation",
     ]);
-    for (const label of ["Stratégie", "Alimentation", "Équipement"]) {
+    const views = page
+      .getByRole("navigation", { name: "Vues du plan de course" })
+      .filter({ visible: true });
+    await expect(views.getByRole("link")).toHaveText(["Plan", "Scénarios"]);
+    await views.getByRole("link", { name: "Scénarios" }).click();
+    await expect(page).toHaveURL(/\/scenarios$/);
+    await expect(
+      sections.getByRole("link", { name: "Plan de course" }),
+    ).toHaveAttribute("aria-current", "page");
+    await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/roadbook");
+    await expect(page).toHaveURL(/\/scenarios$/);
+    for (const label of ["Ravitaillement", "Équipement", "Préparation"]) {
       await sections.getByRole("link", { name: label }).click();
       await expect(
         page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
       ).toBeVisible();
     }
-    await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/preparation");
-    await expect(page).toHaveURL(
-      /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb\/gear$/,
-    );
+    await expect(
+      page.getByRole("heading", { name: "Suis-je dans les temps ?" }),
+    ).toBeVisible();
+    await sections.getByRole("link", { name: "Équipement" }).click();
     await expect(
       sections.getByRole("link", { name: "Équipement" }),
     ).toHaveAttribute("aria-current", "page");

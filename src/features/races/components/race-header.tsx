@@ -47,8 +47,11 @@ function Countdown({
   const days = daysUntil(race.date, today);
   if (days < 0)
     return (
-      <p className="text-body text-muted-foreground">
-        Course terminée le {formatShortDate(race.date)}
+      <p className="flex flex-wrap items-baseline gap-x-2">
+        <span className="text-verdict font-semibold">Terminé</span>
+        <span className="text-label text-muted-foreground">
+          {formatShortDate(race.date)}
+        </span>
       </p>
     );
   const start = formatClock(plan.startMinutes ?? defaultStartMinutes);
