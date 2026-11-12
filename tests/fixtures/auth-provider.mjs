@@ -2905,7 +2905,12 @@ createServer(async (request, response) => {
       name,
       distance_m: distance,
       cutoff_time: null,
-      services: ["aid", "water", "base"].includes(kind) ? ["water"] : [],
+      services:
+        kind === "aid" && url.searchParams.get("crew")
+          ? ["water", "assistance"]
+          : ["aid", "water", "base"].includes(kind)
+            ? ["water"]
+            : [],
       watch_label: null,
       alert_distance_m: ["aid", "water", "base"].includes(kind) ? 500 : 0,
       voice_note: null,

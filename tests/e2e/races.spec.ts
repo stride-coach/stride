@@ -66,6 +66,7 @@ for (const viewport of [
       "Côtes",
       "Météo",
       "Scénarios",
+      "Assistance",
     ]);
     await views.getByRole("link", { name: "Scénarios" }).click();
     await expect(page).toHaveURL(/\/scenarios$/);
