@@ -286,6 +286,50 @@ test("the weather view reads the weather at the athlete's passage", async ({
   }
 });
 
+test("the scenarios view compares, creates and chooses a scenario", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/scenarios");
+  const objective = page.getByRole("article", { name: /^Objectif/ });
+  await expect(objective).toContainText("6h00");
+  const create = page.getByRole("form", { name: "Créer un scénario" });
+  const prudentCard = page.getByRole("article", { name: /^Prudent/ });
+  if (await create.isVisible()) {
+    const kind = create.getByRole("button", { name: "Prudent" });
+    if (await kind.isVisible()) await kind.click();
+    await create.getByRole("textbox").fill("5h00");
+    await create.getByRole("button", { name: "Ajouter" }).click();
+    await expect(create.getByRole("alert")).toContainText("plus lent");
+    await create.getByRole("textbox").fill("6h45");
+    await create.getByRole("button", { name: "Ajouter" }).click();
+    await expect(prudentCard).toBeVisible({ timeout: 15_000 });
+  }
+  await expect(prudentCard).toBeVisible();
+  const prudent =
+    (await prudentCard.locator("[data-slot=metric]").textContent()) ?? "";
+  await expect(
+    page.getByRole("region", { name: "Heures de passage" }),
+  ).toContainText("Ravito du Bois");
+  await prudentCard
+    .getByRole("button", { name: "En faire mon objectif" })
+    .click();
+  await expect(objective).toContainText(prudent, { timeout: 15_000 });
+  await page
+    .locator("[data-sonner-toast]")
+    .filter({ hasText: `Nouvel objectif : ${prudent}` })
+    .getByRole("button", { name: "Annuler" })
+    .click();
+  await expect(objective).toContainText("6h00", { timeout: 15_000 });
+  await expect(prudentCard).toContainText(prudent);
+});
+
 test("the plan de course follows the timeline and applies a strategy proposal", async ({
   page,
   request,
@@ -310,9 +354,9 @@ test("the plan de course follows the timeline and applies a strategy proposal", 
   await expect(
     page.getByRole("button", { name: "Imprimer le roadbook" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /^Cible · 6h00/ }),
-  ).toHaveAttribute("aria-current", "true");
+  const objective = page.getByRole("article", { name: /^Objectif/ });
+  await expect(objective).toHaveAttribute("aria-current", "true");
+  await expect(objective).toContainText("6h00");
   const arrival = page.getByRole("complementary", {
     name: "Résumé du plan de course",
   });
