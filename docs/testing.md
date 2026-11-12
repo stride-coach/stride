@@ -8,7 +8,7 @@
 - Cover database ownership, constraints and functions with pgTAP tests in `supabase/tests/database`, run with `npm run db:test` against the local Supabase stack. Every Stride table needs cross-athlete and anonymous access tests.
 - AI behavior will need curated evaluations for coaching quality, safety, and regression; no evaluation framework is included yet.
 
-Run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` before a pull request when relevant. Locally, run only the Playwright specs the change touches, such as `npx playwright test tests/e2e/<area>.spec.ts --project=chromium`. Pull requests run the browser specs selected from their changes, `main` runs the full browser suite, and onboarding runs only with migrations (see [CI design](ci.md)). CI retries a failed browser test once.
+Run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` before a pull request when relevant. Locally, run only the Playwright specs the change touches, such as `npx playwright test tests/e2e/<area>.spec.ts --project=chromium`. Pull requests run the browser specs selected from their changes, `main` runs the full browser suite, and onboarding runs only with migrations (see [CI design](ci.md)). CI retries a failed browser test once. A test that passes only on retry keeps the job green but is listed as flaky in the job's browser report (see [CI design](ci.md)); treat it as a failure to fix, not as noise.
 
 ### Reusing the app between local runs
 
