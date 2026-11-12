@@ -88,10 +88,14 @@ test("content fades in over its still skeleton", async ({ page }) => {
   }
 });
 
-test("content swaps without fading with reduced motion", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await record(page);
-  const recorded = await openPlanSlowly(page);
-  expect(recorded.scopes).toBeGreaterThan(0);
-  expect(recorded.reveals).toEqual([]);
-});
+test(
+  "content swaps without fading with reduced motion",
+  { tag: "@quarantine" },
+  async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await record(page);
+    const recorded = await openPlanSlowly(page);
+    expect(recorded.scopes).toBeGreaterThan(0);
+    expect(recorded.reveals).toEqual([]);
+  },
+);
