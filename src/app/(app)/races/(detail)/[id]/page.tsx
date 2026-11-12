@@ -123,7 +123,6 @@ function CourseWorkspace({
             hasWeather: profile.rain.length > 0,
           }}
         />
-        {walkCard}
       </>
     );
   }

@@ -203,6 +203,55 @@ test("the simulation settings recalculate the plan and can be undone", async ({
   await expect(panel.getByText("Arrivée", { exact: true })).toBeVisible();
 });
 
+test("the climbs view lists the climbs and switches the walking threshold", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  await page
+    .getByRole("navigation", { name: "Vues du plan de course" })
+    .filter({ visible: true })
+    .getByRole("link", { name: "Côtes" })
+    .click();
+  await expect(page).toHaveURL(/\/climbs$/);
+  await expect(
+    page.getByRole("heading", { name: "Le profil, côte par côte" }),
+  ).toBeVisible();
+  const picker = page.getByRole("radiogroup", { name: "Marcher dès" });
+  const current = picker.getByRole("radio", { checked: true });
+  const before = await current.textContent();
+  const comparison = page.getByRole("region", {
+    name: "Ce que change le seuil",
+  });
+  await expect(comparison.locator('tr[aria-current="true"]')).toContainText(
+    before ?? "",
+  );
+  await picker.getByRole("radio", { name: "6 %" }).click();
+  await expect(picker.getByRole("radio", { name: "6 %" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  await expect(comparison.locator('tr[aria-current="true"]')).toContainText(
+    "6 %",
+    { timeout: 15_000 },
+  );
+  await page
+    .locator("[data-sonner-toast]")
+    .filter({ hasText: "Marcher dès : 6 %" })
+    .getByRole("button", { name: "Annuler" })
+    .click();
+  await expect(comparison.locator('tr[aria-current="true"]')).toContainText(
+    before ?? "",
+    { timeout: 15_000 },
+  );
+});
+
 test("the plan de course follows the timeline and applies a strategy proposal", async ({
   page,
   request,

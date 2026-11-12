@@ -61,7 +61,11 @@ for (const viewport of [
     const views = page
       .getByRole("navigation", { name: "Vues du plan de course" })
       .filter({ visible: true });
-    await expect(views.getByRole("link")).toHaveText(["Plan", "Scénarios"]);
+    await expect(views.getByRole("link")).toHaveText([
+      "Plan",
+      "Côtes",
+      "Scénarios",
+    ]);
     await views.getByRole("link", { name: "Scénarios" }).click();
     await expect(page).toHaveURL(/\/scenarios$/);
     await expect(
