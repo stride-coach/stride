@@ -11,6 +11,7 @@ import { loadRace } from "@/server/races/load";
 import {
   chartViews,
   cutoffFor,
+  estimateFor,
   planFor,
   timelineFor,
   weatherFor,
@@ -35,6 +36,11 @@ import { coachRequestHref } from "@/features/coach/request";
 import { CutoffAlertCard } from "@/features/races/components/cutoff-alert";
 import { CutoffContext } from "@/features/races/components/cutoff-context";
 import { ScenarioRevisions } from "@/features/races/components/scenario-actions";
+import { CoachNote } from "@/components/stride/coach-note";
+import { CourseDropZone } from "@/features/races/components/course-drop-zone";
+import { EstimateContext } from "@/features/races/components/estimate-context";
+import { formatClock } from "@/features/races/format";
+import type { CourseModel, RacePlanModel } from "@/features/races/workspace";
 
 type Workspace = {
   data: RaceWorkspaceData;
@@ -199,6 +205,68 @@ function CourseWorkspace({
   );
 }
 
+function EstimateWorkspace({
+  data,
+  model,
+  planned,
+  products,
+}: {
+  data: RaceWorkspaceData;
+  model: CourseModel;
+  planned: RacePlanModel;
+  products: Workspace["products"];
+}) {
+  const { profile } = chartViews(model, planned, null);
+  const timeline = timelineFor({
+    data,
+    model,
+    planned,
+    weather: null,
+    products,
+  });
+  const finish = formatClock(
+    (data.plan.startMinutes ?? defaultStartMinutes) +
+      planned.simulation.finishSeconds / 60,
+  );
+  const totals = roadbookTotals(timeline, model.course.distanceM);
+  return (
+    <>
+      <CoachNote>
+        Sans tracé, je travaille avec la distance
+        {data.race.elevationGainM ? " et le dénivelé annoncés" : " annoncée"}.
+        Les heures de passage sont une estimation : je ne sais pas où sont les
+        côtes. Arrivée estimée vers {finish}.
+      </CoachNote>
+      <CourseDropZone raceId={data.race.id} />
+      <RaceAxis
+        estimate
+        lanes={axisLanes({
+          profile: planProfile(profile, timeline),
+          model,
+          timeline,
+          weather: null,
+        })}
+        readings={axisReadings({
+          model,
+          planned,
+          timeline,
+          weather: null,
+          walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
+        })}
+        rows={roadbookRows(timeline, null).map((row) => ({
+          ...row,
+          walk: "—",
+          passage: `≈ ${row.passage}`,
+        }))}
+        totals={{ ...totals, walk: "—", finish: `≈ ${totals.finish}` }}
+        walkThreshold={data.plan.walkGradePercent}
+        map={null}
+        context={<EstimateContext raceId={data.race.id} />}
+      />
+    </>
+  );
+}
+
 function RaceStatus({
   data,
   askTarget = true,
@@ -219,6 +287,16 @@ export default async function RaceCoursePage({
   const { id } = await params;
   const { context, data } = await loadRace(id);
   if (!data.course) {
+    const estimate = data.race.kind === "trail" ? estimateFor(data) : null;
+    if (estimate)
+      return (
+        <EstimateWorkspace
+          data={data}
+          model={estimate.model}
+          planned={estimate.planned}
+          products={await readNutritionLibrary(context)}
+        />
+      );
     const activities = await listCourseActivities(context);
     return (
       <>

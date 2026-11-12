@@ -231,6 +231,7 @@ function WaypointEditor({
   pickedDistanceM,
   courseDistanceM,
   passage,
+  estimate,
   onSaved,
   onDeleted,
 }: {
@@ -240,6 +241,7 @@ function WaypointEditor({
   pickedDistanceM: number;
   courseDistanceM: number;
   passage: Passage | undefined;
+  estimate: boolean;
   onSaved: (id: string | null) => void;
   onDeleted: () => void;
 }) {
@@ -355,7 +357,7 @@ function WaypointEditor({
             onChange={(event) => setKm(event.target.value)}
           />
           <span className="text-label text-muted-foreground">
-            Accroché au tracé
+            {estimate ? "Kilomètre annoncé" : "Accroché au tracé"}
           </span>
         </label>
         <label className="flex flex-col gap-1.5">
@@ -744,11 +746,12 @@ export function WaypointWorkspace({
   raceId: string;
   waypoints: Waypoint[];
   marks: WaypointMark[];
-  profile: ProfileData;
-  map: MapData;
+  profile: ProfileData | null;
+  map: MapData | null;
   passages: Passage[];
   distanceM: number;
 }) {
+  const estimate = map === null || profile === null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newDistance, setNewDistance] = useState<number | null>(null);
   const selected = waypoints.find((point) => point.id === selectedId) ?? null;
@@ -776,45 +779,54 @@ export function WaypointWorkspace({
 
   return (
     <div className="flex flex-col gap-3">
-      <RoadbookImport raceId={raceId} count={stations} />
+      {!estimate && <RoadbookImport raceId={raceId} count={stations} />}
+      {estimate && (
+        <p className="text-body text-secondary-foreground">
+          Sans tracé, saisis les ravitaillements avec le kilomètre annoncé par
+          l’organisation : le plan de course se découpe à chacun, et les heures
+          de passage restent une estimation.
+        </p>
+      )}
       <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-3">
-          <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-muted p-1 lg:pt-0">
-            <div className="flex min-h-row items-center justify-between gap-3 px-2.5 max-lg:hidden">
-              <span className="font-medium text-secondary-foreground">
-                Clique sur le tracé pour ajouter un point
-              </span>
-              <span className="text-label text-muted-foreground">
-                {summary}
-              </span>
-            </div>
-            <RaceMap
-              data={map}
-              layers={mapLayers}
-              activeId={selectedId}
-              onSelect={select}
-              onPick={pick}
-              label={`Carte du parcours, ${formatKm(map.distanceM)} km, ${map.markers.length} points de passage`}
-              className="h-50 overflow-hidden rounded-lg border border-border lg:h-62.5"
+        {map && profile && (
+          <div className="flex min-w-0 flex-col gap-3">
+            <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-muted p-1 lg:pt-0">
+              <div className="flex min-h-row items-center justify-between gap-3 px-2.5 max-lg:hidden">
+                <span className="font-medium text-secondary-foreground">
+                  Clique sur le tracé pour ajouter un point
+                </span>
+                <span className="text-label text-muted-foreground">
+                  {summary}
+                </span>
+              </div>
+              <RaceMap
+                data={map}
+                layers={mapLayers}
+                activeId={selectedId}
+                onSelect={select}
+                onPick={pick}
+                label={`Carte du parcours, ${formatKm(map.distanceM)} km, ${map.markers.length} points de passage`}
+                className="h-50 overflow-hidden rounded-lg border border-border lg:h-62.5"
+              />
+            </section>
+            <RaceCard className="relative max-md:hidden">
+              <CardLabel>Profil · survole pour placer un point</CardLabel>
+              <ProfileChart
+                data={profile}
+                variant="editor"
+                activeId={selectedId}
+                onPick={pick}
+                label="Profil altimétrique interactif : cliquer pour ajouter un point"
+              />
+            </RaceCard>
+            <WatchExport
+              raceId={raceId}
+              points={points}
+              instructions={instructions}
+              compact={false}
             />
-          </section>
-          <RaceCard className="relative max-md:hidden">
-            <CardLabel>Profil · survole pour placer un point</CardLabel>
-            <ProfileChart
-              data={profile}
-              variant="editor"
-              activeId={selectedId}
-              onPick={pick}
-              label="Profil altimétrique interactif : cliquer pour ajouter un point"
-            />
-          </RaceCard>
-          <WatchExport
-            raceId={raceId}
-            points={points}
-            instructions={instructions}
-            compact={false}
-          />
-        </div>
+          </div>
+        )}
         <aside className="flex min-w-0 flex-col gap-3 lg:rounded-xl lg:border lg:border-border lg:bg-card lg:px-4 lg:py-3.5">
           <section className="flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card p-3 lg:gap-2.5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0">
             <div className="flex items-center justify-between gap-3 px-1 pb-1.5 lg:p-0">
@@ -858,6 +870,7 @@ export function WaypointWorkspace({
               passage={passages.find(
                 (passage) => passage.waypointId === selected?.id,
               )}
+              estimate={estimate}
               onSaved={(id) => {
                 setSelectedId(id);
                 setNewDistance(null);
@@ -869,12 +882,14 @@ export function WaypointWorkspace({
             />
           )}
         </aside>
-        <WatchExport
-          raceId={raceId}
-          points={points}
-          instructions={instructions}
-          compact
-        />
+        {!estimate && (
+          <WatchExport
+            raceId={raceId}
+            points={points}
+            instructions={instructions}
+            compact
+          />
+        )}
       </div>
     </div>
   );

@@ -2915,6 +2915,12 @@ createServer(async (request, response) => {
       needs_review: false,
       revision: 1,
     }));
+    if (url.searchParams.get("nocourse")) {
+      tables.race_courses = [];
+      tables.race_waypoints = tables.race_waypoints
+        .filter((row) => !["start", "finish"].includes(row.kind))
+        .map((row) => ({ ...row, source: "athlete" }));
+    }
     tables.race_strategies = [];
     tables.race_nutrition_plans = [];
     tables.race_drop_bags = [];
@@ -3927,6 +3933,34 @@ createServer(async (request, response) => {
       return send(
         200,
         rows.map((row) => ({ id: row.id })),
+      );
+    }
+    if (
+      url.pathname === "/rest/v1/race_waypoints" &&
+      request.method === "POST"
+    ) {
+      const value = Array.isArray(body) ? body[0] : body;
+      const row = {
+        id: randomUUID(),
+        cutoff_time: null,
+        services: [],
+        watch_label: null,
+        alert_distance_m: 500,
+        voice_note: null,
+        todo: null,
+        nutrition_note: null,
+        source: "athlete",
+        needs_review: false,
+        ...value,
+        revision: 1,
+      };
+      tables.race_waypoints.push(row);
+      tables.race_waypoints.sort((a, b) => a.distance_m - b.distance_m);
+      return send(
+        201,
+        request.headers.accept?.includes("vnd.pgrst.object")
+          ? { id: row.id }
+          : [{ id: row.id }],
       );
     }
     const raceRowTable = {
