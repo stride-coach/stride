@@ -36,7 +36,10 @@ export type PlanSeason = {
   raceIds: string[];
   currentWeek: number | null;
   replacedOn: string | null;
+  previousPlans: PreviousPlanWeeks[];
 };
+
+export type PreviousPlanWeeks = { planId: string; weekStarts: string[] };
 
 export type ArchivedPlan = {
   planId: string;
@@ -126,6 +129,7 @@ export function planSeasons({
         .map((item) => item.id),
       currentWeek,
       replacedOn: null,
+      previousPlans: [],
     };
   });
 }
@@ -201,13 +205,118 @@ export function archivedSeason(
       .map((item) => item.id),
     currentWeek: null,
     replacedOn: run === null ? plan.archivedOn : null,
+    previousPlans: [],
   };
+}
+
+function preparationStart(races: SeasonRace[], raceId: string) {
+  const race = races.find((item) => item.id === raceId);
+  if (!race?.date) return null;
+  const previous = races
+    .filter(
+      (item): item is DatedRace =>
+        item.priority === "A" && item.date !== null && item.date < race.date!,
+    )
+    .sort((first, second) => first.date.localeCompare(second.date))
+    .at(-1);
+  return previous ? addDays(mondayOf(previous.date), 7) : null;
+}
+
+function withWeeks(
+  season: PlanSeason,
+  planId: string,
+  weeks: string[],
+  races: SeasonRace[],
+  today: string,
+): PlanSeason {
+  const weekStarts = [...season.weekStarts, ...weeks].sort();
+  const startsOn = weekStarts[0];
+  const status: SeasonStatus =
+    season.status === "past" || today > season.endsOn
+      ? "past"
+      : today < startsOn
+        ? "future"
+        : "current";
+  return {
+    ...season,
+    startsOn,
+    status,
+    weekStarts,
+    currentWeek:
+      status === "current"
+        ? weekStarts.filter((weekStart) => weekStart <= today).length
+        : null,
+    raceIds: races
+      .filter(
+        (item) =>
+          item.date !== null &&
+          item.date >= startsOn &&
+          item.date <= season.endsOn &&
+          (season.replacedOn === null || item.date <= season.replacedOn),
+      )
+      .map((item) => item.id),
+    previousPlans: [...season.previousPlans, { planId, weekStarts: weeks }],
+  };
+}
+
+export function withPreviousPlans({
+  seasons,
+  archived,
+  races,
+  today,
+}: {
+  seasons: PlanSeason[];
+  archived: ArchivedPlan[];
+  races: SeasonRace[];
+  today: string;
+}): PlanSeason[] {
+  const result = seasons.map((season) => ({
+    season,
+    raceId: season.raceId,
+  }));
+  const newestFirst = [...archived].sort((first, second) =>
+    second.archivedOn.localeCompare(first.archivedOn),
+  );
+  for (const plan of newestFirst) {
+    const target = result.find(
+      (item) =>
+        plan.primaryRaceId !== null && item.raceId === plan.primaryRaceId,
+    );
+    const from = plan.primaryRaceId
+      ? preparationStart(races, plan.primaryRaceId)
+      : null;
+    const weeks = target
+      ? plan.weekStarts
+          .filter(
+            (weekStart) =>
+              weekStart <= plan.archivedOn &&
+              weekStart <= target.season.endsOn &&
+              (from === null || weekStart >= from) &&
+              !target.season.weekStarts.includes(weekStart),
+          )
+          .sort()
+      : [];
+    if (target && weeks.length > 0) {
+      target.season = withWeeks(
+        target.season,
+        plan.planId,
+        weeks,
+        races,
+        today,
+      );
+      continue;
+    }
+    const season = archivedSeason(plan, races);
+    if (season) result.push({ season, raceId: plan.primaryRaceId });
+  }
+  return result.map((item) => item.season);
 }
 
 type SeasonRange = Pick<
   PlanSeason,
   "id" | "raceIds" | "startsOn" | "endsOn" | "status"
->;
+> &
+  Partial<Pick<PlanSeason, "previousPlans">>;
 
 export function defaultSeason<Season extends SeasonRange>(
   seasons: Season[],
@@ -240,8 +349,12 @@ export function seasonFor<Season extends SeasonRange>(
     date === null
       ? undefined
       : own.find((item) => item.startsOn <= date && date <= item.endsOn);
+  const merged = archivedSeasonPlanId(season);
   return (
     seasons.find((item) => season !== null && item.id === season) ??
+    seasons.find((item) =>
+      item.previousPlans?.some((plan) => plan.planId === merged),
+    ) ??
     own.find((item) => race !== null && item.id === race) ??
     own.find((item) => race !== null && item.raceIds.includes(race)) ??
     containing(week) ??
