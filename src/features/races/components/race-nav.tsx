@@ -22,6 +22,7 @@ const roadSections = [
 
 export const raceViews = [
   { path: "", label: "Plan" },
+  { path: "/climbs", label: "Côtes" },
   { path: "/scenarios", label: "Scénarios" },
 ] as const;
 
