@@ -4,10 +4,7 @@ import { PlanFrame } from "../_components/plan-frame";
 
 export default function Loading() {
   return (
-    <PlanFrame
-      crumbs={[{ label: "Plan" }]}
-      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
-    >
+    <PlanFrame className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0">
       <LoadingScope
         label="Chargement du plan"
         className="flex flex-col xl:flex-row xl:items-start"

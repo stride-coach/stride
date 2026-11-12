@@ -4,11 +4,7 @@ import { PlanFrame } from "../_components/plan-frame";
 
 export default function Loading() {
   return (
-    <PlanFrame
-      crumbs={[{ label: "Plan", href: "/plan" }, { label: "Historique" }]}
-      back={{ href: "/plan", label: "Retour au plan" }}
-      className="max-w-260 gap-5 sm:gap-5 sm:pt-7"
-    >
+    <PlanFrame className="max-w-260 gap-5 sm:gap-5 sm:pt-7">
       <LoadingScope
         label="Chargement de l’historique du plan"
         className="flex flex-col gap-5"

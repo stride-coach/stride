@@ -1,36 +1,31 @@
 import { Suspense } from "react";
-import {
-  AppHeader,
-  type AppCrumb,
-} from "@/features/app-shell/components/app-header";
+import { AppHeader } from "@/features/app-shell/components/app-header";
 import { SeasonSheet } from "@/features/app-shell/components/season-menu";
 import { cn } from "@/lib/utils";
+import { PlanHeaderNav, PlanTabs } from "./plan-tabs";
 
 export function PlanFrame({
-  crumbs,
-  back,
+  actions,
   className,
   children,
 }: {
-  crumbs: AppCrumb[];
-  back?: { href: string; label: string };
+  actions?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <>
       <AppHeader
-        title={back ? crumbs.map((crumb) => crumb.label).join(" / ") : "Plan"}
+        title="Plan"
         titleAction={
-          back ? undefined : (
-            <Suspense>
-              <SeasonSheet />
-            </Suspense>
-          )
+          <Suspense>
+            <SeasonSheet />
+          </Suspense>
         }
-        crumbs={crumbs}
-        back={back}
+        breadcrumb={<PlanHeaderNav />}
+        actions={actions}
       />
+      <PlanTabs />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
         <main
           className={cn(
