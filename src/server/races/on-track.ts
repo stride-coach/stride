@@ -13,6 +13,7 @@ import {
 import { addDays } from "@/features/progress/period";
 import { fitnessRecords } from "@/features/progress/records";
 import type { OnTrackInputs } from "@/features/races/on-track";
+import { bestWeeklyRunSeconds } from "@/features/races/season";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { loadPlanOverview, programInput } from "@/server/plans/overview";
 import { readPredictions } from "@/server/progress/predictions";
@@ -52,6 +53,7 @@ export const loadOnTrackInputs = cache(
       longestRunMeters: recent.longest?.meters ?? null,
       longestRunDay: recent.longest?.day ?? null,
       maxWeeklyGainMeters: recent.weeklyGain?.meters ?? null,
+      maxWeeklyRunSeconds: bestWeeklyRunSeconds(activities),
       program,
       blockKinds: Object.fromEntries(
         (overview?.plan.state.blocks ?? []).map((block) => [

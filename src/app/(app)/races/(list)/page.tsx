@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/features/races/components/race-ui";
 import {
+  CurrentValues,
   FeaturedRace,
+  NextRace,
   OpenSlot,
   PastRaces,
   SeasonCard,
@@ -11,6 +13,7 @@ import { RacesTitle } from "@/features/races/components/races-title";
 import { localToday } from "@/features/app-shell/shell";
 import { cn } from "@/lib/utils";
 import { parseRacesView, seasonTimeline } from "@/features/races/overview";
+import { raceDemands } from "@/features/races/season";
 import { requireAthlete } from "@/server/app/session";
 import { readRacesOverview } from "@/server/races/overview";
 
@@ -29,7 +32,9 @@ export default async function RacesPage({
   const view = parseRacesView(query.view);
   const today = localToday(new Date());
   const overview = await readRacesOverview(context, today);
-  const { upcoming, past, featured, calendar, phases, results } = overview;
+  const { upcoming, past, featured, calendar, phases, results, values } =
+    overview;
+  const next = upcoming.find((race) => race.date !== null) ?? null;
   const counts = { upcoming: upcoming.length, past: past.length };
   const upcomingClass = view === "past" ? "max-md:hidden" : undefined;
   const pastClass = view === "upcoming" ? "max-md:hidden" : undefined;
@@ -41,7 +46,7 @@ export default async function RacesPage({
     upcoming.length + past.length === 0
       ? "Ajoute ta course objectif pour préparer le parcours."
       : `${upcoming.length} à venir · ${plural(past.length, "passée", "passées")}`;
-  const aside = (timeline || showSlot) && (
+  const aside = (timeline || showSlot || values.length > 0 || next) && (
     <aside
       aria-label="Saison"
       className={cn(
@@ -50,6 +55,8 @@ export default async function RacesPage({
       )}
     >
       {timeline && <SeasonCard timeline={timeline} />}
+      <CurrentValues values={values} />
+      {next && <NextRace race={next} today={today} />}
       {showSlot && <OpenSlot priority="B" />}
     </aside>
   );
@@ -82,6 +89,7 @@ export default async function RacesPage({
                 plan={overview.plan}
                 course={overview.course ?? null}
                 onTrack={overview.onTrack}
+                demands={raceDemands(featured, overview.marks)}
               />
             </div>
           )}

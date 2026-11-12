@@ -786,7 +786,7 @@ for (const width of [1440, 390]) {
       page.getByRole("heading", { level: 1, name: "Courses" }),
     ).toBeVisible();
     await withSlowReads(`&id=eq.${race}`, async () => {
-      await page.getByRole("link", { name: "Ouvrir la course" }).click();
+      await page.getByRole("link", { name: "Voir le plan de course" }).click();
       const loading = page.getByRole("status", {
         name: "Chargement de la course",
         exact: true,
