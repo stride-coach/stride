@@ -751,3 +751,60 @@ test("a threatened cutoff offers remedies that apply and undo", async ({
     remedies.getByRole("button", { name: /^Appliquer/ }).first(),
   ).toBeVisible();
 });
+
+function replacementGpx() {
+  const points = Array.from({ length: 29 }, (_, index) => {
+    const lat = 48.8 + index * 0.009;
+    const lon = 2.3 + Math.sin(index / 4) * 0.01;
+    const ele = 100 + index * 2 + Math.sin(index) * 20;
+    return `<trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele></trkpt>`;
+  });
+  return Buffer.from(
+    `<?xml version="1.0"?><gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1"><wpt lat="${48.8 + 10 * 0.009}" lon="${2.3 + Math.sin(10 / 4) * 0.01}"><name>Ravito du Bois</name></wpt><trk><name>v2</name><trkseg>${points.join("")}</trkseg></trk></gpx>`,
+  );
+}
+
+test("replacing the course shows what changes before anything is replaced", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/course");
+  const file = {
+    name: "ecotrail-v2.gpx",
+    mimeType: "application/gpx+xml",
+    buffer: replacementGpx(),
+  };
+  const upload = page.locator('input[type="file"][accept*=".gpx"]');
+  await upload.setInputFiles(file);
+
+  const preview = page.getByRole("region", { name: "Remplacer le tracé" });
+  await expect(preview).toContainText("ecotrail-v2.gpx", { timeout: 20_000 });
+  const changes = preview.getByRole("definition");
+  await expect(
+    changes.filter({ hasText: /^30,0 km → 2[78],\d km$/ }),
+  ).toBeVisible();
+  await expect(preview).toContainText(
+    "Retirés avec l’ancien GPX : Point d’eau",
+  );
+  await preview.getByRole("button", { name: "Annuler" }).click();
+  await expect(preview).toBeHidden();
+  await expect(
+    page.getByRole("heading", { name: "Remplace le GPX de la course" }),
+  ).toBeVisible();
+
+  await upload.setInputFiles(file);
+  await preview.getByRole("button", { name: "Remplacer" }).click();
+  await expect(page.getByText("Tracé remplacé.")).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(page).toHaveURL(
+    /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb$/,
+  );
+  await expect(page.getByText(/^2[78],\d km$/).first()).toBeVisible();
+});

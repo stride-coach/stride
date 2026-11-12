@@ -34,6 +34,10 @@ import {
   importCourseFromActivity,
   showImportedRace,
 } from "@/server/races/actions";
+import {
+  CourseReplacementCard,
+  type CoursePreviewData,
+} from "./course-replacement-card";
 import { RaceCard } from "./race-ui";
 
 const benefits = [
@@ -64,9 +68,12 @@ export async function uploadTo(url: string, body: FormData) {
   const response = await fetch(url, { method: "POST", body });
   const result = (await response.json().catch(() => ({ status: "error" }))) as {
     status: string;
+    preview?: CoursePreviewData;
   };
   return result;
 }
+
+type Replacement = { preview: CoursePreviewData; confirm: () => void };
 
 export function CourseImport({
   race,
@@ -82,15 +89,23 @@ export function CourseImport({
   const [dragging, setDragging] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<"link" | "activity" | null>(null);
+  const [replacement, setReplacement] = useState<Replacement | null>(null);
   const [pending, startTransition] = useTransition();
 
   function imported() {
-    toast.success("Parcours importé.");
+    toast.success(replacing ? "Tracé remplacé." : "Parcours importé.");
     setLinkError(null);
     setDialog(null);
+    setReplacement(null);
   }
 
-  function sendFile(file: File | undefined) {
+  function review(preview: CoursePreviewData, confirm: () => void) {
+    setLinkError(null);
+    setDialog(null);
+    setReplacement({ preview, confirm });
+  }
+
+  function sendFile(file: File | undefined, confirmed = false) {
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
       toast.error(importMessage("too-large"));
@@ -98,9 +113,12 @@ export function CourseImport({
     }
     const body = new FormData();
     body.set("file", file);
+    if (confirmed) body.set("confirm", "1");
     startTransition(async () => {
       const result = await uploadTo(`/api/races/${race.id}/course`, body);
-      if (result.status === "saved") {
+      if (result.status === "preview" && result.preview)
+        review(result.preview, () => sendFile(file, true));
+      else if (result.status === "saved") {
         imported();
         await showImportedRace(race.id, "root");
       } else toast.error(importMessage(result.status));
@@ -121,13 +139,20 @@ export function CourseImport({
   }
 
   function sendLink(form: FormData) {
+    sendLinkValue(String(form.get("link") ?? ""));
+  }
+
+  function sendLinkValue(link: string, confirmed = false) {
     const body = new FormData();
-    body.set("link", String(form.get("link") ?? ""));
+    body.set("link", link);
     body.set("intent", "course");
+    if (confirmed) body.set("confirm", "1");
     setLinkError(null);
     startTransition(async () => {
       const result = await uploadTo(`/api/races/${race.id}/roadbook`, body);
-      if (result.status === "course-saved") {
+      if (result.status === "course-preview" && result.preview)
+        review(result.preview, () => sendLinkValue(link, true));
+      else if (result.status === "course-saved") {
         imported();
         await showImportedRace(race.id, "root");
       } else if (result.status === "roadbook-saved") {
@@ -144,10 +169,12 @@ export function CourseImport({
     });
   }
 
-  function pickActivity(id: string) {
+  function pickActivity(id: string, confirmed = false) {
     startTransition(async () => {
-      const result = await importCourseFromActivity(race.id, id);
-      if (result.status === "saved") {
+      const result = await importCourseFromActivity(race.id, id, confirmed);
+      if (result.status === "preview")
+        review(result.preview, () => pickActivity(id, true));
+      else if (result.status === "saved") {
         imported();
         await showImportedRace(race.id, "root");
       } else toast.error(actionMessage(result.status));
@@ -183,107 +210,116 @@ export function CourseImport({
 
   return (
     <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <RaceCard className="gap-0 overflow-hidden p-0">
-        <div
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(event) => {
-            event.preventDefault();
-            setDragging(false);
-            sendFile(event.dataTransfer.files[0]);
-          }}
-          className={cn(
-            "m-4 flex flex-col items-center gap-3 rounded-lg border border-dashed border-control-border bg-muted px-6 py-8 text-center transition-colors sm:py-12",
-            dragging && "border-primary bg-card",
-          )}
-          aria-busy={pending}
-        >
-          <span className="grid size-10 place-items-center rounded-lg border border-control-border bg-card text-secondary-foreground">
-            <UploadIcon className="size-4.5" />
-          </span>
-          <h2 className="text-body-lg font-semibold">
-            {replacing
-              ? "Remplace le GPX de la course"
-              : "Ajoute le GPX de la course"}
-          </h2>
-          <p className="max-w-105 text-body text-secondary-foreground">
-            <span className="max-sm:hidden">
-              Glisse ici le fichier .gpx fourni par l’organisation. Un seul
-              fichier, 20 Mo maximum.
+      {replacement ? (
+        <CourseReplacementCard
+          preview={replacement.preview}
+          pending={pending}
+          onCancel={() => setReplacement(null)}
+          onConfirm={replacement.confirm}
+        />
+      ) : (
+        <RaceCard className="gap-0 overflow-hidden p-0">
+          <div
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragging(false);
+              sendFile(event.dataTransfer.files[0]);
+            }}
+            className={cn(
+              "m-4 flex flex-col items-center gap-3 rounded-lg border border-dashed border-control-border bg-muted px-6 py-8 text-center transition-colors sm:py-12",
+              dragging && "border-primary bg-card",
+            )}
+            aria-busy={pending}
+          >
+            <span className="grid size-10 place-items-center rounded-lg border border-control-border bg-card text-secondary-foreground">
+              <UploadIcon className="size-4.5" />
             </span>
-            <span className="sm:hidden">
-              Le fichier .gpx fourni par l’organisation, depuis tes fichiers ou
-              un lien.
-            </span>
-          </p>
-          <input
-            ref={input}
-            type="file"
-            accept=".gpx,application/gpx+xml,application/xml,text/xml"
-            className="sr-only"
-            tabIndex={-1}
-            aria-hidden="true"
-            onChange={(event) => sendFile(event.target.files?.[0])}
-          />
-          <input
-            ref={pdfInput}
-            type="file"
-            accept="application/pdf,.pdf"
-            className="sr-only"
-            tabIndex={-1}
-            aria-hidden="true"
-            onChange={(event) => sendRoadbook(event.target.files?.[0])}
-          />
-          <div className="flex w-full flex-col gap-2 sm:w-auto">
-            <Button
-              type="button"
-              onClick={() => input.current?.click()}
-              disabled={pending}
-              aria-busy={pending}
-            >
-              {pending ? "Import en cours…" : "Choisir un fichier"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="sm:hidden"
-              onClick={() => setDialog("link")}
-            >
-              Coller un lien
-            </Button>
+            <h2 className="text-body-lg font-semibold">
+              {replacing
+                ? "Remplace le GPX de la course"
+                : "Ajoute le GPX de la course"}
+            </h2>
+            <p className="max-w-105 text-body text-secondary-foreground">
+              <span className="max-sm:hidden">
+                Glisse ici le fichier .gpx fourni par l’organisation. Un seul
+                fichier, 20 Mo maximum.
+              </span>
+              <span className="sm:hidden">
+                Le fichier .gpx fourni par l’organisation, depuis tes fichiers
+                ou un lien.
+              </span>
+            </p>
+            <input
+              ref={input}
+              type="file"
+              accept=".gpx,application/gpx+xml,application/xml,text/xml"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => sendFile(event.target.files?.[0])}
+            />
+            <input
+              ref={pdfInput}
+              type="file"
+              accept="application/pdf,.pdf"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => sendRoadbook(event.target.files?.[0])}
+            />
+            <div className="flex w-full flex-col gap-2 sm:w-auto">
+              <Button
+                type="button"
+                onClick={() => input.current?.click()}
+                disabled={pending}
+                aria-busy={pending}
+              >
+                {pending ? "Import en cours…" : "Choisir un fichier"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="sm:hidden"
+                onClick={() => setDialog("link")}
+              >
+                Coller un lien
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="px-4 pb-3.5 max-sm:hidden">
-          <span className="text-label font-medium text-muted-foreground">
-            Autres façons de l’ajouter
-          </span>
-          {others.map((option) => (
-            <button
-              key={option.key}
-              type="button"
-              onClick={() => {
-                if (option.key === "roadbook") pdfInput.current?.click();
-                else setDialog(option.key === "link" ? "link" : "activity");
-              }}
-              disabled={option.disabled || pending}
-              className="flex w-full items-start gap-3 border-t border-border py-3 text-left transition-colors first-of-type:mt-2 focus-visible:outline-2 focus-visible:outline-ring enabled:hover:bg-muted disabled:opacity-50"
-            >
-              <span className="grid size-7 shrink-0 place-items-center rounded-md border border-control-border text-secondary-foreground">
-                {option.icon}
-              </span>
-              <span className="flex flex-col gap-0.5">
-                <span className="text-body font-medium">{option.title}</span>
-                <span className="text-body text-muted-foreground">
-                  {option.detail}
+          <div className="px-4 pb-3.5 max-sm:hidden">
+            <span className="text-label font-medium text-muted-foreground">
+              Autres façons de l’ajouter
+            </span>
+            {others.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => {
+                  if (option.key === "roadbook") pdfInput.current?.click();
+                  else setDialog(option.key === "link" ? "link" : "activity");
+                }}
+                disabled={option.disabled || pending}
+                className="flex w-full items-start gap-3 border-t border-border py-3 text-left transition-colors first-of-type:mt-2 focus-visible:outline-2 focus-visible:outline-ring enabled:hover:bg-muted disabled:opacity-50"
+              >
+                <span className="grid size-7 shrink-0 place-items-center rounded-md border border-control-border text-secondary-foreground">
+                  {option.icon}
                 </span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </RaceCard>
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-body font-medium">{option.title}</span>
+                  <span className="text-body text-muted-foreground">
+                    {option.detail}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </RaceCard>
+      )}
       <div className="flex flex-col gap-3">
         <Widget
           headingLevel={2}

@@ -15,7 +15,7 @@ import { raceValueSchemas, type RaceKind } from "@/features/onboarding/goals";
 import { waypointInputSchema } from "@/features/races/waypoints";
 import { saveRace } from "@/server/onboarding/goals";
 import { getOnboardingContext } from "@/server/onboarding/context";
-import { importActivity } from "./course";
+import { importActivity, type CoursePreview } from "./course";
 import { storedSettings } from "@/features/races/settings-history";
 
 export type ActionResult =
@@ -463,13 +463,20 @@ export async function saveDropBagExtras(
 export async function importCourseFromActivity(
   raceId: string,
   activityId: string,
-): Promise<ActionResult> {
+  confirmed = false,
+): Promise<ActionResult | { status: "preview"; preview: CoursePreview }> {
   const race = idSchema.safeParse(raceId);
   const activity = z.string().min(1).max(200).safeParse(activityId);
   if (!race.success || !activity.success) return { status: "invalid" };
   const current = await context();
   if (!current) return { status: "session-expired" };
-  const result = await importActivity(current, race.data, activity.data);
+  const result = await importActivity(
+    current,
+    race.data,
+    activity.data,
+    confirmed === true,
+  );
+  if (result.status === "preview") return result;
   if (result.status === "saved") return { status: "saved" };
   if (result.status === "no-track" || result.status === "missing")
     return { status: result.status };

@@ -30,11 +30,24 @@ export async function POST(
     file instanceof File
       ? importRoadbookFile(context, id.data, file)
       : link.success
-        ? importLink(context, id.data, link.data.link, link.data.intent)
+        ? importLink(
+            context,
+            id.data,
+            link.data.link,
+            link.data.intent,
+            form?.get("confirm") === "1",
+          )
         : Promise.resolve({ status: "invalid-link" as const })
   ).catch(() => ({ status: "error" as const }));
   const saved =
     result.status === "roadbook-saved" || result.status === "course-saved";
   if (saved) revalidatePath(`/races/${id.data}`, "layout");
-  return json(result, saved ? 200 : result.status === "error" ? 500 : 422);
+  return json(
+    result,
+    saved || result.status === "course-preview"
+      ? 200
+      : result.status === "error"
+        ? 500
+        : 422,
+  );
 }

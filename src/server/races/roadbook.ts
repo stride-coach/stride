@@ -13,7 +13,7 @@ import {
 import { clockToSql } from "@/features/races/format";
 import { extractRoadbookWithAi } from "@/server/ai/skills/roadbook-extraction";
 import type { OnboardingContext } from "@/server/onboarding/context";
-import { maximumUploadBytes, storeCourse } from "./course";
+import { maximumUploadBytes, storeCourse, type CoursePreview } from "./course";
 
 export type RoadbookResult =
   | {
@@ -23,6 +23,7 @@ export type RoadbookResult =
       review: string[];
     }
   | { status: "course-saved" }
+  | { status: "course-preview"; preview: CoursePreview }
   | {
       status:
         | "no-course"
@@ -313,6 +314,7 @@ async function courseFromBytes(
   raceId: string,
   bytes: Uint8Array,
   name: string,
+  confirmed: boolean,
 ): Promise<RoadbookResult | null> {
   const parsed = parseGpx(new TextDecoder().decode(bytes));
   if (typeof parsed === "string") return null;
@@ -324,7 +326,10 @@ async function courseFromBytes(
     course,
     { kind: "gpx", fileName: name },
     parsed.waypoints,
+    confirmed,
   );
+  if (result.status === "preview")
+    return { status: "course-preview", preview: result.preview };
   return result.status === "saved"
     ? { status: "course-saved" }
     : { status: result.status === "missing" ? "missing" : "error" };
@@ -335,6 +340,7 @@ export async function importLink(
   raceId: string,
   link: string,
   intent: "course" | "roadbook",
+  confirmed = false,
 ): Promise<RoadbookResult> {
   const remote = await fetchRemote(link);
   if (remote.status !== "ok") return { status: remote.status };
@@ -347,7 +353,13 @@ export async function importLink(
       ? roadbookFromText(context, raceId, text, name)
       : { status: "invalid-file" };
   }
-  const asCourse = await courseFromBytes(context, raceId, remote.bytes, name);
+  const asCourse = await courseFromBytes(
+    context,
+    raceId,
+    remote.bytes,
+    name,
+    confirmed,
+  );
   if (asCourse) return asCourse;
   const html = new TextDecoder().decode(remote.bytes);
   const linked = gpxLink(html, remote.url);
@@ -359,6 +371,7 @@ export async function importLink(
         raceId,
         gpx.bytes,
         decodeURIComponent(gpx.url.pathname.split("/").pop() || "parcours.gpx"),
+        confirmed,
       );
       if (saved) return saved;
     }

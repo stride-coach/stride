@@ -18,12 +18,21 @@ export async function POST(
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
   if (!(file instanceof File)) return json({ status: "invalid-file" }, 400);
-  const result = await importGpx(context, id.data, file).catch(() => ({
+  const result = await importGpx(
+    context,
+    id.data,
+    file,
+    form?.get("confirm") === "1",
+  ).catch(() => ({
     status: "error" as const,
   }));
   if (result.status === "saved") revalidatePath(`/races/${id.data}`, "layout");
   return json(
     result,
-    result.status === "saved" ? 200 : result.status === "error" ? 500 : 422,
+    result.status === "saved" || result.status === "preview"
+      ? 200
+      : result.status === "error"
+        ? 500
+        : 422,
   );
 }

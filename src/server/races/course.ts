@@ -11,16 +11,29 @@ import {
   type Course,
   type RawPoint,
 } from "@/features/races/course";
+import {
+  courseReplacement,
+  normalizedName,
+  type CourseReplacement,
+} from "@/features/races/course-replacement";
+import { clockToSql } from "@/features/races/format";
 import { parseGpx, type GpxWaypoint } from "@/features/races/gpx";
-import { guessKind } from "@/features/races/waypoints";
+import { guessKind, type Waypoint } from "@/features/races/waypoints";
+import { courseFromStored } from "@/features/races/workspace";
 import type { OnboardingContext } from "@/server/onboarding/context";
+import { readWorkspace } from "./races";
 
 export const maximumUploadBytes = 20 * 1024 * 1024;
 const offCourseM = 250;
 const fallbackTimeZone = "Europe/Paris";
 
+export type CoursePreview = Omit<CourseReplacement, "carry"> & {
+  fileName: string;
+};
+
 export type CourseImportResult =
   | { status: "saved"; waypoints: number }
+  | { status: "preview"; preview: CoursePreview }
   | {
       status:
         | "invalid-file"
@@ -84,6 +97,59 @@ function gpxWaypointRows(course: Course, waypoints: GpxWaypoint[]) {
   });
 }
 
+async function carryOver(
+  context: OnboardingContext,
+  raceId: string,
+  carry: CourseReplacement["carry"],
+  previous: Waypoint[],
+) {
+  if (carry.length === 0) return;
+  const { data } = await context.client
+    .from("race_waypoints")
+    .select("id, kind, name, source")
+    .eq("user_id", context.userId)
+    .eq("race_id", raceId);
+  const fresh = (data ?? []).filter((row) => row.source === "gpx");
+  const used = new Set<string>();
+  await Promise.all(
+    carry.map(async (item) => {
+      if (item.kind === "move")
+        return context.client
+          .from("race_waypoints")
+          .update({ distance_m: item.distanceM, needs_review: true })
+          .eq("user_id", context.userId)
+          .eq("race_id", raceId)
+          .eq("id", item.id);
+      const source = previous.find((point) => point.id === item.from);
+      const target = fresh.find(
+        (row) =>
+          !used.has(row.id) &&
+          row.kind === item.waypointKind &&
+          normalizedName(row.name) === normalizedName(item.name),
+      );
+      if (!source || !target) return;
+      used.add(target.id);
+      return context.client
+        .from("race_waypoints")
+        .update({
+          cutoff_time:
+            source.cutoffMinutes === null
+              ? null
+              : clockToSql(source.cutoffMinutes),
+          services: source.services,
+          watch_label: source.watchLabel,
+          alert_distance_m: source.alertDistanceM,
+          voice_note: source.voiceNote,
+          nutrition_note: source.nutritionNote,
+          ...(source.todo ? { todo: source.todo } : {}),
+        })
+        .eq("user_id", context.userId)
+        .eq("race_id", raceId)
+        .eq("id", target.id);
+    }),
+  ).catch(() => undefined);
+}
+
 export async function storeCourse(
   context: OnboardingContext,
   raceId: string,
@@ -92,16 +158,37 @@ export async function storeCourse(
     | { kind: "gpx"; fileName: string }
     | { kind: "activity"; activityId: string; name: string },
   gpxWaypoints: GpxWaypoint[] = [],
+  confirmed = false,
 ): Promise<CourseImportResult> {
+  const workspace = await readWorkspace(context, raceId).catch(() => null);
+  if (!workspace) return { status: "missing" };
+  const rows = gpxWaypointRows(course, gpxWaypoints);
+  const fileName = (
+    source.kind === "gpx" ? source.fileName : source.name
+  ).slice(0, 200);
+  const replacement = workspace.course
+    ? courseReplacement({
+        current: courseFromStored(workspace.course),
+        next: course,
+        waypoints: workspace.waypoints,
+        incoming: rows,
+        walkGradePercent: workspace.plan.walkGradePercent,
+        road: workspace.race.kind === "road",
+      })
+    : null;
+  if (replacement && !confirmed) {
+    const { rows: changes, moves, removed, added, kept } = replacement;
+    return {
+      status: "preview",
+      preview: { rows: changes, moves, removed, added, kept, fileName },
+    };
+  }
   const [lat, lon] = course.points[0];
   const timeZone = await timeZoneAt(lat, lon);
   const { data, error } = await context.client.rpc("replace_race_course", {
     p_race_id: raceId,
     p_source: source.kind,
-    p_file_name:
-      source.kind === "gpx"
-        ? source.fileName.slice(0, 200)
-        : source.name.slice(0, 200),
+    p_file_name: fileName,
     p_source_activity_id:
       source.kind === "activity" ? source.activityId : undefined,
     p_time_zone: timeZone,
@@ -110,9 +197,11 @@ export async function storeCourse(
     p_elevation_loss_m: course.elevationLossM ?? undefined,
     p_step_m: course.stepM,
     p_points: course.points as unknown as [number, number, number | null][],
-    p_waypoints: gpxWaypointRows(course, gpxWaypoints),
+    p_waypoints: rows,
   });
   if (error) return { status: error.code === "42501" ? "missing" : "error" };
+  if (replacement)
+    await carryOver(context, raceId, replacement.carry, workspace.waypoints);
   return { status: "saved", waypoints: data };
 }
 
@@ -120,6 +209,7 @@ export async function importGpx(
   context: OnboardingContext,
   raceId: string,
   file: File,
+  confirmed = false,
 ): Promise<CourseImportResult> {
   if (file.size > maximumUploadBytes) return { status: "too-large" };
   const parsed = parseGpx(await file.text());
@@ -133,6 +223,7 @@ export async function importGpx(
     course,
     { kind: "gpx", fileName: file.name || "parcours.gpx" },
     parsed.waypoints,
+    confirmed,
   );
 }
 
@@ -140,6 +231,7 @@ export async function importActivity(
   context: OnboardingContext,
   raceId: string,
   activityId: string,
+  confirmed = false,
 ): Promise<CourseImportResult> {
   const [activity, track] = await Promise.all([
     context.client
@@ -174,9 +266,16 @@ export async function importActivity(
     recordedGainM !== null && recordedGainM > 0
       ? { ...built, elevationGainM: Math.round(recordedGainM) }
       : built;
-  return storeCourse(context, raceId, course, {
-    kind: "activity",
-    activityId,
-    name: activity.data.activity_name ?? "Activité Garmin",
-  });
+  return storeCourse(
+    context,
+    raceId,
+    course,
+    {
+      kind: "activity",
+      activityId,
+      name: activity.data.activity_name ?? "Activité Garmin",
+    },
+    [],
+    confirmed,
+  );
 }
