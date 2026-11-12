@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HistoryIcon, LockIcon } from "lucide-react";
+import { LockIcon } from "lucide-react";
 import { Chip } from "@/components/stride/chip";
 import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
@@ -124,7 +124,7 @@ export default async function PlanPage({
   );
   if (!overview)
     return (
-      <PlanFrame crumbs={[{ label: "Plan" }]}>
+      <PlanFrame>
         <PlanEmpty />
         {reviewSheet}
       </PlanFrame>
@@ -141,7 +141,7 @@ export default async function PlanPage({
   });
   if (!program)
     return (
-      <PlanFrame crumbs={[{ label: "Plan" }]}>
+      <PlanFrame>
         <PlanEmpty />
         {reviewSheet}
       </PlanFrame>
@@ -152,10 +152,7 @@ export default async function PlanPage({
   const initialWeekKey =
     program.weeks.find((week) => week.weekStart === requested)?.weekKey ?? null;
   return (
-    <PlanFrame
-      crumbs={[{ label: "Plan", href: "/plan" }, { label: program.name }]}
-      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
-    >
+    <PlanFrame className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0">
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
         {program.status === "past" && (
           <Chip>
@@ -177,12 +174,6 @@ export default async function PlanPage({
               paces,
             })}
           />
-          <Button asChild variant="outline" size="md">
-            <Link href="/plan/history">
-              <HistoryIcon aria-hidden="true" />
-              Historique
-            </Link>
-          </Button>
         </div>
       </div>
       <ProgramExplorer
@@ -229,10 +220,7 @@ function ArchivedSeasonPage({
   text: string;
 }) {
   return (
-    <PlanFrame
-      crumbs={[{ label: "Plan", href: "/plan" }, { label: program.name }]}
-      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
-    >
+    <PlanFrame className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0">
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
         <Chip>
           <LockIcon aria-hidden="true" className="size-3" />

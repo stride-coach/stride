@@ -239,7 +239,12 @@ test("an archived plan opens read-only as a past season", async ({ page }) => {
   ).toHaveCount(6);
   await expect(
     page.getByRole("main").getByRole("link", { name: "Historique" }),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Sections du plan" })
+      .getByRole("link", { name: "Historique" }),
+  ).toBeVisible();
   await expect(page.getByRole("main").getByText(/proposé/i)).toHaveCount(0);
   await expect(
     page

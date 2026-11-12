@@ -105,9 +105,11 @@ export function SessionSheet({
       if (sessionKey) query.set("session", sessionKey);
       else query.delete("session");
       const search = query.toString();
-      router.replace(search ? `/plan?${search}` : "/plan", { scroll: false });
+      router.replace(search ? `${pathname}?${search}` : pathname, {
+        scroll: false,
+      });
     },
-    [overlay, router, searchParams],
+    [overlay, pathname, router, searchParams],
   );
 
   const go = useCallback(

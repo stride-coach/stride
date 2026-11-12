@@ -313,7 +313,7 @@ function presentSum(values: (number | null)[]) {
   return present.length > 0 ? sum(present) : null;
 }
 
-function completeDistance(
+export function completeDistance(
   distances: (SessionDistance | null)[],
 ): SessionDistance | null {
   if (distances.length === 0) return null;
@@ -327,7 +327,7 @@ function completeDistance(
   return { meters, estimated };
 }
 
-function approximate(text: string, estimated: boolean) {
+export function approximate(text: string, estimated: boolean) {
   return estimated ? `≈ ${text}` : text;
 }
 
@@ -349,7 +349,7 @@ export function orderDaySessions<
   );
 }
 
-function ratio(value: number | null) {
+export function complianceRatio(value: number | null) {
   return value === null ? 1 : Math.min(value, 1.5);
 }
 
@@ -563,7 +563,7 @@ export function buildProgram(
                 distance && {
                   meters: Math.round(
                     distance.meters *
-                      ratio(
+                      complianceRatio(
                         compliance.get(session.sessionKey)?.distance ?? null,
                       ),
                   ),
@@ -578,7 +578,9 @@ export function buildProgram(
           doneSessions.map(
             (session) =>
               session.targets.durationSeconds *
-              ratio(compliance.get(session.sessionKey)?.duration ?? null),
+              complianceRatio(
+                compliance.get(session.sessionKey)?.duration ?? null,
+              ),
           ),
         ),
       ),

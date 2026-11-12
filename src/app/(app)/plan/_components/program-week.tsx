@@ -115,8 +115,8 @@ function shortDay(day: ProgramDay) {
   return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${day.dayNumber}`;
 }
 
-function rowState(
-  day: ProgramDay,
+export function rowState(
+  day: Pick<ProgramDay, "isToday">,
   state: ProgramDaySession["state"],
   rest: boolean,
 ): SessionRowState {

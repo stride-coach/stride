@@ -80,7 +80,9 @@ test("Historique lists proposals by month with decisions and versions", async ({
   ).toHaveCount(0);
 });
 
-test("Historique fits a phone and leads back to the plan", async ({ page }) => {
+test("Historique fits a phone and switches tabs with the plan", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto("/plan/history");
@@ -98,9 +100,10 @@ test("Historique fits a phone and leads back to the plan", async ({ page }) => {
     path: "test-results/plan-history-mobile.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Retour au plan" }).click();
+  const tabs = page.getByRole("navigation", { name: "Sections du plan" });
+  await tabs.getByRole("link", { name: "Programme" }).click();
   await expect(page).toHaveURL("/plan");
-  const entry = page.getByRole("link", { name: "Historique", exact: true });
+  const entry = tabs.getByRole("link", { name: "Historique" });
   await expect(entry).toBeVisible();
   await page.screenshot({ path: "test-results/plan-mobile-history-link.png" });
   await entry.click();

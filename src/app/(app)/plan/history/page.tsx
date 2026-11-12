@@ -25,11 +25,7 @@ export default async function PlanHistoryPage({
   const [context, query] = await Promise.all([requireAthlete(), searchParams]);
   const history = await readPlanHistory(context, filterOf(query.filter));
   return (
-    <PlanFrame
-      crumbs={[{ label: "Plan", href: "/plan" }, { label: "Historique" }]}
-      back={{ href: "/plan", label: "Retour au plan" }}
-      className="max-w-260 gap-5 sm:gap-5 sm:pt-7"
-    >
+    <PlanFrame className="max-w-260 gap-5 sm:gap-5 sm:pt-7">
       <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-verdict font-semibold">Historique du plan</h1>

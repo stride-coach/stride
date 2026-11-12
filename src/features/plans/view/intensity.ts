@@ -3,7 +3,7 @@ import { familyLabels, type SessionFamily } from "./program";
 
 export type SessionIntensity = { level: Zone | null; label: string };
 
-const intensityLabels: Record<Zone, string> = {
+export const intensityLabels: Record<Zone, string> = {
   1: "Récup",
   2: "Facile",
   3: "Tempo",
