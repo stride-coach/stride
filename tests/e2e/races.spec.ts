@@ -178,3 +178,22 @@ for (const viewport of [
     ).toBe(true);
   });
 }
+
+test("a past race opens its after-race tab", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAs(page, "seasons@example.com");
+  await page.goto("/races/12121212-0000-4000-8000-000000000010");
+  const sections = page.getByRole("navigation", {
+    name: "Sections de la course",
+  });
+  await sections.getByRole("link", { name: "Après-course" }).click();
+  await expect(page).toHaveURL(/\/after$/);
+  await expect(
+    sections.getByRole("link", { name: "Après-course" }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    page
+      .getByText("Résultat non trouvé")
+      .or(page.getByRole("heading", { name: "Ta course sur ton plan" })),
+  ).toBeVisible();
+});

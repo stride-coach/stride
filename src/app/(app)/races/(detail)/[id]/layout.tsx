@@ -43,6 +43,7 @@ export default async function RaceLayout({
   ]);
   const phase = raceOnTrack(data.race, inputs, null)?.goal.phase?.label ?? null;
   const base = `/races/${data.race.id}`;
+  const past = data.race.date !== null && data.race.date < today;
   return (
     <>
       <AppHeader
@@ -105,6 +106,7 @@ export default async function RaceLayout({
               raceId={data.race.id}
               kind={data.race.kind}
               variant="header"
+              past={past}
             />
             <div className="ml-auto flex items-center">
               <RaceViews
@@ -116,7 +118,12 @@ export default async function RaceLayout({
           </div>
         }
       />
-      <RaceTabs raceId={data.race.id} kind={data.race.kind} variant="pills" />
+      <RaceTabs
+        raceId={data.race.id}
+        kind={data.race.kind}
+        variant="pills"
+        past={past}
+      />
       <RaceViews raceId={data.race.id} kind={data.race.kind} variant="row" />
       <div
         id={raceWorkspaceId}

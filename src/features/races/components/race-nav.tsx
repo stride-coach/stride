@@ -27,8 +27,11 @@ export const raceViews = [
   { path: "/scenarios", label: "Scénarios" },
 ] as const;
 
-function sectionsOf(kind: RaceKind) {
-  return kind === "road" ? roadSections : raceSections;
+const afterSection = { path: "/after", label: "Après-course" } as const;
+
+function sectionsOf(kind: RaceKind, past = false) {
+  const sections = kind === "road" ? roadSections : raceSections;
+  return past ? [...sections, afterSection] : sections;
 }
 
 const extraCrumbs: Record<string, { crumb: string; tab: string }> = {
@@ -36,7 +39,12 @@ const extraCrumbs: Record<string, { crumb: string; tab: string }> = {
   "/course": { crumb: "Ajouter le GPX", tab: "" },
 };
 
-function sectionOf(pathname: string, base: string, kind: RaceKind) {
+function sectionOf(
+  pathname: string,
+  base: string,
+  kind: RaceKind,
+  past = false,
+) {
   const rest = pathname.slice(base.length).replace(/\/$/, "");
   const extra = extraCrumbs[rest];
   if (extra) return { tab: extra.tab, view: null, crumb: extra.crumb };
@@ -45,7 +53,7 @@ function sectionOf(pathname: string, base: string, kind: RaceKind) {
       ? (raceViews.find((item) => item.path === rest)?.path ?? null)
       : null;
   if (view !== null) return { tab: "", view, crumb: null };
-  const section = sectionsOf(kind).find((item) => item.path === rest);
+  const section = sectionsOf(kind, past).find((item) => item.path === rest);
   return { tab: section?.path ?? "", view: null, crumb: null };
 }
 
@@ -115,15 +123,17 @@ export function RaceTabs({
   raceId,
   kind,
   variant,
+  past = false,
 }: {
   raceId: string;
   kind: RaceKind;
   variant: "header" | "pills";
+  past?: boolean;
 }) {
   const pathname = usePathname();
   const base = `/races/${raceId}`;
-  const { tab } = sectionOf(pathname, base, kind);
-  const sections = sectionsOf(kind);
+  const { tab } = sectionOf(pathname, base, kind, past);
+  const sections = sectionsOf(kind, past);
   const header = variant === "header";
   return (
     <nav
