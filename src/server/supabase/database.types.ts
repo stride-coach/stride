@@ -699,6 +699,43 @@ export type Database = {
           },
         ];
       };
+      fueling_tests: {
+        Row: {
+          activity_id: string | null;
+          carbs_per_hour_g: number;
+          created_at: string;
+          duration_seconds: number;
+          id: string;
+          note: string | null;
+          tested_on: string;
+          tolerance: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id?: string | null;
+          carbs_per_hour_g: number;
+          created_at?: string;
+          duration_seconds: number;
+          id?: string;
+          note?: string | null;
+          tested_on: string;
+          tolerance: string;
+          user_id: string;
+        };
+        Update: {
+          activity_id?: string | null;
+          carbs_per_hour_g?: number;
+          created_at?: string;
+          duration_seconds?: number;
+          id?: string;
+          note?: string | null;
+          tested_on?: string;
+          tolerance?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       notifications: {
         Row: {
           dedupe_key: string;
