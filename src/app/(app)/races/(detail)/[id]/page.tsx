@@ -23,6 +23,9 @@ import {
 import { planProfile } from "@/features/races/timeline";
 import type { NutritionProduct } from "@/features/fueling/products";
 import { RaceAxis } from "@/features/races/components/race-axis";
+import { SimulationPanel } from "@/features/races/components/simulation-panel";
+import { simulationSummary } from "@/features/races/simulation-settings";
+import { defaultStartMinutes } from "@/features/races/race";
 import { readNutritionLibrary } from "@/server/fueling/products";
 import { listCourseActivities } from "@/server/races/activities";
 
@@ -85,6 +88,33 @@ function CourseWorkspace({
           rows={roadbookRows(timeline, weather)}
           totals={roadbookTotals(timeline, model.course.distanceM)}
           walkThreshold={data.plan.walkGradePercent}
+          settings={
+            <SimulationPanel
+              raceId={data.race.id}
+              raceRevision={data.race.revision}
+              planRevision={data.plan.revision}
+              kind={data.race.kind}
+              values={{
+                target: planned.scenario.seconds,
+                walkGrade: data.plan.walkGradePercent,
+                aidStop: data.plan.aidStopSeconds,
+              }}
+              summary={simulationSummary({
+                planned,
+                timeline,
+                distanceM: model.course.distanceM,
+                raceDate: data.race.date,
+                startMinutes: data.plan.startMinutes ?? defaultStartMinutes,
+              })}
+              weatherNote={
+                weather === null
+                  ? null
+                  : weather.mode === "forecast"
+                    ? "La météo suit la prévision du jour."
+                    : "Avant J-10, la météo suit les moyennes de saison."
+              }
+            />
+          }
           map={{
             data: map,
             segments: profile.segments,

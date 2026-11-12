@@ -330,7 +330,7 @@ function CursorPanel({ reading }: { reading: AxisReading }) {
   return (
     <section
       aria-labelledby="axis-cursor"
-      className="flex flex-col gap-2.5 rounded-xl border border-border bg-card px-4 py-3.5 xl:sticky xl:top-4"
+      className="flex flex-col gap-2.5 rounded-xl border border-border bg-card px-4 py-3.5"
     >
       <div className="flex items-baseline gap-3">
         <h2
@@ -518,6 +518,7 @@ export function RaceAxis({
   totals,
   walkThreshold,
   map,
+  settings,
 }: {
   lanes: AxisLanes;
   readings: AxisReading[];
@@ -531,6 +532,7 @@ export function RaceAxis({
     rainLabel: "Météo" | "Averses";
     hasWeather: boolean;
   };
+  settings?: React.ReactNode;
 }) {
   const [index, setIndex] = useState(0);
   const reading = readings[index] ?? readings[0];
@@ -628,7 +630,10 @@ export function RaceAxis({
         </p>
       </section>
       <div className="min-w-0 xl:col-start-2 xl:row-span-3 xl:row-start-1">
-        <CursorPanel reading={reading} />
+        <div className="flex flex-col gap-5 xl:sticky xl:top-4">
+          <CursorPanel reading={reading} />
+          {settings}
+        </div>
       </div>
       <div className="min-w-0 xl:col-start-1">
         <Roadbook
