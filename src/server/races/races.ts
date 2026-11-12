@@ -1,6 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import {
+  fuelingTestColumns,
+  fuelingTests,
+  validatedCarbsPerHour,
+} from "@/features/fueling/tests";
+import {
   raceDetailColumns,
   raceDetailsOf,
   type RaceDetails,
@@ -58,6 +63,7 @@ export type RaceWorkspaceData = {
   } | null;
   dropBag: { extras: string[]; revision: number } | null;
   details: RaceDetails;
+  fuelingCapG: number | null;
 };
 
 function nutritionPlanOf(
@@ -123,6 +129,7 @@ export const readWorkspace = cache(
       strategy,
       nutrition,
       dropBag,
+      tests,
     ] = await Promise.all([
       context.client
         .from("athlete_races")
@@ -174,6 +181,10 @@ export const readWorkspace = cache(
         .eq("user_id", context.userId)
         .eq("race_id", raceId)
         .maybeSingle(),
+      context.client
+        .from("fueling_tests")
+        .select(fuelingTestColumns)
+        .eq("user_id", context.userId),
     ]);
     if (
       race.error ||
@@ -189,6 +200,9 @@ export const readWorkspace = cache(
     if (!race.data) return null;
     return {
       details: raceDetailsOf(race.data),
+      fuelingCapG: tests.error
+        ? null
+        : validatedCarbsPerHour(fuelingTests(tests.data ?? [])),
       race: summary(race.data),
       plan: plan.data ? planRowSchema.parse(plan.data) : defaultPlan,
       course: course.data ? courseRowSchema.parse(course.data) : null,

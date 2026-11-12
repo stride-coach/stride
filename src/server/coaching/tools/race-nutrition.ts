@@ -16,6 +16,7 @@ import {
 } from "@/server/fueling/products";
 import { readReadyRaceProposals } from "@/server/races/proposals";
 import { readWorkspace } from "@/server/races/races";
+import { withFuelingCap } from "@/features/fueling/tests";
 import { planFor, weatherFor } from "@/server/races/views";
 import { defineTool } from "./define";
 import { toolError } from "./errors";
@@ -83,7 +84,7 @@ function allocationView(
 export const readRaceNutritionTool = defineTool({
   name: "read_race_nutrition",
   description:
-    "Read the race nutrition plan of one of the athlete's races, by race id from read_athlete_context: the race fueling targets (carbohydrate, water and sodium per hour, caffeine maximum, night caffeine, flasks and water bladder), the athlete's nutrition products with their ids, carbohydrate, sodium and caffeine per serving and whether they were tested in training, the accepted race nutrition plan, any nutrition proposal still waiting for the athlete, and Stride's exact allocation on the target scenario: the start setup, per segment T1, T2… (with its arrival waypoint id) the moving time, night flag, carbohydrate target and allocated items, the refill at each station from its services, the drop bag at the first base, the shopping list and the totals. The temperature range is included when the race is at most 14 days away. Returns hasCourse false without an imported course or a target time. Never compute a quantity yourself: quote this result.",
+    "Read the race nutrition plan of one of the athlete's races, by race id from read_athlete_context: the race fueling targets (carbohydrate, water and sodium per hour, caffeine maximum, night caffeine, flasks and water bladder), the athlete's nutrition products with their ids, carbohydrate, sodium and caffeine per serving and whether they were tested in training, the accepted race nutrition plan, any nutrition proposal still waiting for the athlete, and validatedCarbsPerHourG, the highest carbohydrate per hour the athlete tolerated in a recorded training test (null when none is recorded), and Stride's exact allocation on the target scenario, already capped at that validated intake: the start setup, per segment T1, T2… (with its arrival waypoint id) the moving time, night flag, carbohydrate target and allocated items, the refill at each station from its services, the drop bag at the first base, the shopping list and the totals. The temperature range is included when the race is at most 14 days away. Returns hasCourse false without an imported course or a target time. Never compute a quantity yourself: quote this result.",
   class: "compute",
   dataClasses: ["training"],
   input: z.strictObject({
@@ -95,6 +96,7 @@ export const readRaceNutritionTool = defineTool({
     hasCourse: z.boolean(),
     daysToRace: z.number().nullable(),
     targets: z.unknown(),
+    validatedCarbsPerHourG: z.number().nullable(),
     products: z.array(z.unknown()),
     acceptedPlan: z.unknown().nullable(),
     pendingProposal: z.unknown().nullable(),
@@ -121,6 +123,7 @@ export const readRaceNutritionTool = defineTool({
         ...nutritionTargetsOf(data.plan),
         alarmMinutes: data.plan.alarmMinutes,
       },
+      validatedCarbsPerHourG: data.fuelingCapG,
       products: products.map((product) => ({
         id: product.id,
         name: productName(product),
@@ -164,7 +167,7 @@ export const readRaceNutritionTool = defineTool({
     const allocation = raceAllocation({
       model,
       planned,
-      plan: data.plan,
+      plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
       nutritionPlan: data.nutritionPlan?.plan ?? null,
       dropBagExtras: data.dropBag?.extras ?? [],
       products,
@@ -198,7 +201,7 @@ const serving = z.strictObject({
 export const proposeRaceNutritionTool = defineTool({
   name: "propose_race_nutrition",
   description:
-    "Propose a race nutrition plan to the athlete for one race, by race id. Stride stores it as a proposal: nothing changes until the athlete accepts it on the race's Nutrition tab. Give the targets you change (others stay as they are) and, optionally, the plan: which product to use for each role (gel, drink, compote, solid, caffeine), the start flask contents and pockets, per segment by its arrival waypoint id the exact items to take and a note. Segments you leave out keep Stride's allocation. The plan replaces the accepted one as a whole. Use only product ids and arrival waypoint ids from read_race_nutrition, keep caffeine for the night and within the caffeine maximum. A new proposal replaces the one still waiting. Call read_race_nutrition first and quote its numbers in the summary.",
+    "Propose a race nutrition plan to the athlete for one race, by race id. Stride stores it as a proposal: nothing changes until the athlete accepts it on the race's Nutrition tab. Give the targets you change (others stay as they are) and, optionally, the plan: which product to use for each role (gel, drink, compote, solid, caffeine), the start flask contents and pockets, per segment by its arrival waypoint id the exact items to take and a note. Segments you leave out keep Stride's allocation. The plan replaces the accepted one as a whole. Use only product ids and arrival waypoint ids from read_race_nutrition, keep caffeine for the night and within the caffeine maximum, and never set carbsPerHourG above validatedCarbsPerHourG when it is set. A new proposal replaces the one still waiting. Call read_race_nutrition first and quote its numbers in the summary.",
   class: "propose",
   dataClasses: ["training"],
   input: z.strictObject({
@@ -266,6 +269,13 @@ export const proposeRaceNutritionTool = defineTool({
       readNutritionProducts(context),
     ]);
     if (!data) throw toolError("not_found");
+    const carbs = input.targets?.carbsPerHourG ?? null;
+    if (carbs !== null && data.fuelingCapG !== null && carbs > data.fuelingCapG)
+      throw toolError("validation_failed", {
+        reason: "above_validated_intake",
+        message: `The athlete has validated at most ${data.fuelingCapG} g of carbohydrate per hour in training. Propose ${data.fuelingCapG} g/h or less, and suggest a long run to test more.`,
+        validatedCarbsPerHourG: data.fuelingCapG,
+      });
     const productIds = new Set(products.map((product) => product.id));
     const plan = input.plan;
     const referenced = plan
