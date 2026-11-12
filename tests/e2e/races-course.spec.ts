@@ -170,6 +170,39 @@ test("a populated race opens every workspace section on desktop and mobile", asy
   }
 });
 
+test("the simulation settings recalculate the plan and can be undone", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const panel = page.getByRole("region", { name: "Régler la simulation" });
+  const stop = panel.getByRole("group", { name: "Arrêt par ravito" });
+  const before = await stop.locator("output").textContent();
+  const stops = panel.getByText(/arrêts? · .+ au total$/);
+  const first = await stops.textContent();
+  await stop
+    .getByRole("button", { name: "Augmenter l’arrêt par ravito" })
+    .click();
+  const toast = page
+    .locator("[data-sonner-toast]")
+    .filter({ hasText: /^Arrêt par ravito : / });
+  await expect(toast).toBeVisible();
+  await expect(stop.locator("output")).not.toHaveText(before ?? "");
+  await expect(stops).not.toHaveText(first ?? "", { timeout: 15_000 });
+  await toast.getByRole("button", { name: "Annuler" }).click();
+  await expect(stop.locator("output")).toHaveText(before ?? "", {
+    timeout: 15_000,
+  });
+  await expect(stops).toHaveText(first ?? "", { timeout: 15_000 });
+  await expect(panel.getByText("Arrivée", { exact: true })).toBeVisible();
+});
+
 test("the plan de course follows the timeline and applies a strategy proposal", async ({
   page,
   request,
