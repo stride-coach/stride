@@ -3,7 +3,18 @@ import {
   calendarMonth,
   parseCalendarMonth,
 } from "@/features/plans/view/calendar";
-import { buildProgram, type ProgramInput } from "@/features/plans/view/program";
+import type { PlanState } from "@/features/plans/model/plan";
+import {
+  buildProgram,
+  previousProgramWeeks,
+  type PreviousPlanProgram,
+  type ProgramInput,
+} from "@/features/plans/view/program";
+import {
+  archivedState,
+  planSeasons,
+  withPreviousPlans,
+} from "@/features/plans/view/seasons";
 import { planState } from "./plan-fixture";
 
 function input(overrides: Partial<ProgramInput> = {}): ProgramInput {
@@ -191,5 +202,97 @@ describe("calendar month", () => {
     expect(
       calendarMonth({ input: programInput, seasons: [], month: null }),
     ).toBeNull();
+  });
+});
+
+describe("calendar month across plans", () => {
+  const today = "2026-11-04";
+  const marathon = input().races[0];
+  const active: PlanState = (() => {
+    const state = planState();
+    const weekStart = "2026-11-02";
+    return {
+      ...state,
+      plan: { ...state.plan, id: "plan-2", startsOn: weekStart },
+      weeks: state.weeks.filter((week) => week.weekStart >= weekStart),
+      sessions: state.sessions.filter(
+        (session) => session.scheduledOn >= weekStart,
+      ),
+    };
+  })();
+  const activeInput = input({ state: active, today, races: [marathon] });
+  const previousInput: ProgramInput = {
+    ...activeInput,
+    state: archivedState(planState(), "2026-11-01"),
+    matches: [
+      {
+        sessionKey: "s-2026-10-13-1",
+        status: "completed",
+        compliance: { duration: 1, distance: null },
+      },
+    ],
+  };
+  const seasons = withPreviousPlans({
+    seasons: planSeasons({ state: active, races: [marathon], today }),
+    archived: [
+      {
+        planId: "p1",
+        title: "Préparation marathon",
+        primaryRaceId: "race-a",
+        archivedOn: "2026-11-01",
+        weekStarts: planState().weeks.map((week) => week.weekStart),
+      },
+    ],
+    races: [marathon],
+    today,
+  });
+  const previous: PreviousPlanProgram[] = seasons[0].previousPlans.map(
+    (plan) => ({ ...plan, input: previousInput }),
+  );
+
+  function acrossPlans(value: string | null, withPrevious = true) {
+    return calendarMonth({
+      input: activeInput,
+      seasons: buildProgram(
+        activeInput,
+        seasons,
+        withPrevious ? previousProgramWeeks(previous) : [],
+      ).seasons,
+      month: value,
+      previous: withPrevious ? previous : [],
+    });
+  }
+
+  it("browses back to the first week of a replaced plan", () => {
+    expect(acrossPlans("2026-10")).toMatchObject({
+      month: "2026-10",
+      previous: null,
+      next: "2026-11",
+    });
+    expect(acrossPlans("2026-11")?.previous).toBe("2026-10");
+  });
+
+  it("shows the replaced plan's sessions with their state and plan", () => {
+    const calendar = acrossPlans("2026-10");
+    expect(day(calendar, "2026-10-13")).toMatchObject({
+      inPlan: true,
+      isPast: true,
+      sessions: [{ sessionKey: "s-2026-10-13-1", state: "done", planId: "p1" }],
+    });
+    expect(day(month("2026-10"), "2026-10-15")?.sessions[0].planId).toBeNull();
+  });
+
+  it("counts the replaced plan's weeks in the month summary", () => {
+    expect(acrossPlans("2026-10")?.summary).toEqual({
+      planned: { duration: "4h45", distance: null },
+      done: { duration: "45’", distance: null },
+      sessions: 5,
+      quality: 2,
+      lightWeeks: [],
+    });
+  });
+
+  it("keeps to the active plan without previous plans", () => {
+    expect(acrossPlans("2026-10", false)?.month).toBe("2026-11");
   });
 });

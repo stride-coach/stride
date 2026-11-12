@@ -13,7 +13,8 @@ import {
   type PreviousPlanWeeks,
 } from "@/features/plans/view/seasons";
 import {
-  previousWeeks,
+  previousProgramWeeks,
+  type PreviousPlanProgram,
   withRaceValues,
   type ProgramInput,
   type ProgramRace,
@@ -160,20 +161,28 @@ export function programInput(
   };
 }
 
-export async function loadPreviousWeeks(
+export async function loadPreviousPlans(
   context: OnboardingContext,
   plans: PreviousPlanWeeks[],
   paces: IntensityPaces | null,
-): Promise<ProgramWeek[]> {
-  const weeks = await Promise.all(
+): Promise<PreviousPlanProgram[]> {
+  const loaded = await Promise.all(
     plans
       .filter((plan) => plan.weekStarts.length > 0)
       .map(async ({ planId, weekStarts }) => {
         const overview = await loadArchivedPlanOverview(context, planId);
         return overview
-          ? previousWeeks(programInput(overview, paces), planId, weekStarts)
+          ? [{ planId, weekStarts, input: programInput(overview, paces) }]
           : [];
       }),
   );
-  return weeks.flat();
+  return loaded.flat();
+}
+
+export async function loadPreviousWeeks(
+  context: OnboardingContext,
+  plans: PreviousPlanWeeks[],
+  paces: IntensityPaces | null,
+): Promise<ProgramWeek[]> {
+  return previousProgramWeeks(await loadPreviousPlans(context, plans, paces));
 }

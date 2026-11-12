@@ -14,8 +14,10 @@ import {
   approximate,
   completeDistance,
   complianceRatio,
+  type PreviousPlanProgram,
   type ProgramDaySession,
   type ProgramInput,
+  type ProgramMatch,
   type ProgramWeek,
   type SeasonProgram,
 } from "./program";
@@ -23,7 +25,7 @@ import {
 export type CalendarSession = Pick<
   ProgramDaySession,
   "sessionKey" | "raceId" | "family" | "title" | "duration" | "state"
-> & { zone: Zone | null };
+> & { zone: Zone | null; planId: string | null };
 
 export type CalendarDay = {
   date: string;
@@ -100,8 +102,12 @@ function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function calendarSession(session: ProgramDaySession): CalendarSession {
+function calendarSession(
+  session: ProgramDaySession,
+  planId: string | null,
+): CalendarSession {
   return {
+    planId,
     sessionKey: session.sessionKey,
     raceId: session.raceId,
     family: session.family,
@@ -140,67 +146,86 @@ function subtitle(weeks: ProgramWeek[]) {
   return [blocks.join(", "), span].filter(Boolean).join(" · ") || null;
 }
 
-function summary(
-  input: ProgramInput,
-  sessions: PlanSession[],
-  weeks: ProgramWeek[],
-): CalendarSummary {
+type SummarySource = { input: ProgramInput; sessions: PlanSession[] };
+
+type CountedSession = {
+  session: PlanSession;
+  done: boolean;
+  compliance: ProgramMatch["compliance"] | null;
+};
+
+function countedSessions({ input, sessions }: SummarySource): CountedSession[] {
   const statuses = sessionStatuses(input.matches);
   const compliance = new Map(
     input.matches.map((match) => [match.sessionKey, match.compliance]),
   );
+  return sessions
+    .filter((session) => session.kind !== "rest" && session.kind !== "race")
+    .map((session) => {
+      const status = statuses.get(session.sessionKey);
+      return {
+        session,
+        done: status === "completed" || status === "partial",
+        compliance: compliance.get(session.sessionKey) ?? null,
+      };
+    });
+}
+
+function summary(
+  input: ProgramInput,
+  sources: SummarySource[],
+  weeks: ProgramWeek[],
+): CalendarSummary {
   const paces = input.paces ?? null;
-  const counted = sessions.filter(
-    (session) => session.kind !== "rest" && session.kind !== "race",
-  );
-  const runs = counted.filter(isRunningSession);
-  const done = runs.filter((session) => {
-    const status = statuses.get(session.sessionKey);
-    return status === "completed" || status === "partial";
-  });
+  const items = sources.flatMap(countedSessions);
+  const counted = items.map((item) => item.session);
+  const runItems = items.filter((item) => isRunningSession(item.session));
+  const runs = runItems.map((item) => item.session);
+  const doneItems = runItems.filter((item) => item.done);
   const planned = completeDistance(
     runs.map((session) => sessionDistance(session, paces)),
   );
   const doneDistance =
     planned === null
       ? null
-      : done.length === 0
+      : doneItems.length === 0
         ? { meters: 0, estimated: false }
         : completeDistance(
-            done.map((session) => {
-              const distance = sessionDistance(session, paces);
+            doneItems.map((item) => {
+              const distance = sessionDistance(item.session, paces);
               return (
                 distance && {
                   meters: Math.round(
                     distance.meters *
-                      complianceRatio(
-                        compliance.get(session.sessionKey)?.distance ?? null,
-                      ),
+                      complianceRatio(item.compliance?.distance ?? null),
                   ),
                   estimated: distance.estimated,
                 }
               );
             }),
           );
-  const seconds = (items: PlanSession[], ratio: (key: string) => number) =>
+  const seconds = (
+    list: CountedSession[],
+    ratio: (item: CountedSession) => number,
+  ) =>
     Math.round(
-      items.reduce(
-        (total, session) =>
-          total + session.targets.durationSeconds * ratio(session.sessionKey),
+      list.reduce(
+        (total, item) =>
+          total + item.session.targets.durationSeconds * ratio(item),
         0,
       ),
     );
   return {
     planned: {
-      duration: formatDuration(seconds(runs, () => 1)),
+      duration: formatDuration(seconds(runItems, () => 1)),
       distance:
         planned &&
         approximate(formatDistance(planned.meters), planned.estimated),
     },
     done: {
       duration: formatDuration(
-        seconds(done, (key) =>
-          complianceRatio(compliance.get(key)?.duration ?? null),
+        seconds(doneItems, (item) =>
+          complianceRatio(item.compliance?.duration ?? null),
         ),
       ),
       distance:
@@ -250,10 +275,12 @@ export function calendarMonth({
   input,
   seasons,
   month,
+  previous = [],
 }: {
   input: ProgramInput;
   seasons: SeasonProgram[];
   month: string | null;
+  previous?: PreviousPlanProgram[];
 }): CalendarMonth | null {
   const planWeeks = seasonWeeks(seasons);
   if (planWeeks.length === 0) return null;
@@ -294,7 +321,9 @@ export function calendarMonth({
           isToday: date === input.today,
           isPast: date < input.today,
           rest: planDay !== null && planDay.sessions.length === 0,
-          sessions: (planDay?.sessions ?? []).map(calendarSession),
+          sessions: (planDay?.sessions ?? []).map((session) =>
+            calendarSession(session, planWeek?.planId ?? null),
+          ),
         };
       }),
     });
@@ -303,10 +332,19 @@ export function calendarMonth({
     const week = byStart.get(row.weekStart);
     return week ? [week] : [];
   });
-  const monthSessions = input.state.sessions.filter(
-    (session) =>
-      session.scheduledOn >= monthStart && session.scheduledOn <= monthEnd,
-  );
+  const inMonth = (session: PlanSession) =>
+    session.scheduledOn >= monthStart && session.scheduledOn <= monthEnd;
+  const sources: SummarySource[] = [
+    { input, sessions: input.state.sessions.filter(inMonth) },
+    ...previous.map((plan) => ({
+      input: plan.input,
+      sessions: plan.input.state.sessions.filter(
+        (session) =>
+          inMonth(session) &&
+          plan.weekStarts.includes(mondayOf(session.scheduledOn)),
+      ),
+    })),
+  ];
   return {
     month: shown,
     title: capitalize(monthTitle.format(new Date(`${monthStart}T00:00:00Z`))),
@@ -331,7 +369,7 @@ export function calendarMonth({
         ),
       ),
     ].sort((first, second) => first - second),
-    summary: summary(input, monthSessions, shownWeeks),
+    summary: summary(input, sources, shownWeeks),
     upcoming: upcoming(input, seasons, planEnd),
   };
 }
