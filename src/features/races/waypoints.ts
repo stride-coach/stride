@@ -74,13 +74,14 @@ export type Waypoint = {
   voiceNote: string | null;
   todo: string | null;
   nutritionNote: string | null;
+  stopSeconds: number | null;
   source: (typeof waypointSources)[number];
   needsReview: boolean;
   revision: number;
 };
 
 export const waypointColumns =
-  "id, kind, name, distance_m, cutoff_time, services, watch_label, alert_distance_m, voice_note, todo, nutrition_note, source, needs_review, revision";
+  "id, kind, name, distance_m, cutoff_time, services, watch_label, alert_distance_m, voice_note, todo, nutrition_note, stop_seconds, source, needs_review, revision";
 
 const clockSchema = z
   .string()
@@ -108,6 +109,7 @@ export const waypointRowSchema = z
     voice_note: z.string().nullable(),
     todo: z.string().nullable(),
     nutrition_note: z.string().nullable(),
+    stop_seconds: z.number().int().nullable().optional(),
     source: z.enum(waypointSources),
     needs_review: z.boolean(),
     revision: z.number().int().positive(),
@@ -124,6 +126,7 @@ export const waypointRowSchema = z
     voiceNote: row.voice_note,
     todo: row.todo,
     nutritionNote: row.nutrition_note,
+    stopSeconds: row.stop_seconds ?? null,
     source: row.source,
     needsReview: row.needs_review,
     revision: row.revision,
@@ -242,5 +245,6 @@ export const waypointInputSchema = z.object({
   voiceNote: z.string().trim().max(280).nullable(),
   todo: z.string().trim().max(400).nullable(),
   nutritionNote: z.string().trim().max(280).nullable(),
+  stopSeconds: z.number().int().min(0).max(7200).nullable().optional(),
 });
 export type WaypointInput = z.infer<typeof waypointInputSchema>;

@@ -222,6 +222,7 @@ function stopRemedy(inputs: Inputs, barrier: Barrier): CutoffRemedy | null {
   const stations = inputs.model.waypoints.filter(
     (waypoint) =>
       (waypoint.kind === "aid" || waypoint.kind === "base") &&
+      waypoint.stopSeconds === null &&
       waypoint.distanceM > 0 &&
       waypoint.distanceM < barrier.distanceM,
   ).length;

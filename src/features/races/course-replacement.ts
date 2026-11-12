@@ -98,7 +98,8 @@ function hasSettings(point: Waypoint) {
     point.services.length > 0 ||
     point.watchLabel !== null ||
     point.voiceNote !== null ||
-    point.nutritionNote !== null
+    point.nutritionNote !== null ||
+    point.stopSeconds !== null
   );
 }
 
