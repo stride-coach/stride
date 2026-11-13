@@ -565,6 +565,30 @@ test("a past race compares two editions", async ({ page, request }) => {
   ).toContainText("Ravito du Bois");
 });
 
+test("the plan says when fueling is capped to what was validated", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?capped=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const notices = page.getByRole("region", {
+    name: "Ce que le plan signale",
+  });
+  const fueling = notices.getByRole("article", {
+    name: /^Ravitaillement plafonné à 50 g\/h/,
+  });
+  await expect(fueling).toContainText(
+    "Ta cible de 60 g/h dépasse ce que tu as validé à l’entraînement",
+  );
+  await fueling.getByRole("link", { name: "Voir le ravitaillement" }).click();
+  await expect(page).toHaveURL(/\/nutrition$/);
+});
+
 test("the scenarios view compares, creates and chooses a scenario", async ({
   page,
   request,
@@ -1381,6 +1405,7 @@ test("the crew follows a secret link that can be replaced or switched off", asyn
   await page.setViewportSize({ width: 1440, height: 1000 });
   await linkSwitch.click();
   await expect(address).toBeHidden();
+  await expect(page.getByText("Lien de suivi coupé.")).toBeVisible();
   await visitor.goto(second);
   await expect(
     visitor.getByRole("heading", { name: "Ce lien de suivi n’est pas actif" }),
