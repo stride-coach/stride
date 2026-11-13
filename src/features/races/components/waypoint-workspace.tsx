@@ -6,7 +6,6 @@ import { DownloadIcon, UploadIcon } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +22,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Toggle } from "@/components/ui/toggle";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,11 +42,18 @@ import type { ProfileData } from "../profile";
 import {
   alertDistances,
   defaultWatchLabel,
-  editableKinds,
   kindLabels,
-  serviceLabels,
-  services,
+  onSiteLabel,
+  onSiteLabels,
+  onSiteOf,
+  onSiteServices,
+  pointTypeLabels,
+  pointTypeOf,
+  pointTypes,
   stationKinds,
+  storedPoint,
+  type OnSite,
+  type PointType,
   type Waypoint,
   type WaypointInput,
   type WaypointMark,
@@ -274,6 +281,12 @@ function WaypointEditor({
   const [cutoff, setCutoff] = useState(() =>
     point?.cutoffMinutes == null ? "" : formatClock(point.cutoffMinutes),
   );
+  const [type, setType] = useState<PointType>(
+    () => (point && pointTypeOf(point)) ?? "supply",
+  );
+  const [onSite, setOnSite] = useState<Set<OnSite>>(() =>
+    point ? onSiteOf(point) : new Set<OnSite>(["water"]),
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const set = <K extends keyof WaypointInput>(
@@ -285,9 +298,17 @@ function WaypointEditor({
   const watchLabel = input.watchLabel ?? fallbackLabel;
   const previewDistance = parseKm(km) ?? point?.distanceM ?? pickedDistanceM;
 
-  const station = stationKinds.includes(input.kind);
+  const stored = storedPoint(input, type, onSite);
+  const station = type === "supply";
   const defaultStop =
-    input.kind === "water" ? stops.waterStopSeconds : stops.aidStopSeconds;
+    stored.kind === "water" ? stops.waterStopSeconds : stops.aidStopSeconds;
+  const toggleOnSite = (item: OnSite, checked: boolean) =>
+    setOnSite((current) => {
+      const next = new Set(current);
+      if (checked) next.add(item);
+      else next.delete(item);
+      return next;
+    });
 
   function save() {
     const meters = parseKm(km);
@@ -300,6 +321,8 @@ function WaypointEditor({
       (cutoff.trim() && minutes === null)
     )
       return setError("Vérifie le kilomètre et la barrière horaire.");
+    if (type === "cutoff" && minutes === null)
+      return setError("Ajoute l’heure de la barrière horaire.");
     if (
       stopMinutes !== null &&
       (!Number.isInteger(stopMinutes) || stopMinutes < 0 || stopMinutes > 120)
@@ -309,6 +332,7 @@ function WaypointEditor({
     startTransition(async () => {
       const result = await saveWaypoint(raceId, point?.id ?? null, {
         ...input,
+        ...stored,
         distanceM: meters,
         cutoffMinutes: minutes,
         stopSeconds: station && stopMinutes !== null ? stopMinutes * 60 : null,
@@ -352,6 +376,49 @@ function WaypointEditor({
           </span>
         </div>
       )}
+      <div className="grid grid-cols-2 gap-2.5">
+        <label className="col-span-full flex flex-col gap-1.5">
+          <span className="text-label text-secondary-foreground">Nom</span>
+          <Input
+            value={input.name}
+            maxLength={60}
+            className="h-control-touch rounded-lg bg-card lg:h-control"
+            onChange={(event) => set("name", event.target.value)}
+          />
+        </label>
+        <label
+          className={cn("flex flex-col gap-1.5", !station && "col-span-full")}
+        >
+          <span className="text-label text-secondary-foreground">Au km</span>
+          <Input
+            value={km}
+            inputMode="decimal"
+            className="h-control-touch rounded-lg bg-card lg:h-control"
+            onChange={(event) => onKmChange(event.target.value)}
+          />
+          <span className="text-label text-muted-foreground">
+            {estimate ? "Kilomètre annoncé" : "Accroché au tracé"}
+          </span>
+        </label>
+        {station && (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label text-secondary-foreground">
+              Arrêt prévu (min)
+            </span>
+            <Input
+              value={stop}
+              inputMode="numeric"
+              placeholder={String(Math.round(defaultStop / 60))}
+              className="h-control-touch rounded-lg bg-card lg:h-control"
+              onChange={(event) => setStop(event.target.value)}
+            />
+            <span className="text-label text-muted-foreground">
+              Vide : {Math.round(defaultStop / 60)} min, comme les autres{" "}
+              {stored.kind === "water" ? "points d’eau" : "ravitos"}
+            </span>
+          </label>
+        )}
+      </div>
       <div className="flex flex-col gap-1.5">
         <span
           id="waypoint-kind"
@@ -364,41 +431,42 @@ function WaypointEditor({
           aria-labelledby="waypoint-kind"
           className="flex flex-wrap gap-1.5"
         >
-          {editableKinds.map((kind) => (
+          {pointTypes.map((item) => (
             <Toggle
-              key={kind}
+              key={item}
               variant="segment"
-              pressed={input.kind === kind}
-              onPressedChange={() => set("kind", kind)}
+              pressed={type === item}
+              onPressedChange={() => setType(item)}
               className={chipClass}
             >
-              {kindLabels[kind]}
+              {pointTypeLabels[item]}
             </Toggle>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2.5">
-        <label className="col-span-full flex flex-col gap-1.5">
-          <span className="text-label text-secondary-foreground">Nom</span>
-          <Input
-            value={input.name}
-            maxLength={60}
-            className="h-control-touch rounded-lg bg-card lg:h-control"
-            onChange={(event) => set("name", event.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-label text-secondary-foreground">Km</span>
-          <Input
-            value={km}
-            inputMode="decimal"
-            className="h-control-touch rounded-lg bg-card lg:h-control"
-            onChange={(event) => onKmChange(event.target.value)}
-          />
-          <span className="text-label text-muted-foreground">
-            {estimate ? "Kilomètre annoncé" : "Accroché au tracé"}
-          </span>
-        </label>
+      {(type === "supply" || type === "crew") && (
+        <fieldset className="flex flex-col">
+          <legend className="text-label text-secondary-foreground">
+            Sur place
+          </legend>
+          {onSiteServices
+            .filter((item) => type === "supply" || item === "crew")
+            .map((item) => (
+              <label
+                key={item}
+                className="flex min-h-control-touch items-center justify-between gap-3 border-b border-border last:border-b-0 lg:min-h-9"
+              >
+                <span>{onSiteLabels[item]}</span>
+                <Switch
+                  checked={type === "crew" || onSite.has(item)}
+                  disabled={type === "crew"}
+                  onCheckedChange={(checked) => toggleOnSite(item, checked)}
+                />
+              </label>
+            ))}
+        </fieldset>
+      )}
+      <div className="flex flex-col gap-2.5">
         <label className="flex flex-col gap-1.5">
           <span className="text-label text-secondary-foreground">
             Barrière horaire
@@ -421,132 +489,93 @@ function WaypointEditor({
             </span>
           )}
         </label>
-        {station && (
-          <label className="flex flex-col gap-1.5">
-            <span className="text-label text-secondary-foreground">
-              Arrêt prévu (min)
-            </span>
-            <Input
-              value={stop}
-              inputMode="numeric"
-              placeholder={String(Math.round(defaultStop / 60))}
-              className="h-control-touch rounded-lg bg-card lg:h-control"
-              onChange={(event) => setStop(event.target.value)}
-            />
-            <span className="text-label text-muted-foreground">
-              Vide : {Math.round(defaultStop / 60)} min, comme les autres{" "}
-              {input.kind === "water" ? "points d’eau" : "ravitos"}
-            </span>
-          </label>
-        )}
-      </div>
-      <fieldset className="flex flex-col gap-1">
-        <legend className="text-label text-secondary-foreground">
-          Services
-        </legend>
-        <div className="flex flex-wrap gap-x-3.5">
-          {services.map((service) => (
-            <label
-              key={service}
-              className="inline-flex min-h-control-touch items-center gap-1.5 text-secondary-foreground lg:min-h-control"
-            >
-              <Checkbox
-                checked={input.services.includes(service)}
-                onCheckedChange={(checked) =>
-                  set(
-                    "services",
-                    checked === true
-                      ? [...input.services, service]
-                      : input.services.filter((item) => item !== service),
-                  )
-                }
-              />
-              {serviceLabels[service]}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <div className="flex flex-col gap-2.5 border-t border-border pt-3.5">
-        <span className="text-label text-secondary-foreground">
-          Sur la montre
-        </span>
-        <div className="flex items-center gap-3.5">
-          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-            <label className="flex flex-col gap-1.5">
-              <span className="text-label text-secondary-foreground">
-                Nom affiché
-              </span>
-              <Input
-                value={input.watchLabel ?? ""}
-                maxLength={24}
-                placeholder={fallbackLabel}
-                className="h-control-touch rounded-lg bg-card lg:h-control"
-                onChange={(event) =>
-                  set("watchLabel", event.target.value || null)
-                }
-              />
-              <span className="text-label text-muted-foreground">
-                {counted(watchLabel.length, "caractère", "caractères")} · reste
-                court, la montre coupe les noms longs
-              </span>
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-label text-secondary-foreground">
-                Prévenir
-              </span>
-              <select
-                className="h-control-touch w-full rounded-lg border border-input bg-card px-2.5 lg:h-control"
-                value={input.alertDistanceM}
-                onChange={(event) =>
-                  set(
-                    "alertDistanceM",
-                    Number(
-                      event.target.value,
-                    ) as WaypointInput["alertDistanceM"],
-                  )
-                }
-              >
-                {alertDistances.map((distance) => (
-                  <option key={distance} value={distance}>
-                    {distance === 0
-                      ? "Au point"
-                      : `${distance.toLocaleString("fr-FR")} m avant`}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <WatchPreview
-            label={watchLabel}
-            alertDistanceM={input.alertDistanceM}
-            distanceM={previewDistance}
-          />
-        </div>
         <label className="flex flex-col gap-1.5">
           <span className="text-label text-secondary-foreground">
-            Consigne vocale
+            Note pour toi
           </span>
           <Textarea
-            value={input.voiceNote ?? ""}
-            maxLength={280}
+            value={input.todo ?? ""}
+            maxLength={400}
+            placeholder="Frontale sur la tête ici"
             className="min-h-16 rounded-lg bg-card"
-            onChange={(event) => set("voiceNote", event.target.value || null)}
+            onChange={(event) => set("todo", event.target.value || null)}
           />
-          <span className="text-label text-muted-foreground">
-            Lue à voix haute sur les montres et téléphones qui le permettent,
-            affichée sinon.
-          </span>
         </label>
       </div>
-      <label className="flex flex-col gap-1.5">
-        <span className="text-label text-secondary-foreground">À faire</span>
-        <Textarea
-          value={input.todo ?? ""}
-          maxLength={400}
-          className="min-h-16 rounded-lg bg-card"
-          onChange={(event) => set("todo", event.target.value || null)}
-        />
-      </label>
+      <details className="flex flex-col border-t border-border pt-3.5">
+        <summary className="inline-flex min-h-control-touch cursor-pointer items-center text-label text-secondary-foreground hover:text-foreground lg:min-h-0">
+          Sur la montre
+        </summary>
+        <div className="flex flex-col gap-2.5 pt-2.5">
+          <div className="flex items-center gap-3.5">
+            <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-label text-secondary-foreground">
+                  Nom affiché
+                </span>
+                <Input
+                  value={input.watchLabel ?? ""}
+                  maxLength={24}
+                  placeholder={fallbackLabel}
+                  className="h-control-touch rounded-lg bg-card lg:h-control"
+                  onChange={(event) =>
+                    set("watchLabel", event.target.value || null)
+                  }
+                />
+                <span className="text-label text-muted-foreground">
+                  {counted(watchLabel.length, "caractère", "caractères")} ·
+                  reste court, la montre coupe les noms longs
+                </span>
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-label text-secondary-foreground">
+                  Prévenir
+                </span>
+                <select
+                  className="h-control-touch w-full rounded-lg border border-input bg-card px-2.5 lg:h-control"
+                  value={input.alertDistanceM}
+                  onChange={(event) =>
+                    set(
+                      "alertDistanceM",
+                      Number(
+                        event.target.value,
+                      ) as WaypointInput["alertDistanceM"],
+                    )
+                  }
+                >
+                  {alertDistances.map((distance) => (
+                    <option key={distance} value={distance}>
+                      {distance === 0
+                        ? "Au point"
+                        : `${distance.toLocaleString("fr-FR")} m avant`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <WatchPreview
+              label={watchLabel}
+              alertDistanceM={input.alertDistanceM}
+              distanceM={previewDistance}
+            />
+          </div>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label text-secondary-foreground">
+              Consigne vocale
+            </span>
+            <Textarea
+              value={input.voiceNote ?? ""}
+              maxLength={280}
+              className="min-h-16 rounded-lg bg-card"
+              onChange={(event) => set("voiceNote", event.target.value || null)}
+            />
+            <span className="text-label text-muted-foreground">
+              Lue à voix haute sur les montres et téléphones qui le permettent,
+              affichée sinon.
+            </span>
+          </label>
+        </div>
+      </details>
       {error && (
         <p role="alert" className="text-body text-destructive">
           {error}
@@ -902,15 +931,13 @@ function WaypointTable({
                 {formatKm(point.distanceM)}
               </td>
               <td className={cn(cell, "text-secondary-foreground")}>
-                {kindLabels[point.kind]}
+                {(() => {
+                  const type = pointTypeOf(point);
+                  return type ? pointTypeLabels[type] : kindLabels[point.kind];
+                })()}
               </td>
               <td className={cn(cell, "text-secondary-foreground")}>
-                {point.services.length
-                  ? point.services
-                      .map((service) => serviceLabels[service].toLowerCase())
-                      .join(", ")
-                      .replace(/^./, (letter) => letter.toUpperCase())
-                  : "—"}
+                {onSiteLabel(point) || "—"}
               </td>
               <td className={cn(cell, "text-right")}>
                 {point.cutoffMinutes === null
