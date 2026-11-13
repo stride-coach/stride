@@ -386,6 +386,38 @@ test("the weather view reads the weather at the athlete's passage", async ({
   }
 });
 
+test("a past race reads the race on its plan", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?past=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/after");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Vues de l’après-course" })
+      .getByRole("link", { name: "Cette course" }),
+  ).toHaveAttribute("aria-current", "page");
+  const chart = page.getByRole("region", { name: "Ta course sur ton plan" });
+  await expect(chart).toContainText("Ravito du Bois");
+  await expect(chart.getByRole("table")).toContainText("+12 min");
+  await expect(chart).toContainText("13:42");
+  await expect(page.locator("[data-slot=metric]").first()).toHaveText("6h12");
+  const rail = page.getByRole("complementary", { name: "Après la course" });
+  await expect(rail).toContainText("9 / 10");
+  await expect(rail.getByRole("link", { name: "Comparer" })).toHaveAttribute(
+    "href",
+    "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/after/compare",
+  );
+  await expect(
+    rail.getByRole("link", { name: "Refaire cette course" }),
+  ).toHaveAttribute(
+    "href",
+    "/races/new?from=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  );
+});
+
 test("the scenarios view compares, creates and chooses a scenario", async ({
   page,
   request,
