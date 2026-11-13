@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { compareScenarios } from "@/features/races/scenario-compare";
+import {
+  carbsStatus,
+  compareScenarios,
+  tenability,
+} from "@/features/races/scenario-compare";
 import type { Scenario } from "@/features/races/workspace";
 import { model, plan, race, stored, timeline } from "./race-course-fixture";
 
@@ -85,5 +89,57 @@ describe("scenario comparison", () => {
     const alone = compare([target]);
     expect(alone.missing).toEqual(["cautious", "ambitious"]);
     expect(alone.reading).toMatch(/Ajoute un scénario prudent et un ambitieux/);
+  });
+});
+
+describe("scenario tenability", () => {
+  it("is risky when out of reach or under 30 minutes of margin", () => {
+    expect(
+      tenability({
+        feasible: false,
+        marginSeconds: null,
+        carbsAboveTested: false,
+      }),
+    ).toEqual({ label: "Risqué", level: "alert" });
+    expect(
+      tenability({
+        feasible: true,
+        marginSeconds: 20 * 60,
+        carbsAboveTested: false,
+      }),
+    ).toEqual({ label: "Risqué", level: "alert" });
+  });
+
+  it("is only tenable under an hour of margin or above the tested carbs", () => {
+    expect(
+      tenability({
+        feasible: true,
+        marginSeconds: 45 * 60,
+        carbsAboveTested: false,
+      }).label,
+    ).toBe("Tenable");
+    expect(
+      tenability({
+        feasible: true,
+        marginSeconds: null,
+        carbsAboveTested: true,
+      }).label,
+    ).toBe("Tenable");
+    expect(
+      tenability({
+        feasible: true,
+        marginSeconds: 3 * 3600,
+        carbsAboveTested: false,
+      }).label,
+    ).toBe("Très tenable");
+  });
+
+  it("says whether the carbs per hour were tested in training", () => {
+    expect(carbsStatus(70, 60)).toEqual({
+      value: "70 g/h",
+      status: "à valider",
+    });
+    expect(carbsStatus(60, 60)?.status).toBe("validé");
+    expect(carbsStatus(60, null)?.status).toBe("jamais testé");
   });
 });

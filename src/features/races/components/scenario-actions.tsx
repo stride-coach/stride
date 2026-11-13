@@ -107,7 +107,7 @@ export function ChooseScenario({
       aria-busy={pending || undefined}
       onClick={() => swap(seconds, null, false)}
     >
-      En faire mon objectif
+      Choisir ce scénario
     </Button>
   );
 }
