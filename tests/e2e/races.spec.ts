@@ -33,7 +33,9 @@ for (const viewport of [
     ]);
     if (viewport.width >= 1024)
       await expect(
-        page.getByText("Objectif de la saison", { exact: true }),
+        page
+          .getByText("Objectif de la saison", { exact: true })
+          .filter({ visible: true }),
       ).toBeVisible();
     await page.getByRole("link", { name: "Voir le plan de course" }).click();
     await expect(page).toHaveURL(
@@ -95,7 +97,9 @@ for (const viewport of [
       sections.getByRole("link", { name: "Équipement" }),
     ).toHaveAttribute("aria-current", "page");
     for (const list of ["J-7", "J-1", "Jour J"])
-      await expect(page.getByText(list, { exact: true }).first()).toBeVisible();
+      await expect(
+        page.getByText(list, { exact: true }).filter({ visible: true }).first(),
+      ).toBeVisible();
   });
 }
 
