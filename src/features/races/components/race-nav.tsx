@@ -30,6 +30,11 @@ export const raceViews = [
 
 const afterSection = { path: "/after", label: "Après-course" } as const;
 
+const afterViews = [
+  { path: "/after", label: "Cette course" },
+  { path: "/after/compare", label: "Comparer" },
+] as const;
+
 function sectionsOf(kind: RaceKind, past = false) {
   const sections = kind === "road" ? roadSections : raceSections;
   return past ? [...sections, afterSection] : sections;
@@ -189,12 +194,15 @@ export function RaceViews({
 }) {
   const pathname = usePathname();
   const base = `/races/${raceId}`;
-  const { view } = sectionOf(pathname, base, kind);
+  const rest = pathname.slice(base.length).replace(/\/$/, "");
+  const after = afterViews.some((item) => item.path === rest);
+  const { view } = after ? { view: rest } : sectionOf(pathname, base, kind);
   if (view === null) return null;
+  const items = after ? afterViews : raceViews;
   const header = variant === "header";
   return (
     <nav
-      aria-label="Vues du plan de course"
+      aria-label={after ? "Vues de l’après-course" : "Vues du plan de course"}
       className={cn(
         "print:hidden",
         header
@@ -202,7 +210,7 @@ export function RaceViews({
           : "flex gap-1 overflow-x-auto border-b border-border px-4 py-2 lg:hidden",
       )}
     >
-      {raceViews.map((item) => {
+      {items.map((item) => {
         const current = item.path === view;
         return (
           <Link

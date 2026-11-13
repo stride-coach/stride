@@ -2936,6 +2936,71 @@ createServer(async (request, response) => {
     tables.race_crew_links = [];
     if (url.searchParams.get("crew"))
       race.race_date = new Date(Date.now() + day).toISOString().slice(0, 10);
+    const pastActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000000565";
+    tables.provider_activities = tables.provider_activities.filter(
+      (row) => row.id !== pastActivityId,
+    );
+    tables.provider_activity_tracks = tables.provider_activity_tracks.filter(
+      (row) => row.activity_id !== pastActivityId,
+    );
+    tables.activity_feelings = tables.activity_feelings.filter(
+      (row) => row.activity_id !== pastActivityId,
+    );
+    if (url.searchParams.get("past")) {
+      race.race_date = new Date(Date.now() - 3 * day)
+        .toISOString()
+        .slice(0, 10);
+      race.distance_km = 30;
+      const paces = [660, 750, 822];
+      const points = Array.from({ length: 121 }, (_, index) => index * 250);
+      let elapsed = 0;
+      const elapsedSeries = points.map((meters, index) => {
+        if (index > 0)
+          elapsed +=
+            (250 / 1000) * paces[Math.min(2, Math.floor((meters - 1) / 10000))];
+        return Math.round(elapsed);
+      });
+      tables.provider_activities.push(
+        activity(565, 3, {
+          id: pastActivityId,
+          activity_type: "trail_running",
+          activity_name: "EcoTrail Paris 120K",
+          distance_meters: 30000,
+          duration_seconds: elapsedSeries[elapsedSeries.length - 1],
+          elevation_gain_meters: 600,
+          average_heart_rate: 141,
+          ...daysAgo(3, "07:00:00"),
+        }),
+      );
+      tables.provider_activity_tracks.push({
+        activity_id: pastActivityId,
+        user_id: user.id,
+        status: "available",
+        route: null,
+        bounds: null,
+        series: {
+          elapsed_s: elapsedSeries,
+          distance_m: points,
+          elevation_m: points.map(
+            (meters) =>
+              100 + (meters / 1000) * 2 + Math.sin(meters / 1000) * 20,
+          ),
+          heart_rate: points.map((meters) =>
+            Math.round(138 + Math.sin(meters / 3000) * 6),
+          ),
+        },
+        heart_rate_histogram: null,
+        source_point_count: points.length,
+      });
+      tables.activity_feelings.push({
+        id: randomUUID(),
+        activity_id: pastActivityId,
+        user_id: user.id,
+        effort: 9,
+        feel: 75,
+        revision: 1,
+      });
+    }
     const checklistItem = (index, list, label, values = {}) => ({
       id: `e2000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       race_id: race.id,
