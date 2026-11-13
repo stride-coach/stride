@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   scope:
-    runs-on: [self-hosted, ci]
+    runs-on: ubuntu-latest
     outputs:
       documentation_only: ${{ steps.scope.outputs.documentation_only }}
       migrations: ${{ steps.scope.outputs.migrations }}
@@ -38,12 +38,13 @@ jobs:
   quality:
     needs: scope
     if: needs.scope.outputs.documentation_only != 'true'
-    runs-on: [self-hosted, ci]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
@@ -53,7 +54,7 @@ jobs:
   browser:
     needs: scope
     if: needs.scope.outputs.browser == 'true'
-    runs-on: [self-hosted, wsl]
+    runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host
@@ -100,7 +101,7 @@ jobs:
     needs: scope
     if: github.event_name == 'push' && needs.scope.outputs.browser == 'true'
     continue-on-error: true
-    runs-on: [self-hosted, wsl]
+    runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host
@@ -136,26 +137,23 @@ jobs:
   database-onboarding:
     needs: scope
     if: needs.scope.outputs.migrations == 'true'
-    runs-on: [self-hosted, wsl]
-    concurrency:
-      group: database-onboarding-wsl
-      cancel-in-progress: false
-    env:
-      SUPABASE_DB_CONTAINER: supabase_db_stride-ci
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - run: npm ci
-      - name: Isolate Supabase from the local stack
-        run: scripts/ci-supabase-isolate.sh
       - name: Start isolated database and install Chromium
         run: |
-          npx supabase stop --no-backup || true
           npm run db:start &
           database_pid=$!
-          npx playwright install chromium &
+          npx playwright install --with-deps chromium &
           browser_pid=$!
           setup_status=0
           wait "$database_pid" || setup_status=$?
@@ -166,15 +164,16 @@ jobs:
       - run: scripts/supabase-garmin-schema.sh
       - run: npm run db:test
       - run: npm run test:integration
+        if: matrix.shard == 1
       - run: npm run db:types && git diff --exit-code src/server/supabase/database.types.ts
-      - run: npm run test:e2e:onboarding
+      - run: npm run test:e2e:onboarding -- --shard=${{ matrix.shard }}/3
       - name: Browser report
         if: always()
         run: node scripts/e2e-report.ts test-results/report.json >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: onboarding-results
+          name: onboarding-${{ matrix.shard }}-results
           include-hidden-files: true
           path: |
             test-results/report.json
@@ -184,18 +183,12 @@ jobs:
             test-results/.last-run.json
           if-no-files-found: warn
           retention-days: 7
-      - name: Stop the isolated database
-        if: always()
-        run: npx supabase stop --no-backup
 
   validate:
     needs: [scope, quality, browser]
     if: always()
-    runs-on: [self-hosted, ci]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
       - name: Assert required validation results
         env:
           NEEDS: ${{ toJSON(needs) }}
@@ -220,11 +213,8 @@ jobs:
   database:
     needs: [scope, database-onboarding]
     if: always()
-    runs-on: [self-hosted, ci]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
       - name: Assert required database results
         env:
           NEEDS: ${{ toJSON(needs) }}
