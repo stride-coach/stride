@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   axisLanes,
   axisReadings,
+  axisTicks,
+  clockAtDistance,
+  elevationTicks,
+  nightLabel,
+  rainLabel,
   roadbookRows,
   roadbookTotals,
 } from "@/features/races/axis";
+import { fitLabels, placeLabel } from "@/features/races/axis-layout";
 import { formatClock } from "@/features/races/format";
 import { profileData } from "@/features/races/profile";
 import { planProfile } from "@/features/races/timeline";
@@ -153,12 +159,93 @@ describe("lanes", () => {
     expect(lanes.pace).toHaveLength(3);
     expect(lanes.fueling).toHaveLength(3);
     expect(lanes.stations.map((station) => station.cutoff)).toEqual([
-      false,
-      true,
-      false,
-      false,
+      null,
+      "barrière 11:00",
+      null,
+      null,
     ]);
+    expect(lanes.stations[0]!.clock).toBe(
+      formatClock(timeline.stations[0]!.clockMinutes),
+    );
+    expect(lanes.temperature.map((item) => item.label)).toEqual([
+      "3°",
+      "8°",
+      "12°",
+      "6°",
+    ]);
+    expect(
+      lanes.pace.every(
+        (item) => item.label === null || /^\d+:\d\d$/.test(item.label),
+      ),
+    ).toBe(true);
+    expect(lanes.ticks.map((tick) => tick.label)).toEqual([
+      "0 km",
+      "10 km",
+      "20 km",
+      "30 km",
+      "40 km",
+    ]);
+    expect(lanes.elevationTicks.length).toBeGreaterThan(0);
     expect(lanes.temperature).toHaveLength(4);
     expect(lanes.walk.length).toBe(model.portions.length);
+  });
+});
+
+describe("lane labels", () => {
+  const stations = [
+    { distanceM: 0, clockMinutes: 420, stopSeconds: 0 },
+    { distanceM: 10_000, clockMinutes: 480, stopSeconds: 600 },
+    { distanceM: 20_000, clockMinutes: 560, stopSeconds: 0 },
+  ];
+
+  it("reads the passage clock between stations, after the stop", () => {
+    expect(clockAtDistance(stations, 0)).toBe(420);
+    expect(clockAtDistance(stations, 5_000)).toBe(450);
+    expect(clockAtDistance(stations, 15_000)).toBe(525);
+    expect(clockAtDistance(stations, 30_000)).toBe(560);
+    expect(clockAtDistance([], 1_000)).toBe(0);
+  });
+
+  it("names rain windows by the hour and night by its start", () => {
+    expect(rainLabel(14 * 60 + 10, 16 * 60 + 40)).toBe("Averses 14h–17h");
+    expect(rainLabel(23 * 60 + 30, 25 * 60)).toBe("Averses 23h–1h");
+    expect(rainLabel(14 * 60, 14 * 60)).toBe("Averses vers 14h");
+    expect(nightLabel(19 * 60 + 5)).toBe("Nuit dès 19:05");
+  });
+
+  it("picks a round kilometre step and elevation scale", () => {
+    expect(axisTicks(121_300).map((tick) => tick.label)).toEqual([
+      "0 km",
+      "20 km",
+      "40 km",
+      "60 km",
+      "80 km",
+      "100 km",
+      "120 km",
+    ]);
+    expect(axisTicks(10_000).at(-1)!.label).toBe("10 km");
+    expect(elevationTicks([42, 180, 95]).map((tick) => tick.label)).toEqual([
+      "50 m",
+      "100 m",
+      "150 m",
+    ]);
+    expect(elevationTicks([])).toEqual([]);
+  });
+
+  it("keeps labels apart, the important ones first", () => {
+    expect(
+      fitLabels(
+        [
+          { at: 0, width: 40 },
+          { at: 0.05, width: 40 },
+          { at: 0.5, width: 40 },
+          { at: 0.52, width: 40, priority: 1 },
+        ],
+        400,
+      ),
+    ).toEqual([true, false, false, true]);
+    expect(placeLabel(0, 40, 400)).toBe(0);
+    expect(placeLabel(1, 40, 400)).toBe(360);
+    expect(placeLabel(0.5, 40, 400)).toBe(180);
   });
 });

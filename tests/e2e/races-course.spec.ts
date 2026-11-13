@@ -53,6 +53,10 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     await expect(cursor).toContainText("km 30 ·");
     await axis.press("Home");
     await expect(axis).toHaveAttribute("aria-valuetext", /^km 0, /);
+    await axis.press("Shift+ArrowRight");
+    await expect(axis).toHaveAttribute("aria-valuetext", /^km 1, /);
+    await expect(page.getByText(/^km 1 · \d\d:\d\d$/).first()).toBeVisible();
+    await axis.press("Home");
     await expect(cursor.getByText("Terrain")).toBeVisible();
     await expect(cursor.getByText("Consigne")).toBeVisible();
     const roadbook = page.getByRole("region", { name: "Carnet de route" });
