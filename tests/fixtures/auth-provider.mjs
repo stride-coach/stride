@@ -2952,7 +2952,22 @@ createServer(async (request, response) => {
     tables.race_nutrition_plans = [];
     tables.race_drop_bags = [];
     tables.race_setting_changes = [];
-    tables.fueling_tests = [];
+    tables.fueling_tests = url.searchParams.get("capped")
+      ? [
+          {
+            id: randomUUID(),
+            user_id: user.id,
+            tested_on: new Date(Date.now() - 20 * day)
+              .toISOString()
+              .slice(0, 10),
+            activity_id: null,
+            carbs_per_hour_g: 50,
+            duration_seconds: 2 * 3600,
+            tolerance: "good",
+            note: null,
+          },
+        ]
+      : [];
     tables.race_crew_links = [];
     if (url.searchParams.get("crew"))
       race.race_date = new Date(Date.now() + day).toISOString().slice(0, 10);
