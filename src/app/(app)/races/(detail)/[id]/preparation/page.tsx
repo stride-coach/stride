@@ -76,17 +76,21 @@ function KeySessionList({ items }: { items: KeySessionItem[] }) {
       {items.map((item) => (
         <li
           key={item.sessionKey}
-          className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
+          className="flex items-start gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
         >
           <span className="w-16 shrink-0 text-label text-muted-foreground tabular-nums">
             {item.date}
           </span>
-          <Link
-            href={item.href}
-            className="min-w-0 flex-1 font-medium hover:text-primary"
-          >
-            {item.title}
-          </Link>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <Link href={item.href} className="font-medium hover:text-primary">
+              {item.title}
+            </Link>
+            {item.purpose && (
+              <span className="text-label text-pretty text-secondary-foreground">
+                {item.purpose}
+              </span>
+            )}
+          </span>
           <StateLabel state={sessionStates[item.state]} />
         </li>
       ))}
@@ -157,45 +161,47 @@ export default async function RacePreparationPage({
               préparera cette course.
             </EmptyState>
           )}
-          {demands.length > 0 && (
-            <RaceCard>
-              <DemandList demands={demands} headingId="prep-demands" />
-            </RaceCard>
-          )}
-          {keys && (
-            <section
-              aria-labelledby="prep-keys"
-              className="flex flex-col gap-2"
-            >
-              <div className="flex items-baseline gap-3">
-                <h2 id="prep-keys" className="font-semibold">
-                  Séances clés pour cette course
-                </h2>
-                <span className="text-label text-muted-foreground tabular-nums">
-                  {keys.done} / {keys.total}
-                </span>
-              </div>
-              {keys.total === 0 ? (
-                <p className="text-secondary-foreground">
-                  Ton plan ne marque aucune séance clé avant cette course.
-                </p>
-              ) : (
-                <>
-                  <KeySessionList items={nextKeys(keys.items)} />
-                  {keys.items.length > nextKeys(keys.items).length && (
-                    <details className="group">
-                      <summary className="inline-flex min-h-control-touch cursor-pointer items-center text-label text-primary hover:text-foreground md:min-h-0">
-                        Voir les {keys.total} séances clés
-                      </summary>
-                      <div className="pt-2">
-                        <KeySessionList items={keys.items} />
-                      </div>
-                    </details>
-                  )}
-                </>
-              )}
-            </section>
-          )}
+          <div className="grid items-start gap-5 lg:grid-cols-2">
+            {demands.length > 0 && (
+              <RaceCard>
+                <DemandList demands={demands} headingId="prep-demands" />
+              </RaceCard>
+            )}
+            {keys && (
+              <section
+                aria-labelledby="prep-keys"
+                className="flex flex-col gap-2"
+              >
+                <div className="flex items-baseline gap-3">
+                  <h2 id="prep-keys" className="font-semibold">
+                    Séances clés pour cette course
+                  </h2>
+                  <span className="text-label text-muted-foreground tabular-nums">
+                    {keys.done} / {keys.total}
+                  </span>
+                </div>
+                {keys.total === 0 ? (
+                  <p className="text-secondary-foreground">
+                    Ton plan ne marque aucune séance clé avant cette course.
+                  </p>
+                ) : (
+                  <>
+                    <KeySessionList items={nextKeys(keys.items)} />
+                    {keys.items.length > nextKeys(keys.items).length && (
+                      <details className="group">
+                        <summary className="inline-flex min-h-control-touch cursor-pointer items-center text-label text-primary hover:text-foreground md:min-h-0">
+                          Voir les {keys.total} séances clés
+                        </summary>
+                        <div className="pt-2">
+                          <KeySessionList items={keys.items} />
+                        </div>
+                      </details>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
+          </div>
         </div>
         <aside aria-label="Avant la course" className="flex flex-col gap-5">
           <RaceCard aria-labelledby="prep-before">

@@ -10,6 +10,7 @@ export type KeySessionState = "done" | "partial" | "missed" | "upcoming";
 export type KeySessionItem = {
   sessionKey: string;
   title: string;
+  purpose: string;
   date: string;
   state: KeySessionState;
   href: string;
@@ -24,7 +25,13 @@ export function raceKeySessions({
 }: {
   sessions: Pick<
     PlanSession,
-    "sessionKey" | "title" | "scheduledOn" | "isKey" | "kind" | "sport"
+    | "sessionKey"
+    | "title"
+    | "purpose"
+    | "scheduledOn"
+    | "isKey"
+    | "kind"
+    | "sport"
   >[];
   statuses: ReadonlyMap<string, MatchStatus>;
   weekStarts: readonly string[];
@@ -52,6 +59,7 @@ export function raceKeySessions({
       return {
         sessionKey: session.sessionKey,
         title: session.title,
+        purpose: session.purpose,
         date: formatDayMonthShort(session.scheduledOn),
         state:
           status === "completed"
