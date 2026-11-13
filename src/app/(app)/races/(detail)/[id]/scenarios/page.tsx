@@ -39,6 +39,8 @@ import {
 } from "@/features/races/timeline";
 import { isStation } from "@/features/races/waypoints";
 import { compareScenarios } from "@/features/races/scenario-compare";
+import { maximumCustomScenarios } from "@/features/races/custom-scenarios";
+import { defaultStartMinutes } from "@/features/races/race";
 import { ScenarioComparisonView } from "@/features/races/components/scenario-comparison";
 import type { RaceWeather } from "@/features/races/weather";
 import type { ScenarioKey } from "@/features/races/workspace";
@@ -53,10 +55,18 @@ import type { RaceWorkspaceData } from "@/server/races/races";
 import { planFor, timelineFor, weatherFor } from "@/server/races/views";
 
 const scenarioSchema = z
-  .enum(["ambitious", "target", "cautious"])
+  .union([
+    z.enum(["ambitious", "target", "cautious"]),
+    z
+      .string()
+      .regex(
+        /^custom:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      )
+      .transform((value) => value as ScenarioKey),
+  ])
   .catch("target");
 
-const scenarioNames: Record<ScenarioKey, string> = {
+const scenarioNames: Partial<Record<ScenarioKey, string>> = {
   ambitious: "Ambitieux",
   target: "Cible",
   cautious: "Prudent",
@@ -337,6 +347,8 @@ function PlanBody({
           testedCapG: data.fuelingCapG,
         })}
         evidence={evidence}
+        startMinutes={data.plan.startMinutes ?? defaultStartMinutes}
+        customLimit={maximumCustomScenarios}
         base={base}
         raceId={data.race.id}
         raceRevision={data.race.revision}
@@ -366,8 +378,11 @@ function PlanBody({
         </div>
       </section>
       <p className="hidden text-body font-semibold print:block">
-        Scénario {scenarioNames[planned.scenario.key].toLowerCase()} ·{" "}
-        {formatHours(planned.scenario.seconds)}
+        Scénario{" "}
+        {(
+          scenarioNames[planned.scenario.key] ?? planned.scenario.label
+        ).toLowerCase()}{" "}
+        · {formatHours(planned.scenario.seconds)}
       </p>
       <section className="flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6 print:block">
         <div className="flex min-w-0 flex-1 flex-col gap-4.5">

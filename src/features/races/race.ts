@@ -26,6 +26,7 @@ export type RacePlan = {
   bladderMl: number | null;
   caffeineMaxMg: number;
   roadbookImport: RoadbookImportSummary | null;
+  planB: string | null;
 };
 
 export const roadbookImportSchema = z.object({
@@ -57,12 +58,13 @@ export const defaultPlan: RacePlan = {
   bladderMl: null,
   caffeineMaxMg: 200,
   roadbookImport: null,
+  planB: null,
 };
 
 export const defaultStartMinutes = 8 * 60;
 
 export const planColumns =
-  "start_time, start_time_confirmed, ambitious_duration_seconds, cautious_duration_seconds, cutoff_duration_seconds, labels, walk_grade_percent, walk_pace_seconds_per_km, aid_stop_seconds, water_stop_seconds, carbs_per_hour_g, water_ml_per_hour, sodium_mg_per_hour, nutrition_alarm_minutes, night_caffeine, flask_ml, flask_count, bladder_ml, caffeine_max_mg, roadbook_import, revision";
+  "start_time, start_time_confirmed, ambitious_duration_seconds, cautious_duration_seconds, cutoff_duration_seconds, labels, walk_grade_percent, walk_pace_seconds_per_km, aid_stop_seconds, water_stop_seconds, carbs_per_hour_g, water_ml_per_hour, sodium_mg_per_hour, nutrition_alarm_minutes, night_caffeine, flask_ml, flask_count, bladder_ml, caffeine_max_mg, roadbook_import, plan_b, revision";
 
 export const planRowSchema = z
   .object({
@@ -86,6 +88,7 @@ export const planRowSchema = z
     bladder_ml: z.number().int().nullable(),
     caffeine_max_mg: z.number().int(),
     roadbook_import: z.unknown().nullable(),
+    plan_b: z.string().nullable().optional().catch(null),
     revision: z.number().int().positive(),
   })
   .transform((row): RacePlan => ({
@@ -111,6 +114,7 @@ export const planRowSchema = z
     caffeineMaxMg: row.caffeine_max_mg,
     roadbookImport:
       roadbookImportSchema.safeParse(row.roadbook_import).data ?? null,
+    planB: row.plan_b ?? null,
   }));
 
 export const planInputSchema = z.object({
@@ -133,6 +137,12 @@ export const planInputSchema = z.object({
   flaskCount: z.number().int().min(0).max(6),
   bladderMl: z.number().int().min(250).max(3000).nullable(),
   caffeineMaxMg: z.number().int().min(0).max(600),
+  planB: z
+    .string()
+    .regex(
+      /^(cautious|ambitious|custom:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/,
+    )
+    .nullable(),
 });
 export type PlanInput = z.infer<typeof planInputSchema>;
 

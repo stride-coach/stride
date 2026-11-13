@@ -143,3 +143,58 @@ describe("scenario tenability", () => {
     expect(carbsStatus(60, null)?.status).toBe("jamais testé");
   });
 });
+
+describe("custom scenarios", () => {
+  const custom: Scenario = {
+    key: "custom:11111111-1111-4111-8111-111111111111",
+    label: "Sans bâtons",
+    seconds: 5.5 * 3600,
+    custom: {
+      id: "11111111-1111-4111-8111-111111111111",
+      name: "Sans bâtons",
+      targetSeconds: 5.5 * 3600,
+      walkGradePercent: 12,
+      aidStopSeconds: 120,
+      carbsPerHourG: 90,
+      position: 0,
+    },
+  };
+  const result = compareScenarios({
+    model,
+    race,
+    plan: { ...plan, planB: custom.key },
+    scenarios: [custom, ambitious, target, cautious],
+    shown: "target",
+    timeZone: stored.timeZone,
+    timeline,
+  });
+  const card = result.cards.at(-1)!;
+
+  it("comes after the built-in scenarios with its own settings", () => {
+    expect(result.cards.map((item) => item.label)).toEqual([
+      "Prudent",
+      "Objectif",
+      "Ambitieux",
+      "Sans bâtons",
+    ]);
+    expect(card.customId).toBe("11111111-1111-4111-8111-111111111111");
+    expect(card.settings).toEqual({
+      walkGradePercent: 12,
+      aidStopSeconds: 120,
+      carbsPerHourG: 90,
+    });
+    expect(card.walk).toMatch(/^dès 12 %/);
+    expect(card.carbs?.value).toBe("90 g/h");
+  });
+
+  it("walks less with a steeper walking threshold", () => {
+    const walked = (value: string) =>
+      Number(value.split("·")[1].replace(",", ".").replace("km", "").trim());
+    const objective = result.cards.find((item) => item.isTarget)!;
+    expect(walked(card.walk)).toBeLessThan(walked(objective.walk));
+  });
+
+  it("flags the scenario kept as plan B", () => {
+    expect(result.cards.filter((item) => item.planB)).toEqual([card]);
+  });
+});
