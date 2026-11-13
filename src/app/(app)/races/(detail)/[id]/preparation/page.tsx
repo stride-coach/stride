@@ -29,6 +29,9 @@ import { loadPlanOverview } from "@/server/plans/overview";
 import { loadRace } from "@/server/races/load";
 import { loadOnTrackInputs } from "@/server/races/on-track";
 import { listRaces } from "@/server/races/races";
+import { readRaceLessons } from "@/server/races/lesson-store";
+import { lessonSource } from "@/features/races/lessons";
+import { LessonKindStatus } from "@/features/races/components/race-lessons";
 
 const sessionStates: Record<
   KeySessionState,
@@ -142,6 +145,17 @@ export default async function RacePreparationPage({
     maxWeeklyRunSeconds: inputs.maxWeeklyRunSeconds,
   });
   const prep = preparationRaces(races, data.race, today);
+  const pastIds = races
+    .filter(
+      (item) => item.id !== data.race.id && item.date && item.date < today,
+    )
+    .map((item) => item.id);
+  const kept = lessonSource({
+    races,
+    race: data.race,
+    today,
+    lessons: await readRaceLessons(context, pastIds),
+  });
   const reading = onTrack.goal.verdict;
   return (
     <>
@@ -267,6 +281,35 @@ export default async function RacePreparationPage({
                 className="self-start text-label text-primary hover:text-foreground"
               >
                 Modifier
+              </Link>
+            </RaceCard>
+          )}
+          {kept && (
+            <RaceCard aria-labelledby="prep-lessons">
+              <h2
+                id="prep-lessons"
+                className="text-label font-medium text-muted-foreground"
+              >
+                {kept.edition
+                  ? `Ce que tu gardes de l’édition ${kept.race.date.slice(0, 4)}`
+                  : `Ce que tu gardes de ${kept.race.name}`}
+              </h2>
+              <ul className="flex flex-col">
+                {kept.lessons.map((lesson) => (
+                  <li
+                    key={lesson.id}
+                    className="flex flex-col gap-0.5 border-t border-border py-2 first:border-t-0 first:pt-0"
+                  >
+                    <LessonKindStatus kind={lesson.kind} />
+                    <span className="text-pretty">{lesson.body}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={`/races/${kept.race.id}/after`}
+                className="self-start text-label text-primary hover:text-foreground"
+              >
+                Voir l’après-course
               </Link>
             </RaceCard>
           )}
