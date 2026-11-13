@@ -1,3 +1,4 @@
+import { ultraDistanceKm } from "@/features/progress/goal";
 import { z } from "zod";
 import type { PlanBlock } from "@/features/plans/model/plan";
 import type { ProgramOverview } from "@/features/plans/view/program";
@@ -13,23 +14,61 @@ import {
 } from "./race";
 import { isStation, type Waypoint } from "./waypoints";
 
-export const racesViews = ["upcoming", "past", "all"] as const;
+export const racesViews = ["season", "past"] as const;
 export type RacesView = (typeof racesViews)[number];
 
-export const racesViewLabels: Record<RacesView, string> = {
-  upcoming: "À venir",
-  past: "Passées",
-  all: "Toutes",
-};
-
-const viewSchema = z.enum(racesViews).catch("upcoming");
+const viewSchema = z.enum(racesViews).catch("season");
 
 export function parseRacesView(value: unknown): RacesView {
   return viewSchema.parse(Array.isArray(value) ? value[0] : value);
 }
 
 export function racesViewHref(view: RacesView) {
-  return view === "upcoming" ? "/races" : `/races?view=${view}`;
+  return view === "season" ? "/races" : `/races?view=${view}`;
+}
+
+export function seasonLabel(today: string) {
+  const year = Number(today.slice(0, 4));
+  const start = Number(today.slice(5, 7)) >= 9 ? year : year - 1;
+  return `${start}–${String((start + 1) % 100).padStart(2, "0")}`;
+}
+
+export function raceTypeLabel(race: Pick<RaceSummary, "kind" | "distanceKm">) {
+  if (race.kind === "road") return "Route";
+  return (race.distanceKm ?? 0) >= ultraDistanceKm ? "Ultra" : "Trail";
+}
+
+const easyKinds = new Set(["easy", "recovery", "rest", "mobility"]);
+const easyHorizonDays = 14;
+
+export function easyDaysBefore(
+  sessions: readonly { scheduledOn: string; kind: string }[],
+  raceDate: string,
+) {
+  const from = shiftDate(raceDate, -easyHorizonDays - 7);
+  const near = sessions.filter(
+    (session) => session.scheduledOn >= from && session.scheduledOn < raceDate,
+  );
+  if (near.length === 0) return null;
+  let days = 0;
+  for (let offset = 1; offset <= easyHorizonDays; offset += 1) {
+    const day = shiftDate(raceDate, -offset);
+    if (
+      near.some(
+        (session) =>
+          session.scheduledOn === day && !easyKinds.has(session.kind),
+      )
+    )
+      break;
+    days += 1;
+  }
+  return days;
+}
+
+function shiftDate(day: string, days: number) {
+  const date = new Date(`${day}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 const priorityRank = { A: 0, B: 1, C: 2 } as const;

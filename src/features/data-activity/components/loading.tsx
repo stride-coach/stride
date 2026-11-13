@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { parseRacesView } from "@/features/races/overview";
 import { RacesTitle } from "@/features/races/components/races-title";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -212,10 +211,7 @@ export function RacesLoading() {
       className="flex flex-col xl:flex-row xl:items-start"
     >
       <div className="flex min-w-0 flex-1 flex-col">
-        <RacesTitle
-          view={view}
-          subtitle={<Skeleton className="h-6 w-56 max-w-full" />}
-        />
+        <RacesTitle subtitle={<Skeleton className="h-6 w-56 max-w-full" />} />
         <div aria-hidden="true" className="flex flex-col">
           {view !== "past" && (
             <div className="flex flex-col gap-4 border-b border-border px-4 py-4.5 md:px-5">
@@ -224,12 +220,7 @@ export function RacesLoading() {
               <Skeleton className="h-24 w-full" />
             </div>
           )}
-          <div
-            className={cn(
-              "flex flex-col",
-              view === "upcoming" && "max-md:hidden",
-            )}
-          >
+          <div className="flex flex-col">
             {[0, 1, 2, 3].map((item) => (
               <div
                 key={item}

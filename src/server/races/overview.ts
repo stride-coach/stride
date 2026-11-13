@@ -10,6 +10,7 @@ import {
   splitRaces,
 } from "@/features/races/overview";
 import type { OnboardingContext } from "@/server/onboarding/context";
+import { loadPlanOverview } from "@/server/plans/overview";
 import { loadOnTrackInputs } from "./on-track";
 import { listRaces, readWorkspace } from "./races";
 import { readRaceResults } from "./results";
@@ -18,13 +19,17 @@ export const readRacesOverview = cache(
   async (context: OnboardingContext, today: string) => {
     const races = await listRaces(context);
     const split = splitRaces(races, today);
-    const [data, inputs, results] = await Promise.all([
+    const [data, inputs, results, planOverview] = await Promise.all([
       split.featured
         ? readWorkspace(context, split.featured.id)
         : Promise.resolve(null),
       loadOnTrackInputs(context, today),
       readRaceResults(context, split.past),
+      loadPlanOverview(context).catch(() => null),
     ]);
+    const sessions = (planOverview?.plan.state.sessions ?? []).map(
+      (session) => ({ scheduledOn: session.scheduledOn, kind: session.kind }),
+    );
     const phases = planPhases(inputs.program, inputs.blockKinds);
     const roadGoals = Object.fromEntries(
       split.calendar.flatMap((race) => {
@@ -50,6 +55,7 @@ export const readRacesOverview = cache(
         results,
         marks,
         values,
+        sessions,
       };
     const progress = preparationProgress(preparationRows(data));
     return {
@@ -63,6 +69,7 @@ export const readRacesOverview = cache(
       results,
       marks,
       values,
+      sessions,
     };
   },
 );

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   countdownLabel,
+  easyDaysBefore,
   parseRacesView,
+  raceTypeLabel,
+  seasonLabel,
   pastYears,
   planPhases,
   preparationProgress,
@@ -29,11 +32,10 @@ function race(overrides: Partial<RaceSummary>): RaceSummary {
 const today = "2026-10-13";
 
 describe("races overview", () => {
-  it("falls back to the upcoming view for unknown values", () => {
+  it("falls back to the season view for unknown values", () => {
     expect(parseRacesView("past")).toBe("past");
-    expect(parseRacesView(["all", "past"])).toBe("all");
-    expect(parseRacesView("nope")).toBe("upcoming");
-    expect(parseRacesView(undefined)).toBe("upcoming");
+    expect(parseRacesView("nope")).toBe("season");
+    expect(parseRacesView(undefined)).toBe("season");
   });
 
   it("splits races and picks the featured one by priority then date", () => {
@@ -223,5 +225,43 @@ describe("races overview", () => {
   it("returns no timeline without a dated upcoming race", () => {
     expect(seasonTimeline([race({ date: null })], today)).toBeNull();
     expect(seasonTimeline([], today)).toBeNull();
+  });
+});
+
+describe("season page", () => {
+  it("names the season from September to August", () => {
+    expect(seasonLabel("2026-11-13")).toBe("2026–27");
+    expect(seasonLabel("2027-03-20")).toBe("2026–27");
+    expect(seasonLabel("2027-09-01")).toBe("2027–28");
+  });
+
+  it("reads only the past view from the query", () => {
+    expect(parseRacesView("past")).toBe("past");
+    expect(parseRacesView("upcoming")).toBe("season");
+    expect(parseRacesView(["all"])).toBe("season");
+  });
+
+  it("calls an ultra trail an ultra", () => {
+    expect(raceTypeLabel({ kind: "trail", distanceKm: 120 })).toBe("Ultra");
+    expect(raceTypeLabel({ kind: "trail", distanceKm: 45 })).toBe("Trail");
+    expect(raceTypeLabel({ kind: "road", distanceKm: 100 })).toBe("Route");
+  });
+
+  it("counts the easy days just before a race", () => {
+    const sessions = [
+      { scheduledOn: "2026-11-17", kind: "threshold" },
+      { scheduledOn: "2026-11-18", kind: "easy" },
+      { scheduledOn: "2026-11-20", kind: "rest" },
+      { scheduledOn: "2026-11-21", kind: "easy" },
+      { scheduledOn: "2026-11-22", kind: "race" },
+    ];
+    expect(easyDaysBefore(sessions, "2026-11-22")).toBe(4);
+    expect(
+      easyDaysBefore(
+        [...sessions, { scheduledOn: "2026-11-21", kind: "intervals" }],
+        "2026-11-22",
+      ),
+    ).toBe(0);
+    expect(easyDaysBefore([], "2026-11-22")).toBeNull();
   });
 });
