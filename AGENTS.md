@@ -50,6 +50,7 @@ Stride is a web-first personal running coach for road and trail athletes. This r
 - Design first: for a new screen or user-visible UI change, update the affected board artboards before implementing, then build from them.
 - Never generate, transform, or commit derivative images or derive production assets unless explicitly requested.
 - Temporary visual validation artifacts, including rendered artboards, must remain untracked. Store local screenshots in ignored `test-results/` or outside the repository.
+- Pull requests that change user-visible UI link a private visual review Artifact comparing the board and the branch render, as described in `docs/design/design-board.md`.
 
 ## Delivery
 
