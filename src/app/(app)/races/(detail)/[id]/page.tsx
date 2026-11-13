@@ -25,6 +25,8 @@ import {
 import { planProfile } from "@/features/races/timeline";
 import type { NutritionProduct } from "@/features/fueling/products";
 import { RaceAxis } from "@/features/races/components/race-axis";
+import { RacePlanSummary } from "@/features/races/components/race-header";
+import { planReading } from "@/features/races/plan-reading";
 import { AxisFocusProvider } from "@/features/races/components/axis-focus";
 import { SimulationPanel } from "@/features/races/components/simulation-panel";
 import { simulationSummary } from "@/features/races/simulation-settings";
@@ -94,6 +96,17 @@ function CourseWorkspace({
     const cutoff = cutoffFor(data, model, planned);
     return (
       <ScenarioRevisions race={data.race.revision} plan={data.plan.revision}>
+        <RacePlanSummary
+          race={data.race}
+          plan={data.plan}
+          course={data.course}
+          waypoints={data.waypoints}
+          reading={planReading({
+            stations: timeline.stations,
+            rain: lanes.rain,
+            night: lanes.night,
+          })}
+        />
         <RaceAxis
           raceId={data.race.id}
           alert={
@@ -174,6 +187,7 @@ function CourseWorkspace({
             data: map,
             segments: profile.segments,
             title: data.race.name,
+            fileName: data.course?.fileName ?? null,
             rainLabel: weather?.mode === "forecast" ? "Averses" : "Météo",
             hasWeather: profile.rain.length > 0,
           }}
@@ -201,6 +215,12 @@ function CourseWorkspace({
   )!;
   return (
     <>
+      <RacePlanSummary
+        race={data.race}
+        plan={data.plan}
+        course={data.course}
+        waypoints={data.waypoints}
+      />
       <MapCard
         key={data.race.kind}
         data={map}
@@ -315,16 +335,30 @@ export default async function RaceCoursePage({
     const estimate = data.race.kind === "trail" ? estimateFor(data) : null;
     if (estimate)
       return (
-        <EstimateWorkspace
-          data={data}
-          model={estimate.model}
-          planned={estimate.planned}
-          products={await readNutritionLibrary(context)}
-        />
+        <>
+          <RacePlanSummary
+            race={data.race}
+            plan={data.plan}
+            course={data.course}
+            waypoints={data.waypoints}
+          />
+          <EstimateWorkspace
+            data={data}
+            model={estimate.model}
+            planned={estimate.planned}
+            products={await readNutritionLibrary(context)}
+          />
+        </>
       );
     const activities = await listCourseActivities(context);
     return (
       <>
+        <RacePlanSummary
+          race={data.race}
+          plan={data.plan}
+          course={data.course}
+          waypoints={data.waypoints}
+        />
         <RaceStatus data={data} askTarget={false} />
         <CourseImport
           race={data.race}

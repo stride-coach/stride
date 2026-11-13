@@ -1,5 +1,5 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { UploadIcon } from "lucide-react";
+import { PencilIcon, UploadIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
@@ -89,7 +89,6 @@ type Stat = {
   value: React.ReactNode;
   label: string;
   edit?: boolean;
-  mobileOnly?: boolean;
 };
 
 function averagePace(
@@ -122,10 +121,7 @@ function stats(
       ? course.elevationGainM
       : (race.elevationGainM ?? null);
   const pace = averagePace(race, plan, course, waypoints);
-  const margin =
-    race.kind === "trail" && plan.cutoffSeconds && race.targetSeconds
-      ? plan.cutoffSeconds - race.targetSeconds
-      : null;
+  const start = plan.startMinutes ?? defaultStartMinutes;
   return [
     {
       key: "distance",
@@ -138,14 +134,8 @@ function stats(
     },
     {
       key: "gain",
-      value: gain !== null ? `${formatInteger(gain)} m` : "—",
-      label: "D+",
-    },
-    {
-      key: "start",
-      value: formatClock(plan.startMinutes ?? defaultStartMinutes),
-      label: "Départ",
-      edit: true,
+      value: gain !== null ? `+${formatInteger(gain)} m` : "—",
+      label: "Dénivelé",
     },
     {
       key: "target",
@@ -158,13 +148,12 @@ function stats(
       value: pace ? `${formatPace(pace.overall)} /km` : "—",
       label: "Allure moyenne",
     },
-    ...(margin !== null && margin > 0
+    ...(race.targetSeconds
       ? [
           {
-            key: "margin",
-            value: formatDuration(margin),
-            label: "Marge barrière",
-            mobileOnly: true,
+            key: "finish",
+            value: formatClock(start + race.targetSeconds / 60),
+            label: "Arrivée prévue",
           },
         ]
       : []),
@@ -174,19 +163,68 @@ function stats(
 export function RaceHeader({
   race,
   plan,
-  course,
-  waypoints,
   today,
   phase = null,
   location = null,
 }: {
   race: RaceSummary;
   plan: RacePlan;
-  course: StoredCourse | null;
-  waypoints: Waypoint[];
   today: string;
   phase?: string | null;
   location?: string | null;
+}) {
+  return (
+    <section className="flex flex-col gap-1.5 border-b border-border px-4 py-4.5 md:px-5">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <PriorityBadge priority={race.priority} />
+        <span className="sr-only">Course {race.priority}</span>
+        <h1 className="min-w-0 text-verdict font-semibold text-balance">
+          {race.name}
+        </h1>
+        {location && (
+          <Chip className="max-md:hidden">
+            <span className="sr-only">Lieu : </span>
+            {location}
+          </Chip>
+        )}
+        {plan.labels.map((label) => (
+          <Chip key={label} className="max-md:hidden">
+            {label}
+          </Chip>
+        ))}
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="ml-auto size-control-touch shrink-0 text-secondary-foreground md:hidden"
+        >
+          <Link
+            href={`/races/${race.id}/edit`}
+            aria-label="Modifier l’objectif"
+          >
+            <PencilIcon aria-hidden="true" className="size-4" />
+          </Link>
+        </Button>
+        <div className="max-sm:basis-full sm:ml-auto">
+          <Countdown race={race} plan={plan} today={today} phase={phase} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function RacePlanSummary({
+  race,
+  plan,
+  course,
+  waypoints,
+  reading = null,
+}: {
+  race: RaceSummary;
+  plan: RacePlan;
+  course: StoredCourse | null;
+  waypoints: Waypoint[];
+  reading?: string | null;
 }) {
   const waypointCount = waypoints.length;
   const base = `/races/${race.id}`;
@@ -205,46 +243,19 @@ export function RaceHeader({
   const items = stats(race, plan, course, waypoints);
   const actionClass = "max-md:flex-1";
   return (
-    <section className="flex flex-col gap-3.5 border-b border-border px-4 py-4.5 md:px-5">
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-        <PriorityBadge priority={race.priority} />
-        <span className="sr-only">Course {race.priority}</span>
-        <h1 className="min-w-0 text-verdict font-semibold text-balance">
-          {race.name}
-        </h1>
-        {location && (
-          <Chip className="max-md:hidden">
-            <span className="sr-only">Lieu : </span>
-            {location}
-          </Chip>
-        )}
-        {plan.labels.map((label) => (
-          <Chip key={label} className="max-md:hidden">
-            {label}
-          </Chip>
-        ))}
-        <div className="max-sm:basis-full sm:ml-auto">
-          <Countdown race={race} plan={plan} today={today} phase={phase} />
-        </div>
-      </div>
+    <section aria-label="La course en chiffres" className="flex flex-col gap-3">
+      {reading && (
+        <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
+          <StrideMark className="mt-1 size-3.5 shrink-0" />
+          {reading}
+        </p>
+      )}
       <dl
-        className="grid grid-cols-3 gap-x-4 gap-y-3 border-y border-border py-3.5 sm:grid-cols-[repeat(var(--stat-count),minmax(0,1fr))] md:grid-cols-[repeat(var(--stat-desktop-count),minmax(0,1fr))]"
-        style={
-          {
-            "--stat-count": items.length,
-            "--stat-desktop-count": items.filter((stat) => !stat.mobileOnly)
-              .length,
-          } as React.CSSProperties
-        }
+        className="grid grid-cols-3 gap-x-4 gap-y-3 border-b border-border pb-3.5 md:grid-cols-[repeat(var(--stat-count),minmax(0,1fr))]"
+        style={{ "--stat-count": items.length } as React.CSSProperties}
       >
         {items.map((stat) => (
-          <div
-            key={stat.key}
-            className={cn(
-              "flex min-w-0 flex-col-reverse gap-0.5",
-              stat.mobileOnly && "md:hidden",
-            )}
-          >
+          <div key={stat.key} className="flex min-w-0 flex-col-reverse gap-0.5">
             <dt className="text-label text-secondary-foreground">
               {stat.label}
             </dt>
@@ -270,8 +281,8 @@ export function RaceHeader({
         ))}
       </dl>
       {course ? (
-        <div className="flex flex-wrap gap-2">
-          {trail && (
+        trail ? (
+          <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" className={actionClass}>
               <Link href={`${base}/waypoints`}>
                 <span
@@ -284,38 +295,43 @@ export function RaceHeader({
                 </span>
               </Link>
             </Button>
-          )}
-          {trail && (
             <Button asChild variant="outline" className={actionClass}>
               <Link href={`${base}/waypoints#montre`}>Envoyer à la montre</Link>
             </Button>
-          )}
-          <Button asChild variant="ghost" className="max-md:hidden">
-            <Link href={coachRequestHref(null, null, race.id)}>
-              <StrideMark className="size-3.5" />
-              Poser une question
-            </Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          <Status level="watch" className="text-body font-normal">
-            Aucun GPX pour cette course
-          </Status>
-          <div className="flex gap-2 max-md:w-full md:ml-auto">
-            <Button asChild variant="ghost" className="max-md:hidden">
+            <Button asChild variant="ghost" className={actionClass}>
               <Link href={coachRequestHref(null, null, race.id)}>
                 <StrideMark className="size-3.5" />
                 Poser une question
               </Link>
             </Button>
-            <Button asChild className={actionClass}>
-              <Link href={`${base}/course`}>
-                <UploadIcon className="size-3.5" />
-                Ajouter le GPX
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="ghost" className={actionClass}>
+              <Link href={coachRequestHref(null, null, race.id)}>
+                <StrideMark className="size-3.5" />
+                Poser une question
               </Link>
             </Button>
           </div>
+        )
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <Status level="watch" className="text-body font-normal">
+            Aucun GPX pour cette course
+          </Status>
+          <Button asChild variant="ghost" className="md:ml-auto">
+            <Link href={coachRequestHref(null, null, race.id)}>
+              <StrideMark className="size-3.5" />
+              Poser une question
+            </Link>
+          </Button>
+          <Button asChild className={actionClass}>
+            <Link href={`${base}/course`}>
+              <UploadIcon className="size-3.5" />
+              Ajouter le GPX
+            </Link>
+          </Button>
         </div>
       )}
     </section>

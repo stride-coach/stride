@@ -30,9 +30,12 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     const pace = page.locator("dl > div", { hasText: "Allure moy" });
     await expect(pace).toContainText("12:00 /km");
     await expect(page.getByText("Météo du jour J")).toHaveCount(0);
-    const margin = page.locator("dl > div", { hasText: "Marge barrière" });
-    if (viewport.width < 500) await expect(margin).toContainText("2h");
-    else await expect(margin).toBeHidden();
+    await expect(
+      page.locator("dl > div", { hasText: "Arrivée prévue" }),
+    ).toContainText("14:00");
+    await expect(
+      page.locator("dl > div", { hasText: "Marge barrière" }),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: "Poser une question" }).first(),
     ).toHaveAttribute(
@@ -737,8 +740,8 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
     page.getByRole("dialog", { name: "Modifier la course" }),
   ).toHaveCount(0, { timeout: 15_000 });
   await expect(
-    page.locator("dl > div", { hasText: "Départ" }).first(),
-  ).toContainText("09:00", { timeout: 15_000 });
+    page.locator("dl > div", { hasText: "Arrivée prévue" }).first(),
+  ).toContainText("09:39", { timeout: 15_000 });
 
   await sections.getByRole("link", { name: "Préparation" }).click();
   await expect(
