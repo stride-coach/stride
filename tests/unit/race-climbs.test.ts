@@ -75,5 +75,10 @@ describe("what the threshold changes", () => {
       );
     }
     expect(rows[0].count).toBeGreaterThan(rows.at(-1)!.count);
+    for (let index = 1; index < rows.length; index += 1)
+      expect(rows[index].share).toBeLessThanOrEqual(rows[index - 1].share);
+    expect(rows[0].share).toBeGreaterThan(0);
+    expect(rows[0].share).toBeLessThanOrEqual(1);
+    expect(rows[0].shareLabel).toMatch(/^\d+ %$/);
   });
 });
