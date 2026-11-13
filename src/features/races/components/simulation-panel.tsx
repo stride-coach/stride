@@ -15,6 +15,7 @@ import {
   type SimulationSetting,
   type SimulationSummary,
 } from "../simulation-settings";
+import { useReportRecalculation } from "./recalculation";
 
 type Values = Record<SimulationSetting, number>;
 
@@ -135,6 +136,7 @@ export function SimulationPanel({
   history?: SettingChange[];
 }) {
   const [pending, startTransition] = useTransition();
+  useReportRecalculation(pending);
   const [shown, setShown] = useOptimistic(
     values,
     (current, [setting, value]: [SimulationSetting, number]) => ({

@@ -940,6 +940,7 @@ export function WaypointWorkspace({
   passages,
   distanceM,
   stops,
+  initialPoint = null,
 }: {
   raceId: string;
   waypoints: Waypoint[];
@@ -949,12 +950,23 @@ export function WaypointWorkspace({
   passages: Passage[];
   distanceM: number;
   stops: { aidStopSeconds: number; waterStopSeconds: number };
+  initialPoint?: string | null;
 }) {
   const estimate = map === null || profile === null;
   const mobile = useIsMobile();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const opened = waypoints.find(
+    (point) =>
+      point.id === initialPoint &&
+      point.kind !== "start" &&
+      point.kind !== "finish",
+  );
+  const [selectedId, setSelectedId] = useState<string | null>(
+    opened?.id ?? null,
+  );
   const [newDistance, setNewDistance] = useState<number | null>(null);
-  const [km, setKm] = useState("");
+  const [km, setKm] = useState(() =>
+    opened ? formatKm(opened.distanceM) : "",
+  );
   const selected = waypoints.find((point) => point.id === selectedId) ?? null;
   const selectedIndex = selected ? waypoints.indexOf(selected) : -1;
   const stations = waypoints.filter(

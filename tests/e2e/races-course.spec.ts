@@ -234,6 +234,59 @@ test("the simulation settings recalculate the plan and can be undone", async ({
   await expect(panel.getByText("Arrivée", { exact: true })).toBeVisible();
 });
 
+test("the lanes zoom, pin, hide bands and open a waypoint", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const lanes = page.getByRole("region", { name: "Au fil de la course" });
+  const axis = lanes.getByRole("slider", { name: "Position sur le parcours" });
+  await expect(async () => {
+    await axis.focus();
+    await axis.press("Home");
+    await expect(axis).toHaveAttribute("aria-valuetext", /^km 0, /, {
+      timeout: 1000,
+    });
+  }).toPass();
+
+  await expect(lanes.getByText("Aperçu du parcours")).toHaveCount(0);
+  await axis.press("+");
+  await axis.press("+");
+  await expect(lanes.getByText("Aperçu du parcours")).toBeVisible();
+  await expect(lanes.getByText(/^km 0 à \d+$/)).toBeVisible();
+  await lanes.getByRole("button", { name: "Parcours entier" }).click();
+  await expect(lanes.getByText("Aperçu du parcours")).toHaveCount(0);
+
+  const box = (await axis.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.5, box.y + 40);
+  await expect(axis).toHaveAttribute("aria-valuetext", /épinglé$/);
+  const pinned = await axis.getAttribute("aria-valuetext");
+  await page.mouse.move(box.x + box.width * 0.9, box.y + 40);
+  await expect(axis).toHaveAttribute("aria-valuetext", pinned ?? "");
+  await page.mouse.click(box.x + box.width * 0.9, box.y + 40);
+  await expect(axis).not.toHaveAttribute("aria-valuetext", /épinglé$/);
+
+  const rain = lanes.getByRole("button", { name: "Pluie prévue" });
+  await expect(rain).toHaveAttribute("aria-pressed", "true");
+  await rain.click();
+  await expect(rain).toHaveAttribute("aria-pressed", "false");
+  await expect(lanes.getByText(/^Averses /)).toHaveCount(0);
+
+  await lanes
+    .getByRole("link", { name: /^Modifier Ravito du Bois, passage / })
+    .click();
+  await expect(page).toHaveURL(/\/waypoints\?point=/);
+  await expect(
+    page.getByRole("heading", { name: "Modifier · Ravito du Bois" }),
+  ).toBeVisible();
+});
+
 test("the climbs view lists the climbs and switches the walking threshold", async ({
   page,
   request,

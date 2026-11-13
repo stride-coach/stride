@@ -66,6 +66,7 @@ export type AxisLanes = {
   night: AxisBand[];
   rain: AxisBand[];
   stations: {
+    id: string;
     distanceM: number;
     name: string;
     clock: string;
@@ -377,15 +378,23 @@ export function nightLabel(fromMinutes: number) {
 
 const tickSteps = [1, 2, 5, 10, 20, 25, 50, 100];
 
-export function axisTicks(distanceM: number, maxTicks = 7) {
-  const kilometres = distanceM / 1000;
+export function axisTicksBetween(fromM: number, toM: number, maxTicks = 7) {
+  const kilometres = (toM - fromM) / 1000;
   const step =
     tickSteps.find((candidate) => kilometres / candidate <= maxTicks) ??
     tickSteps.at(-1)!;
   const ticks: { distanceM: number; label: string }[] = [];
-  for (let value = 0; value * 1000 <= distanceM; value += step)
+  for (
+    let value = Math.ceil(fromM / 1000 / step) * step;
+    value * 1000 <= toM;
+    value += step
+  )
     ticks.push({ distanceM: value * 1000, label: `${value} km` });
   return ticks;
+}
+
+export function axisTicks(distanceM: number, maxTicks = 7) {
+  return axisTicksBetween(0, distanceM, maxTicks);
 }
 
 export function elevationTicks(elevations: number[]) {
@@ -442,6 +451,7 @@ export function axisLanes({
       label: rainLabel(clockAt(band.fromM), clockAt(band.toM)),
     })),
     stations: timeline.stations.map((station) => ({
+      id: station.id,
       distanceM: station.distanceM,
       name: station.name,
       clock: formatClock(station.clockMinutes),
