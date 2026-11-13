@@ -48,9 +48,15 @@ import {
 } from "@/features/races/waypoints";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { readRaceCourses } from "./courses";
+import {
+  customScenarioColumns,
+  customScenarioRowSchema,
+} from "@/features/races/custom-scenarios";
+import type { CustomScenario } from "@/features/races/workspace";
 
 export type RaceWorkspaceData = {
   race: RaceSummary;
+  scenarios: CustomScenario[];
   plan: RacePlan;
   course: StoredCourse | null;
   waypoints: Waypoint[];
@@ -130,6 +136,7 @@ export const readWorkspace = cache(
       nutrition,
       dropBag,
       tests,
+      scenarios,
     ] = await Promise.all([
       context.client
         .from("athlete_races")
@@ -185,6 +192,12 @@ export const readWorkspace = cache(
         .from("fueling_tests")
         .select(fuelingTestColumns)
         .eq("user_id", context.userId),
+      context.client
+        .from("race_scenarios")
+        .select(customScenarioColumns)
+        .eq("user_id", context.userId)
+        .eq("race_id", raceId)
+        .order("position", { ascending: true }),
     ]);
     if (
       race.error ||
@@ -204,6 +217,12 @@ export const readWorkspace = cache(
         ? null
         : validatedCarbsPerHour(fuelingTests(tests.data ?? [])),
       race: summary(race.data),
+      scenarios: scenarios.error
+        ? []
+        : (scenarios.data ?? []).flatMap((row) => {
+            const parsed = customScenarioRowSchema.safeParse(row);
+            return parsed.success ? [parsed.data] : [];
+          }),
       plan: plan.data ? planRowSchema.parse(plan.data) : defaultPlan,
       course: course.data ? courseRowSchema.parse(course.data) : null,
       waypoints: sortWaypoints(

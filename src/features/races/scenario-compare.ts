@@ -3,6 +3,8 @@ import type { RacePlan, RaceSummary } from "./race";
 import type { RaceTimeline } from "./timeline";
 import {
   planModel,
+  scenarioModel,
+  scenarioPlan,
   type CourseModel,
   type RacePlanModel,
   type Scenario,
@@ -22,6 +24,13 @@ export type CarbsStatus = {
 export type ScenarioCard = {
   key: ScenarioKey;
   label: string;
+  customId: string | null;
+  planB: boolean;
+  settings: {
+    walkGradePercent: number;
+    aidStopSeconds: number;
+    carbsPerHourG: number;
+  };
   tenability: Tenability;
   carbs: CarbsStatus | null;
   target: string;
@@ -50,7 +59,12 @@ export type ScenarioComparison = {
   missing: ScenarioKey[];
 };
 
-const order: ScenarioKey[] = ["cautious", "target", "ambitious"];
+const order: string[] = ["cautious", "target", "ambitious"];
+
+function rank(key: ScenarioKey) {
+  const index = order.indexOf(key);
+  return index === -1 ? order.length : index;
+}
 
 const tightSeconds = 30 * 60;
 const comfortableSeconds = 60 * 60;
@@ -121,78 +135,93 @@ export function compareScenarios({
   paceFactors?: Readonly<Record<string, number>>;
 }): ScenarioComparison {
   const runs = [...scenarios]
-    .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key))
-    .map((scenario) => ({
-      scenario,
-      planned: planModel({
-        model,
-        race,
-        plan,
+    .sort((a, b) => rank(a.key) - rank(b.key))
+    .map((scenario) => {
+      const settings = scenarioPlan(plan, scenario);
+      const course = scenarioModel(model, plan, scenario);
+      return {
         scenario,
-        timeZone,
-        paceFactors,
-      }) as RacePlanModel,
-    }));
+        settings,
+        course,
+        planned: planModel({
+          model: course,
+          race,
+          plan: settings,
+          scenario,
+          timeZone,
+          paceFactors,
+        }) as RacePlanModel,
+      };
+    });
   const start = runs[0]?.planned.simulation.passages[0]?.clockMinutes ?? 0;
-  const walkedM = model.portions.reduce(
-    (sum, portion) => sum + portion.toM - portion.fromM,
-    0,
-  );
   const names = new Map(
     model.waypoints.map((waypoint) => [waypoint.id, waypoint.name]),
   );
-  const cards = runs.map(({ scenario, planned }): ScenarioCard => {
-    const { simulation } = planned;
-    const finishMinutes = start + simulation.finishSeconds / 60;
-    const margins = [
-      ...simulation.passages.flatMap((passage) =>
-        passage.marginSeconds === null
-          ? []
-          : [
+  const cards = runs.map(
+    ({ scenario, planned, settings, course }): ScenarioCard => {
+      const walkedM = course.portions.reduce(
+        (sum, portion) => sum + portion.toM - portion.fromM,
+        0,
+      );
+      const { simulation } = planned;
+      const finishMinutes = start + simulation.finishSeconds / 60;
+      const margins = [
+        ...simulation.passages.flatMap((passage) =>
+          passage.marginSeconds === null
+            ? []
+            : [
+                {
+                  seconds: passage.marginSeconds,
+                  detail: names.get(passage.waypointId) ?? "barrière",
+                },
+              ],
+        ),
+        ...(plan.cutoffSeconds
+          ? [
               {
-                seconds: passage.marginSeconds,
-                detail: names.get(passage.waypointId) ?? "barrière",
+                seconds: plan.cutoffSeconds - simulation.finishSeconds,
+                detail: "à l’arrivée",
               },
-            ],
-      ),
-      ...(plan.cutoffSeconds
-        ? [
-            {
-              seconds: plan.cutoffSeconds - simulation.finishSeconds,
-              detail: "à l’arrivée",
-            },
-          ]
-        : []),
-    ];
-    const tightest = margins.sort((a, b) => a.seconds - b.seconds)[0];
-    const carbs = carbsStatus(plan.carbsPerHourG, testedCapG);
-    return {
-      key: scenario.key,
-      label: capitalize(scenario.label),
-      tenability: tenability({
+            ]
+          : []),
+      ];
+      const tightest = margins.sort((a, b) => a.seconds - b.seconds)[0];
+      const carbs = carbsStatus(settings.carbsPerHourG, testedCapG);
+      return {
+        key: scenario.key,
+        label: capitalize(scenario.label),
+        customId: scenario.custom?.id ?? null,
+        planB: plan.planB === scenario.key,
+        settings: {
+          walkGradePercent: settings.walkGradePercent,
+          aidStopSeconds: settings.aidStopSeconds,
+          carbsPerHourG: settings.carbsPerHourG,
+        },
+        tenability: tenability({
+          feasible: simulation.feasible,
+          marginSeconds: tightest?.seconds ?? null,
+          carbsAboveTested: carbs?.status === "à valider",
+        }),
+        carbs,
+        target: formatHours(scenario.seconds),
+        finish: formatClock(finishMinutes),
+        finishDetail: finishMinutes >= 1440 ? "le lendemain" : null,
+        pace: `${formatPace(scenario.seconds / (model.course.distanceM / 1000))} /km`,
+        walk: `dès ${settings.walkGradePercent} % · ${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(walkedM / 1000)} km`,
+        margin: tightest
+          ? {
+              value: formatHours(Math.max(0, tightest.seconds)),
+              detail: tightest.detail,
+              tight: tightest.seconds < tightSeconds,
+            }
+          : null,
         feasible: simulation.feasible,
-        marginSeconds: tightest?.seconds ?? null,
-        carbsAboveTested: carbs?.status === "à valider",
-      }),
-      carbs,
-      target: formatHours(scenario.seconds),
-      finish: formatClock(finishMinutes),
-      finishDetail: finishMinutes >= 1440 ? "le lendemain" : null,
-      pace: `${formatPace(scenario.seconds / (model.course.distanceM / 1000))} /km`,
-      walk: `dès ${plan.walkGradePercent} % · ${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(walkedM / 1000)} km`,
-      margin: tightest
-        ? {
-            value: formatHours(Math.max(0, tightest.seconds)),
-            detail: tightest.detail,
-            tight: tightest.seconds < tightSeconds,
-          }
-        : null,
-      feasible: simulation.feasible,
-      isTarget: scenario.key === "target",
-      shown: scenario.key === shown,
-      seconds: scenario.seconds,
-    };
-  });
+        isTarget: scenario.key === "target",
+        shown: scenario.key === shown,
+        seconds: scenario.seconds,
+      };
+    },
+  );
   const passages: PassageRow[] = timeline.stations
     .filter((station) => station.kind !== "start")
     .map((station) => ({

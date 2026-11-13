@@ -22,10 +22,65 @@ import {
   type WaypointMark,
 } from "./waypoints";
 
-export type ScenarioKey = "ambitious" | "target" | "cautious";
-export type Scenario = { key: ScenarioKey; seconds: number; label: string };
+export type BuiltinScenarioKey = "ambitious" | "target" | "cautious";
+export type ScenarioKey = BuiltinScenarioKey | `custom:${string}`;
 
-export const scenarioLabels: Record<ScenarioKey, string> = {
+export type CustomScenario = {
+  id: string;
+  name: string;
+  targetSeconds: number;
+  walkGradePercent: number | null;
+  aidStopSeconds: number | null;
+  carbsPerHourG: number | null;
+  position: number;
+};
+
+export type Scenario = {
+  key: ScenarioKey;
+  seconds: number;
+  label: string;
+  custom?: CustomScenario;
+};
+
+export function customKey(id: string): ScenarioKey {
+  return `custom:${id}`;
+}
+
+export function isCustomKey(key: string): key is `custom:${string}` {
+  return key.startsWith("custom:");
+}
+
+export function scenarioPlan(plan: RacePlan, scenario: Scenario): RacePlan {
+  const custom = scenario.custom;
+  if (!custom) return plan;
+  return {
+    ...plan,
+    walkGradePercent: custom.walkGradePercent ?? plan.walkGradePercent,
+    aidStopSeconds: custom.aidStopSeconds ?? plan.aidStopSeconds,
+    carbsPerHourG: custom.carbsPerHourG ?? plan.carbsPerHourG,
+  };
+}
+
+export function scenarioModel(
+  model: CourseModel,
+  plan: RacePlan,
+  scenario: Scenario,
+): CourseModel {
+  const threshold = scenario.custom?.walkGradePercent;
+  if (
+    threshold === null ||
+    threshold === undefined ||
+    threshold === plan.walkGradePercent ||
+    model.portions.length === 0
+  )
+    return model;
+  return {
+    ...model,
+    portions: walkPortions(model.course, threshold, model.grades),
+  };
+}
+
+export const scenarioLabels: Record<BuiltinScenarioKey, string> = {
   ambitious: "ambitieux",
   target: "objectif",
   cautious: "prudent",
@@ -43,7 +98,11 @@ export function courseFromStored(stored: StoredCourse): Course {
   };
 }
 
-export function scenariosOf(race: RaceSummary, plan: RacePlan): Scenario[] {
+export function scenariosOf(
+  race: RaceSummary,
+  plan: RacePlan,
+  custom: readonly CustomScenario[] = [],
+): Scenario[] {
   const list: Scenario[] = [];
   if (plan.ambitiousSeconds)
     list.push({
@@ -63,7 +122,17 @@ export function scenariosOf(race: RaceSummary, plan: RacePlan): Scenario[] {
       seconds: plan.cautiousSeconds,
       label: scenarioLabels.cautious,
     });
-  return list.sort((a, b) => a.seconds - b.seconds);
+  return [
+    ...list.sort((a, b) => a.seconds - b.seconds),
+    ...[...custom]
+      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
+      .map((item) => ({
+        key: customKey(item.id),
+        seconds: item.targetSeconds,
+        label: item.name,
+        custom: item,
+      })),
+  ];
 }
 
 function virtualWaypoint(

@@ -15,6 +15,8 @@ import {
   courseModel,
   estimatedCourseModel,
   planModel,
+  scenarioModel,
+  scenarioPlan,
   scenariosOf,
   type CourseModel,
   type RacePlanModel,
@@ -48,7 +50,7 @@ export function planFor(
     data.plan,
     data.race.kind,
   );
-  const scenarios = scenariosOf(data.race, data.plan);
+  const scenarios = scenariosOf(data.race, data.plan, data.scenarios);
   const scenario =
     scenarios.find((item) => item.key === scenarioKey) ??
     scenarios.find((item) => item.key === "target") ??
@@ -56,9 +58,12 @@ export function planFor(
     null;
   const planned = scenario
     ? planModel({
-        model,
+        model: scenarioModel(model, data.plan, scenario),
         race: data.race,
-        plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
+        plan: withFuelingCap(
+          scenarioPlan(data.plan, scenario),
+          data.fuelingCapG ?? null,
+        ),
         scenario,
         timeZone: data.course.timeZone,
         paceFactors: strategy ? paceFactorsOf(strategy) : undefined,

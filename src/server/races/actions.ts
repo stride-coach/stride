@@ -71,6 +71,7 @@ export async function saveRacePlan(
       cutoff_duration_seconds: values.cutoffSeconds,
     }),
     ...(values.labels !== undefined && { labels: values.labels }),
+    ...(values.planB !== undefined && { plan_b: values.planB }),
     ...(values.walkGradePercent !== undefined && {
       walk_grade_percent: values.walkGradePercent,
     }),
