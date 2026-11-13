@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import type {
   AxisLanes,
@@ -517,6 +517,19 @@ function Roadbook({
   );
 }
 
+type Cursor = [number, (distanceM: number) => void];
+
+const AxisCursor = createContext<Cursor | null>(null);
+
+export function AxisCursorProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const cursor = useState(0);
+  return <AxisCursor value={cursor}>{children}</AxisCursor>;
+}
+
 export function RaceAxis({
   lanes,
   readings,
@@ -546,21 +559,24 @@ export function RaceAxis({
   context?: React.ReactNode;
   estimate?: boolean;
 }) {
-  const [index, setIndex] = useState(0);
-  const reading = readings[index] ?? readings[0];
-  const last = readings.length - 1;
-  const move = (next: number) => setIndex(Math.min(last, Math.max(0, next)));
-  const pick = (distanceM: number) =>
-    move(
-      readings.reduce(
-        (best, item, position) =>
-          Math.abs(item.distanceM - distanceM) <
-          Math.abs(readings[best].distanceM - distanceM)
-            ? position
-            : best,
-        0,
-      ),
+  const shared = useContext(AxisCursor);
+  const local = useState(0);
+  const [distanceM, setDistanceM] = shared ?? local;
+  const nearest = (target: number) =>
+    readings.reduce(
+      (best, item, position) =>
+        Math.abs(item.distanceM - target) <
+        Math.abs(readings[best].distanceM - target)
+          ? position
+          : best,
+      0,
     );
+  const index = nearest(distanceM);
+  const reading = readings[index];
+  const last = readings.length - 1;
+  const move = (next: number) =>
+    setDistanceM(readings[Math.min(last, Math.max(0, next))].distanceM);
+  const pick = (target: number) => move(nearest(target));
   const onPointer = (event: React.PointerEvent<HTMLDivElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     if (box.width <= 0) return;
