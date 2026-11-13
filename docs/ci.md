@@ -18,7 +18,14 @@ New commits cancel older CI runs for the same pull request. Main pushes use a un
 
 ## Runners
 
-Every job, including the release workflow, runs on the self-hosted runners labelled `wsl` (#515). GitHub-hosted runners are not used: since 2026-11-12 GitHub refused to start them (spending limit), which turned every `main` run red without running a single check. There is no fallback, so jobs wait in the queue while no `wsl` runner is online, and run once one is back.
+Every job, including the release workflow, runs on self-hosted runners (#515). GitHub-hosted runners are not used: since 2026-11-12 GitHub refused to start them (spending limit), which turned every `main` run red without running a single check. There is no fallback, so jobs wait in the queue while no matching runner is online, and run once one is back.
+
+Two pools share the `ci` label:
+
+- `wsl`: the developer's WSL machine. It runs every job, and it is the only pool for the jobs that need Docker: the containerized `browser` and `browser-quarantine` lanes and `database-onboarding`.
+- `homelab`: one runner (`homelab-1`) on the homelab that also hosts production and pre-production. It takes the container-free jobs (`scope`, `quality`, `validate`, `database` and `release-please`), so `quality` builds while the WSL runners run browser lanes. It runs as the `gh-runner` system user with no `sudo` and no Docker access, because Docker on that host would give a job control of the production containers. Its systemd unit caps it at three of the four cores, 5 GB of memory and idle I/O priority, and sets `NODE_OPTIONS=--max-old-space-size=3072`, so a build never starves production.
+
+Jobs that use `[self-hosted, ci]` run on either pool; jobs that need Docker keep `[self-hosted, wsl]`. A new runner must carry the `ci` label to take shared jobs.
 
 The self-hosted runner executes jobs one at a time, so browser lanes run sequentially there. On the self-hosted runner, `quality` skips the Actions npm cache: the runner keeps `~/.npm` between jobs, and the cache key differs from GitHub-hosted runners because the home path differs, so every job uploaded the cache again (285 seconds on the first run). Browser containers run as root; a final step returns the mounted workspace to the runner user so the next checkout can clean it. `database-onboarding` runs on the same machine as the developer's local Supabase stack, so it never uses it: `scripts/ci-supabase-isolate.sh` rewrites the checkout's `supabase/config.toml` to the `stride-ci` project with every port moved from 543xx to 553xx (and the inspector to 9083), the job stops any leftover `stride-ci` stack first and always stops it with `--no-backup` at the end, and the onboarding and integration setups refuse to run on a self-hosted runner against port 54321. A `database-onboarding-wsl` concurrency group runs one such job at a time, because the onboarding app (3110) and Garmin fixture (3310) ports are fixed; the three onboarding shards run as one job. Chromium's system libraries come from the host, so the job installs the browser without `--with-deps` and needs no `sudo`.
 
