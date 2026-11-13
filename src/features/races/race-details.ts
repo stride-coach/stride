@@ -85,7 +85,7 @@ export type ReferenceRace = {
   seconds: number;
 };
 
-const riegel = 1.06;
+export const riegel = 1.06;
 const spread = 0.05;
 const nearest = { min: 0.4, max: 2.5 };
 const month = new Intl.DateTimeFormat("fr-FR", {

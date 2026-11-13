@@ -1092,11 +1092,21 @@ test("replacing the course shows what changes before anything is replaced", asyn
     .filter({ visible: true });
   await upload.setInputFiles(file);
 
-  const preview = page.getByRole("region", { name: "Remplacer le tracé" });
+  const preview = page.getByRole("dialog", { name: "Remplacer le tracé" });
   await expect(preview).toContainText("ecotrail-v2.gpx", { timeout: 20_000 });
-  const changes = preview.getByRole("definition");
+  await expect(preview).toContainText(/^[\s\S]*\d+ points · fichier GPX/);
+  const changes = preview.getByRole("table", { name: "Ce qui change" });
+  const distance = changes.getByRole("row", { name: /^Distance/ });
+  await expect(distance.getByRole("cell").nth(0)).toHaveText("30,0 km");
+  await expect(distance.getByRole("cell").nth(1)).toHaveText(/^2[78],\d km$/);
   await expect(
-    changes.filter({ hasText: /^30,0 km → 2[78],\d km$/ }),
+    changes.getByRole("row", { name: /^Arrivée à effort égal/ }),
+  ).toContainText(/\d\d:\d\d/);
+  await preview
+    .getByRole("button", { name: "Voir les deux tracés sur la carte" })
+    .click();
+  await expect(
+    preview.getByRole("img", { name: "Les deux tracés superposés" }),
   ).toBeVisible();
   await expect(preview).toContainText(
     "Retirés avec l’ancien GPX : Point d’eau",
@@ -1107,7 +1117,13 @@ test("replacing the course shows what changes before anything is replaced", asyn
     page.getByRole("heading", { name: "Remplace le GPX de la course" }),
   ).toBeVisible();
 
+  await page.setViewportSize({ width: 390, height: 844 });
   await upload.setInputFiles(file);
+  await expect(
+    preview
+      .getByRole("definition")
+      .filter({ hasText: /^30,0 km → 2[78],\d km$/ }),
+  ).toBeVisible({ timeout: 20_000 });
   await preview.getByRole("button", { name: "Remplacer" }).click();
   await expect(page.getByText("Tracé remplacé.")).toBeVisible({
     timeout: 20_000,
@@ -1115,6 +1131,7 @@ test("replacing the course shows what changes before anything is replaced", asyn
   await expect(page).toHaveURL(
     /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb$/,
   );
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(page.getByText(/^2[78],\d km$/).first()).toBeVisible();
 });
 

@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { buildCourse } from "@/features/races/course";
-import { courseReplacement } from "@/features/races/course-replacement";
+import {
+  arrivalRow,
+  courseReplacement,
+  sameEffortArrival,
+} from "@/features/races/course-replacement";
 import { courseFromStored } from "@/features/races/workspace";
 import type { Waypoint } from "@/features/races/waypoints";
 import { stored, waypoints } from "./race-course-fixture";
@@ -125,5 +129,57 @@ describe("course replacement", () => {
     expect(replacement.rows.find((row) => row.key === "points")?.delta).toBe(
       "aucun déplacé",
     );
+  });
+
+  test("compares both routes and the point count", () => {
+    const next = line(1000, 38_000);
+    const replacement = courseReplacement({
+      current,
+      next,
+      waypoints: points,
+      incoming: [],
+      walkGradePercent: 5,
+      road: false,
+    });
+    expect(replacement.pointCount).toBe(next.points.length);
+    expect(replacement.routes.current.length).toBeLessThanOrEqual(400);
+    expect(replacement.routes.next[0]).toEqual([
+      next.points[0][0],
+      next.points[0][1],
+    ]);
+  });
+
+  test("estimates the arrival on the new course at the same effort", () => {
+    const next = line(1000, 38_000);
+    const arrival = sameEffortArrival({
+      startMinutes: 480,
+      finishMinutes: 840,
+      current,
+      next,
+      kind: "trail",
+    })!;
+    expect(arrival).toBeLessThan(840);
+    expect(arrival).toBeGreaterThan(480);
+    expect(
+      sameEffortArrival({
+        startMinutes: 480,
+        finishMinutes: 840,
+        current,
+        next: current,
+        kind: "trail",
+      }),
+    ).toBe(840);
+  });
+
+  test("reads the planned arrival on both courses", () => {
+    expect(arrivalRow(25 * 60 + 29, 25 * 60 + 36)).toEqual({
+      key: "arrival",
+      label: "Arrivée à effort égal",
+      current: "01:29",
+      next: "01:36",
+      delta: "+7 min",
+    });
+    expect(arrivalRow(600, 590)?.delta).toBe("−10 min");
+    expect(arrivalRow(null, 600)).toBeNull();
   });
 });

@@ -12,8 +12,10 @@ import {
   type RawPoint,
 } from "@/features/races/course";
 import {
+  arrivalRow,
   courseReplacement,
   normalizedName,
+  sameEffortArrival,
   type CourseReplacement,
 } from "@/features/races/course-replacement";
 import { clockToSql } from "@/features/races/format";
@@ -22,6 +24,7 @@ import { guessKind, type Waypoint } from "@/features/races/waypoints";
 import { courseFromStored } from "@/features/races/workspace";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { readWorkspace } from "./races";
+import { planFor } from "./views";
 
 export const maximumUploadBytes = 20 * 1024 * 1024;
 const offCourseM = 250;
@@ -29,6 +32,7 @@ const fallbackTimeZone = "Europe/Paris";
 
 export type CoursePreview = Omit<CourseReplacement, "carry"> & {
   fileName: string;
+  sourceLabel: string;
 };
 
 export type CourseImportResult =
@@ -180,11 +184,40 @@ export async function storeCourse(
         road: workspace.race.kind === "road",
       })
     : null;
-  if (replacement && !confirmed) {
-    const { rows: changes, moves, removed, added, kept } = replacement;
+  if (replacement && workspace.course && !confirmed) {
+    const preview = {
+      pointCount: replacement.pointCount,
+      routes: replacement.routes,
+      rows: replacement.rows,
+      moves: replacement.moves,
+      removed: replacement.removed,
+      added: replacement.added,
+      kept: replacement.kept,
+    };
+    const planned = planFor(workspace)?.planned?.simulation.passages ?? [];
+    const start = planned[0]?.clockMinutes ?? null;
+    const finish = planned.at(-1)?.clockMinutes ?? null;
+    const arrival =
+      start === null || finish === null
+        ? null
+        : arrivalRow(
+            finish,
+            sameEffortArrival({
+              startMinutes: start,
+              finishMinutes: finish,
+              current: courseFromStored(workspace.course),
+              next: course,
+              kind: workspace.race.kind,
+            }),
+          );
     return {
       status: "preview",
-      preview: { rows: changes, moves, removed, added, kept, fileName },
+      preview: {
+        ...preview,
+        rows: arrival ? [...preview.rows, arrival] : preview.rows,
+        fileName,
+        sourceLabel: source.kind === "gpx" ? "fichier GPX" : "activité Garmin",
+      },
     };
   }
   const [lat, lon] = course.points[0];
