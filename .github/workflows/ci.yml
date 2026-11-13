@@ -15,13 +15,12 @@ concurrency:
 
 jobs:
   scope:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, wsl]
     outputs:
       documentation_only: ${{ steps.scope.outputs.documentation_only }}
       migrations: ${{ steps.scope.outputs.migrations }}
       browser: ${{ steps.scope.outputs.browser }}
       browser_matrix: ${{ steps.scope.outputs.browser_matrix }}
-      runner: ${{ steps.runner.outputs.labels }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,30 +34,16 @@ jobs:
           CI_EVENT_NAME: ${{ github.event_name }}
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           CI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      - id: runner
-        run: |
-          labels='"ubuntu-latest"'
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::notice::RUNNER_STATUS_TOKEN is not set; using GitHub-hosted runners."
-          elif ! online=$(gh api "repos/$GITHUB_REPOSITORY/actions/runners" --jq '[.runners[] | select(.status == "online" and any(.labels[]; .name == "wsl"))] | length > 0'); then
-            echo "::warning::Could not list repository runners; using GitHub-hosted runners."
-          elif [ "$online" = true ]; then
-            labels='["self-hosted","wsl"]'
-          fi
-          echo "labels=$labels" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
 
   quality:
     needs: scope
     if: needs.scope.outputs.documentation_only != 'true'
-    runs-on: ${{ fromJSON(needs.scope.outputs.runner) }}
+    runs-on: [self-hosted, wsl]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: ${{ !contains(needs.scope.outputs.runner, 'self-hosted') && 'npm' || '' }}
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
@@ -68,7 +53,7 @@ jobs:
   browser:
     needs: scope
     if: needs.scope.outputs.browser == 'true'
-    runs-on: ${{ fromJSON(needs.scope.outputs.runner) }}
+    runs-on: [self-hosted, wsl]
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host
@@ -115,7 +100,7 @@ jobs:
     needs: scope
     if: github.event_name == 'push' && needs.scope.outputs.browser == 'true'
     continue-on-error: true
-    runs-on: ${{ fromJSON(needs.scope.outputs.runner) }}
+    runs-on: [self-hosted, wsl]
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host
@@ -151,23 +136,26 @@ jobs:
   database-onboarding:
     needs: scope
     if: needs.scope.outputs.migrations == 'true'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3]
+    runs-on: [self-hosted, wsl]
+    concurrency:
+      group: database-onboarding-wsl
+      cancel-in-progress: false
+    env:
+      SUPABASE_DB_CONTAINER: supabase_db_stride-ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
       - run: npm ci
+      - name: Isolate Supabase from the local stack
+        run: scripts/ci-supabase-isolate.sh
       - name: Start isolated database and install Chromium
         run: |
+          npx supabase stop --no-backup || true
           npm run db:start &
           database_pid=$!
-          npx playwright install --with-deps chromium &
+          npx playwright install chromium &
           browser_pid=$!
           setup_status=0
           wait "$database_pid" || setup_status=$?
@@ -178,16 +166,15 @@ jobs:
       - run: scripts/supabase-garmin-schema.sh
       - run: npm run db:test
       - run: npm run test:integration
-        if: matrix.shard == 1
       - run: npm run db:types && git diff --exit-code src/server/supabase/database.types.ts
-      - run: npm run test:e2e:onboarding -- --shard=${{ matrix.shard }}/3
+      - run: npm run test:e2e:onboarding
       - name: Browser report
         if: always()
         run: node scripts/e2e-report.ts test-results/report.json >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: onboarding-${{ matrix.shard }}-results
+          name: onboarding-results
           include-hidden-files: true
           path: |
             test-results/report.json
@@ -197,12 +184,18 @@ jobs:
             test-results/.last-run.json
           if-no-files-found: warn
           retention-days: 7
+      - name: Stop the isolated database
+        if: always()
+        run: npx supabase stop --no-backup
 
   validate:
     needs: [scope, quality, browser]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, wsl]
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
       - name: Assert required validation results
         env:
           NEEDS: ${{ toJSON(needs) }}
@@ -227,8 +220,11 @@ jobs:
   database:
     needs: [scope, database-onboarding]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, wsl]
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
       - name: Assert required database results
         env:
           NEEDS: ${{ toJSON(needs) }}
