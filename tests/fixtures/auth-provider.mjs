@@ -112,6 +112,7 @@ const recordsSessions = [
   access_token: accessToken(Math.floor(Date.now() / 1000) + 3600, identity),
 }));
 const day = 86_400_000;
+const redoneRaceIds = new Set();
 const daysAgo = (days, time = "07:12:00") => {
   const date = new Date(Date.now() - days * day).toISOString().slice(0, 10);
   return {
@@ -2294,6 +2295,20 @@ function selectRows(table, params) {
   }
   const id = params.get("id");
   if (id?.startsWith("eq.")) rows = rows.filter((row) => `eq.${row.id}` === id);
+  const raceFilter = params.get("race_id");
+  if (raceFilter?.startsWith("eq."))
+    rows = rows.filter(
+      (row) => !("race_id" in row) || `eq.${row.race_id}` === raceFilter,
+    );
+  const raceList = raceFilter?.match(/^in\.\((.*)\)$/);
+  if (raceList) {
+    const allowed = raceList[1]
+      .split(",")
+      .map((item) => item.replace(/"/g, ""));
+    rows = rows.filter(
+      (row) => !("race_id" in row) || allowed.includes(row.race_id),
+    );
+  }
   if (table === "race_proposals")
     for (const key of ["race_id", "status"]) {
       const filter = params.get(key);
@@ -2832,6 +2847,10 @@ createServer(async (request, response) => {
     race.target_duration_seconds = road ? 39 * 60 : 21600;
     race.race_date = new Date(Date.now() + 2 * day).toISOString().slice(0, 10);
     tables.race_scenarios = [];
+    tables.athlete_races = tables.athlete_races.filter(
+      (row) => !redoneRaceIds.has(row.id),
+    );
+    redoneRaceIds.clear();
     tables.race_lessons = [];
     tables.race_plans = [
       {
@@ -3301,6 +3320,76 @@ createServer(async (request, response) => {
       url.pathname === "/rest/v1/provider_activity_tracks"
     )
       return send(503, { message: "Records fixture read failure" });
+    if (
+      request.method === "POST" &&
+      url.pathname === "/rest/v1/rpc/redo_race"
+    ) {
+      const source = tables.athlete_races.find(
+        (row) => row.id === body.p_source,
+      );
+      if (!source) return send(400, { code: "PT404", message: "not_found" });
+      const raceId = randomUUID();
+      redoneRaceIds.add(raceId);
+      tables.athlete_races.push({
+        ...source,
+        id: raceId,
+        name: body.p_name,
+        race_date: body.p_date,
+        priority: body.p_priority,
+        target_duration_seconds: body.p_target ?? null,
+        expectation: null,
+        test_items: null,
+        revision: 1,
+      });
+      const plan = (tables.race_plans ?? []).find(
+        (row) => row.race_id === source.id,
+      );
+      if (plan)
+        tables.race_plans.push({
+          ...plan,
+          race_id: raceId,
+          plan_b: null,
+          ambitious_duration_seconds: null,
+          cautious_duration_seconds: null,
+          start_time_confirmed: false,
+          revision: 1,
+        });
+      if (body.p_course) {
+        tables.race_courses.push(
+          ...tables.race_courses
+            .filter((row) => row.race_id === source.id)
+            .map((row) => ({ ...row, race_id: raceId, revision: 1 })),
+        );
+        tables.race_waypoints.push(
+          ...tables.race_waypoints
+            .filter((row) => row.race_id === source.id)
+            .map((row) => ({
+              ...row,
+              id: randomUUID(),
+              race_id: raceId,
+              needs_review: true,
+              revision: 1,
+            })),
+        );
+      }
+      if (body.p_gear)
+        tables.race_checklist_items.push(
+          ...tables.race_checklist_items
+            .filter(
+              (row) =>
+                row.race_id === source.id && row.list.startsWith("gear_"),
+            )
+            .map((row) => ({
+              ...row,
+              id: randomUUID(),
+              race_id: raceId,
+              status: null,
+              checked: false,
+              revision: 1,
+            })),
+        );
+      return send(200, raceId);
+    }
     if (
       request.method === "POST" &&
       [

@@ -10,6 +10,8 @@ export function actionMessage(status: string) {
       return "Ta session a expiré. Connecte-toi à nouveau.";
     case "missing":
       return "Cet élément n’existe plus.";
+    case "race-limit":
+      return "Tu as déjà dix courses. Supprimes-en une pour en ajouter une autre.";
     case "lesson-limit":
       return "Tu as déjà huit lignes pour la prochaine. Supprimes-en une pour en ajouter une autre.";
     case "limit":
