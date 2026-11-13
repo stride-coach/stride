@@ -1,6 +1,7 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Widget } from "@/components/stride/widget";
 import { cn } from "@/lib/utils";
+import { StrideMark } from "@/components/stride/stride-mark";
 import {
   AddProductButton,
   EditProductButton,
@@ -15,8 +16,12 @@ import {
   formatShortDate,
   nutritionTiles,
   productRows,
+  fuelingChart,
+  listItems,
+  sectionTips,
   segmentRows,
   shoppingRows,
+  shoppingText,
   startBoxes,
   testedRows,
   type UpcomingSession,
@@ -29,6 +34,7 @@ import type { RaceStrategy } from "../proposals";
 import { raceTimeline, timelineFueling } from "../timeline";
 import type { RaceWeather } from "../weather";
 import type { CourseModel, RacePlanModel } from "../workspace";
+import { CopyListButton } from "./copy-list-button";
 import { FuelingHours } from "./fueling-hours";
 import { NutritionTargetTile } from "./nutrition-target-tile";
 import { NutritionistBanner } from "./nutritionist-banner";
@@ -62,6 +68,20 @@ export type NutritionBodyProps = {
   proposal: { id: string; changes: number } | null;
 };
 
+function WatchReminder({ alarmMinutes }: { alarmMinutes: number }) {
+  return (
+    <section aria-labelledby="sur-la-montre" className="flex flex-col gap-1.5">
+      <h2 id="sur-la-montre" className={panelHeading}>
+        Sur la montre
+      </h2>
+      <p className="text-pretty text-secondary-foreground">
+        Règle une alarme toutes les {alarmMinutes} minutes : à chaque bip, une
+        prise. À chaque ravito, suis la liste de la section.
+      </p>
+    </section>
+  );
+}
+
 function SegmentBadge({ index }: { index: number }) {
   return (
     <span className="inline-flex h-5 min-w-7 items-center justify-center rounded-sm border border-control-border text-label font-medium tabular-nums">
@@ -88,9 +108,16 @@ function ShoppingList({
         {rows.map((row) => (
           <div
             key={row.id}
-            className="flex min-h-row items-center justify-between gap-3 border-t border-border"
+            className="grid min-h-row grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-t border-border py-1.5"
           >
-            <dt>{row.name}</dt>
+            <dt className="flex min-w-0 flex-col">
+              <span>{row.name}</span>
+              {row.detail && (
+                <span className="text-label text-muted-foreground tabular-nums">
+                  {row.detail}
+                </span>
+              )}
+            </dt>
             <dd data-slot="metric" className="font-semibold tabular-nums">
               {row.count}
             </dd>
@@ -98,6 +125,7 @@ function ShoppingList({
         ))}
       </dl>
       {note && <p className="text-label text-muted-foreground">{note}</p>}
+      {rows.length > 0 && <CopyListButton text={shoppingText(rows)} />}
     </section>
   );
 }
@@ -295,6 +323,7 @@ export function NutritionBody({
     new Map(timeline.stations.map((station) => [station.id, station.name])),
   );
   const rows = segmentRows(allocation, timeline);
+  const tips = sectionTips(allocation, timeline);
   const tile = { raceId, revision: plan.revision };
   return (
     <div className="flex flex-col gap-5 md:gap-6 xl:flex-row xl:items-start">
@@ -460,6 +489,7 @@ export function NutritionBody({
         >
           <FuelingHours
             hours={fuelingHours(allocation, timeline)}
+            chart={fuelingChart(allocation, timeline, plan.alarmMinutes)}
             targetPerHourG={plan.carbsPerHourG}
           />
         </Widget>
@@ -473,11 +503,11 @@ export function NutritionBody({
           }
           aria-labelledby="section-par-section"
         >
-          <ol className="flex flex-col">
-            {rows.map((row) => (
+          <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {rows.map((row, position) => (
               <li
                 key={row.id}
-                className="grid gap-x-6 gap-y-2 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)]"
+                className="flex flex-col gap-2.5 rounded-lg border border-border p-3"
               >
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2">
@@ -485,7 +515,7 @@ export function NutritionBody({
                     <span className="min-w-0 font-medium">{row.route}</span>
                     <span
                       data-slot="metric"
-                      className="ml-auto font-semibold tabular-nums md:hidden"
+                      className="ml-auto font-semibold tabular-nums"
                     >
                       {row.carbs}
                     </span>
@@ -494,9 +524,6 @@ export function NutritionBody({
                     {row.timing}
                   </span>
                   <span className="flex gap-3 text-label text-secondary-foreground tabular-nums">
-                    <span className="font-semibold text-foreground max-md:hidden">
-                      {row.carbs}
-                    </span>
                     <span>Eau {row.water}</span>
                     <span>Sodium {row.sodium}</span>
                   </span>
@@ -505,7 +532,13 @@ export function NutritionBody({
                   <h3 className="text-label font-medium text-muted-foreground">
                     Dans tes poches
                   </h3>
-                  <p className="text-pretty">{row.eat}</p>
+                  <ul className="list-disc pl-4 marker:text-muted-foreground">
+                    {listItems(row.eat).map((item, index) => (
+                      <li key={index} className="text-pretty">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
                 {row.station && (
                   <div className="flex flex-col gap-0.5">
@@ -513,10 +546,20 @@ export function NutritionBody({
                       Au ravito de {row.station}
                       {row.stop ? ` · ${row.stop}` : ""}
                     </h3>
-                    <p className="text-pretty text-secondary-foreground">
-                      {row.arrival}
-                    </p>
+                    <ul className="list-disc pl-4 text-secondary-foreground marker:text-muted-foreground">
+                      {listItems(row.arrival).map((item, index) => (
+                        <li key={index} className="text-pretty">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
+                )}
+                {tips[position] && (
+                  <p className="mt-auto flex items-start gap-2 border-t border-border pt-2 text-pretty text-secondary-foreground">
+                    <StrideMark className="mt-1 size-3 shrink-0" />
+                    {tips[position]}
+                  </p>
                 )}
               </li>
             ))}
@@ -657,6 +700,7 @@ export function NutritionBody({
           </Widget>
         </div>
         <div className="flex flex-col gap-3 xl:hidden">
+          <WatchReminder alarmMinutes={plan.alarmMinutes} />
           <ShoppingList
             id="liste-courses-mobile"
             rows={shopping}
@@ -672,6 +716,7 @@ export function NutritionBody({
         aria-label="Contexte de l’alimentation"
         className="flex flex-col gap-4 max-xl:hidden xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border xl:pl-5"
       >
+        <WatchReminder alarmMinutes={plan.alarmMinutes} />
         <ShoppingList id="liste-courses" rows={shopping} note={bagNote} />
         <p className="border-t border-border pt-3 text-label text-muted-foreground">
           Repères d’entraînement, pas un avis médical. Adapte si quelque chose
