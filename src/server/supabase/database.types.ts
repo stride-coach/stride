@@ -2225,6 +2225,7 @@ export type Database = {
           labels: string[];
           night_caffeine: boolean;
           nutrition_alarm_minutes: number;
+          plan_b: string | null;
           race_id: string;
           revision: number;
           roadbook_import: Json | null;
@@ -2253,6 +2254,7 @@ export type Database = {
           labels?: string[];
           night_caffeine?: boolean;
           nutrition_alarm_minutes?: number;
+          plan_b?: string | null;
           race_id: string;
           revision?: number;
           roadbook_import?: Json | null;
@@ -2280,6 +2282,7 @@ export type Database = {
           labels?: string[];
           night_caffeine?: boolean;
           nutrition_alarm_minutes?: number;
+          plan_b?: string | null;
           race_id?: string;
           revision?: number;
           roadbook_import?: Json | null;
@@ -2366,6 +2369,60 @@ export type Database = {
           },
           {
             foreignKeyName: "race_proposals_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      race_scenarios: {
+        Row: {
+          aid_stop_seconds: number | null;
+          carbs_per_hour_g: number | null;
+          created_at: string;
+          id: string;
+          name: string;
+          position: number;
+          race_id: string;
+          revision: number;
+          target_seconds: number;
+          updated_at: string;
+          user_id: string;
+          walk_grade_percent: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          aid_stop_seconds?: number | null;
+          carbs_per_hour_g?: number | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          position?: number;
+          race_id: string;
+          revision?: number;
+          target_seconds: number;
+          updated_at?: string;
+          user_id: string;
+          walk_grade_percent?: number | null;
+        };
+        Update: {
+          aid_stop_seconds?: number | null;
+          carbs_per_hour_g?: number | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          position?: number;
+          race_id?: string;
+          revision?: number;
+          target_seconds?: number;
+          updated_at?: string;
+          user_id?: string;
+          walk_grade_percent?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_scenarios_race_id_fkey";
             columns: ["race_id"];
             isOneToOne: false;
             referencedRelation: "athlete_races";
