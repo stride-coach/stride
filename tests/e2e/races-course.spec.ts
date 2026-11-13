@@ -418,7 +418,7 @@ test("the scenarios view compares, creates and chooses a scenario", async ({
     page.getByRole("region", { name: "Heures de passage" }),
   ).toContainText("Ravito du Bois");
   await prudentCard
-    .getByRole("button", { name: "En faire mon objectif" })
+    .getByRole("button", { name: "Choisir ce scénario" })
     .click();
   await expect(objective).toContainText(prudent, { timeout: 15_000 });
   await page

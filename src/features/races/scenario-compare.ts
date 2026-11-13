@@ -9,9 +9,21 @@ import {
   type ScenarioKey,
 } from "./workspace";
 
+export type Tenability = {
+  label: "Très tenable" | "Tenable" | "Risqué";
+  level: "ok" | "watch" | "alert";
+};
+
+export type CarbsStatus = {
+  value: string;
+  status: "validé" | "à valider" | "jamais testé";
+};
+
 export type ScenarioCard = {
   key: ScenarioKey;
   label: string;
+  tenability: Tenability;
+  carbs: CarbsStatus | null;
   target: string;
   finish: string;
   finishDetail: string | null;
@@ -40,6 +52,44 @@ export type ScenarioComparison = {
 
 const order: ScenarioKey[] = ["cautious", "target", "ambitious"];
 
+const tightSeconds = 30 * 60;
+const comfortableSeconds = 60 * 60;
+
+export function tenability({
+  feasible,
+  marginSeconds,
+  carbsAboveTested,
+}: {
+  feasible: boolean;
+  marginSeconds: number | null;
+  carbsAboveTested: boolean;
+}): Tenability {
+  if (!feasible || (marginSeconds !== null && marginSeconds < tightSeconds))
+    return { label: "Risqué", level: "alert" };
+  if (
+    carbsAboveTested ||
+    (marginSeconds !== null && marginSeconds < comfortableSeconds)
+  )
+    return { label: "Tenable", level: "watch" };
+  return { label: "Très tenable", level: "ok" };
+}
+
+export function carbsStatus(
+  carbsPerHourG: number | null,
+  testedCapG: number | null,
+): CarbsStatus | null {
+  if (!carbsPerHourG) return null;
+  return {
+    value: `${carbsPerHourG} g/h`,
+    status:
+      testedCapG === null
+        ? "jamais testé"
+        : carbsPerHourG <= testedCapG
+          ? "validé"
+          : "à valider",
+  };
+}
+
 function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -58,10 +108,12 @@ export function compareScenarios({
   timeZone,
   timeline,
   paceFactors,
+  testedCapG = null,
 }: {
   model: CourseModel;
   race: RaceSummary;
   plan: RacePlan;
+  testedCapG?: number | null;
   scenarios: Scenario[];
   shown: ScenarioKey;
   timeZone: string;
@@ -113,9 +165,16 @@ export function compareScenarios({
         : []),
     ];
     const tightest = margins.sort((a, b) => a.seconds - b.seconds)[0];
+    const carbs = carbsStatus(plan.carbsPerHourG, testedCapG);
     return {
       key: scenario.key,
       label: capitalize(scenario.label),
+      tenability: tenability({
+        feasible: simulation.feasible,
+        marginSeconds: tightest?.seconds ?? null,
+        carbsAboveTested: carbs?.status === "à valider",
+      }),
+      carbs,
       target: formatHours(scenario.seconds),
       finish: formatClock(finishMinutes),
       finishDetail: finishMinutes >= 1440 ? "le lendemain" : null,
@@ -125,7 +184,7 @@ export function compareScenarios({
         ? {
             value: formatHours(Math.max(0, tightest.seconds)),
             detail: tightest.detail,
-            tight: tightest.seconds < 30 * 60,
+            tight: tightest.seconds < tightSeconds,
           }
         : null,
       feasible: simulation.feasible,

@@ -15,7 +15,13 @@ import { RaceProposalSheet } from "@/features/races/components/race-proposal-she
 import { EmptyState } from "@/features/races/components/race-ui";
 import { StopsEditor } from "@/features/races/components/stops-editor";
 import { TargetMissing } from "@/features/races/components/target-missing";
-import { formatClock, formatHours } from "@/features/races/format";
+import {
+  formatClock,
+  formatHours,
+  formatInteger,
+} from "@/features/races/format";
+import { localToday } from "@/features/app-shell/shell";
+import { loadOnTrackInputs } from "@/server/races/on-track";
 import { profileData } from "@/features/races/profile";
 import { reviewSegments } from "@/features/races/proposal-review";
 import {
@@ -276,6 +282,7 @@ type BodyProps = {
   planned: Planned;
   proposal: StrategyProposal | null;
   products: { active: NutritionProduct[]; archived: NutritionProduct[] };
+  evidence: { label: string; value: string }[];
 };
 
 function PlanBody({
@@ -284,6 +291,7 @@ function PlanBody({
   planned,
   proposal,
   products,
+  evidence,
   weather,
 }: BodyProps & { weather: RaceWeather | null }) {
   const base = `/races/${data.race.id}`;
@@ -326,7 +334,9 @@ function PlanBody({
           timeZone: data.course!.timeZone,
           timeline,
           paceFactors: data.strategy ? paceFactorsOf(data.strategy) : undefined,
+          testedCapG: data.fuelingCapG,
         })}
+        evidence={evidence}
         base={base}
         raceId={data.race.id}
         raceRevision={data.race.revision}
@@ -486,7 +496,30 @@ export default async function RoadbookPage({
         />
       </>
     );
-  const props = { data, views, planned, proposal, products };
+  const inputs = await loadOnTrackInputs(context, localToday(new Date())).catch(
+    () => null,
+  );
+  const evidence = [
+    inputs?.longestRunMeters
+      ? {
+          label: "Sortie la plus longue",
+          value: `${formatInteger(inputs.longestRunMeters / 1000)} km`,
+        }
+      : null,
+    inputs?.maxWeeklyRunSeconds
+      ? {
+          label: "Plus grosse semaine",
+          value: formatHours(inputs.maxWeeklyRunSeconds),
+        }
+      : null,
+    inputs?.maxWeeklyGainMeters
+      ? {
+          label: "Dénivelé / semaine",
+          value: `+${formatInteger(inputs.maxWeeklyGainMeters)} m`,
+        }
+      : null,
+  ].filter((item): item is { label: string; value: string } => item !== null);
+  const props = { data, views, planned, proposal, products, evidence };
   if (!data.race.date || planned.startEpochMs === null)
     return (
       <>
