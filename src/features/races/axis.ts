@@ -488,3 +488,17 @@ export function axisLanes({
     weatherNormals: weather?.mode === "normals",
   };
 }
+
+export function nearestReading(
+  readings: readonly { distanceM: number }[],
+  target: number,
+) {
+  return readings.reduce(
+    (best, item, position) =>
+      Math.abs(item.distanceM - target) <
+      Math.abs(readings[best]!.distanceM - target)
+        ? position
+        : best,
+    0,
+  );
+}
