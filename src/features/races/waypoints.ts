@@ -52,6 +52,139 @@ export const serviceLabels: Record<Service, string> = {
   assistance: "Assistance",
 };
 
+export const pointTypes = [
+  "supply",
+  "cutoff",
+  "crew",
+  "caution",
+  "landmark",
+] as const;
+export type PointType = (typeof pointTypes)[number];
+
+export const pointTypeLabels: Record<PointType, string> = {
+  supply: "Ravitaillement",
+  cutoff: "Barrière",
+  crew: "Assistance",
+  caution: "Vigilance",
+  landmark: "Repère",
+};
+
+export const onSiteServices = [
+  "water",
+  "solid",
+  "hot",
+  "dropBag",
+  "crew",
+] as const;
+export type OnSite = (typeof onSiteServices)[number];
+
+export const onSiteLabels: Record<OnSite, string> = {
+  water: "Eau",
+  solid: "Solide",
+  hot: "Repas chaud",
+  dropBag: "Sac d’allègement",
+  crew: "Assistance autorisée",
+};
+
+const onSiteShort: Record<OnSite, string> = {
+  water: "eau",
+  solid: "solide",
+  hot: "chaud",
+  dropBag: "sac",
+  crew: "assistance",
+};
+
+type TypedPoint = {
+  kind: WaypointKind;
+  services: readonly Service[];
+  cutoffMinutes: number | null;
+};
+
+const supplyKinds: readonly WaypointKind[] = ["aid", "water", "base"];
+const landmarkKinds: readonly WaypointKind[] = ["summit", "instruction"];
+
+export function pointTypeOf(point: TypedPoint): PointType | null {
+  if (supplyKinds.includes(point.kind)) return "supply";
+  if (point.kind === "caution") return "caution";
+  if (!landmarkKinds.includes(point.kind)) return null;
+  if (point.cutoffMinutes !== null) return "cutoff";
+  if (point.services.includes("assistance")) return "crew";
+  return "landmark";
+}
+
+export function onSiteOf(point: Pick<TypedPoint, "kind" | "services">) {
+  const has = (service: Service) => point.services.includes(service);
+  return new Set<OnSite>(
+    onSiteServices.filter((item) =>
+      item === "water"
+        ? has("water")
+        : item === "solid"
+          ? has("sweet") || has("salty")
+          : item === "hot"
+            ? has("hot")
+            : item === "dropBag"
+              ? point.kind === "base"
+              : has("assistance"),
+    ),
+  );
+}
+
+export function onSiteLabel(point: Pick<TypedPoint, "kind" | "services">) {
+  const text = [...onSiteOf(point)].map((item) => onSiteShort[item]).join(", ");
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+}
+
+function supplyKind(
+  kind: WaypointKind,
+  onSite: ReadonlySet<OnSite>,
+): WaypointKind {
+  if (onSite.has("dropBag")) return "base";
+  const food = onSite.has("solid") || onSite.has("hot");
+  if (kind === "aid") return "aid";
+  if (kind === "water") return food ? "aid" : "water";
+  return onSite.has("water") && !food ? "water" : "aid";
+}
+
+export function storedPoint(
+  current: Pick<TypedPoint, "kind" | "services">,
+  type: PointType,
+  onSite: ReadonlySet<OnSite>,
+): { kind: WaypointKind; services: Service[] } {
+  const kept = current.services.filter(
+    (service) =>
+      !["water", "sweet", "salty", "hot", "assistance"].includes(service),
+  );
+  const solid = current.services.filter(
+    (service) => service === "sweet" || service === "salty",
+  );
+  const flags =
+    type === "crew" ? new Set([...onSite, "crew" as const]) : onSite;
+  const services: Service[] = [
+    ...(flags.has("water") ? (["water"] as const) : []),
+    ...(flags.has("solid")
+      ? solid.length
+        ? solid
+        : (["sweet", "salty"] as const)
+      : []),
+    ...(flags.has("hot") ? (["hot"] as const) : []),
+    ...(flags.has("crew") ? (["assistance"] as const) : []),
+    ...kept,
+  ];
+  const landmark = landmarkKinds.includes(current.kind)
+    ? current.kind
+    : "instruction";
+  const kind: WaypointKind =
+    type === "supply"
+      ? supplyKind(current.kind, onSite)
+      : type === "caution"
+        ? "caution"
+        : landmark;
+  return {
+    kind,
+    services: type === "supply" || type === "crew" ? services : kept,
+  };
+}
+
 export const alertDistances = [0, 200, 500, 1000] as const;
 export type AlertDistance = (typeof alertDistances)[number];
 
