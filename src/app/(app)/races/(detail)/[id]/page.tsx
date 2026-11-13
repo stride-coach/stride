@@ -96,19 +96,21 @@ function CourseWorkspace({
     const cutoff = cutoffFor(data, model, planned);
     return (
       <ScenarioRevisions race={data.race.revision} plan={data.plan.revision}>
-        <RacePlanSummary
-          race={data.race}
-          plan={data.plan}
-          course={data.course}
-          waypoints={data.waypoints}
-          reading={planReading({
-            stations: timeline.stations,
-            rain: lanes.rain,
-            night: lanes.night,
-          })}
-        />
         <RaceAxis
           raceId={data.race.id}
+          summary={
+            <RacePlanSummary
+              race={data.race}
+              plan={data.plan}
+              course={data.course}
+              waypoints={data.waypoints}
+              reading={planReading({
+                stations: timeline.stations,
+                rain: lanes.rain,
+                night: lanes.night,
+              })}
+            />
+          }
           alert={
             cutoff && (
               <CutoffAlertCard

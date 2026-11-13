@@ -22,6 +22,7 @@ const rowSpans: Record<number, string> = {
   2: "xl:row-span-2",
   3: "xl:row-span-3",
   4: "xl:row-span-4",
+  5: "xl:row-span-5",
 };
 
 function cursorLines(reading: AxisReading) {
@@ -38,6 +39,49 @@ function cursorLines(reading: AxisReading) {
       .join(" · "),
     reading.weather?.value ?? "",
   ].filter((text) => text.length > 0);
+}
+
+function CursorFacts({
+  reading,
+  className,
+}: {
+  reading: AxisReading;
+  className?: string;
+}) {
+  const rows = [
+    { label: "Terrain", fact: reading.terrain },
+    { label: "Consigne", fact: reading.instruction },
+    { label: "Météo", fact: reading.weather },
+    { label: "À prendre", fact: reading.intake },
+  ];
+  return (
+    <dl
+      aria-label={`Sous le curseur, km ${km(reading.distanceM)} à ${reading.clock}`}
+      className={cn(
+        "flex flex-col gap-1.5 border-t border-border pt-3",
+        className,
+      )}
+    >
+      {rows.map(({ label, fact }) =>
+        fact ? (
+          <div
+            key={label}
+            className="grid grid-cols-[76px_minmax(0,1fr)] items-baseline gap-x-3"
+          >
+            <dt className="text-secondary-foreground">{label}</dt>
+            <dd className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2">
+              <span className="font-medium text-pretty">{fact.value}</span>
+              {fact.detail && (
+                <span className="text-label text-muted-foreground tabular-nums">
+                  {fact.detail}
+                </span>
+              )}
+            </dd>
+          </div>
+        ) : null,
+      )}
+    </dl>
+  );
 }
 
 function CursorPanel({ reading }: { reading: AxisReading }) {
@@ -116,9 +160,72 @@ function Roadbook({
         <h2 id="axis-roadbook" className="font-semibold">
           Carnet de route
         </h2>
-        <p className="text-label text-muted-foreground">{note}</p>
+        <p className="text-label text-muted-foreground">
+          <span className="md:hidden">
+            {rows.length} section{rows.length > 1 ? "s" : ""}
+          </span>
+          <span className="max-md:hidden">{note}</span>
+        </p>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <ol className="flex flex-col overflow-hidden rounded-xl border border-border bg-card md:hidden">
+        {rows.map((row) => {
+          const current = row.index === section;
+          return (
+            <li
+              key={row.index}
+              aria-current={current ? "true" : undefined}
+              className={cn(
+                "border-b border-border last:border-b-0",
+                current && "bg-muted",
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => onSelect(row.fromM)}
+                className="flex min-h-row-touch w-full flex-col gap-1 px-4 py-3 text-left"
+              >
+                <span className="flex items-baseline gap-2">
+                  <span className="text-muted-foreground tabular-nums">
+                    {row.index}
+                  </span>
+                  <span className="min-w-0 flex-1 font-medium">
+                    {row.section}
+                  </span>
+                  <span className="font-semibold tabular-nums">
+                    {row.passage}
+                  </span>
+                </span>
+                <span className="text-label text-secondary-foreground tabular-nums">
+                  {[
+                    row.distance,
+                    row.gain,
+                    row.pace && `${row.pace} /km`,
+                    `marche ${row.walk}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+                {(row.weather || row.intake || row.cutoff) && (
+                  <span className="text-label text-secondary-foreground">
+                    {[row.weather, row.intake].filter(Boolean).join(" · ")}
+                    {row.cutoff && (
+                      <span
+                        className={cn(
+                          row.tight ? "text-warning" : "text-muted-foreground",
+                        )}
+                      >
+                        {row.weather || row.intake ? " · " : ""}
+                        {row.cutoff}
+                      </span>
+                    )}
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="overflow-x-auto rounded-xl border border-border bg-card max-md:hidden">
         <table className="w-full min-w-180 border-collapse text-body">
           <thead className="border-b border-border">
             <tr>
@@ -252,6 +359,7 @@ export function RaceAxis({
   context,
   estimate = false,
   raceId,
+  summary = null,
 }: {
   lanes: AxisLanes;
   readings: AxisReading[];
@@ -271,6 +379,7 @@ export function RaceAxis({
   context?: React.ReactNode;
   estimate?: boolean;
   raceId?: string;
+  summary?: React.ReactNode;
 }) {
   const { cursorM, setCursorM, highlight, setHighlight } = useAxisFocus();
   const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
@@ -298,13 +407,15 @@ export function RaceAxis({
   const reading = readings[nearestReading(readings, cursorM)]!;
   const pick = (target: number) =>
     setCursorM(readings[nearestReading(readings, target)]!.distanceM);
-  const mainRows = (alert ? 1 : 0) + (map ? 1 : 0) + 2;
+  const mainRows = (summary ? 1 : 0) + (alert ? 1 : 0) + (map ? 1 : 0) + 2;
+  const profileLanes = { ...lanes, pace: [], temperature: [], fueling: [] };
   return (
     <RecalculationReport value={report}>
       <div
         className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start"
         style={{ gridTemplateRows: `repeat(${mainRows - 1}, auto) 1fr` }}
       >
+        {summary && <div className="min-w-0 xl:col-start-1">{summary}</div>}
         {alert && <div className="min-w-0 xl:col-start-1">{alert}</div>}
         {map && (
           <div className="min-w-0 xl:col-start-1">
@@ -319,6 +430,23 @@ export function RaceAxis({
               highlight={highlight}
               fileName={map.fileName ?? null}
               walkLabel={`Côtes ≥ ${walkThreshold} %`}
+              fullscreenPanel={<CursorPanel reading={reading} />}
+              fullscreenDock={
+                <LanesExplorer
+                  lanes={profileLanes}
+                  readings={readings}
+                  cursorM={reading.distanceM}
+                  onCursor={setCursorM}
+                  highlight={highlight}
+                  walkThreshold={walkThreshold}
+                  raceId={raceId}
+                  headingId="fullscreen-lanes"
+                  title="Profil"
+                  footer={
+                    <CursorFacts reading={reading} className="lg:hidden" />
+                  }
+                />
+              }
             />
           </div>
         )}
@@ -334,6 +462,11 @@ export function RaceAxis({
             estimate={estimate}
             raceId={raceId}
             headingId="axis-lanes"
+            footer={
+              estimate ? null : (
+                <CursorFacts reading={reading} className="md:hidden" />
+              )
+            }
             title={
               estimate
                 ? "Au fil de la course, sans tracé"
@@ -343,13 +476,17 @@ export function RaceAxis({
         </div>
         <div
           className={cn(
-            "min-w-0 xl:col-start-2 xl:row-start-1",
+            "min-w-0 max-xl:order-last xl:col-start-2 xl:row-start-1",
             rowSpans[mainRows],
           )}
         >
           <div className="flex flex-col gap-5 xl:sticky xl:top-4">
             {context}
-            {!estimate && <CursorPanel reading={reading} />}
+            {!estimate && (
+              <div className="max-md:hidden">
+                <CursorPanel reading={reading} />
+              </div>
+            )}
             {settings}
           </div>
         </div>

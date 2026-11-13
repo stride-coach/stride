@@ -151,6 +151,7 @@ function RaceMapView({
   cursorLines = [],
   highlight = null,
   fullscreenButton = true,
+  closeButton = true,
 }: {
   theme: ResolvedTheme;
   data: MapData;
@@ -171,6 +172,7 @@ function RaceMapView({
   cursorLines?: string[];
   highlight?: { fromM: number; toM: number } | null;
   fullscreenButton?: boolean;
+  closeButton?: boolean;
 }) {
   const framed = Boolean(onFullscreen || onClose);
   const tipRef = useRef<HTMLSpanElement | null>(null);
@@ -588,7 +590,7 @@ function RaceMapView({
       )}
       {framed && (
         <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
-          {onClose ? (
+          {onClose && closeButton ? (
             <Button
               variant="outline"
               size="icon"
@@ -600,7 +602,7 @@ function RaceMapView({
             >
               <XIcon className="size-4" />
             </Button>
-          ) : fullscreenButton ? (
+          ) : !onClose && fullscreenButton ? (
             <Button
               variant="outline"
               size="icon"

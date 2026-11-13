@@ -45,7 +45,9 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     const axis = page.getByRole("slider", {
       name: "Position sur le parcours",
     });
-    const cursor = page.getByRole("region", { name: "Sous le curseur" });
+    const cursor = page.getByRole("region", {
+      name: viewport.width < 768 ? "Au fil de la course" : "Sous le curseur",
+    });
     await expect(async () => {
       await axis.focus();
       await axis.press("End");
@@ -63,12 +65,13 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     await expect(cursor.getByText("Terrain")).toBeVisible();
     await expect(cursor.getByText("Consigne")).toBeVisible();
     const roadbook = page.getByRole("region", { name: "Carnet de route" });
-    const rows = roadbook.locator("tbody tr");
+    const mobile = viewport.width < 768;
+    const rows = roadbook.locator(mobile ? "ol > li" : "tbody tr");
     await expect(rows.first()).toHaveAttribute("aria-current", "true");
     await rows.nth(1).getByRole("button").click();
     await expect(rows.nth(1)).toHaveAttribute("aria-current", "true");
     await expect(rows.first()).not.toHaveAttribute("aria-current", "true");
-    await expect(roadbook.locator("tfoot")).toContainText("Total");
+    if (!mobile) await expect(roadbook.locator("tfoot")).toContainText("Total");
     const map = page
       .getByRole("img", { name: /^Carte du parcours/ })
       .filter({ visible: true })
@@ -125,8 +128,13 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       fullscreen.getByRole("img", { name: /^Carte du parcours/ }),
     ).toBeVisible({ timeout: 20_000 });
     await expect(
-      fullscreen.getByRole("complementary", { name: "Tronçons" }),
-    ).toContainText("T1");
+      fullscreen
+        .getByRole("region", { name: "Profil" })
+        .getByRole("slider", { name: "Position sur le parcours" }),
+    ).toBeVisible();
+    await expect(
+      fullscreen.getByRole("button", { name: /^Quitter le plein écran/ }),
+    ).toBeVisible();
     const frame = await fullscreen.boundingBox();
     if (viewport.width < 500) {
       expect(frame?.width).toBe(viewport.width);

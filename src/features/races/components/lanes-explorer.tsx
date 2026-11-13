@@ -150,6 +150,7 @@ export function LanesExplorer({
   title,
   headingId,
   actions,
+  footer = null,
 }: {
   lanes: AxisLanes;
   readings: AxisReading[];
@@ -163,6 +164,7 @@ export function LanesExplorer({
   title: string;
   headingId: string;
   actions?: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const total = lanes.distanceM;
   const [stored, setWindow] = useState<AxisWindow>(() => fullWindow(total));
@@ -333,6 +335,7 @@ export function LanesExplorer({
           ? "Curseur épinglé · clique à nouveau pour le libérer"
           : "Clique pour épingler · Ctrl + molette pour zoomer · double-clic pour revenir au parcours entier"}
       </p>
+      {footer}
     </section>
   );
 }

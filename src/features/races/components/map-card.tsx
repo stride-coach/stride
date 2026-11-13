@@ -86,6 +86,11 @@ function FullscreenMap({
   chips,
   label,
   title,
+  dock = null,
+  panel = null,
+  cursor = null,
+  cursorLines = [],
+  highlight = null,
 }: {
   onClose: () => void;
   data: MapData;
@@ -94,6 +99,11 @@ function FullscreenMap({
   chips: React.ReactNode;
   label: string;
   title: string;
+  dock?: React.ReactNode;
+  panel?: React.ReactNode;
+  cursor?: { lat: number; lon: number } | null;
+  cursorLines?: string[];
+  highlight?: { fromM: number; toM: number } | null;
 }) {
   const rows = segmentRows(data, segments);
   const close = useRef<HTMLButtonElement>(null);
@@ -116,6 +126,55 @@ function FullscreenMap({
     return () => document.removeEventListener("keydown", onKey);
   }, [container]);
   if (!container) return null;
+  if (dock)
+    return createPortal(
+      <section
+        role="dialog"
+        aria-label={`Carte plein écran · ${title}`}
+        className="fixed inset-0 z-50 flex flex-col bg-background md:absolute md:z-30"
+      >
+        <div className="flex min-h-11 shrink-0 items-center gap-3 border-b border-border px-4 pt-[env(safe-area-inset-top)] md:px-5">
+          <h2 className="min-w-0 truncate text-label font-medium text-muted-foreground">
+            {title} · Carte
+          </h2>
+          <button
+            ref={close}
+            type="button"
+            onClick={onClose}
+            className="ml-auto inline-flex min-h-control-touch shrink-0 items-center gap-2 rounded-sm text-label font-medium text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:min-h-0"
+          >
+            Quitter le plein écran
+            <kbd className="rounded-sm border border-control-border px-1.25 text-label text-muted-foreground max-md:hidden">
+              Échap
+            </kbd>
+          </button>
+        </div>
+        <div className="relative min-h-0 flex-1">
+          <RaceMap
+            data={data}
+            layers={layers}
+            label={label}
+            cooperative={false}
+            overlay={chips}
+            onClose={onClose}
+            closeButton={false}
+            cursor={cursor}
+            cursorLines={cursorLines}
+            highlight={highlight}
+            className="absolute inset-0"
+          />
+          {panel && (
+            <div className="absolute top-14 left-3 z-10 w-72 max-lg:hidden">
+              {panel}
+            </div>
+          )}
+        </div>
+        <div className="max-h-[45%] shrink-0 overflow-y-auto border-t border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:p-4">
+          {dock}
+        </div>
+      </section>,
+      container,
+    );
   return createPortal(
     <section
       role="dialog"
@@ -188,6 +247,8 @@ export function MapCard({
   highlight = null,
   fileName = null,
   walkLabel = "Marche",
+  fullscreenDock = null,
+  fullscreenPanel = null,
 }: {
   data: MapData;
   segments?: MapSegment[];
@@ -200,6 +261,8 @@ export function MapCard({
   highlight?: { fromM: number; toM: number } | null;
   fileName?: string | null;
   walkLabel?: string;
+  fullscreenDock?: React.ReactNode;
+  fullscreenPanel?: React.ReactNode;
 }) {
   const road = kind === "road";
   const pathname = usePathname();
@@ -293,6 +356,11 @@ export function MapCard({
           chips={chips}
           label={label}
           title={title}
+          dock={fullscreenDock}
+          panel={fullscreenPanel}
+          cursor={cursor}
+          cursorLines={cursorLines}
+          highlight={highlight}
         />
       )}
     </section>
