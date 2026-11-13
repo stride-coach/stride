@@ -3077,6 +3077,19 @@ export type Database = {
         Args: { p_note?: string; p_outcome: string; p_proposal_id: string };
         Returns: undefined;
       };
+      redo_race: {
+        Args: {
+          p_course: boolean;
+          p_date: string;
+          p_gear: boolean;
+          p_name: string;
+          p_nutrition: boolean;
+          p_priority: string;
+          p_source: string;
+          p_target?: number;
+        };
+        Returns: string;
+      };
       refresh_session_matches: {
         Args: {
           p_activities_through?: string;
