@@ -268,3 +268,45 @@ export async function raceWeather({
     forecastFrom,
   };
 }
+
+export async function raceDayWeather({
+  lat,
+  lon,
+  startedAt,
+  seconds,
+}: {
+  lat: number;
+  lon: number;
+  startedAt: string;
+  seconds: number;
+}): Promise<{ temperatureC: number; dry: boolean } | null> {
+  const start = Date.parse(startedAt);
+  if (!Number.isFinite(start)) return null;
+  const end = start + seconds * 1000;
+  const params = new URLSearchParams({
+    latitude: round(lat).toString(),
+    longitude: round(lon).toString(),
+    hourly: "temperature_2m,precipitation,weather_code",
+    timezone: "GMT",
+    timeformat: "unixtime",
+    start_date: new Date(start).toISOString().slice(0, 10),
+    end_date: new Date(end).toISOString().slice(0, 10),
+  });
+  try {
+    const body = await getJson(`${archiveUrl}?${params}`, 604_800);
+    const hourly = z.object({ hourly: archiveHourly }).parse(body).hourly;
+    const temperatures: number[] = [];
+    let rain = 0;
+    hourly.time.forEach((time, index) => {
+      if (time * 1000 < start - 1_800_000 || time * 1000 > end) return;
+      const temperature = hourly.temperature_2m[index];
+      if (temperature !== null) temperatures.push(temperature);
+      rain += hourly.precipitation[index] ?? 0;
+    });
+    return temperatures.length
+      ? { temperatureC: Math.max(...temperatures), dry: rain < 0.5 }
+      : null;
+  } catch {
+    return null;
+  }
+}
