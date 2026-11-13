@@ -26,6 +26,7 @@ import {
   type SeasonTimeline,
 } from "../overview";
 import { formatResultTime, type RaceResult } from "../results";
+import { raceEditions } from "../editions";
 import {
   defaultStartMinutes,
   formatCompactDate,
@@ -550,7 +551,15 @@ export function PastRaces({
       <ul>
         {races.map((race) => {
           const result = results[race.id];
-          const outcome = raceOutcome(race, result);
+          const outcome = raceOutcome(
+            race,
+            result,
+            race.date
+              ? raceEditions(races, race, race.date).flatMap((edition) =>
+                  results[edition.id] ? [results[edition.id]] : [],
+                )
+              : [],
+          );
           const distance = result
             ? `${formatKm(result.distanceMeters)} km`
             : race.distanceKm

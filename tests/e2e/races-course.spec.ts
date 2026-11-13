@@ -411,11 +411,8 @@ test("a past race reads the race on its plan", async ({ page, request }) => {
     "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/after/compare",
   );
   await expect(
-    rail.getByRole("link", { name: "Refaire cette course" }),
-  ).toHaveAttribute(
-    "href",
-    "/races/new?from=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-  );
+    rail.getByRole("button", { name: "Refaire cette course" }),
+  ).toBeVisible();
 });
 
 test("a past race keeps its lessons for the next one", async ({
@@ -457,6 +454,40 @@ test("a past race keeps its lessons for the next one", async ({
   await expect(kept).not.toContainText("La marche dès 10 %", {
     timeout: 15_000,
   });
+});
+
+test("a past race is redone with its course", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?past=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/after");
+  await page
+    .getByRole("complementary", { name: "Après la course" })
+    .getByRole("button", { name: "Refaire cette course" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Refaire cette course" });
+  await expect(dialog.getByLabel("Date")).not.toHaveValue("");
+  await expect(dialog).toContainText("Objectif proposé : 6h10");
+  const carried = dialog.getByRole("group", { name: "Ce que tu reprends" });
+  await expect(
+    carried.getByRole("switch", { name: "Le tracé et les points de passage" }),
+  ).toBeChecked();
+  await carried.getByRole("switch", { name: "Ta liste d’équipement" }).click();
+  await dialog.getByRole("button", { name: "B", exact: true }).click();
+  await dialog.getByRole("button", { name: "Ajouter à la saison" }).click();
+  await expect(page).not.toHaveURL(/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/, {
+    timeout: 15_000,
+  });
+  await expect(page).toHaveURL(/\/races\/[0-9a-f-]{36}$/);
+  await expect(
+    page.getByText("EcoTrail Paris 120K ajoutée à ta saison."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "EcoTrail Paris 120K" }),
+  ).toBeVisible();
 });
 
 test("the scenarios view compares, creates and chooses a scenario", async ({

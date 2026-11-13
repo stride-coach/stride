@@ -17,6 +17,10 @@ import { AfterRaceChart } from "@/features/races/components/after-race-chart";
 import { RaceLessons } from "@/features/races/components/race-lessons";
 import { lessonSuggestions, maximumLessons } from "@/features/races/lessons";
 import { readRaceLessons } from "@/server/races/lesson-store";
+import { RedoRace } from "@/features/races/components/redo-race";
+import { nextEditionDate } from "@/features/races/editions";
+import { redoTarget } from "@/features/races/redo";
+import { readActivePlan } from "@/server/plans/stored";
 import { EmptyState } from "@/features/races/components/race-ui";
 import { readNutritionLibrary } from "@/server/fueling/products";
 import { loadAfterRace } from "@/server/races/after";
@@ -43,10 +47,29 @@ export default async function RaceAfterPage({
   });
   const recovery = recoveryDays({ nights, raceDate, today });
   const phases = recoveryPhases({ nights, raceDate, today });
+  const [stored, plan] = await Promise.all([
+    readRaceLessons(context, [data.race.id]),
+    readActivePlan(context).catch(() => null),
+  ]);
+  const lessons = stored[data.race.id] ?? [];
   const redo = (
-    <Button asChild variant="outline">
-      <Link href={`/races/new?from=${data.race.id}`}>Refaire cette course</Link>
-    </Button>
+    <RedoRace
+      sourceId={data.race.id}
+      defaultDate={nextEditionDate(raceDate, today)}
+      priority={data.race.priority}
+      target={redoTarget({
+        year: raceDate.slice(0, 4),
+        resultSeconds: result?.seconds ?? null,
+        targetSeconds: data.race.targetSeconds,
+      })}
+      has={{
+        course: data.course !== null,
+        nutrition: data.nutritionPlan !== null || data.dropBag !== null,
+        gear: data.checklist.some((item) => item.list.startsWith("gear_")),
+        lessons: lessons.length > 0,
+      }}
+      hasPlan={plan !== null}
+    />
   );
   if (!result)
     return (
@@ -78,8 +101,6 @@ export default async function RaceAfterPage({
         finishSeconds: result.seconds,
       })
     : [];
-  const lessons =
-    (await readRaceLessons(context, [data.race.id]))[data.race.id] ?? [];
   const suggestions = lessonSuggestions({
     passages,
     resultSeconds: result.seconds,

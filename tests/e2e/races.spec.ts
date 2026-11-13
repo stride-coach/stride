@@ -260,8 +260,11 @@ test("a past race opens its after-race tab", async ({ page }) => {
   ).toHaveAttribute("aria-current", "page");
   await expect(page.getByText("Aucune autre édition à comparer")).toBeVisible();
   await after.getByRole("link", { name: "Cette course" }).click();
-  await page.getByRole("link", { name: "Refaire cette course" }).click();
-  await expect(page).toHaveURL(/\/races\/new\?from=/);
+  await page.getByRole("button", { name: "Refaire cette course" }).click();
+  const redo = page.getByRole("dialog", { name: "Refaire cette course" });
+  await expect(redo.getByLabel("Date")).not.toHaveValue("");
+  await redo.getByRole("button", { name: "Annuler" }).click();
+  await page.goto("/races/new?from=12121212-0000-4000-8000-000000000010");
   await expect(page.getByLabel("Nom", { exact: true })).toHaveValue(
     "Trail des Lacs 30K",
   );
