@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { weatherGear } from "@/features/races/gear-weather";
+import {
+  gearReading,
+  gearTimeline,
+  weatherGear,
+  type WeatherGear,
+} from "@/features/races/gear-weather";
 import { distanceAtElapsed } from "@/features/races/simulation";
 import type { RaceWeather, WeatherSlot } from "@/features/races/weather";
 import { course, target } from "./race-course-fixture";
@@ -73,5 +78,80 @@ describe("gear decided by the weather", () => {
         distanceM: course.distanceM,
       }).map((item) => item.key),
     ).toEqual(["torch"]);
+  });
+});
+
+describe("what you wear along the race", () => {
+  const stations = [
+    { name: "Départ", kind: "start", distanceM: 0 },
+    { name: "Buc", kind: "aid", distanceM: 24_000 },
+    { name: "Chaville", kind: "aid", distanceM: 47_000 },
+    { name: "Meudon", kind: "aid", distanceM: 68_000 },
+    { name: "Saint-Cloud", kind: "base", distanceM: 89_000 },
+    { name: "Arrivée", kind: "finish", distanceM: 120_000 },
+  ];
+  const items: WeatherGear[] = [
+    {
+      key: "jacket",
+      label: "Veste imperméable",
+      reason: "averses",
+      where: "km 50 à 69",
+      ranges: [{ fromM: 50_000, toM: 69_000 }],
+    },
+    {
+      key: "warm",
+      label: "Gants et couche chaude",
+      reason: "6 °C",
+      where: "dès le km 92",
+      ranges: [{ fromM: 92_000, toM: 120_000 }],
+    },
+    {
+      key: "torch",
+      label: "Frontale",
+      reason: "nuit",
+      where: "dès le km 78",
+      ranges: [{ fromM: 78_000, toM: 120_000 }],
+    },
+  ];
+
+  it("splits each item into worn and carried spans with its changes", () => {
+    const rows = gearTimeline({
+      items,
+      distanceM: 120_000,
+      stations,
+      mandatory: ["Couverture de survie", "Sifflet", "Gobelet"],
+    });
+    expect(rows.map((row) => row.key)).toEqual([
+      "jacket",
+      "warm",
+      "torch",
+      "socks",
+      "mandatory",
+    ]);
+    expect(rows[0]!.spans).toEqual([
+      { fromM: 0, toM: 50_000, state: "bag" },
+      { fromM: 50_000, toM: 69_000, state: "on" },
+      { fromM: 69_000, toM: 120_000, state: "bag" },
+    ]);
+    expect(rows[0]!.changes).toEqual([50_000, 69_000]);
+    expect(rows[3]).toMatchObject({
+      label: "Chaussettes de rechange",
+      changes: [89_000],
+    });
+    expect(rows[4]).toMatchObject({
+      label: "Couverture de survie, sifflet",
+      spans: [{ fromM: 0, toM: 120_000, state: "bag" }],
+      changes: [],
+    });
+  });
+
+  it("says when the jacket, the torch and the gloves matter", () => {
+    expect(gearReading(items, stations)).toBe(
+      "Deux moments comptent : la veste sur toi avant le km 50, et la frontale sur la tête à Meudon. Les gants t’attendent à Saint-Cloud, il fera 6 °C.",
+    );
+    expect(gearReading([], stations)).toBeNull();
+    expect(
+      gearTimeline({ items: [], distanceM: 10_000, stations, mandatory: [] }),
+    ).toEqual([]);
   });
 });

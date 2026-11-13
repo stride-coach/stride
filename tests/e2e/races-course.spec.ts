@@ -633,7 +633,7 @@ test("the gear page edits statuses and the drop bag", async ({
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/gear");
 
-  const readiness = page.getByRole("region", { name: "Préparation" });
+  const readiness = page.getByRole("region", { name: "Où tu en es" });
   await expect(readiness).toContainText("9 / 17");
   await expect(readiness).toContainText(
     "éléments prêts · 1 à acheter · 1 à tester",

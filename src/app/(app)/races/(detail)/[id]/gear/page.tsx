@@ -31,11 +31,19 @@ import { readRaceFacts } from "@/server/gear/planned";
 import { loadRace } from "@/server/races/load";
 import type { RaceWorkspaceData } from "@/server/races/races";
 import { withFuelingCap } from "@/features/fueling/tests";
-import { planFor, weatherFor } from "@/server/races/views";
+import { planFor, timelineFor, weatherFor } from "@/server/races/views";
 import { Suspense } from "react";
-import { weatherGear } from "@/features/races/gear-weather";
+import { StrideMark } from "@/components/stride/stride-mark";
+import { formatClock } from "@/features/races/format";
+import {
+  gearReading,
+  gearTimeline,
+  weatherGear,
+} from "@/features/races/gear-weather";
 import { GearAlongRace } from "@/features/races/components/gear-along-race";
+import type { RaceWeather } from "@/features/races/weather";
 import type { RacePlanModel } from "@/features/races/workspace";
+import type { NutritionProduct } from "@/features/fueling/products";
 
 function Readiness({
   items,
@@ -52,13 +60,13 @@ function Readiness({
   return (
     <section
       aria-labelledby="gear-readiness"
-      className="flex flex-col gap-2.5 border-b border-border pb-4.5 xl:sticky xl:top-0 xl:col-start-2 xl:row-start-1 xl:border-b-0 xl:border-l xl:pb-0 xl:pl-5 print:border-0"
+      className="flex flex-col gap-2.5 border-b border-border pb-4.5 print:border-0"
     >
       <h2
         id="gear-readiness"
         className="text-label font-medium text-muted-foreground"
       >
-        Préparation
+        Où tu en es
       </h2>
       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <span
@@ -79,6 +87,34 @@ function Readiness({
         aria-label={`${readiness.ready} éléments prêts sur ${readiness.total}`}
         className="h-1.5 bg-muted"
       />
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+        {[
+          {
+            label: "Prêt",
+            value: readiness.ready,
+            detail: `sur ${readiness.total}`,
+          },
+          { label: "À vérifier", value: readiness.check, detail: null },
+          { label: "À acheter", value: readiness.buy, detail: null },
+          {
+            label: "À faire",
+            value: readiness.todo + readiness.test,
+            detail: null,
+          },
+        ].map((item) => (
+          <div key={item.label} className="flex items-baseline gap-2">
+            <dt className="text-secondary-foreground">{item.label}</dt>
+            <dd className="font-semibold tabular-nums">
+              {item.value}
+              {item.detail && (
+                <span className="ml-1 font-normal text-muted-foreground">
+                  {item.detail}
+                </span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
       <PrintSheetButton
         label="Imprimer la check-list"
         icon={false}
@@ -183,26 +219,155 @@ function shoesFor(
   };
 }
 
+type Planned = NonNullable<ReturnType<typeof planFor>> & {
+  planned: RacePlanModel;
+};
+
+function gearOf(
+  data: RaceWorkspaceData,
+  views: Planned,
+  weather: RaceWeather | null,
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] },
+) {
+  const { model, planned } = views;
+  const distanceM = model.course.distanceM;
+  const items = weatherGear({ weather, planned, distanceM });
+  const timeline = timelineFor({ data, model, planned, weather, products });
+  const stations = timeline.stations.map((station) => ({
+    id: station.id,
+    name: station.name,
+    kind: station.kind,
+    clock: formatClock(station.clockMinutes),
+    distanceM: station.distanceM,
+  }));
+  return { items, stations, distanceM };
+}
+
+async function GearReading({
+  data,
+  views,
+  weather,
+  products,
+}: {
+  data: RaceWorkspaceData;
+  views: Planned;
+  weather: Promise<RaceWeather | null>;
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] };
+}) {
+  const { items, stations } = gearOf(data, views, await weather, products);
+  const reading = gearReading(items, stations);
+  return reading ? (
+    <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
+      <StrideMark className="mt-1 size-3.5 shrink-0" />
+      {reading}
+    </p>
+  ) : null;
+}
+
 async function GearWithWeather({
   data,
   views,
+  weather: weatherRead,
+  products,
 }: {
   data: RaceWorkspaceData;
-  views: NonNullable<ReturnType<typeof planFor>> & { planned: RacePlanModel };
+  views: Planned;
+  weather: Promise<RaceWeather | null>;
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] };
 }) {
-  const weather = data.race.date
-    ? await weatherFor(data, views.model, views.planned)
-    : null;
+  const weather = await weatherRead;
+  const { items, stations, distanceM } = gearOf(data, views, weather, products);
+  const mandatory = data.checklist
+    .filter((item) => item.list === "gear_mandatory")
+    .map((item) => item.label);
   return (
     <GearAlongRace
-      items={weatherGear({
-        weather,
-        planned: views.planned,
-        distanceM: views.model.course.distanceM,
-      })}
-      distanceM={views.model.course.distanceM}
+      rows={gearTimeline({ items, distanceM, stations, mandatory })}
+      distanceM={distanceM}
+      stations={stations}
+      temperatures={(weather?.slots ?? []).map((slot) => ({
+        distanceM: slot.distanceM,
+        label: `${Math.round(slot.temperature)}°`,
+      }))}
+      night={views.planned.nightKm}
+      rain={items.find((item) => item.key === "jacket")?.ranges ?? []}
       normals={weather?.mode === "normals"}
     />
+  );
+}
+
+async function WeatherDecisions({
+  views,
+  weather,
+}: {
+  views: Planned;
+  weather: Promise<RaceWeather | null>;
+}) {
+  const items = weatherGear({
+    weather: await weather,
+    planned: views.planned,
+    distanceM: views.model.course.distanceM,
+  });
+  if (items.length === 0) return null;
+  return (
+    <section
+      aria-labelledby="gear-weather-decisions"
+      className="flex flex-col gap-2"
+    >
+      <h2
+        id="gear-weather-decisions"
+        className="text-label font-medium text-muted-foreground"
+      >
+        Décidé par la météo
+      </h2>
+      <dl className="flex flex-col">
+        {items.map((item) => (
+          <div
+            key={item.key}
+            className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border py-1.5"
+          >
+            <dt className="font-medium">{item.label}</dt>
+            <dd className="text-right tabular-nums">{item.where}</dd>
+            <dd className="col-span-2 text-label text-muted-foreground">
+              {item.reason}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function Forbidden({
+  poles,
+  items,
+}: {
+  poles: string | null;
+  items: ChecklistItem[];
+}) {
+  const labels = [
+    ...(poles === "forbidden" ? ["Bâtons"] : []),
+    ...items
+      .filter((item) => item.list === "gear_forbidden")
+      .map((item) => item.label),
+  ];
+  return (
+    <section aria-labelledby="gear-forbidden" className="flex flex-col gap-1.5">
+      {labels.length > 0 && (
+        <>
+          <h2
+            id="gear-forbidden"
+            className="text-label font-medium text-muted-foreground"
+          >
+            Interdit sur cette course
+          </h2>
+          <p className="font-medium">{labels.join(", ")}</p>
+        </>
+      )}
+      <p className="text-label text-pretty text-muted-foreground">
+        La liste part du règlement de la course. Vérifie-le : il fait foi.
+      </p>
+    </section>
   );
 }
 
@@ -233,7 +398,9 @@ export default async function RaceGearPage({
   if (data.race.kind === "road")
     return (
       <div className="flex flex-col gap-4.5 xl:grid xl:grid-cols-[minmax(0,1fr)_var(--spacing-panel)] xl:items-start">
-        <Readiness items={data.checklist} lists={prepLists} />
+        <div className="xl:sticky xl:top-0 xl:col-start-2 xl:row-start-1 xl:border-l xl:border-border xl:pl-5">
+          <Readiness items={data.checklist} lists={prepLists} />
+        </div>
         <div className="grid items-start gap-3 md:grid-cols-3 xl:col-start-1 xl:row-start-1 print:grid-cols-3">
           {prepLists.map((list) => group(list))}
         </div>
@@ -254,6 +421,13 @@ export default async function RaceGearPage({
     racesRead,
   ]);
   const views = planFor(data, "target");
+  const planned: Planned | null = views?.planned
+    ? { ...views, planned: views.planned }
+    : null;
+  const weather =
+    planned && data.race.date
+      ? weatherFor(data, planned.model, planned.planned)
+      : null;
   const allocation = views?.planned
     ? raceAllocation({
         model: views.model,
@@ -277,32 +451,34 @@ export default async function RaceGearPage({
 
   return (
     <div className="flex flex-col gap-4.5 xl:grid xl:grid-cols-[minmax(0,1fr)_var(--spacing-panel)] xl:items-start">
-      <Readiness items={data.checklist} lists={trailChecklistLists} />
-      {views?.planned && (
-        <div className="xl:col-start-1 xl:row-start-1 print:hidden">
+      <div className="flex flex-col gap-4.5 max-xl:order-last xl:sticky xl:top-0 xl:col-start-2 xl:row-span-4 xl:row-start-1 xl:border-l xl:border-border xl:pl-5">
+        <Readiness items={data.checklist} lists={trailChecklistLists} />
+        {planned && weather && (
+          <Suspense fallback={null}>
+            <WeatherDecisions views={planned} weather={weather} />
+          </Suspense>
+        )}
+        <Forbidden poles={data.details.poles ?? null} items={data.checklist} />
+      </div>
+      {planned && weather && (
+        <div className="flex flex-col gap-4.5 xl:col-start-1 xl:row-start-1 print:hidden">
+          <Suspense fallback={null}>
+            <GearReading
+              data={data}
+              views={planned}
+              weather={weather}
+              products={library}
+            />
+          </Suspense>
           <Suspense fallback={null}>
             <GearWithWeather
               data={data}
-              views={{ ...views, planned: views.planned }}
+              views={planned}
+              weather={weather}
+              products={library}
             />
           </Suspense>
         </div>
-      )}
-      {data.details.poles && data.details.poles !== "unknown" && (
-        <p className="flex items-center gap-2 text-body xl:col-start-1">
-          <span className="font-medium">Bâtons</span>
-          <span
-            className={
-              data.details.poles === "forbidden"
-                ? "text-warning"
-                : "text-secondary-foreground"
-            }
-          >
-            {data.details.poles === "forbidden"
-              ? "interdits sur cette course"
-              : "autorisés sur cette course"}
-          </span>
-        </p>
       )}
       <div className="grid items-start gap-3 lg:grid-cols-2 xl:col-start-1 print:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
