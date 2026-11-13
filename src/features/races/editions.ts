@@ -55,8 +55,27 @@ export type EditionSection = {
   deltaSeconds: number | null;
 };
 
+export type EditionKpi = { key: string; value: string; label: string };
+
+export type EditionChange = {
+  key: string;
+  label: string;
+  value: string;
+  detail: string | null;
+};
+
+export type EditionSetting = {
+  walkGradePercent: number | null;
+  carbsPerHourG: number | null;
+  runSeconds: number | null;
+};
+
+export type EditionDay = { year: string; temperatureC: number; dry: boolean };
+
 export type EditionComparison = {
   reading: string;
+  kpis: EditionKpi[];
+  startM: number;
   figures: {
     key: string;
     label: string;
@@ -177,7 +196,31 @@ export function compareEditions({
     gap === 0
       ? `Même temps qu’en ${previous.year}.`
       : `${formatResultDelta(Math.abs(gap)).replace("+", "")} ${gap < 0 ? "gagnées" : "perdues"} depuis ${previous.year}.`;
+  const sameCourse =
+    Math.abs(current.distanceMeters - previous.distanceMeters) <=
+    0.05 * previous.distanceMeters;
+  const kpis: EditionKpi[] = [
+    {
+      key: "time",
+      value: formatResultTime(current.seconds),
+      label: `${current.year} · ${formatResultTime(previous.seconds)} en ${previous.year}`,
+    },
+    {
+      key: "gap",
+      value: formatResultDelta(gap),
+      label: sameCourse ? "Sur le même parcours" : "Sur un parcours différent",
+    },
+    ...figures
+      .filter((figure) => figure.key === "pace" || figure.key === "heart")
+      .map((figure) => ({
+        key: figure.key,
+        value: figure.current,
+        label: `${figure.label} · ${figure.previous} en ${previous.year}`,
+      })),
+  ];
   return {
+    kpis,
+    startM: marks[1],
     reading:
       biggest && Math.abs(biggest.deltaSeconds!) >= 60
         ? `${verdict} Le plus grand écart se joue entre ${biggest.label.replace(" → ", " et ")} : ${biggest.delta}.`
@@ -192,4 +235,94 @@ export function nextEditionDate(date: string, today: string) {
   do next = new Date(next.getTime() + 364 * 86_400_000);
   while (next.toISOString().slice(0, 10) < today);
   return next.toISOString().slice(0, 10);
+}
+
+function signed(value: number) {
+  const rounded = Math.round(value);
+  return rounded === 0 ? "±0" : rounded > 0 ? `+${rounded}` : `−${-rounded}`;
+}
+
+function startHeartRate(run: EditionRun, startM: number) {
+  const distances = run.series?.distance_m;
+  const hearts = run.series?.heart_rate;
+  if (!distances || !hearts) return null;
+  const values = distances.flatMap((distance, index) => {
+    const heart = hearts[index];
+    return distance !== null && distance <= startM && heart != null
+      ? [heart]
+      : [];
+  });
+  return values.length
+    ? values.reduce((sum, value) => sum + value, 0) / values.length
+    : null;
+}
+
+export function editionChanges({
+  current,
+  previous,
+  startM,
+  settings,
+}: {
+  current: EditionRun;
+  previous: EditionRun;
+  startM: number;
+  settings: { current: EditionSetting; previous: EditionSetting };
+}): EditionChange[] {
+  const changes: EditionChange[] = [];
+  const heartNow = startHeartRate(current, startM);
+  const heartBefore = startHeartRate(previous, startM);
+  if (heartNow !== null && heartBefore !== null)
+    changes.push({
+      key: "start",
+      label: "Départ",
+      value: `${signed(heartNow - heartBefore)} bpm`,
+      detail: `sur ${Math.round(startM / 1000)} km`,
+    });
+  const now = settings.current;
+  const before = settings.previous;
+  if (now.carbsPerHourG !== null && before.carbsPerHourG !== null)
+    changes.push({
+      key: "carbs",
+      label: "Glucides prévus",
+      value: `${signed(now.carbsPerHourG - before.carbsPerHourG)} g/h`,
+      detail: `${before.carbsPerHourG} g/h en ${previous.year}`,
+    });
+  if (now.walkGradePercent !== null && before.walkGradePercent !== null)
+    changes.push({
+      key: "walk",
+      label: "Marche",
+      value: `dès ${now.walkGradePercent} %`,
+      detail:
+        now.walkGradePercent === before.walkGradePercent
+          ? `comme en ${previous.year}`
+          : `${before.walkGradePercent} % en ${previous.year}`,
+    });
+  if (now.runSeconds !== null && before.runSeconds)
+    changes.push({
+      key: "volume",
+      label: "Volume",
+      value: `${signed(((now.runSeconds - before.runSeconds) / before.runSeconds) * 100)} %`,
+      detail: "sur 16 semaines",
+    });
+  return changes;
+}
+
+export function editionConditions(days: EditionDay[]) {
+  const rows = days.map((day) => ({
+    year: day.year,
+    temperature: `${Math.round(day.temperatureC)} °C`,
+    sky: day.dry ? "sec" : "pluie",
+  }));
+  const [before, now] = days;
+  const difference =
+    before && now
+      ? Math.round(now.temperatureC) - Math.round(before.temperatureC)
+      : 0;
+  return {
+    rows,
+    reading:
+      Math.abs(difference) >= 3
+        ? `Il faisait ${Math.abs(difference)} degrés de ${difference < 0 ? "moins" : "plus"} en ${now.year}.`
+        : null,
+  };
 }
