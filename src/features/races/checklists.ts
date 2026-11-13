@@ -251,6 +251,8 @@ export function raceReadiness(
     total: counted.length,
     buy: chips.filter((chip) => chip === "buy").length,
     test: chips.filter((chip) => chip === "test").length,
+    check: chips.filter((chip) => chip === "check").length,
+    todo: chips.filter((chip) => chip === "todo").length,
   };
 }
 

@@ -125,12 +125,16 @@ describe("race checklist readiness", () => {
       total: 7,
       buy: 2,
       test: 1,
+      check: 1,
+      todo: 1,
     });
     expect(raceReadiness(items, prepLists)).toEqual({
       ready: 1,
       total: 3,
       buy: 1,
       test: 0,
+      check: 0,
+      todo: 1,
     });
   });
 
@@ -154,9 +158,16 @@ describe("race checklist readiness", () => {
     expect(readinessDetail(readiness, { short: true })).toBe(
       "prêts · 2 à acheter",
     );
-    expect(readinessDetail({ ready: 3, total: 3, buy: 0, test: 0 })).toBe(
-      "éléments prêts",
-    );
+    expect(
+      readinessDetail({
+        ready: 3,
+        total: 3,
+        buy: 0,
+        test: 0,
+        check: 0,
+        todo: 0,
+      }),
+    ).toBe("éléments prêts");
   });
 
   it("offers the template matching the race kind", () => {
