@@ -193,6 +193,22 @@ describe("races overview", () => {
     expect(timeline.lanes).toBe(2);
   });
 
+  it("keeps close race badges apart on the season rail", () => {
+    const timeline = seasonTimeline(
+      [
+        race({ id: "one", date: "2027-01-16" }),
+        race({ id: "two", date: "2027-01-31" }),
+        race({ id: "three", date: "2027-07-08" }),
+      ],
+      "2026-11-13",
+    )!;
+    const [one, two, three] = timeline.markers;
+    expect(two.left - one.left).toBeLessThan(8);
+    expect(two.rail - one.rail).toBeGreaterThanOrEqual(8);
+    expect(three.rail).toBe(three.left);
+    expect(three.rail).toBeLessThanOrEqual(100);
+  });
+
   it("labels months only where they fit in the season rail", () => {
     const short = seasonTimeline([race({ date: "2027-01-20" })], today)!;
     expect(short.months.every((month) => month.labelled)).toBe(true);

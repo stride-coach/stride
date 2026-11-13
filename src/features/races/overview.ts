@@ -160,7 +160,8 @@ function fromMonth(time: number) {
 
 export const timelineWidthPx = 896;
 export const seasonRailWidthPx = 260;
-const monthGapPx = 6;
+const monthGapPx = 12;
+const railBadgeGapPx = 22;
 
 const lanePaddingPx = 16;
 
@@ -176,6 +177,7 @@ export type TimelineMarker = {
   label: string;
   short: string;
   left: number;
+  rail: number;
   lane: number;
   align: "start" | "center" | "end";
 };
@@ -196,11 +198,25 @@ export type SeasonTimeline = {
   lanes: number;
 };
 
+function railPositions(lefts: number[]) {
+  const gap = (railBadgeGapPx / seasonRailWidthPx) * 100;
+  const spread: number[] = [];
+  for (const left of lefts)
+    spread.push(Math.max(left, (spread.at(-1) ?? -Infinity) + gap));
+  for (let index = spread.length - 1; index >= 0; index--)
+    spread[index] = Math.min(
+      spread[index],
+      index === spread.length - 1 ? 100 : spread[index + 1] - gap,
+    );
+  return spread;
+}
+
 function markerLanes(
-  markers: Omit<TimelineMarker, "lane" | "align">[],
+  markers: Omit<TimelineMarker, "lane" | "align" | "rail">[],
 ): TimelineMarker[] {
+  const rails = railPositions(markers.map((marker) => marker.left));
   const laneEnds: number[] = [];
-  return markers.map((marker) => {
+  return markers.map((marker, index) => {
     const x = (marker.left / 100) * timelineWidthPx;
     const width = textWidthPx(marker.label, 7) + 36;
     const align =
@@ -210,7 +226,7 @@ function markerLanes(
     const lane = laneEnds.findIndex((end) => end + lanePaddingPx <= from);
     const chosen = lane === -1 ? laneEnds.length : lane;
     laneEnds[chosen] = from + width;
-    return { ...marker, lane: chosen, align };
+    return { ...marker, rail: rails[index], lane: chosen, align };
   });
 }
 

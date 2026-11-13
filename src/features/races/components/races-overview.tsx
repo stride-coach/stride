@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Chip } from "@/components/stride/chip";
 import { Button } from "@/components/ui/button";
-import { StrideMark } from "@/components/stride/stride-mark";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { ultraDistanceKm } from "@/features/progress/goal";
 import {
   formatClock,
@@ -143,7 +143,7 @@ function SeasonGraphic({ timeline }: { timeline: SeasonTimeline }) {
         <div
           key={marker.id}
           className="absolute -translate-x-1/2"
-          style={{ left: `${marker.left}%`, top: badgeTop }}
+          style={{ left: `${marker.rail}%`, top: badgeTop }}
         >
           <TimelineBadge priority={marker.priority} />
           {marker.priority === "A" && (
@@ -338,13 +338,15 @@ export function FeaturedRace({
         </span>
       </div>
       {reading && (
-        <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
-          <StrideMark className="mt-1 size-3.5 shrink-0" />
-          {reading}
-        </p>
+        <div className="flex items-start gap-2.5">
+          <StaffAvatar agent="director" size={26} />
+          <p className="max-w-170 pt-0.5 text-body-lg text-pretty text-secondary-foreground">
+            {reading}
+          </p>
+        </div>
       )}
       <div className="grid gap-x-7 gap-y-4 lg:grid-cols-2">
-        <dl className="grid grid-cols-2 content-start gap-x-4 gap-y-3 border-y border-border py-3.5">
+        <dl className="grid grid-cols-2 content-start gap-x-3 gap-y-3.5 self-start border-y border-border py-3.5">
           <Figure label="Distance">{distance ?? "—"}</Figure>
           <Figure label="Dénivelé">
             {gain !== null ? `+${formatInteger(gain)} m` : "—"}

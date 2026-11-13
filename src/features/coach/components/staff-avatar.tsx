@@ -59,7 +59,7 @@ export function StaffAvatar({
   className,
 }: {
   agent: StaffAgent;
-  size: 22 | 30 | 48;
+  size: 22 | 26 | 30 | 48;
   state?: GaletState;
   decorative?: boolean;
   className?: string;
