@@ -22,6 +22,8 @@ export function thresholdOptions(current: number) {
 export type ClimbRow = {
   number: number;
   fromM: number;
+  toM: number;
+  instruction: string;
   km: string;
   section: string | null;
   length: string;
@@ -42,6 +44,8 @@ export type ThresholdRow = {
   threshold: number;
   count: number;
   walked: string;
+  share: number;
+  shareLabel: string;
   runPace: string | null;
   current: boolean;
 };
@@ -94,6 +98,8 @@ export function climbRows({
     return {
       number: index + 1,
       fromM: portion.fromM,
+      toM: portion.toM,
+      instruction: "Marche",
       km: formatKm(portion.fromM),
       section: segment ? `${segment.fromName} → ${segment.toName}` : null,
       length: km(length),
@@ -156,10 +162,16 @@ export function thresholdComparison({
     );
     const pace = runPaceSeconds(simulation, settings.walkPaceSecondsPerKm);
     const summary = walkSummary(portions);
+    const share =
+      model.course.distanceM > 0
+        ? summary.distanceM / model.course.distanceM
+        : 0;
     return {
       threshold,
       count: summary.count,
       walked: km(summary.distanceM),
+      share,
+      shareLabel: `${formatInteger(share * 100)} %`,
       runPace: pace === null ? null : `${formatPace(pace)} /km`,
       current: threshold === current,
     };
