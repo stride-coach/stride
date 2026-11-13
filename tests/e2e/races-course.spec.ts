@@ -399,7 +399,7 @@ test("the scenarios view compares, creates and chooses a scenario", async ({
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/scenarios");
   const objective = page.getByRole("article", { name: /^Objectif/ });
   await expect(objective).toContainText("6h00");
-  const create = page.getByRole("form", { name: "Créer un scénario" });
+  const create = page.getByRole("form", { name: "Encadrer ton objectif" });
   const prudentCard = page.getByRole("article", { name: /^Prudent/ });
   if (await create.isVisible()) {
     const kind = create.getByRole("button", { name: "Prudent" });
@@ -428,6 +428,41 @@ test("the scenarios view compares, creates and chooses a scenario", async ({
     .click();
   await expect(objective).toContainText("6h00", { timeout: 15_000 });
   await expect(prudentCard).toContainText(prudent);
+});
+
+test("the scenarios view adds a custom scenario and keeps it as plan B", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/scenarios");
+  const planB = page.getByRole("region", { name: "Un plan B pour le jour J" });
+  await expect(planB).toContainText("Garder Prudent en plan B");
+  await page.getByRole("button", { name: "Créer un scénario" }).click();
+  const dialog = page.getByRole("dialog", { name: "Créer un scénario" });
+  await dialog.getByLabel("Nom").fill("Sans bâtons");
+  await dialog.getByRole("button", { name: "Augmenter marcher dès" }).click();
+  await dialog.getByRole("button", { name: "Augmenter marcher dès" }).click();
+  await expect(dialog.getByText(/^Arrivée vers 14:00/)).toBeVisible();
+  await dialog.getByRole("button", { name: "Ajouter aux scénarios" }).click();
+  const custom = page.getByRole("article", { name: /^Sans bâtons/ });
+  await expect(custom).toContainText("Le tien", { timeout: 15_000 });
+  await expect(custom).toContainText("dès 12 %");
+  await custom.getByRole("button", { name: "Garder en plan B" }).click();
+  await expect(planB).toContainText("tu passes sur «\u00a0Sans bâtons\u00a0»", {
+    timeout: 15_000,
+  });
+  await expect(
+    custom.getByRole("button", { name: "Retirer le plan B" }),
+  ).toBeVisible();
+  await custom.getByRole("button", { name: "Supprimer" }).click();
+  await expect(custom).toBeHidden({ timeout: 15_000 });
+  await expect(planB).toContainText("Garder Prudent en plan B");
 });
 
 test("the plan de course follows the timeline and applies a strategy proposal", async ({

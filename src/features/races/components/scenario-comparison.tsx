@@ -11,6 +11,11 @@ import {
   CreateScenario,
   ScenarioRevisions,
 } from "./scenario-actions";
+import {
+  CreateCustomScenario,
+  DeleteCustomScenario,
+  PlanBToggle,
+} from "./custom-scenario";
 
 export function ScenarioComparisonView({
   comparison,
@@ -21,9 +26,13 @@ export function ScenarioComparisonView({
   kind,
   targetSeconds,
   evidence = [],
+  startMinutes,
+  customLimit,
 }: {
   comparison: ScenarioComparison;
   evidence?: { label: string; value: string }[];
+  startMinutes: number;
+  customLimit: number;
   base: string;
   raceId: string;
   raceRevision: number;
@@ -31,6 +40,10 @@ export function ScenarioComparisonView({
   kind: RaceKind;
   targetSeconds: number | null;
 }) {
+  const planB = comparison.cards.find((card) => card.planB) ?? null;
+  const cautious =
+    comparison.cards.find((card) => card.key === "cautious") ?? null;
+  const customCount = comparison.cards.filter((card) => card.customId).length;
   const head =
     "px-2 py-2 text-right text-label font-normal text-muted-foreground";
   const cell = "px-2 py-2.5 text-right tabular-nums whitespace-nowrap";
@@ -62,6 +75,8 @@ export function ScenarioComparisonView({
                     {card.label}
                   </h2>
                   {card.isTarget && <Chip>Ton objectif</Chip>}
+                  {card.customId && <Chip>Le tien</Chip>}
+                  {card.planB && <Chip proposal>Plan B</Chip>}
                   <Status level={card.tenability.level} className="ml-auto">
                     {card.tenability.label}
                   </Status>
@@ -153,15 +168,32 @@ export function ScenarioComparisonView({
                       Plan actuel
                     </span>
                   )}
-                  {!card.isTarget && targetSeconds !== null && (
-                    <ChooseScenario
+                  {!card.isTarget && (
+                    <PlanBToggle
                       raceId={raceId}
-                      kind={kind}
-                      scenario={card.key as "ambitious" | "cautious"}
-                      seconds={card.seconds}
-                      targetSeconds={targetSeconds}
+                      scenarioKey={card.key}
+                      active={card.planB}
+                      label={card.label}
                     />
                   )}
+                  {card.customId && (
+                    <DeleteCustomScenario
+                      raceId={raceId}
+                      scenarioId={card.customId}
+                      name={card.label}
+                    />
+                  )}
+                  {!card.isTarget &&
+                    !card.customId &&
+                    targetSeconds !== null && (
+                      <ChooseScenario
+                        raceId={raceId}
+                        kind={kind}
+                        scenario={card.key as "ambitious" | "cautious"}
+                        seconds={card.seconds}
+                        targetSeconds={targetSeconds}
+                      />
+                    )}
                 </div>
               </article>
             ))}
@@ -173,34 +205,101 @@ export function ScenarioComparisonView({
               />
             )}
           </section>
-          {evidence.length > 0 && (
-            <aside
-              aria-labelledby="scenario-evidence"
-              className="flex flex-col gap-2 xl:border-l xl:border-border xl:pl-5"
+          <aside
+            aria-label="Contexte des scénarios"
+            className="flex flex-col gap-5 xl:border-l xl:border-border xl:pl-5"
+          >
+            {evidence.length > 0 && (
+              <section
+                aria-labelledby="scenario-evidence"
+                className="flex flex-col gap-2"
+              >
+                <h2
+                  id="scenario-evidence"
+                  className="text-label font-medium text-muted-foreground"
+                >
+                  D’où viennent ces scénarios
+                </h2>
+                <dl className="flex flex-col">
+                  {evidence.map((item) => (
+                    <div
+                      key={item.label}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border py-1.5"
+                    >
+                      <dt className="text-secondary-foreground">
+                        {item.label}
+                      </dt>
+                      <dd className="font-medium tabular-nums">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="text-label text-pretty text-muted-foreground">
+                  Tes meilleures marques des 6 derniers mois. Le prudent et
+                  l’ambitieux encadrent ton objectif : tu les règles toi-même.
+                </p>
+              </section>
+            )}
+            <section
+              aria-labelledby="scenario-plan-b"
+              className="flex flex-col gap-1.5"
             >
               <h2
-                id="scenario-evidence"
+                id="scenario-plan-b"
                 className="text-label font-medium text-muted-foreground"
               >
-                D’où viennent ces scénarios
+                Un plan B pour le jour J
               </h2>
-              <dl className="flex flex-col">
-                {evidence.map((item) => (
-                  <div
-                    key={item.label}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border py-1.5"
-                  >
-                    <dt className="text-secondary-foreground">{item.label}</dt>
-                    <dd className="font-medium tabular-nums">{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
+              {planB ? (
+                <p className="text-pretty">
+                  {`Si la journée tourne mal, tu passes sur «\u00a0${planB.label}\u00a0»\u00a0: arrivée ${planB.finish}.`}
+                </p>
+              ) : (
+                <>
+                  <p className="text-pretty">
+                    {cautious
+                      ? "Tu peux garder le scénario prudent en réserve, pour basculer si la journée tourne mal."
+                      : "Garde un scénario en réserve, pour basculer si la journée tourne mal : « Garder en plan B » sur sa carte."}
+                  </p>
+                  {cautious && (
+                    <PlanBToggle
+                      raceId={raceId}
+                      scenarioKey={cautious.key}
+                      active={false}
+                      label={cautious.label}
+                    >
+                      Garder {cautious.label} en plan B
+                    </PlanBToggle>
+                  )}
+                </>
+              )}
+            </section>
+            <section
+              aria-labelledby="scenario-own"
+              className="flex flex-col gap-2"
+            >
+              <h2
+                id="scenario-own"
+                className="text-label font-medium text-muted-foreground"
+              >
+                Le tien
+              </h2>
               <p className="text-label text-pretty text-muted-foreground">
-                Tes meilleures marques des 6 derniers mois. Le prudent et
-                l’ambitieux encadrent ton objectif : tu les règles toi-même.
+                Pars d’un scénario et règle-le : objectif, seuil de marche,
+                arrêts, glucides. Jusqu’à {customLimit} scénarios.
               </p>
-            </aside>
-          )}
+              <CreateCustomScenario
+                raceId={raceId}
+                startMinutes={startMinutes}
+                disabled={customCount >= customLimit}
+                sources={comparison.cards.map((card) => ({
+                  key: card.key,
+                  label: card.label,
+                  seconds: card.seconds,
+                  ...card.settings,
+                }))}
+              />
+            </section>
+          </aside>
         </div>
         {comparison.cards.length > 1 && comparison.passages.length > 0 && (
           <section

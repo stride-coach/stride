@@ -2831,6 +2831,7 @@ createServer(async (request, response) => {
     race.elevation_gain_m = road ? 25 : 1800;
     race.target_duration_seconds = road ? 39 * 60 : 21600;
     race.race_date = new Date(Date.now() + 2 * day).toISOString().slice(0, 10);
+    tables.race_scenarios = [];
     tables.race_plans = [
       {
         race_id: race.id,
@@ -3620,6 +3621,8 @@ createServer(async (request, response) => {
           (revision === null || revision === `eq.${item.revision}`),
       );
       if (!plan) return send(200, []);
+      const planB = url.searchParams.get("plan_b");
+      if (planB && planB !== `eq.${plan.plan_b}`) return send(200, []);
       Object.assign(plan, body, { revision: plan.revision + 1 });
       return send(200, [plan]);
     }
@@ -3975,6 +3978,26 @@ createServer(async (request, response) => {
           ? { id: row.id }
           : [{ id: row.id }],
       );
+    }
+    if (url.pathname === "/rest/v1/race_scenarios") {
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        const row = { id: randomUUID(), ...value, revision: 1 };
+        tables.race_scenarios = [...(tables.race_scenarios ?? []), row];
+        return send(201, [row]);
+      }
+      if (request.method === "DELETE") {
+        const removed = (tables.race_scenarios ?? []).filter(
+          (row) => url.searchParams.get("id") === `eq.${row.id}`,
+        );
+        tables.race_scenarios = tables.race_scenarios.filter(
+          (row) => !removed.includes(row),
+        );
+        return send(
+          200,
+          removed.map((row) => ({ id: row.id })),
+        );
+      }
     }
     if (url.pathname === "/rest/v1/race_crew_links") {
       if (request.method === "POST") {

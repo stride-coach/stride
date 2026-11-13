@@ -15,9 +15,9 @@ import type { RaceKind } from "@/features/onboarding/goals";
 import { saveRacePlan, saveRaceTarget } from "@/server/races/actions";
 import { formatHours, parseHoursMinutes } from "../format";
 import { actionMessage } from "../messages";
-import type { ScenarioKey } from "../workspace";
+import type { BuiltinScenarioKey } from "../workspace";
 
-type Alternative = Exclude<ScenarioKey, "target">;
+type Alternative = Exclude<BuiltinScenarioKey, "target">;
 
 const fields: Record<Alternative, "ambitiousSeconds" | "cautiousSeconds"> = {
   ambitious: "ambitiousSeconds",
@@ -167,7 +167,7 @@ export function CreateScenario({
       className="flex flex-col gap-3 rounded-xl border border-dashed border-control-border px-4 py-3.5"
     >
       <h3 id="scenario-create" className="font-medium">
-        Créer un scénario
+        Encadrer ton objectif
       </h3>
       {missing.length > 1 && (
         <div
