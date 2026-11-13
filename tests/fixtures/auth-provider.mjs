@@ -4135,6 +4135,8 @@ createServer(async (request, response) => {
       url.pathname === "/rest/v1/rpc/replace_race_course" &&
       request.method === "POST"
     ) {
+      tables.race_courses ??= [];
+      tables.race_waypoints ??= [];
       const raceId = body.p_race_id;
       const owner =
         tables.athlete_races.find((item) => item.id === raceId)?.user_id ??
