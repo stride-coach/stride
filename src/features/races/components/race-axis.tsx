@@ -24,6 +24,22 @@ const rowSpans: Record<number, string> = {
   4: "xl:row-span-4",
 };
 
+function cursorLines(reading: AxisReading) {
+  return [
+    [
+      `km ${km(reading.distanceM)}`,
+      reading.clock,
+      reading.terrain.value.toLowerCase(),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    [reading.instruction.value, reading.instruction.detail]
+      .filter(Boolean)
+      .join(" · "),
+    reading.weather?.value ?? "",
+  ].filter((text) => text.length > 0);
+}
+
 function CursorPanel({ reading }: { reading: AxisReading }) {
   const rows = [
     { label: "Terrain", fact: reading.terrain },
@@ -248,6 +264,7 @@ export function RaceAxis({
     title: string;
     rainLabel: "Météo" | "Averses";
     hasWeather: boolean;
+    fileName?: string | null;
   } | null;
   settings?: React.ReactNode;
   alert?: React.ReactNode;
@@ -298,6 +315,9 @@ export function RaceAxis({
               rainLabel={map.rainLabel}
               hasWeather={map.hasWeather}
               cursor={reading.position}
+              cursorLines={cursorLines(reading)}
+              highlight={highlight}
+              fileName={map.fileName ?? null}
               walkLabel={`Côtes ≥ ${walkThreshold} %`}
             />
           </div>

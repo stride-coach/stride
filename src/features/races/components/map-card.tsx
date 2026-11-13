@@ -184,6 +184,9 @@ export function MapCard({
   hasWeather,
   kind = "trail",
   cursor = null,
+  cursorLines = [],
+  highlight = null,
+  fileName = null,
   walkLabel = "Marche",
 }: {
   data: MapData;
@@ -193,6 +196,9 @@ export function MapCard({
   hasWeather: boolean;
   kind?: "road" | "trail";
   cursor?: { lat: number; lon: number } | null;
+  cursorLines?: string[];
+  highlight?: { fromM: number; toM: number } | null;
+  fileName?: string | null;
   walkLabel?: string;
 }) {
   const road = kind === "road";
@@ -245,6 +251,25 @@ export function MapCard({
       aria-label="Carte du parcours"
       className="min-w-0 overflow-hidden rounded-xl border border-border bg-card"
     >
+      <div className="flex min-h-10 items-center gap-3 border-b border-border px-4 py-1.5">
+        <h2 className="min-w-0 truncate text-label font-medium text-muted-foreground">
+          Carte
+          {fileName && (
+            <span className="font-normal">
+              {" · "}
+              {fileName}
+            </span>
+          )}
+        </h2>
+        <button
+          ref={opener}
+          type="button"
+          onClick={() => setFullscreen(true)}
+          className="ml-auto inline-flex min-h-control-touch shrink-0 items-center rounded-sm text-label font-medium text-primary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:min-h-0"
+        >
+          Plein écran
+        </button>
+      </div>
       <RaceMap
         data={data}
         layers={layers}
@@ -252,9 +277,11 @@ export function MapCard({
         overlay={
           chips && <div className="flex gap-1.5 max-md:hidden">{chips}</div>
         }
-        fullscreenRef={opener}
         onFullscreen={() => setFullscreen(true)}
+        fullscreenButton={false}
         cursor={cursor}
+        cursorLines={cursorLines}
+        highlight={highlight}
         className="h-56 md:h-105"
       />
       {fullscreen && (

@@ -3,11 +3,9 @@ import Link from "next/link";
 import { PencilIcon, UploadIcon } from "lucide-react";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { localToday } from "@/features/app-shell/shell";
-import { coachRequestHref } from "@/features/coach/request";
 import { raceWorkspaceId } from "@/features/races/map";
 import { raceOnTrack } from "@/features/races/on-track";
 import { Button } from "@/components/ui/button";
-import { StrideMark } from "@/components/stride/stride-mark";
 import { requireAthlete } from "@/server/app/session";
 import { loadOnTrackInputs } from "@/server/races/on-track";
 import { RaceHeader } from "@/features/races/components/race-header";
@@ -60,36 +58,12 @@ export default async function RaceLayout({
             </Button>
             <Button
               asChild
-              variant="ghost"
-              size="icon"
-              className="size-control-touch shrink-0 md:hidden"
-            >
-              <Link href={`${base}/edit`} aria-label="Modifier l’objectif">
-                <PencilIcon aria-hidden="true" className="size-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
               variant="outline"
               className="shrink-0 max-md:hidden"
             >
               <Link href={`${base}/course`} title="Importer un GPX">
                 <UploadIcon aria-hidden="true" className="size-3.5" />
                 <span className="max-2xl:sr-only">Importer un GPX</span>
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              className="size-control-touch shrink-0 md:hidden"
-            >
-              <Link
-                href={coachRequestHref(null, null, data.race.id)}
-                aria-label="Poser une question sur cette course"
-              >
-                <StrideMark className="size-4" />
               </Link>
             </Button>
           </>
@@ -134,8 +108,6 @@ export default async function RaceLayout({
             <RaceHeader
               race={data.race}
               plan={data.plan}
-              course={data.course}
-              waypoints={data.waypoints}
               today={today}
               phase={phase}
               location={data.details.location}

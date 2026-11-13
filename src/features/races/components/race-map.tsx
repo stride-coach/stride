@@ -109,6 +109,28 @@ function markerElement(marker: MapMarker, active: boolean) {
   return element;
 }
 
+function fillTip(tip: HTMLSpanElement, lines: string[]) {
+  tip.textContent = "";
+  lines.forEach((text, index) => {
+    const row = document.createElement("span");
+    row.className =
+      index === 0
+        ? "block font-medium text-foreground"
+        : "block text-secondary-foreground";
+    row.textContent = text;
+    tip.append(row);
+  });
+  tip.hidden = lines.length === 0;
+}
+
+function line(coordinates: [number, number][][]) {
+  return {
+    type: "Feature" as const,
+    properties: {},
+    geometry: { type: "MultiLineString" as const, coordinates },
+  };
+}
+
 function RaceMapView({
   theme,
   data,
@@ -126,6 +148,9 @@ function RaceMapView({
   label,
   className,
   cursor = null,
+  cursorLines = [],
+  highlight = null,
+  fullscreenButton = true,
 }: {
   theme: ResolvedTheme;
   data: MapData;
@@ -143,8 +168,12 @@ function RaceMapView({
   label: string;
   className?: string;
   cursor?: { lat: number; lon: number } | null;
+  cursorLines?: string[];
+  highlight?: { fromM: number; toM: number } | null;
+  fullscreenButton?: boolean;
 }) {
   const framed = Boolean(onFullscreen || onClose);
+  const tipRef = useRef<HTMLSpanElement | null>(null);
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -215,11 +244,6 @@ function RaceMapView({
               "background-color",
               background,
             );
-          const line = (coordinates: [number, number][][]) => ({
-            type: "Feature" as const,
-            properties: {},
-            geometry: { type: "MultiLineString" as const, coordinates },
-          });
           const route = [
             initial.route.map(([lat, lon]) => [lon, lat] as [number, number]),
           ];
@@ -272,6 +296,17 @@ function RaceMapView({
               },
             });
           }
+          current.addSource("highlight", { type: "geojson", data: line([]) });
+          current.addLayer({
+            id: "highlight",
+            type: "line",
+            source: "highlight",
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": token(container, "--primary"),
+              "line-width": 6,
+            },
+          });
           setReady(true);
         });
         current.on("click", (event) => {
@@ -316,6 +351,22 @@ function RaceMapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
+    const source = map.getSource("highlight") as
+      { setData: (data: ReturnType<typeof line>) => void } | undefined;
+    source?.setData(
+      line(highlight ? rangeLines(dataRef.current, [highlight]) : []),
+    );
+  }, [ready, highlight]);
+
+  const linesRef = useRef(cursorLines);
+  useEffect(() => {
+    linesRef.current = cursorLines;
+    if (tipRef.current) fillTip(tipRef.current, cursorLines);
+  }, [cursorLines]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
     if (!cursor) {
       cursorRef.current?.remove();
       cursorRef.current = null;
@@ -331,8 +382,16 @@ function RaceMapView({
       if (!active || cursorRef.current) return;
       const element = document.createElement("span");
       element.setAttribute("aria-hidden", "true");
-      element.className =
-        "block size-3.5 rounded-full border-2 border-background bg-foreground shadow-float";
+      element.className = "relative block size-3.5";
+      const dot = document.createElement("span");
+      dot.className =
+        "block size-3.5 rounded-full border-2 border-background bg-primary shadow-float";
+      const tip = document.createElement("span");
+      tip.className =
+        "pointer-events-none absolute bottom-5 left-1/2 block -translate-x-1/2 rounded-md border border-control-border bg-popover px-2 py-1 text-label leading-4 whitespace-nowrap shadow-float";
+      element.append(dot, tip);
+      tipRef.current = tip;
+      fillTip(tip, linesRef.current);
       cursorRef.current = new maplibre.Marker({ element })
         .setLngLat([cursor.lon, cursor.lat])
         .addTo(map);
@@ -541,7 +600,7 @@ function RaceMapView({
             >
               <XIcon className="size-4" />
             </Button>
-          ) : (
+          ) : fullscreenButton ? (
             <Button
               variant="outline"
               size="icon"
@@ -553,7 +612,7 @@ function RaceMapView({
             >
               <ExpandIcon className="size-3.5" />
             </Button>
-          )}
+          ) : null}
           {ready && (
             <>
               <Button
