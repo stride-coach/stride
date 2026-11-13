@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { CoachNote } from "@/components/stride/coach-note";
+import { StrideMark } from "@/components/stride/stride-mark";
 import { Widget } from "@/components/stride/widget";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,7 @@ import { crewLinkPeriod } from "@/features/races/crew-link";
 import { CrewLinkPanel } from "@/features/races/components/crew-link-panel";
 import { readCrewLink, siteOrigin } from "@/server/races/crew-link";
 import { loadRace } from "@/server/races/load";
-import { chartViews, crewFor } from "@/server/races/views";
+import { chartViews, crewFor, weatherFor } from "@/server/races/views";
 
 const head = "px-2 py-2 text-left text-label font-normal text-muted-foreground";
 const cell = "px-2 py-2 align-middle tabular-nums";
@@ -43,7 +43,19 @@ export default async function CrewPage({
       </EmptyState>
     );
   const { crew, views } = result;
-  const { map, profile } = chartViews(views.model, views.planned, null);
+  const weather = views.planned
+    ? await weatherFor(data, views.model, views.planned).catch(() => null)
+    : null;
+  const { map, profile } = chartViews(views.model, views.planned, weather);
+  const notes = Object.fromEntries(
+    crew.points.map((point) => [
+      point.id,
+      [
+        `Assistance · ${point.window ?? point.planned}`,
+        ...(point.access ? [point.access] : []),
+      ],
+    ]),
+  );
   const editor = (
     point: { id: string; name: string; editable: boolean },
     mode: "crew" | "gap",
@@ -64,7 +76,10 @@ export default async function CrewPage({
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
       <div className="flex min-w-0 flex-col gap-5">
-        <CoachNote>{crew.reading}</CoachNote>
+        <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
+          <StrideMark className="mt-1 size-3.5 shrink-0" />
+          {crew.reading}
+        </p>
         <Widget
           headingLevel={2}
           aria-labelledby="crew-points"
@@ -154,13 +169,18 @@ export default async function CrewPage({
             ))}
           </ul>
         </Widget>
-        <MapCard
-          data={map}
-          segments={profile.segments}
-          title={data.race.name}
-          rainLabel="Météo"
-          hasWeather={false}
-        />
+        <div className="max-md:hidden">
+          <MapCard
+            data={map}
+            segments={profile.segments}
+            title={data.race.name}
+            rainLabel="Pluie"
+            hasWeather={weather !== null}
+            walkLabel={`Côtes ≥ ${data.plan.walkGradePercent} %`}
+            fileName={data.course?.fileName ?? null}
+            notes={notes}
+          />
+        </div>
         {crew.gaps.length > 0 && (
           <Widget
             headingLevel={2}
@@ -195,8 +215,14 @@ export default async function CrewPage({
           </Widget>
         )}
       </div>
-      <aside className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5 xl:sticky xl:top-4">
-        <h2 className="text-body font-medium text-secondary-foreground">
+      <aside
+        aria-labelledby="crew-share"
+        className="flex flex-col gap-3 xl:sticky xl:top-4 xl:border-l xl:border-border xl:pl-5"
+      >
+        <h2
+          id="crew-share"
+          className="text-label font-medium text-muted-foreground"
+        >
           Partager avec ton assistance
         </h2>
         <CrewLinkPanel

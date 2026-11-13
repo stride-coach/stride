@@ -152,6 +152,7 @@ function RaceMapView({
   highlight = null,
   fullscreenButton = true,
   closeButton = true,
+  notes,
 }: {
   theme: ResolvedTheme;
   data: MapData;
@@ -173,6 +174,7 @@ function RaceMapView({
   highlight?: { fromM: number; toM: number } | null;
   fullscreenButton?: boolean;
   closeButton?: boolean;
+  notes?: Record<string, string[]>;
 }) {
   const framed = Boolean(onFullscreen || onClose);
   const tipRef = useRef<HTMLSpanElement | null>(null);
@@ -668,6 +670,11 @@ function RaceMapView({
               </span>
             )}
           </span>
+          {notes?.[tooltip.id]?.map((line) => (
+            <span key={line} className="text-label text-secondary-foreground">
+              {line}
+            </span>
+          ))}
         </div>
       )}
       {failed && !ready && (
