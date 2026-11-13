@@ -418,6 +418,47 @@ test("a past race reads the race on its plan", async ({ page, request }) => {
   );
 });
 
+test("a past race keeps its lessons for the next one", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?past=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/after");
+  const lessons = page.getByRole("region", {
+    name: "Ce qu’on garde pour la prochaine",
+  });
+  const noticed = lessons.getByRole("list", { name: "Ce que Stride a relevé" });
+  await expect(noticed).toContainText(
+    "Point d’eau → Arrivée : +17 min sur le plan.",
+  );
+  await noticed
+    .getByRole("button", {
+      name: "Ajouter « Point d’eau → Arrivée : +17 min sur le plan. »",
+    })
+    .click();
+  const kept = lessons.getByRole("list", {
+    name: "Tes lignes pour la prochaine",
+  });
+  await expect(kept).toContainText("Changer", { timeout: 15_000 });
+  await expect(noticed).not.toContainText("Point d’eau → Arrivée");
+  const form = lessons.getByRole("form", { name: "Ajouter une ligne" });
+  await form.getByRole("button", { name: "Garder" }).click();
+  await form.getByLabel("Ce que tu retiens").fill("La marche dès 10 %");
+  await form.getByRole("button", { name: "Ajouter" }).click();
+  await expect(kept).toContainText("La marche dès 10 %", { timeout: 15_000 });
+  await kept
+    .getByRole("button", { name: "Supprimer « La marche dès 10 % »" })
+    .click();
+  await expect(kept).not.toContainText("La marche dès 10 %", {
+    timeout: 15_000,
+  });
+});
+
 test("the scenarios view compares, creates and chooses a scenario", async ({
   page,
   request,
