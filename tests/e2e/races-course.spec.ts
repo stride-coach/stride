@@ -190,14 +190,62 @@ test("a populated race opens every workspace section on desktop and mobile", asy
     await expect(
       editor.getByRole("button", { name: "Ravitaillement" }),
     ).toHaveAttribute("aria-pressed", "true");
-    await expect(editor.getByRole("checkbox", { name: "Eau" })).toBeChecked();
+    await expect(editor.getByRole("switch", { name: "Eau" })).toBeChecked();
     await expect(editor.getByText("Accroché au tracé")).toBeVisible();
+    await editor.getByText("Sur la montre").click();
     await expect(editor.getByText("Dans 500 m")).toBeVisible();
     await page.screenshot({
       path: `test-results/race-waypoints-${viewport.width}.png`,
       fullPage: true,
     });
   }
+});
+
+test("the waypoint editor uses the artboard types and services", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/waypoints");
+  const row = page.getByRole("row", { name: /Point d’eau/ });
+  await expect(row).toContainText("Ravitaillement");
+  await row.getByRole("button", { name: "Point d’eau" }).click();
+  const editor = page.getByRole("region", { name: "Modifier Point d’eau" });
+  await expect(
+    editor.getByRole("button", { name: "Ravitaillement" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(editor.getByRole("switch", { name: "Eau" })).toBeChecked();
+  await expect(
+    editor.getByRole("switch", { name: "Solide" }),
+  ).not.toBeChecked();
+  await expect(
+    editor.getByText("Vide : 2 min, comme les autres points d’eau"),
+  ).toBeVisible();
+  await editor.getByRole("switch", { name: "Solide" }).click();
+  await expect(
+    editor.getByText("Vide : 5 min, comme les autres ravitos"),
+  ).toBeVisible();
+  await editor.getByLabel("Note pour toi").fill("Frontale sur la tête ici");
+  await editor.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(row).toContainText("Eau, solide", { timeout: 15_000 });
+
+  if (!(await editor.isVisible()))
+    await row.getByRole("button", { name: "Point d’eau" }).click();
+  await editor.getByRole("button", { name: "Barrière", exact: true }).click();
+  await expect(editor.getByRole("switch", { name: "Eau" })).toHaveCount(0);
+  await editor.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(editor.getByRole("alert")).toHaveText(
+    "Ajoute l’heure de la barrière horaire.",
+  );
+  await editor.getByLabel("Barrière horaire").fill("12:30");
+  await editor.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(row).toContainText("Barrière", { timeout: 15_000 });
+  await expect(row).toContainText("12:30");
 });
 
 test("the simulation settings recalculate the plan and can be undone", async ({
@@ -1111,7 +1159,7 @@ test("a race without a course reads as an estimate and takes manual aid stations
   await editor
     .getByRole("textbox", { name: "Nom", exact: true })
     .fill("Base de Chaville");
-  await editor.getByRole("textbox", { name: /^Km/ }).fill("60");
+  await editor.getByRole("textbox", { name: /^Au km/ }).fill("60");
   await editor.getByRole("button", { name: "Enregistrer" }).click();
   await expect(page.getByText("Point enregistré.")).toBeVisible();
 
