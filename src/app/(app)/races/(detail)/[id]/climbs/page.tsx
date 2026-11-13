@@ -10,10 +10,8 @@ import {
 } from "@/features/races/climbs";
 import { axisLanes, axisReadings } from "@/features/races/axis";
 import { AxisFocusProvider } from "@/features/races/components/axis-focus";
-import {
-  ClimbsAxis,
-  ClimbsTable,
-} from "@/features/races/components/climbs-view";
+import { ClimbsTable } from "@/features/races/components/climbs-view";
+import { FocusedLanes } from "@/features/races/components/lanes-explorer";
 import { ClimbThreshold } from "@/features/races/components/climb-threshold";
 import { EmptyState } from "@/features/races/components/race-ui";
 import { profileData } from "@/features/races/profile";
@@ -119,13 +117,14 @@ export default async function RaceClimbsPage({
         <StrideMark className="mt-1 size-3.5 shrink-0" />
         {reading}
       </p>
-      <ClimbsAxis
+      <FocusedLanes
         lanes={lanes}
         readings={readings}
         walkThreshold={threshold}
         raceId={data.race.id}
-        label="Le profil, côte par côte"
-        threshold={
+        headingId="climbs-profile"
+        title="Le profil, côte par côte"
+        actions={
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
             <span className="text-label text-muted-foreground">
               Marcher dès

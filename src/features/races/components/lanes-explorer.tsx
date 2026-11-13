@@ -12,7 +12,7 @@ import {
   zoomWindow,
   type AxisWindow,
 } from "../axis-window";
-import type { AxisRange } from "./axis-focus";
+import { useAxisFocus, type AxisRange } from "./axis-focus";
 import { RaceLanes, type LegendKey } from "./race-lanes";
 
 const rainSwatch = {
@@ -334,5 +334,39 @@ export function LanesExplorer({
           : "Clique pour épingler · Ctrl + molette pour zoomer · double-clic pour revenir au parcours entier"}
       </p>
     </section>
+  );
+}
+
+export function FocusedLanes({
+  lanes,
+  readings,
+  walkThreshold,
+  raceId,
+  title,
+  headingId,
+  actions,
+}: {
+  lanes: AxisLanes;
+  readings: AxisReading[];
+  walkThreshold: number;
+  raceId: string;
+  title: string;
+  headingId: string;
+  actions?: React.ReactNode;
+}) {
+  const { cursorM, setCursorM, highlight } = useAxisFocus();
+  return (
+    <LanesExplorer
+      lanes={lanes}
+      readings={readings}
+      cursorM={cursorM}
+      onCursor={setCursorM}
+      highlight={highlight}
+      walkThreshold={walkThreshold}
+      raceId={raceId}
+      headingId={headingId}
+      title={title}
+      actions={actions}
+    />
   );
 }
