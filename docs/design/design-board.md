@@ -55,6 +55,17 @@ Tall artboards are downscaled when an agent views the full image, which makes sm
 
 Compare implementation screenshots at the same viewport. Keep all comparison screenshots in ignored `test-results/` or outside the repository.
 
+### Visual review page
+
+Every pull request that changes user-visible UI links a visual review page in its description, so the owner can check the result against the board without running the branch:
+
+1. Render each affected artboard (desktop and mobile when both exist) and capture the same screen of the running branch at the artboard width, in the board's theme, full height.
+2. Publish one private claude.ai Artifact per pull request with the Artifact tool: each screen side by side and as an overlay with a slider, then the gaps listed by status — fixed in this pull request, intended (data, recorded adaptations), to decide, or planned for a later pull request.
+3. Say which data the render uses. Local fixtures never match the board's sample content, so the review compares structure, order and treatment, not values.
+4. Link the page at the top of the pull request description and list the « to decide » items there too.
+
+The page and its images stay outside the repository.
+
 ## Traceability
 
 The board changes without git history. Each read returns the board version, for example `1792096069-088c`. Record the version and the artboard titles used in the pull request that implements a screen, and in specs or design adaptations that depend on a specific state of the board.
