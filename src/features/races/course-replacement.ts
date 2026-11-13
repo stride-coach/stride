@@ -1,5 +1,7 @@
 import { haversine, pointDistance, positionAt, type Course } from "./course";
-import { formatInteger, formatKm } from "./format";
+import { kmEffort, type RaceKind } from "./calendar";
+import { formatClock, formatInteger, formatKm } from "./format";
+import { riegel } from "./race-details";
 import { walkPortions, walkSummary } from "./grade";
 import type { Waypoint, WaypointKind } from "./waypoints";
 
@@ -34,6 +36,8 @@ export type ReplacementCarry =
     };
 
 export type CourseReplacement = {
+  pointCount: number;
+  routes: { current: [number, number][]; next: [number, number][] };
   rows: ReplacementRow[];
   moves: ReplacementMove[];
   removed: string[];
@@ -43,6 +47,60 @@ export type CourseReplacement = {
 };
 
 const movedThresholdM = 100;
+const routePoints = 400;
+
+function route(course: Course): [number, number][] {
+  const stride = Math.max(1, Math.ceil(course.points.length / routePoints));
+  return course.points
+    .filter(
+      (_, index) => index % stride === 0 || index === course.points.length - 1,
+    )
+    .slice(0, routePoints)
+    .map((point) => [point[0], point[1]]);
+}
+
+export function sameEffortArrival({
+  startMinutes,
+  finishMinutes,
+  current,
+  next,
+  kind,
+}: {
+  startMinutes: number;
+  finishMinutes: number;
+  current: Course;
+  next: Course;
+  kind: RaceKind;
+}) {
+  const before = kmEffort(
+    current.distanceM / 1000,
+    current.elevationGainM,
+    kind,
+  );
+  const after = kmEffort(next.distanceM / 1000, next.elevationGainM, kind);
+  if (before <= 0 || after <= 0) return null;
+  return (
+    startMinutes + (finishMinutes - startMinutes) * (after / before) ** riegel
+  );
+}
+
+export function arrivalRow(
+  current: number | null,
+  next: number | null,
+): ReplacementRow | null {
+  if (current === null || next === null) return null;
+  const minutes = Math.round(next - current);
+  return {
+    key: "arrival",
+    label: "Arrivée à effort égal",
+    current: formatClock(current),
+    next: formatClock(next),
+    delta:
+      minutes === 0
+        ? "±0 min"
+        : `${minutes > 0 ? "+" : "−"}${Math.abs(minutes)} min`,
+  };
+}
 const offCourseM = 250;
 
 export function normalizedName(name: string) {
@@ -233,6 +291,8 @@ export function courseReplacement({
         : null,
   ];
   return {
+    pointCount: next.points.length,
+    routes: { current: route(current), next: route(next) },
     rows,
     moves,
     removed,
