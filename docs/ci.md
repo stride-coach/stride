@@ -23,7 +23,7 @@ Every job, including the release workflow, runs on self-hosted runners (#515). G
 Two pools share the `ci` label:
 
 - `wsl`: the developer's WSL machine. It runs every job, and it is the only pool for the jobs that need Docker: the containerized `browser` and `browser-quarantine` lanes and `database-onboarding`.
-- `homelab`: one runner (`homelab-1`) on the homelab that also hosts production and pre-production. It takes the container-free jobs (`scope`, `quality`, `validate`, `database` and `release-please`), so `quality` builds while the WSL runners run browser lanes. It runs as the `gh-runner` system user with no `sudo` and no Docker access, because Docker on that host would give a job control of the production containers. Its systemd unit caps it at three of the four cores, 5 GB of memory and idle I/O priority, and sets `NODE_OPTIONS=--max-old-space-size=3072`, so a build never starves production.
+- `homelab`: one runner (`homelab-1`) on the homelab that also hosts production and pre-production. It takes the container-free jobs (`scope`, `quality`, `validate`, `database` and `release-please`), so `quality` builds while the WSL runners run browser lanes. It runs as the `gh-runner` system user with no `sudo` and no Docker access, because Docker on that host would give a job control of the production containers. Its systemd unit caps it at three of the four cores, 6 GB of memory and idle I/O priority, and sets `NODE_OPTIONS=--max-old-space-size=3072`, so a build never starves production.
 
 Jobs that use `[self-hosted, ci]` run on either pool; jobs that need Docker keep `[self-hosted, wsl]`. A new runner must carry the `ci` label to take shared jobs.
 
