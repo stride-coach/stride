@@ -307,6 +307,10 @@ test("the climbs view lists the climbs and switches the walking threshold", asyn
   await expect(
     page.getByRole("heading", { name: "Le profil, côte par côte" }),
   ).toBeVisible();
+  const climbsAxis = page.getByRole("slider", {
+    name: "Position sur le parcours",
+  });
+  await expect(climbsAxis).toHaveAttribute("aria-valuetext", /^km 0, /);
   const picker = page.getByRole("radiogroup", { name: "Marcher dès" });
   const current = picker.getByRole("radio", { checked: true });
   const before = await current.textContent();

@@ -4,8 +4,13 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
 import { EmptyState, RaceCard } from "@/features/races/components/race-ui";
-import { WeatherProfile } from "@/features/races/components/weather-profile";
-import { defaultStartMinutes } from "@/features/races/race";
+import { localToday } from "@/features/app-shell/shell";
+import { axisLanes, axisReadings } from "@/features/races/axis";
+import { AxisFocusProvider } from "@/features/races/components/axis-focus";
+import { FocusedLanes } from "@/features/races/components/lanes-explorer";
+import { profileData } from "@/features/races/profile";
+import { daysUntil, defaultStartMinutes } from "@/features/races/race";
+import { planProfile } from "@/features/races/timeline";
 import { weatherView } from "@/features/races/weather-view";
 import { planModel } from "@/features/races/workspace";
 import { paceFactorsOf } from "@/features/races/proposals";
@@ -49,6 +54,9 @@ async function WeatherBody({
     planned,
     timeline,
     startMinutes,
+    daysToRace: data.race.date
+      ? daysUntil(data.race.date, localToday(new Date()))
+      : null,
     alternatives: scenarios.map((scenario) => ({
       scenario,
       planned:
@@ -64,8 +72,32 @@ async function WeatherBody({
             }),
     })),
   });
+  const profile = planProfile(
+    profileData({
+      course: model.course,
+      waypoints: model.waypoints,
+      marks: model.marks,
+      portions: model.portions,
+      planned,
+      weather,
+    }),
+    timeline,
+  );
+  const lanes = {
+    ...axisLanes({ profile, model, timeline, weather }),
+    walk: [],
+    pace: [],
+    fueling: [],
+  };
+  const readings = axisReadings({
+    model,
+    planned,
+    timeline,
+    weather,
+    walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
+  });
   return (
-    <>
+    <AxisFocusProvider>
       <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
         {view.reading}
@@ -87,28 +119,21 @@ async function WeatherBody({
       </dl>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
         <div className="flex min-w-0 flex-col gap-5">
-          <RaceCard aria-labelledby="weather-course">
-            <div className="flex flex-wrap items-baseline gap-x-3">
-              <h2 id="weather-course" className="font-semibold">
-                La météo au fil de ta course
-              </h2>
+          <FocusedLanes
+            lanes={lanes}
+            readings={readings}
+            walkThreshold={data.plan.walkGradePercent}
+            raceId={data.race.id}
+            headingId="weather-course"
+            title="La météo au fil de ta course"
+            actions={
               <p className="text-label text-muted-foreground">
                 {view.mode === "forecast"
                   ? "Prévision à l’heure de ton passage"
                   : "Normales de saison à cette date"}
               </p>
-            </div>
-            <WeatherProfile
-              distanceM={model.course.distanceM}
-              temperatures={weather.slots.map((slot) => ({
-                distanceM: slot.distanceM,
-                temperature: slot.temperature,
-              }))}
-              rain={view.rain}
-              night={planned.nightKm}
-              label={`Température le long du parcours${view.rain.length > 0 ? ", avec la pluie" : ""}${planned.nightKm.length > 0 ? " et la nuit" : ""}`}
-            />
-          </RaceCard>
+            }
+          />
           <section
             aria-labelledby="weather-adjustments"
             className="flex flex-col gap-2"
@@ -154,8 +179,18 @@ async function WeatherBody({
               id="weather-source"
               className="text-label font-medium text-muted-foreground"
             >
-              {view.mode === "forecast" ? "Prévision" : "Avant la prévision"}
+              {view.mode === "forecast" ? "Fiabilité" : "Avant la prévision"}
             </h2>
+            <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1.5">
+              {view.reliability.map((item) => (
+                <div key={item.label} className="contents">
+                  <dt className="text-secondary-foreground">{item.label}</dt>
+                  <dd className="text-right font-medium tabular-nums">
+                    {item.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
             <p className="text-pretty">
               {view.mode === "forecast"
                 ? "La météo est calculée à l’endroit et à l’heure où tu passes. Si ton allure change, la pluie rencontrée change aussi."
@@ -211,7 +246,7 @@ async function WeatherBody({
           )}
         </aside>
       </div>
-    </>
+    </AxisFocusProvider>
   );
 }
 
