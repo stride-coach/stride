@@ -83,6 +83,7 @@ export function ShortcutHelp() {
     ["Réduire la barre latérale", "⌘ b ctrl b"],
     ["Réglages", "⌘ , ctrl ,"],
     ["Raccourcis clavier", "?"],
+    ["Rechercher dans Stride", "⌘ k ctrl k / recherche"],
     ["Rechercher dans cette aide", "/"],
   ].filter(([label, terms]) =>
     matchesShortcutSearch(label, terms, query),
@@ -274,6 +275,21 @@ export function ShortcutHelp() {
                   >
                     Commandes
                   </h3>
+                  <ShortcutRow
+                    label="Rechercher dans Stride"
+                    terms="⌘ k ctrl k / recherche"
+                    query={query}
+                    keys={
+                      <>
+                        <Shortcut>{modifier}</Shortcut>
+                        <Shortcut>K</Shortcut>
+                        <span className="text-label text-muted-foreground">
+                          ou
+                        </span>
+                        <Shortcut>/</Shortcut>
+                      </>
+                    }
+                  />
                   <ShortcutRow
                     label="Rechercher dans cette aide"
                     terms="/"

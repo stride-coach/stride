@@ -981,7 +981,9 @@ test("search walks the main thread and a closed topic at 1440", async ({
   await expect(page).toHaveURL(`/coach/${closedTopic}`, { timeout: 20_000 });
   await expect(bar).toHaveCount(0);
   await expect(log.locator("mark")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /^Rechercher/ })).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Rechercher", exact: true }),
+  ).toBeFocused();
 });
 
 test("search keeps only its bar on a phone at 390", async ({ page }) => {

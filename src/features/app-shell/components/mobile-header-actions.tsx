@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { MobileSearchButton } from "@/features/search/components/search-trigger";
 import { cn } from "@/lib/utils";
 import type { ShellGoal } from "../shell";
 import { AccountAvatarMenu } from "./account-menu";
@@ -41,6 +42,7 @@ export function MobileHeaderActions({ className }: { className?: string }) {
           <SeasonGoalCountdown goal={goal} />
         </Suspense>
       )}
+      <MobileSearchButton />
       <NotificationBell />
       <AccountAvatarMenu athlete={athlete} modelDetail={modelDetail} />
     </div>

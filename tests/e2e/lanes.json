@@ -43,6 +43,7 @@
     "progress": ["progress", "session-panel"],
     "push": ["settings-notifications"],
     "races": ["races", "races-course"],
+    "search": ["search"],
     "settings": ["settings", "garmin-sync", "settings-notifications"],
     "theme": ["theme"],
     "today": ["today", "today-decisions", "session-panel"]
