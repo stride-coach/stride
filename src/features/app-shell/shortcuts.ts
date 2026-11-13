@@ -15,6 +15,7 @@ export const shortcutGroups: readonly {
       { label: "Réduire la barre latérale", keys: { combo: ["⌘", "B"] } },
       { label: "Réglages", keys: { combo: ["⌘", ","] } },
       { label: "Raccourcis clavier", keys: { combo: ["?"] } },
+      { label: "Rechercher dans Stride", keys: { combo: ["⌘", "K"] } },
     ],
   },
 ];

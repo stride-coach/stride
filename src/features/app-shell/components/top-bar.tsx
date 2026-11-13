@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { StrideLogo } from "@/components/stride/stride-logo";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { SearchTrigger } from "@/features/search/components/search-trigger";
 import type { ShellAthlete, ShellGoal } from "../shell";
 import { AccountAvatarMenu } from "./account-menu";
 import { SeasonMenu } from "./season-menu";
@@ -63,6 +64,7 @@ export function TopBar({
       <Suspense fallback={fallback}>
         <SeasonMenu fallback={fallback}>{separator}</SeasonMenu>
       </Suspense>
+      <SearchTrigger className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-lg:hidden" />
       <span className="ml-auto flex items-center gap-2">
         <Button asChild size="sm" variant="outline">
           <Link href="/coach">Demander au coach</Link>

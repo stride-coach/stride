@@ -42,6 +42,7 @@ import { TopBar } from "./top-bar";
 import { ShellIdentityProvider } from "./shell-identity";
 import { Relief } from "@/components/stride/relief";
 import { ShortcutHelp } from "./shortcut-help";
+import { GlobalSearch } from "@/features/search/components/global-search";
 
 type Navigation = { navigation: Promise<ShellNavigation> };
 
@@ -107,6 +108,7 @@ export function AppShell({
             className="relative h-svh flex-col overflow-hidden md:bg-shell print:h-auto print:overflow-visible"
           >
             <ShortcutHelp />
+            <GlobalSearch />
             <Relief corner="top-right" className="max-md:hidden print:hidden" />
             <Relief
               corner="bottom-left"
