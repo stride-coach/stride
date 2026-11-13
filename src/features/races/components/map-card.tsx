@@ -91,6 +91,7 @@ function FullscreenMap({
   cursor = null,
   cursorLines = [],
   highlight = null,
+  notes,
 }: {
   onClose: () => void;
   data: MapData;
@@ -104,6 +105,7 @@ function FullscreenMap({
   cursor?: { lat: number; lon: number } | null;
   cursorLines?: string[];
   highlight?: { fromM: number; toM: number } | null;
+  notes?: Record<string, string[]>;
 }) {
   const rows = segmentRows(data, segments);
   const close = useRef<HTMLButtonElement>(null);
@@ -154,6 +156,7 @@ function FullscreenMap({
             data={data}
             layers={layers}
             label={label}
+            notes={notes}
             cooperative={false}
             overlay={chips}
             onClose={onClose}
@@ -185,6 +188,7 @@ function FullscreenMap({
         data={data}
         layers={layers}
         label={label}
+        notes={notes}
         cooperative={false}
         overlay={chips}
         onClose={onClose}
@@ -249,11 +253,12 @@ export function MapCard({
   walkLabel = "Marche",
   fullscreenDock = null,
   fullscreenPanel = null,
+  notes,
 }: {
   data: MapData;
   segments?: MapSegment[];
   title: string;
-  rainLabel: "Météo" | "Averses";
+  rainLabel: "Météo" | "Averses" | "Pluie";
   hasWeather: boolean;
   kind?: "road" | "trail";
   cursor?: { lat: number; lon: number } | null;
@@ -263,6 +268,7 @@ export function MapCard({
   walkLabel?: string;
   fullscreenDock?: React.ReactNode;
   fullscreenPanel?: React.ReactNode;
+  notes?: Record<string, string[]>;
 }) {
   const road = kind === "road";
   const pathname = usePathname();
@@ -337,6 +343,7 @@ export function MapCard({
         data={data}
         layers={layers}
         label={label}
+        notes={notes}
         overlay={
           chips && <div className="flex gap-1.5 max-md:hidden">{chips}</div>
         }
@@ -355,6 +362,7 @@ export function MapCard({
           layers={layers}
           chips={chips}
           label={label}
+          notes={notes}
           title={title}
           dock={fullscreenDock}
           panel={fullscreenPanel}

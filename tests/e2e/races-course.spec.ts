@@ -1290,6 +1290,11 @@ test("the crew view says where and when to meet the athlete", async ({
   await dialog.getByRole("button", { name: "Enregistrer" }).click();
   await expect(row).toContainText("Parking du gymnase");
   await expect(row).toContainText("2 flasques iso");
+  await page.getByRole("button", { name: /^Ravito du Bois, km/ }).click();
+  await expect(
+    page.getByText(/^Assistance · \d\d:\d\d – \d\d:\d\d$/),
+  ).toBeVisible();
+  await expect(page.getByText("Parking du gymnase").last()).toBeVisible();
 
   const gaps = page.getByRole("region", { name: "Sans assistance" });
   await expect(gaps).toContainText("Point d’eau");
@@ -1348,6 +1353,15 @@ test("the crew follows a secret link that can be replaced or switched off", asyn
   ).toBeVisible();
 
   const second = new URL(await address.inputValue(), page.url()).pathname;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(address).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: "Partager le lien" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /^Ravito du Bois, km/ }),
+  ).toBeHidden();
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await linkSwitch.click();
   await expect(address).toBeHidden();
   await visitor.goto(second);

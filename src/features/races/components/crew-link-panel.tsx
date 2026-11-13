@@ -63,6 +63,18 @@ export function CrewLinkPanel({
     }
   }
 
+  async function share() {
+    if (!path) return;
+    const address = new URL(path, window.location.origin).toString();
+    if (typeof navigator.share !== "function") return copy();
+    try {
+      await navigator.share({ title: "Suivi de course", url: address });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      await copy();
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <label className="flex items-center justify-between gap-3">
@@ -81,7 +93,15 @@ export function CrewLinkPanel({
       </label>
       {enabled && url && (
         <>
-          <div className="flex gap-2">
+          <Button
+            type="button"
+            size="lg"
+            onClick={share}
+            className="w-full md:hidden"
+          >
+            Partager le lien
+          </Button>
+          <div className="flex gap-2 max-md:hidden">
             <Input
               readOnly
               value={url}
