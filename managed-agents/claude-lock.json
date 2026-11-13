@@ -9,10 +9,10 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "25",
-      "hash": "ed33da3c4841d65f22062b02f20f091c",
-      "remote_hash": "ae4963892ce063c265bbd4f5a050aff9",
-      "stamp": "25"
+      "version": "26",
+      "hash": "a4a0f132730b0239fabc06ab1b2273a8",
+      "remote_hash": "bdf6e4d1c1be92a4721c87fde636dfc4",
+      "stamp": "26"
     },
     "./agents/director.md": {
       "kind": "agent",
@@ -33,10 +33,10 @@
     "./agents/nutritionist.md": {
       "kind": "agent",
       "id": "agent_01T4vwuYeP5ZjKoLPDdHC9z4",
-      "version": "4",
-      "hash": "821d396a4e60d688960f9e63e578a203",
-      "remote_hash": "714ae70c6952646060bcf63c88cb3da8",
-      "stamp": "4"
+      "version": "5",
+      "hash": "c9db0702baefbfd7f96bf228805716c4",
+      "remote_hash": "e7ba02d3316ad96dd0ab3fc4644bc952",
+      "stamp": "5"
     },
     "./agents/strategist.md": {
       "kind": "agent",
@@ -127,7 +127,8 @@
       "kind": "skill",
       "id": "skill_01QWi4yaJZQLoZAfGZU5aBBF",
       "version": "skver_015HTrDhtJ7wTpDF5KfunDwY",
-      "hash": "f840962d944e09e9d6f005d01fae1e4c"
+      "hash": "f840962d944e09e9d6f005d01fae1e4c",
+      "stamp": "skver_015HTrDhtJ7wTpDF5KfunDwY"
     },
     "./skills/session-design": {
       "kind": "skill",
