@@ -103,6 +103,23 @@ for (const viewport of [
   });
 }
 
+test("the mobile header keeps the add-race title clear of its actions", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await signIn(page);
+  await page.goto("/races/new");
+  const header = page.locator("header").filter({ visible: true }).first();
+  const title = header
+    .getByText("Ajouter une course", { exact: true })
+    .filter({ visible: true });
+  await expect(title).toBeVisible();
+  const actions = header.locator('[data-slot="mobile-header-actions"]');
+  const titleBox = (await title.boundingBox())!;
+  const actionsBox = (await actions.boundingBox())!;
+  expect(titleBox.x + titleBox.width).toBeLessThanOrEqual(actionsBox.x);
+});
+
 for (const viewport of [
   { width: 1440, height: 900, name: "Trail des Crêtes" },
   { width: 390, height: 844, name: "Cross des Lilas" },
