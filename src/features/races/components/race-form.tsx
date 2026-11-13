@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { CheckIcon } from "lucide-react";
+import { useRef, useState, useTransition } from "react";
+import { CheckIcon, CircleCheckIcon, UploadIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from "@/features/onboarding/dates";
 import {
   maxRaceTestItems,
+  type RaceKind,
   type RacePriority,
   type RaceValues,
 } from "@/features/onboarding/goals";
@@ -40,6 +41,16 @@ import {
   type ReferenceRace,
 } from "../race-details";
 import { RemoveRaceButton } from "./remove-race-button";
+import { uploadTo } from "./course-import";
+import { importMessage } from "../messages";
+import {
+  formatRaceDateField,
+  gpxSummary,
+  priorityComment,
+  tailoredTests,
+  type GpxSummary,
+} from "../race-form-help";
+import { formatInteger } from "../format";
 import { submitRace } from "@/server/races/goals";
 
 export type RaceFormRace = {
@@ -49,6 +60,7 @@ export type RaceFormRace = {
   startTime: string | null;
   cutoffSeconds: number | null;
   details: RaceDetails;
+  course?: { distanceM: number; elevationGainM: number | null } | null;
 };
 
 const steps = ["La course", "Ton objectif", "Effet sur le plan"] as const;
@@ -79,6 +91,15 @@ const priorities: {
     description: "Intégrée comme une séance. Pas d’affûtage.",
   },
 ];
+
+const measured = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+function measuredKm(meters: number) {
+  return `${measured.format(meters / 1000)} km`;
+}
 
 const fieldLabel =
   "flex items-center justify-between gap-2 text-body text-secondary-foreground";
@@ -178,6 +199,7 @@ export function RaceForm({
   references = [],
   defaultPriority,
   primaryName,
+  primary = null,
   hasPlan,
   today,
   cancelHref,
@@ -188,6 +210,7 @@ export function RaceForm({
   references?: ReferenceRace[];
   defaultPriority: RacePriority;
   primaryName: string | null;
+  primary?: { name: string; kind: RaceKind } | null;
   hasPlan: boolean;
   today: string;
   cancelHref: string;
@@ -239,6 +262,11 @@ export function RaceForm({
     details?.testItems ?? [],
   );
   const [customTest, setCustomTest] = useState("");
+  const [dateFocused, setDateFocused] = useState(false);
+  const [gpx, setGpx] = useState<{ file: File; summary: GpxSummary } | null>(
+    null,
+  );
+  const gpxInput = useRef<HTMLInputElement>(null);
 
   const isoDate = parseFrenchDate(dateText);
   const distanceKm = Number(distance.replace(/\s/g, "").replace(",", "."));
@@ -314,6 +342,13 @@ export function RaceForm({
     startSaving(async () => {
       const result = await submitRace(data);
       if (result.status === "saved") {
+        if (gpx && mode === "create") {
+          const body = new FormData();
+          body.set("file", gpx.file);
+          const upload = await uploadTo(`/api/races/${result.id}/course`, body);
+          if (upload.status !== "saved")
+            toast.error(importMessage(upload.status));
+        }
         setSavedId(result.id);
         setStep(3);
         return;
@@ -346,10 +381,9 @@ export function RaceForm({
     setStep((current) => Math.min(3, current + 1));
   }
 
-  const warning =
-    priority === "A" && primaryName
-      ? `Tu as déjà une course A : ${primaryName}. L’objectif principal reste la plus proche.`
-      : null;
+  const warning = primaryName
+    ? `Choisir A en ferait un deuxième objectif principal à côté de ${primaryName} : Stride te montrerait d’abord l’effet sur le plan.`
+    : null;
   const raceName = name.trim() || "cette course";
   const estimate = targetEstimate(references, {
     kind,
@@ -357,6 +391,27 @@ export function RaceForm({
       Number.isFinite(distanceKm) && distanceKm > 0 ? distanceKm : null,
     elevationGainM: elevationM,
   });
+  async function pickGpx(file: File | undefined) {
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error(importMessage("too-large"));
+      return;
+    }
+    const summary = gpxSummary(await file.text());
+    if (!summary) {
+      toast.error(importMessage("invalid-file"));
+      return;
+    }
+    setGpx({ file, summary });
+    if (!name.trim() && summary.name) setName(summary.name.slice(0, 120));
+    if (!distance.trim())
+      setDistance(
+        String(Math.round(summary.distanceM / 100) / 10).replace(".", ","),
+      );
+    if (!elevation.trim() && summary.elevationGainM !== null)
+      setElevation(String(Math.round(summary.elevationGainM)));
+  }
+
   function addCustomTest() {
     const item = customTest.trim().slice(0, 60);
     if (!item || testItems.length >= maxRaceTestItems) return;
@@ -380,7 +435,13 @@ export function RaceForm({
         <h1 className="text-verdict font-semibold">{headings[step - 1]}</h1>
         <p className="text-body-lg text-pretty text-secondary-foreground">
           {step === 1 &&
-            (template ? template.note : "Tout reste modifiable après l’ajout.")}
+            (mode === "edit"
+              ? "Modifie ce qui a changé : le plan de course suit."
+              : template
+                ? template.note
+                : gpx
+                  ? "Préremplie depuis le GPX. Tout reste modifiable."
+                  : "Tout reste modifiable après l’ajout.")}
           {step === 2 &&
             "La priorité décide de la place que la course prend dans ton plan."}
           {step === 3 &&
@@ -392,7 +453,7 @@ export function RaceForm({
 
       {step === 1 && (
         <div className="flex flex-col">
-          <div className="grid grid-cols-2 gap-3.5 pb-5 md:grid-cols-[minmax(0,1fr)_8.125rem_5.625rem]">
+          <div className="grid grid-cols-2 gap-3.5 pb-5 md:grid-cols-[minmax(0,1fr)_8.125rem_5.625rem_10.625rem]">
             <Field
               label="Nom"
               htmlFor="race-name"
@@ -408,17 +469,18 @@ export function RaceForm({
                 className={fieldInput}
               />
             </Field>
-            <Field
-              label="Date"
-              htmlFor="race-date"
-              error={show(errors.date)}
-              hint={isoDate ? formatLongFrenchDate(isoDate) : "JJ/MM/AAAA"}
-            >
+            <Field label="Date" htmlFor="race-date" error={show(errors.date)}>
               <Input
                 id="race-date"
                 inputMode="numeric"
                 placeholder="JJ/MM/AAAA"
-                value={dateText}
+                value={
+                  !dateFocused && isoDate
+                    ? formatRaceDateField(isoDate)
+                    : dateText
+                }
+                onFocus={() => setDateFocused(true)}
+                onBlur={() => setDateFocused(false)}
                 onChange={(event) =>
                   setDateText(maskFrenchDate(event.target.value))
                 }
@@ -429,90 +491,95 @@ export function RaceForm({
               label="Départ"
               htmlFor="race-start"
               error={show(errors.start)}
-              hint="Facultatif"
             >
               <Input
                 id="race-start"
                 inputMode="numeric"
-                placeholder="06:30"
+                placeholder="hh:mm"
                 value={start}
                 onChange={(event) => setStart(event.target.value)}
                 className={fieldInput}
               />
             </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3.5 pb-5 md:grid-cols-[6rem_6rem_8.125rem_minmax(0,1fr)]">
-            <Field
-              label="Distance"
-              htmlFor="race-distance"
-              error={show(errors.distance)}
-            >
-              <span className="relative block">
-                <Input
-                  id="race-distance"
-                  inputMode="decimal"
-                  value={distance}
-                  onChange={(event) => setDistance(event.target.value)}
-                  className={cn(fieldInput, "pr-10")}
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted-foreground"
-                >
-                  km
-                </span>
-              </span>
-            </Field>
-            <Field
-              label="Dénivelé"
-              htmlFor="race-elevation"
-              error={show(errors.elevation)}
-            >
-              <span className="relative block">
-                <Input
-                  id="race-elevation"
-                  inputMode="numeric"
-                  value={elevation}
-                  onChange={(event) => setElevation(event.target.value)}
-                  className={cn(fieldInput, "pr-8")}
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted-foreground"
-                >
-                  m
-                </span>
-              </span>
-            </Field>
-            <Field
-              label="Barrière horaire"
-              htmlFor="race-cutoff"
-              error={show(errors.cutoff)}
-              hint="Facultatif"
-            >
-              <Input
-                id="race-cutoff"
-                placeholder="9h00"
-                value={cutoff}
-                onChange={(event) => setCutoff(event.target.value)}
-                className={fieldInput}
-              />
-            </Field>
-            <Field
-              label="Lieu"
-              htmlFor="race-location"
-              className="col-span-2 md:col-span-1"
-              hint="Facultatif"
-            >
+            <Field label="Lieu" htmlFor="race-location">
               <Input
                 id="race-location"
                 value={location}
                 maxLength={120}
-                placeholder="Chevreuse (78)"
+                placeholder="Ville"
                 onChange={(event) => setLocation(event.target.value)}
                 className={fieldInput}
               />
             </Field>
+            <div className="max-md:contents md:col-span-4 md:flex md:gap-3.5">
+              <Field
+                label="Distance"
+                htmlFor="race-distance"
+                className="md:w-24"
+                error={show(errors.distance)}
+              >
+                <span className="relative block">
+                  <Input
+                    id="race-distance"
+                    inputMode="decimal"
+                    value={distance}
+                    onChange={(event) => setDistance(event.target.value)}
+                    className={cn(fieldInput, "pr-10")}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted-foreground"
+                  >
+                    km
+                  </span>
+                </span>
+              </Field>
+              <Field
+                label="Dénivelé"
+                htmlFor="race-elevation"
+                className="md:w-24"
+                error={show(errors.elevation)}
+              >
+                <span className="relative block">
+                  <Input
+                    id="race-elevation"
+                    inputMode="numeric"
+                    value={elevation}
+                    onChange={(event) => setElevation(event.target.value)}
+                    className={cn(fieldInput, "pr-8")}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted-foreground"
+                  >
+                    m
+                  </span>
+                </span>
+              </Field>
+              <Field
+                label="Barrière horaire"
+                htmlFor="race-cutoff"
+                className="md:w-32.5"
+                error={show(errors.cutoff)}
+              >
+                <Input
+                  id="race-cutoff"
+                  placeholder="Aucune"
+                  value={cutoff}
+                  onChange={(event) => setCutoff(event.target.value)}
+                  className={fieldInput}
+                />
+              </Field>
+            </div>
+            {mode === "edit" && race?.course && (
+              <p className="col-span-2 text-label text-pretty text-muted-foreground md:col-span-4">
+                Le plan de course suit le GPX :{" "}
+                {measuredKm(race.course.distanceM)}
+                {race.course.elevationGainM !== null &&
+                  ` et +${formatInteger(race.course.elevationGainM)} m`}{" "}
+                mesurés. La distance annoncée sert au calendrier et à la saison.
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-between gap-4 border-t border-border py-4">
             <span id="race-kind" className="font-medium">
@@ -564,6 +631,76 @@ export function RaceForm({
                   ),
                 )}
               </div>
+            </div>
+          )}
+          {mode === "create" && kind === "trail" && (
+            <div className="border-t border-border pt-4">
+              <input
+                ref={gpxInput}
+                type="file"
+                accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                aria-label="Fichier GPX de la course"
+                className="sr-only"
+                onChange={(event) => {
+                  void pickGpx(event.target.files?.[0]);
+                  event.target.value = "";
+                }}
+              />
+              {gpx ? (
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-3">
+                  <CircleCheckIcon
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-primary"
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate font-medium">
+                      {gpx.file.name}
+                    </span>
+                    <span className="text-label text-pretty text-secondary-foreground tabular-nums">
+                      {[
+                        `${measuredKm(gpx.summary.distanceM)}${
+                          gpx.summary.elevationGainM !== null
+                            ? ` et +${formatInteger(gpx.summary.elevationGainM)} m`
+                            : ""
+                        } mesurés`,
+                        Number.isFinite(distanceKm) && distanceKm > 0
+                          ? `annoncé ${formatKm(distanceKm)}`
+                          : null,
+                        gpx.summary.aidStations === 0
+                          ? "aucun ravitaillement détecté"
+                          : `${gpx.summary.aidStations} ${gpx.summary.aidStations > 1 ? "ravitaillements détectés" : "ravitaillement détecté"}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => gpxInput.current?.click()}
+                  >
+                    Remplacer
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => gpxInput.current?.click()}
+                  className="flex w-full items-center gap-3 rounded-lg border border-dashed border-control-border px-3.5 py-3 text-left transition-colors duration-150 ease-stride hover:bg-muted"
+                >
+                  <UploadIcon
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-secondary-foreground"
+                  />
+                  <span className="flex flex-col">
+                    <span className="font-medium">Ajouter le GPX</span>
+                    <span className="text-label text-secondary-foreground">
+                      Facultatif : Stride en tire la distance, le dénivelé et
+                      les ravitos.
+                    </span>
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -666,29 +803,34 @@ export function RaceForm({
               </span>
             </legend>
             <div className="clear-left flex flex-wrap gap-1.5">
-              {[...new Set([...testSuggestions(kind), ...testItems])].map(
-                (item) => {
-                  const chosen = testItems.includes(item);
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      aria-pressed={chosen}
-                      disabled={!chosen && testItems.length >= maxRaceTestItems}
-                      onClick={() =>
-                        setTestItems((current) =>
-                          chosen
-                            ? current.filter((value) => value !== item)
-                            : [...current, item],
-                        )
-                      }
-                      className="inline-flex min-h-control-touch items-center rounded-md border border-border bg-card px-2.5 text-secondary-foreground transition-colors duration-150 ease-stride hover:text-foreground disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:text-foreground md:min-h-7"
-                    >
-                      {item}
-                    </button>
-                  );
-                },
-              )}
+              {[
+                ...new Set([
+                  ...(priority === "A"
+                    ? testSuggestions(kind)
+                    : tailoredTests(kind, primary, testSuggestions(kind))),
+                  ...testItems,
+                ]),
+              ].map((item) => {
+                const chosen = testItems.includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    aria-pressed={chosen}
+                    disabled={!chosen && testItems.length >= maxRaceTestItems}
+                    onClick={() =>
+                      setTestItems((current) =>
+                        chosen
+                          ? current.filter((value) => value !== item)
+                          : [...current, item],
+                      )
+                    }
+                    className="inline-flex min-h-control-touch items-center rounded-md border border-border bg-card px-2.5 text-secondary-foreground transition-colors duration-150 ease-stride hover:text-foreground disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:text-foreground md:min-h-7"
+                  >
+                    {item}
+                  </button>
+                );
+              })}
             </div>
             <div className="flex max-w-sm gap-2">
               <Input
@@ -716,6 +858,10 @@ export function RaceForm({
               </Button>
             </div>
           </fieldset>
+          <p className="flex max-w-170 items-start gap-2.5 text-pretty">
+            <StrideMark className="mt-1 size-3.5 shrink-0" />
+            {priorityComment(priority, primaryName)}
+          </p>
         </>
       )}
 
@@ -833,7 +979,14 @@ export function RaceForm({
         <span className="ml-auto" />
         {step < 3 ? (
           <Button type="submit" disabled={saving}>
-            {step === 2 ? "Voir l’effet sur le plan" : "Continuer"}
+            {step === 2 ? (
+              <>
+                <span className="md:hidden">Voir l’effet</span>
+                <span className="max-md:hidden">Voir l’effet sur le plan</span>
+              </>
+            ) : (
+              "Continuer"
+            )}
           </Button>
         ) : (
           <>
