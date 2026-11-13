@@ -233,6 +233,43 @@ for (const viewport of [
   });
 }
 
+test("the season page switches to past races and stacks on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAs(page, "seasons@example.com");
+  await page.goto("/races");
+  const tabs = page.getByRole("navigation", { name: "Vues des courses" });
+  await expect(
+    tabs.getByRole("link", { name: /^Saison \d{4}–\d{2}$/ }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    page.getByRole("region", { name: "Prochaine échéance" }),
+  ).toContainText(/Avant\s*\d+ jours? faciles?/);
+  await expect(page.getByRole("region", { name: "À venir" })).toBeVisible();
+  await tabs.getByRole("link", { name: "Passées" }).click();
+  await expect(page).toHaveURL(/\/races\?view=past$/);
+  await expect(page.getByRole("region", { name: /^Passées/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: "À venir" })).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Saison" })).toHaveCount(
+    0,
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/races");
+  await expect(
+    page.getByText(/^\d{4}–\d{2}$/).filter({ visible: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("region", { name: /^À venir/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: /^Passées/ })).toBeVisible();
+  await expect(
+    page.getByRole("complementary", { name: "Saison" }),
+  ).toBeHidden();
+  await expect(
+    page.getByRole("link", { name: "Ajouter une course" }),
+  ).toBeVisible();
+});
+
 test("a past race opens its after-race tab", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signInAs(page, "seasons@example.com");

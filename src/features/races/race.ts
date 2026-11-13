@@ -280,6 +280,10 @@ export function formatCompactDate(date: string, weekday = false) {
   );
 }
 
+export function formatSeasonDate(date: string) {
+  return shortDate.format(new Date(`${date}T00:00:00Z`));
+}
+
 export function formatShortDate(date: string) {
   return shortDate.format(new Date(`${date}T00:00:00Z`)).replace(".", "");
 }

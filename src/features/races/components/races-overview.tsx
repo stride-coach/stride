@@ -24,13 +24,13 @@ import {
   pastYears,
   seasonRailWidthPx,
   type SeasonTimeline,
+  raceTypeLabel,
 } from "../overview";
 import { formatResultTime, type RaceResult } from "../results";
 import { raceEditions } from "../editions";
 import {
   defaultStartMinutes,
-  formatCompactDate,
-  formatDayDate,
+  formatSeasonDate,
   formatRaceDate,
   formatShortDate,
   type RacePlan,
@@ -322,16 +322,15 @@ export function FeaturedRace({
           {race.name}
         </h2>
         <Chip className="max-md:hidden">{kindLabel(race)}</Chip>
-        <span className="flex items-baseline gap-2 max-sm:basis-full sm:ml-auto">
+        <span className="ml-auto flex items-baseline gap-2">
           {countdown && (
             <span className="text-verdict font-semibold tabular-nums">
               {countdown}
             </span>
           )}
           {race.date && (
-            <span className="text-label text-muted-foreground">
-              <span className="md:hidden">{formatDayDate(race.date)}</span>
-              <span className="max-md:hidden">{formatRaceDate(race.date)}</span>
+            <span className="text-label text-muted-foreground max-md:hidden">
+              <span>{formatRaceDate(race.date)}</span>
               {" · "}
               {formatClock(start)}
             </span>
@@ -376,11 +375,13 @@ function GroupHeader({
   title,
   detail,
   end,
+  endOn = "desktop",
 }: {
   id: string;
   title: string;
   detail?: string;
   end?: string;
+  endOn?: "desktop" | "mobile" | "both";
 }) {
   return (
     <h2
@@ -388,9 +389,24 @@ function GroupHeader({
       className="flex items-baseline gap-2 border-b border-border bg-muted px-4 py-2 text-label font-normal md:px-5"
     >
       <span className="font-medium text-foreground">{title}</span>
-      {detail && <span className="text-secondary-foreground">{detail}</span>}
+      {detail && (
+        <span
+          className={cn(
+            "text-secondary-foreground",
+            endOn === "mobile" && "max-lg:hidden",
+          )}
+        >
+          {detail}
+        </span>
+      )}
       {end && (
-        <span className="ml-auto text-secondary-foreground max-lg:hidden">
+        <span
+          className={cn(
+            "ml-auto text-secondary-foreground",
+            endOn === "desktop" && "max-lg:hidden",
+            endOn === "mobile" && "lg:hidden",
+          )}
+        >
           {end}
         </span>
       )}
@@ -414,6 +430,8 @@ export function UpcomingRaces({
         id="races-upcoming"
         title="À venir"
         detail={`${races.length} ${races.length > 1 ? "courses" : "course"}`}
+        end="Objectif"
+        endOn="mobile"
       />
       <div
         aria-hidden="true"
@@ -439,7 +457,7 @@ export function UpcomingRaces({
             ? formatDuration(race.targetSeconds)
             : null;
           const summary = [
-            race.date ? formatCompactDate(race.date) : "Date à définir",
+            race.date ? formatSeasonDate(race.date) : "Date à définir",
             race.distanceKm ? `${formatInteger(race.distanceKm)} km` : null,
             race.elevationGainM
               ? `+${formatInteger(race.elevationGainM)} m`
@@ -458,7 +476,7 @@ export function UpcomingRaces({
                 <PriorityBadge priority={race.priority} small />
                 <span className="flex min-w-0 flex-col gap-0.5 lg:contents">
                   <span className="text-muted-foreground tabular-nums max-lg:hidden">
-                    {race.date ? formatCompactDate(race.date) : "—"}
+                    {race.date ? formatSeasonDate(race.date) : "—"}
                   </span>
                   <span className="min-w-0 truncate font-medium">
                     <span className="sr-only">Course {race.priority} · </span>
@@ -468,7 +486,7 @@ export function UpcomingRaces({
                     {summary.join(" · ")}
                   </span>
                   <span className="max-lg:hidden">
-                    <Chip>{kindLabels[race.kind]}</Chip>
+                    <Chip>{raceTypeLabel(race)}</Chip>
                   </span>
                   <span className="text-right tabular-nums max-lg:hidden">
                     {race.distanceKm
@@ -547,6 +565,7 @@ export function PastRaces({
         title="Passées"
         detail={pastYears(races) ?? undefined}
         end="Résultat"
+        endOn="both"
       />
       <ul>
         {races.map((race) => {
@@ -579,7 +598,7 @@ export function PastRaces({
               <PriorityBadge priority={race.priority} small />
               <span className="flex min-w-0 flex-col gap-0.5 lg:contents">
                 <span className="text-muted-foreground tabular-nums max-lg:hidden">
-                  {race.date ? formatCompactDate(race.date) : "—"}
+                  {race.date ? formatSeasonDate(race.date) : "—"}
                 </span>
                 <Link
                   href={`/races/${race.id}`}
@@ -591,7 +610,7 @@ export function PastRaces({
                 </Link>
                 <span className="truncate text-label text-muted-foreground tabular-nums lg:hidden">
                   {[
-                    race.date ? formatCompactDate(race.date) : null,
+                    race.date ? formatSeasonDate(race.date) : null,
                     distance,
                     gain,
                   ]
@@ -599,7 +618,7 @@ export function PastRaces({
                     .join(" · ")}
                 </span>
                 <span className="max-lg:hidden">
-                  <Chip>{kindLabel(race)}</Chip>
+                  <Chip>{raceTypeLabel(race)}</Chip>
                 </span>
                 <span className="text-right tabular-nums max-lg:hidden">
                   {distance ?? "—"}
@@ -677,7 +696,7 @@ export function CurrentValues({ values }: { values: CurrentValue[] }) {
         ))}
       </dl>
       <p className="text-label text-muted-foreground">
-        Prévisions Garmin. Évolution sur 4 semaines.
+        Estimé par Garmin sur tes dernières semaines. Évolution sur 4 semaines.
       </p>
     </section>
   );
@@ -686,9 +705,11 @@ export function CurrentValues({ values }: { values: CurrentValue[] }) {
 export function NextRace({
   race,
   today,
+  easyDays = null,
 }: {
   race: RaceSummary;
   today: string;
+  easyDays?: number | null;
 }) {
   const countdown = countdownLabel(race.date, today);
   const pace = targetPace(race);
@@ -716,6 +737,14 @@ export function NextRace({
           <div className="grid grid-cols-[88px_minmax(0,1fr)] items-baseline gap-3">
             <dt className="text-secondary-foreground">Allure cible</dt>
             <dd className="font-semibold tabular-nums">{pace}</dd>
+          </div>
+        )}
+        {easyDays !== null && easyDays > 0 && (
+          <div className="grid grid-cols-[88px_minmax(0,1fr)] items-baseline gap-3">
+            <dt className="text-secondary-foreground">Avant</dt>
+            <dd className="font-semibold tabular-nums">
+              {easyDays} {easyDays > 1 ? "jours faciles" : "jour facile"}
+            </dd>
           </div>
         )}
       </dl>
