@@ -210,14 +210,15 @@ export function CourseImport({
 
   return (
     <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      {replacement ? (
+      {replacement && (
         <CourseReplacementCard
           preview={replacement.preview}
           pending={pending}
           onCancel={() => setReplacement(null)}
           onConfirm={replacement.confirm}
         />
-      ) : (
+      )}
+      {
         <RaceCard className="gap-0 overflow-hidden p-0">
           <div
             onDragOver={(event) => {
@@ -319,7 +320,7 @@ export function CourseImport({
             ))}
           </div>
         </RaceCard>
-      )}
+      }
       <div className="flex flex-col gap-3">
         <Widget
           headingLevel={2}
