@@ -120,6 +120,8 @@ function fromMonth(time: number) {
 }
 
 export const timelineWidthPx = 896;
+export const seasonRailWidthPx = 260;
+const monthGapPx = 6;
 
 const lanePaddingPx = 16;
 
@@ -142,7 +144,7 @@ export type TimelineMarker = {
 export type SeasonTimeline = {
   range: string;
   today: number;
-  months: { key: string; label: string; left: number }[];
+  months: { key: string; label: string; left: number; labelled: boolean }[];
   phases: {
     key: string;
     label: string;
@@ -196,12 +198,19 @@ export function seasonTimeline(
   const at = (time: number) =>
     Math.min(100, Math.max(0, ((time - start) / span) * 100));
   const months: SeasonTimeline["months"] = [];
+  let labelEnd = -Infinity;
   let month = start;
   while (month < end) {
+    const label = monthLabel.format(new Date(month));
+    const left = at(month);
+    const x = (left / 100) * seasonRailWidthPx;
+    const labelled = x >= labelEnd + monthGapPx;
+    if (labelled) labelEnd = x + textWidthPx(label, 6);
     months.push({
       key: new Date(month).toISOString().slice(0, 7),
-      label: monthLabel.format(new Date(month)),
-      left: at(month),
+      label,
+      left,
+      labelled,
     });
     const next = new Date(month);
     month = Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 1);
@@ -363,4 +372,14 @@ export function countdownLabel(date: string | null, today: string) {
   const days = daysUntil(date, today);
   if (days < 0) return null;
   return days === 0 ? "Jour J" : `J-${days}`;
+}
+
+export function pastYears(races: Pick<RaceSummary, "date">[]) {
+  const years = races
+    .flatMap((race) => (race.date ? [Number(race.date.slice(0, 4))] : []))
+    .sort((left, right) => left - right);
+  const first = years[0];
+  const last = years.at(-1);
+  if (first === undefined || last === undefined) return null;
+  return first === last ? `${first}` : `${first}–${last}`;
 }

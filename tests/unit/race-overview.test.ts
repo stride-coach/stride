@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   countdownLabel,
   parseRacesView,
+  pastYears,
   planPhases,
   preparationProgress,
   preparationRows,
@@ -188,6 +189,35 @@ describe("races overview", () => {
     expect(lanes.three.align).toBe("end");
     expect(lanes.two.lane).not.toBe(lanes.one.lane);
     expect(timeline.lanes).toBe(2);
+  });
+
+  it("labels months only where they fit in the season rail", () => {
+    const short = seasonTimeline([race({ date: "2027-01-20" })], today)!;
+    expect(short.months.every((month) => month.labelled)).toBe(true);
+    const long = seasonTimeline([race({ date: "2027-08-08" })], "2026-11-13")!;
+    const labelled = long.months.filter((month) => month.labelled);
+    expect(long.months).toHaveLength(11);
+    expect(labelled.length).toBeLessThan(long.months.length);
+    expect(long.months[0]!.labelled).toBe(true);
+    for (const [index, month] of labelled.entries()) {
+      const previous = labelled[index - 1];
+      if (!previous) continue;
+      expect(((month.left - previous.left) / 100) * 260).toBeGreaterThan(
+        previous.label.length * 6,
+      );
+    }
+  });
+
+  it("names the years of past races", () => {
+    expect(pastYears([race({ date: "2026-10-17" })])).toBe("2026");
+    expect(
+      pastYears([
+        race({ date: "2026-10-17" }),
+        race({ date: "2024-06-01" }),
+        race({ date: null }),
+      ]),
+    ).toBe("2024–2026");
+    expect(pastYears([race({ date: null })])).toBeNull();
   });
 
   it("returns no timeline without a dated upcoming race", () => {

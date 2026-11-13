@@ -19,7 +19,12 @@ import {
   type SeasonTone,
 } from "../season";
 import type { RaceOnTrack } from "../on-track";
-import { countdownLabel, type SeasonTimeline } from "../overview";
+import {
+  countdownLabel,
+  pastYears,
+  seasonRailWidthPx,
+  type SeasonTimeline,
+} from "../overview";
 import { formatResultTime, type RaceResult } from "../results";
 import {
   defaultStartMinutes,
@@ -80,7 +85,6 @@ function TimelineBadge({ priority }: { priority: RaceSummary["priority"] }) {
   );
 }
 
-const graphicWidth = 260;
 const bandTop = 64;
 const badgeTop = bandTop - 33;
 const lineHeight = bandTop + 24;
@@ -99,12 +103,14 @@ function SeasonGraphic({ timeline }: { timeline: SeasonTimeline }) {
           className="absolute top-0 border-l border-border"
           style={{ left: `${month.left}%`, height: lineHeight }}
         >
-          <span
-            className="absolute left-0.75 text-label text-muted-foreground"
-            style={{ top: monthTop }}
-          >
-            {month.label}
-          </span>
+          {month.labelled && (
+            <span
+              className="absolute left-0.75 text-label whitespace-nowrap text-muted-foreground"
+              style={{ top: monthTop }}
+            >
+              {month.label}
+            </span>
+          )}
         </span>
       ))}
       {timeline.phases.map((phase) => (
@@ -120,7 +126,7 @@ function SeasonGraphic({ timeline }: { timeline: SeasonTimeline }) {
             top: bandTop,
           }}
         >
-          {(phase.width / 100) * graphicWidth >=
+          {(phase.width / 100) * seasonRailWidthPx >=
             phase.label.length * 5.5 + 12 && phase.label}
         </span>
       ))}
@@ -391,7 +397,7 @@ function GroupHeader({
   );
 }
 
-const upcomingColumns =
+const raceColumns =
   "lg:grid-cols-[22px_88px_minmax(0,1fr)_88px_64px_72px_64px_48px_minmax(0,10rem)]";
 
 export function UpcomingRaces({
@@ -412,7 +418,7 @@ export function UpcomingRaces({
         aria-hidden="true"
         className={cn(
           "grid items-center gap-3 border-b border-border px-4 py-2 text-label text-muted-foreground max-lg:hidden md:px-5",
-          upcomingColumns,
+          raceColumns,
         )}
       >
         <span />
@@ -445,7 +451,7 @@ export function UpcomingRaces({
                 prefetch={false}
                 className={cn(
                   "grid min-h-row-touch grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 transition-colors duration-150 ease-stride hover:bg-muted focus-visible:outline-offset-[-2px] md:px-5 lg:min-h-row lg:py-0",
-                  upcomingColumns,
+                  raceColumns,
                 )}
               >
                 <PriorityBadge priority={race.priority} small />
@@ -526,9 +532,6 @@ export function OpenSlot({ priority }: { priority: "B" }) {
   );
 }
 
-const pastColumns =
-  "lg:grid-cols-[22px_88px_minmax(0,1fr)_88px_64px_72px_64px_minmax(0,10rem)]";
-
 export function PastRaces({
   races,
   results,
@@ -538,7 +541,12 @@ export function PastRaces({
 }) {
   return (
     <section aria-labelledby="races-past">
-      <GroupHeader id="races-past" title="Passées" end="Résultat" />
+      <GroupHeader
+        id="races-past"
+        title="Passées"
+        detail={pastYears(races) ?? undefined}
+        end="Résultat"
+      />
       <ul>
         {races.map((race) => {
           const result = results[race.id];
@@ -556,7 +564,7 @@ export function PastRaces({
               key={race.id}
               className={cn(
                 "grid min-h-row-touch grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-border px-4 py-2.5 md:px-5 lg:min-h-row lg:py-0",
-                pastColumns,
+                raceColumns,
               )}
             >
               <PriorityBadge priority={race.priority} small />
@@ -609,6 +617,7 @@ export function PastRaces({
                     "—"
                   )}
                 </span>
+                <span aria-hidden="true" className="max-lg:hidden" />
                 <span
                   className={cn(
                     "flex items-center justify-end gap-1.5 text-right text-label lg:text-body",
