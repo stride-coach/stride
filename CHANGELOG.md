@@ -1,5 +1,45 @@
 # Changelog
 
+## [2.2.0](https://github.com/stride-coach/stride/compare/v2.1.0...v2.2.0) (2026-11-13)
+
+
+### Features
+
+* **loading:** fade content in over the skeleton it replaces ([#491](https://github.com/stride-coach/stride/issues/491)) ([f0db1c4](https://github.com/stride-coach/stride/commit/f0db1c4c558ad70ca6b532461510c4499debfbb6))
+* **plans:** gather an A race's preparation across archived and active plans ([#487](https://github.com/stride-coach/stride/issues/487)) ([c672170](https://github.com/stride-coach/stride/commit/c6721702bbad3d85304892f85449167f84791e24))
+* **plan:** show a replaced plan's season weeks in the calendar ([#493](https://github.com/stride-coach/stride/issues/493)) ([a8cd86a](https://github.com/stride-coach/stride/commit/a8cd86a0e67ebae26ca157de11e1950331222579))
+* **plan:** show the plan as a month calendar ([#488](https://github.com/stride-coach/stride/issues/488)) ([b0453a1](https://github.com/stride-coach/stride/commit/b0453a1d57d5bab08ecbaa88e4a4b0b2b18893d8))
+* **plan:** slide the session panel in and keep its row highlighted ([#492](https://github.com/stride-coach/stride/issues/492)) ([6b7a148](https://github.com/stride-coach/stride/commit/6b7a14824e29e115b89a7122962597a95c2f458d))
+* **races:** add the Assistance view and a printable crew sheet ([#544](https://github.com/stride-coach/stride/issues/544)) ([de5a8b4](https://github.com/stride-coach/stride/commit/de5a8b41591afd1d29370b405ca6ee87af0da4b3))
+* **races:** add, edit and remove races from Courses ([#514](https://github.com/stride-coach/stride/issues/514)) ([60a52d3](https://github.com/stride-coach/stride/commit/60a52d319e28dc35a15d2b9e0da15385fe687881))
+* **races:** alert on a threatened cutoff with three remedies ([#538](https://github.com/stride-coach/stride/issues/538)) ([3df71d4](https://github.com/stride-coach/stride/commit/3df71d4b44f4a3bd684e8774067466c80df68f53))
+* **races:** ask the coach for a new race's effect on the plan ([#534](https://github.com/stride-coach/stride/issues/534)) ([032ad2d](https://github.com/stride-coach/stride/commit/032ad2de1592d97152bd5710018abfb1dca43c9f))
+* **races:** cap the race fueling at the carbs validated in training ([#537](https://github.com/stride-coach/stride/issues/537)) ([87aef74](https://github.com/stride-coach/stride/commit/87aef7489991bead855c1cfba0777d773f538850))
+* **races:** compare prudent, target and ambitious scenarios ([#526](https://github.com/stride-coach/stride/issues/526)) ([c6872ce](https://github.com/stride-coach/stride/commit/c6872cee4e3df6d4c81c59011afef4431f332300))
+* **races:** compare two editions of a race and add the next one ([#533](https://github.com/stride-coach/stride/issues/533)) ([80265e0](https://github.com/stride-coach/stride/commit/80265e095eb7cf58b4de1075b088948bf63c2fed))
+* **races:** edit waypoints from a table beside the map ([#542](https://github.com/stride-coach/stride/issues/542)) ([e7cfcd5](https://github.com/stride-coach/stride/commit/e7cfcd5364356f6a6b26932d9adecaa10430a334))
+* **races:** keep a race's location, poles, expectation and things to test ([#535](https://github.com/stride-coach/stride/issues/535)) ([47d007c](https://github.com/stride-coach/stride/commit/47d007c96f2e5ad2aee2436291d2039f2f1578cc))
+* **races:** keep a readable history of the race simulation settings ([#536](https://github.com/stride-coach/stride/issues/536)) ([b881035](https://github.com/stride-coach/stride/commit/b8810352933186ea44f8bc7fac181d3b06bff732))
+* **races:** organise the race around five V2 tabs ([#517](https://github.com/stride-coach/stride/issues/517)) ([caaaa9e](https://github.com/stride-coach/stride/commit/caaaa9eb0cddf1404ff3b69bbd6e0940dc32c73f))
+* **races:** plan a race without a course from the announced distance ([#540](https://github.com/stride-coach/stride/issues/540)) ([2a28061](https://github.com/stride-coach/stride/commit/2a28061ac1e542c648e5d8a794bb9a38035700bf))
+* **races:** read the climbs and the walking threshold in a Côtes view ([#524](https://github.com/stride-coach/stride/issues/524)) ([abc6140](https://github.com/stride-coach/stride/commit/abc6140585ca52b6605d415c38180869cd09a188))
+* **races:** read the race against the plan in an Après-course tab ([#532](https://github.com/stride-coach/stride/issues/532)) ([2c9e58c](https://github.com/stride-coach/stride/commit/2c9e58cb5612d30eea65ace75bd0718c320c2e44))
+* **races:** read the race fueling hour by hour and section by section ([#529](https://github.com/stride-coach/stride/issues/529)) ([e58800c](https://github.com/stride-coach/stride/commit/e58800c79d38900228ba3fa8581ba82e24a0cff3))
+* **races:** read the race plan along one axis with a shared cursor ([#518](https://github.com/stride-coach/stride/issues/518)) ([c02d604](https://github.com/stride-coach/stride/commit/c02d60463f6776ca2de4b9237387a33e0a3c6b05))
+* **races:** read the weather at the athlete's passage in a Météo view ([#525](https://github.com/stride-coach/stride/issues/525)) ([2feccc3](https://github.com/stride-coach/stride/commit/2feccc39e0723b93dcba9f492ad960d4d47c80b9))
+* **races:** rebuild the season page on the V2 artboards ([#516](https://github.com/stride-coach/stride/issues/516)) ([87ec195](https://github.com/stride-coach/stride/commit/87ec1950a2407ba47600d27a3c5f25ab48adca74))
+* **races:** review a course replacement before applying it ([#539](https://github.com/stride-coach/stride/issues/539)) ([4995063](https://github.com/stride-coach/stride/commit/4995063356db3c6ae1910caf509613221c5102a3))
+* **races:** share the crew points through a secret link ([#545](https://github.com/stride-coach/stride/issues/545)) ([6f790b6](https://github.com/stride-coach/stride/commit/6f790b6e46569f0774aab7798a4a272066072869))
+* **races:** show the road to the race in Préparation ([#531](https://github.com/stride-coach/stride/issues/531)) ([586795c](https://github.com/stride-coach/stride/commit/586795c64fedfe69e021d1a7a38c395988481ff0))
+* **races:** show what the athlete wears along the race ([#530](https://github.com/stride-coach/stride/issues/530)) ([90c7493](https://github.com/stride-coach/stride/commit/90c7493abe3a08a3d22c8d2245a496a91e2ad2ba))
+* **races:** take the plan along to the watch and on paper ([#543](https://github.com/stride-coach/stride/issues/543)) ([2d2ef94](https://github.com/stride-coach/stride/commit/2d2ef9430b2bcfe81b212fb5450fdc6d0a80e777))
+* **races:** tune the race simulation from the plan de course ([#520](https://github.com/stride-coach/stride/issues/520)) ([9350b96](https://github.com/stride-coach/stride/commit/9350b9611d5d7f38560bb749dd87403dc0fb2321))
+
+
+### Bug Fixes
+
+* **races:** keep the axis cursor when the weather arrives ([#548](https://github.com/stride-coach/stride/issues/548)) ([40864ef](https://github.com/stride-coach/stride/commit/40864efe85384a28c466b8b1a1e0d2944b493e97)), closes [#515](https://github.com/stride-coach/stride/issues/515)
+
 ## [2.1.0](https://github.com/stride-coach/stride/compare/v2.0.1...v2.1.0) (2026-11-11)
 
 
