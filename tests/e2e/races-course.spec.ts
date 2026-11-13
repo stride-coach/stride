@@ -283,11 +283,12 @@ test("the lanes zoom, pin, hide bands and open a waypoint", async ({
   await page.mouse.click(box.x + box.width * 0.9, box.y + 40);
   await expect(axis).not.toHaveAttribute("aria-valuetext", /épinglé$/);
 
-  const rain = lanes.getByRole("button", { name: "Pluie prévue" });
-  await expect(rain).toHaveAttribute("aria-pressed", "true");
-  await rain.click();
-  await expect(rain).toHaveAttribute("aria-pressed", "false");
-  await expect(lanes.getByText(/^Averses /)).toHaveCount(0);
+  const cutoff = lanes.getByRole("button", { name: "Barrière horaire" });
+  await expect(cutoff).toHaveAttribute("aria-pressed", "true");
+  await cutoff.click();
+  await expect(cutoff).toHaveAttribute("aria-pressed", "false");
+  await cutoff.click();
+  await expect(cutoff).toHaveAttribute("aria-pressed", "true");
 
   await lanes
     .getByRole("link", { name: /^Modifier Ravito du Bois, passage / })
@@ -531,9 +532,12 @@ test("the nutrition plan allocates the products and applies a nutritionist propo
     .filter({ hasText: /Départ → Ravito du Bois/ });
   await expect(first).toContainText("gels Maurten");
   await expect(first).toContainText("1 flasque iso (1 dose)");
-  await expect(first).toContainText(
-    "Flasque 1 iso (1 dose) · flasque 2 eau · reprends",
-  );
+  const refill = first.getByRole("list").last();
+  await expect(refill.getByRole("listitem")).toContainText([
+    "Flasque 1 iso (1 dose)",
+    "flasque 2 eau",
+    /^reprends /,
+  ]);
   await expect(
     plan
       .getByRole("listitem")

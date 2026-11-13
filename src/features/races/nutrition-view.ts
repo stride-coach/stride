@@ -239,7 +239,24 @@ export function shoppingRows(allocation: RaceNutritionAllocation) {
       ? capitalize(plainPortions([{ ...item, count: 2 }]).replace(/^2 /, ""))
       : shoppingName(item.product),
     count: item.count,
+    detail: [
+      item.product.carbsG > 0
+        ? `${formatInteger(item.product.carbsG)} g`
+        : null,
+      item.product.sodiumMg > 0
+        ? `${formatInteger(item.product.sodiumMg)} mg Na`
+        : null,
+      item.product.caffeineMg > 0
+        ? `${formatInteger(item.product.caffeineMg)} mg caféine`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · "),
   }));
+}
+
+export function shoppingText(rows: { name: string; count: number }[]) {
+  return rows.map((row) => `${row.count} × ${row.name}`).join("\n");
 }
 
 export function dropBagNote(
@@ -366,4 +383,110 @@ export function fuelingHours(
       night,
     };
   });
+}
+
+export type FuelingChart = {
+  finishSeconds: number;
+  stations: { id: string; name: string; clock: string; at: number }[];
+  drink: { from: number; to: number; mlPerHour: number; label: string }[];
+  intakes: { at: number; caffeine: boolean }[];
+};
+
+export function fuelingChart(
+  allocation: RaceNutritionAllocation,
+  timeline: RaceTimeline,
+  alarmMinutes: number,
+): FuelingChart {
+  const finish = timeline.stations.at(-1)?.elapsedSeconds ?? 0;
+  const ratio = (seconds: number) =>
+    finish > 0 ? Math.min(1, Math.max(0, seconds / finish)) : 0;
+  const drink = allocation.segments.map((segment, position) => {
+    const from = timeline.stations[position];
+    const to = timeline.stations[position + 1];
+    const temperature = from?.weather?.temperature;
+    return {
+      from: ratio(
+        (from?.elapsedSeconds ?? 0) +
+          (position > 0 ? (from?.stopSeconds ?? 0) : 0),
+      ),
+      to: ratio(to?.elapsedSeconds ?? finish),
+      mlPerHour: segment.waterMlPerHour,
+      label:
+        temperature === undefined
+          ? `${formatInteger(segment.waterMlPerHour)} ml/h`
+          : `${formatInteger(segment.waterMlPerHour)} ml/h · ${Math.round(temperature)} °C`,
+    };
+  });
+  const caffeineHours = new Set(
+    fuelingHours(allocation, timeline)
+      .filter((hour) => hour.caffeine)
+      .map((hour) => hour.index),
+  );
+  const step = Math.max(5, alarmMinutes) * 60;
+  const intakes: FuelingChart["intakes"] = [];
+  const marked = new Set<number>();
+  for (let seconds = step; seconds < finish; seconds += step) {
+    const hour = Math.floor(seconds / 3600);
+    const caffeine = caffeineHours.has(hour) && !marked.has(hour);
+    if (caffeine) marked.add(hour);
+    intakes.push({ at: ratio(seconds), caffeine });
+  }
+  return {
+    finishSeconds: finish,
+    stations: timeline.stations.map((station) => ({
+      id: station.id,
+      name: shortName(station.name),
+      clock: formatClock(station.clockMinutes),
+      at: ratio(station.elapsedSeconds),
+    })),
+    drink,
+    intakes,
+  };
+}
+
+const longStopSeconds = 10 * 60;
+
+export function sectionTips(
+  allocation: RaceNutritionAllocation,
+  timeline: RaceTimeline,
+): (string | null)[] {
+  const start = timeline.stations[0]?.clockMinutes ?? 0;
+  const arrivals = allocation.segments.map(
+    (_, position) => timeline.stations[position + 1],
+  );
+  const longest = arrivals.reduce<number | null>((best, station, position) => {
+    if (
+      !station ||
+      station.kind === "finish" ||
+      station.stopSeconds < longStopSeconds
+    )
+      return best;
+    if (best === null) return position;
+    return station.stopSeconds > arrivals[best]!.stopSeconds ? position : best;
+  }, null);
+  const caffeineFrom = allocation.caffeineFromElapsedSeconds;
+  const firstCaffeine = allocation.segments.findIndex(
+    (segment) => segment.caffeineMg > 0,
+  );
+  return allocation.segments.map((segment, position) => {
+    if (position === longest)
+      return `Arrêt long à ${shortName(arrivals[position]!.name)} : le seul où tu t’assois.`;
+    if (position === firstCaffeine && caffeineFrom !== null)
+      return `Première caféine vers ${formatClock(start + caffeineFrom / 60)}.`;
+    if (
+      position === allocation.segments.length - 1 &&
+      allocation.segments.length > 1
+    )
+      return "Dernière section : tu finis au ressenti.";
+    if (segment.night && !allocation.segments[position - 1]?.night)
+      return "La nuit tombe : passe au salé si le sucré ne passe plus.";
+    return null;
+  });
+}
+
+export function listItems(text: string) {
+  return text
+    .split(" · ")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
 }
