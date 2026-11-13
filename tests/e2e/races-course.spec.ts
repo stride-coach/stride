@@ -1029,7 +1029,9 @@ test("the crew follows a secret link that can be replaced or switched off", asyn
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/crew");
   const linkSwitch = page.getByRole("switch", { name: "Lien de suivi" });
-  await expect(page.getByText(/^actif du \d+ \S+ au \d+ \S+$/)).toBeVisible();
+  await expect(
+    page.getByText(/^actif du \d+ \S+ au \d+ \S+$/).filter({ visible: true }),
+  ).toBeVisible();
   await linkSwitch.click();
   const address = page.getByRole("textbox", {
     name: "Adresse du lien de suivi",
