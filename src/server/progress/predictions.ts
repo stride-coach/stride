@@ -15,7 +15,7 @@ function predictionRows(context: OnboardingContext) {
     .from("provider_observations")
     .select("metric, observed_on, value_numeric")
     .eq("user_id", context.userId)
-    .eq("availability", "available")
+    .in("availability", ["available", "partial"])
     .in("metric", metrics);
 }
 
