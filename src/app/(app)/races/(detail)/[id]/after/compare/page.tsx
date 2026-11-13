@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { StrideMark } from "@/components/stride/stride-mark";
 import { cn } from "@/lib/utils";
-import { AfterViews } from "@/features/races/components/after-views";
 import { EmptyState } from "@/features/races/components/race-ui";
 import { compareEditions } from "@/features/races/editions";
 import { isStation } from "@/features/races/waypoints";
@@ -31,11 +30,9 @@ export default async function RaceComparePage({
     today,
     typeof query.with === "string" ? query.with : null,
   );
-  const views = <AfterViews base={base} current="compare" />;
   if (!chosen)
     return (
       <>
-        {views}
         <EmptyState title="Aucune autre édition à comparer">
           Stride compare les courses passées du même nom, du même type et de
           distance proche. Ajoute l’édition précédente dans Courses pour la
@@ -68,10 +65,7 @@ export default async function RaceComparePage({
   if (!current || !previous)
     return (
       <>
-        <div className="flex flex-wrap gap-2">
-          {views}
-          {picker}
-        </div>
+        {picker}
         <EmptyState title="Résultat non trouvé">
           {!current
             ? `Stride ne trouve pas ta sortie de course ${year}.`
@@ -99,10 +93,7 @@ export default async function RaceComparePage({
   );
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        {views}
-        {picker}
-      </div>
+      {picker}
       <p className="flex max-w-170 items-start gap-2.5 text-body-lg text-pretty">
         <StrideMark className="mt-1 size-3.5 shrink-0" />
         {comparison.reading}
