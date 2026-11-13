@@ -589,6 +589,34 @@ test("the plan says when fueling is capped to what was validated", async ({
   await expect(page).toHaveURL(/\/nutrition$/);
 });
 
+test("the race week plan keeps the J-2 weather until a change is adopted", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?watch=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const notices = page.getByRole("region", { name: "Ce que le plan signale" });
+  const change = notices.getByRole("article", {
+    name: /^La météo a changé depuis le gel du plan/,
+  });
+  await expect(change).toContainText(/Jusqu’à \d+ °C de moins/, {
+    timeout: 20_000,
+  });
+  await expect(change).toContainText(
+    "Le plan garde la météo de J-2 tant que tu ne prends pas la nouvelle.",
+  );
+  await change
+    .getByRole("button", { name: "Prendre la nouvelle météo" })
+    .click();
+  await expect(page.getByText("Le plan suit la nouvelle météo.")).toBeVisible();
+  await expect(change).toBeHidden({ timeout: 15_000 });
+});
+
 test("the scenarios view compares, creates and chooses a scenario", async ({
   page,
   request,

@@ -2852,6 +2852,43 @@ createServer(async (request, response) => {
     );
     redoneRaceIds.clear();
     tables.race_lessons = [];
+    tables.race_weather_snapshots = url.searchParams.get("watch")
+      ? [
+          {
+            race_id: race.id,
+            user_id: user.id,
+            observed_on: new Date(Date.now() - day).toISOString().slice(0, 10),
+            adopted: false,
+            weather: {
+              mode: "forecast",
+              slots: Array.from({ length: 7 }, (_, hour) => ({
+                elapsedSeconds: hour * 3600,
+                epochMs: 0,
+                clockMinutes: 480 + hour * 60,
+                distanceM: hour * 5000,
+                lat: 48.8,
+                lon: 2.3,
+                night: false,
+                temperature: 45,
+                precipitationProbability: 0,
+                code: 0,
+                apparentTemperature: null,
+                windKmh: null,
+                windDirection: null,
+                gustsKmh: null,
+              })),
+              title: "Canicule",
+              detail: "",
+              facts: [],
+              source: "Open-Meteo",
+              rainyDayShare: null,
+              forecastFrom: new Date(Date.now() - 14 * day)
+                .toISOString()
+                .slice(0, 10),
+            },
+          },
+        ]
+      : [];
     tables.race_plans = [
       {
         race_id: race.id,
@@ -2969,7 +3006,7 @@ createServer(async (request, response) => {
         ]
       : [];
     tables.race_crew_links = [];
-    if (url.searchParams.get("crew"))
+    if (url.searchParams.get("crew") || url.searchParams.get("watch"))
       race.race_date = new Date(Date.now() + day).toISOString().slice(0, 10);
     const editionRaceId = "bbbbbbbb-bbbb-4bbb-8bbb-000000000565";
     const editionActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000000566";
@@ -4212,6 +4249,33 @@ createServer(async (request, response) => {
           ? { id: row.id }
           : [{ id: row.id }],
       );
+    }
+    if (url.pathname === "/rest/v1/race_weather_snapshots") {
+      tables.race_weather_snapshots ??= [];
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        if (
+          !tables.race_weather_snapshots.some(
+            (row) =>
+              row.race_id === value.race_id &&
+              row.observed_on === value.observed_on,
+          )
+        )
+          tables.race_weather_snapshots.push({ adopted: false, ...value });
+        return send(201, []);
+      }
+      if (request.method === "PATCH") {
+        const rows = tables.race_weather_snapshots.filter(
+          (row) =>
+            url.searchParams.get("race_id") === `eq.${row.race_id}` &&
+            url.searchParams.get("observed_on") === `eq.${row.observed_on}`,
+        );
+        for (const row of rows) Object.assign(row, body);
+        return send(
+          200,
+          rows.map((row) => ({ observed_on: row.observed_on })),
+        );
+      }
     }
     if (url.pathname === "/rest/v1/race_lessons") {
       if (request.method === "POST") {
