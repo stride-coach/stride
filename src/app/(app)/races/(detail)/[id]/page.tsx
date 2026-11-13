@@ -24,7 +24,10 @@ import {
 } from "@/features/races/axis";
 import { planProfile } from "@/features/races/timeline";
 import type { NutritionProduct } from "@/features/fueling/products";
-import { RaceAxis } from "@/features/races/components/race-axis";
+import {
+  AxisCursorProvider,
+  RaceAxis,
+} from "@/features/races/components/race-axis";
 import { SimulationPanel } from "@/features/races/components/simulation-panel";
 import { simulationSummary } from "@/features/races/simulation-settings";
 import { defaultStartMinutes } from "@/features/races/race";
@@ -350,9 +353,11 @@ export default async function RaceCoursePage({
   return (
     <>
       <RaceStatus data={data} />
-      <Suspense fallback={<CourseWorkspace {...props} weather={null} />}>
-        <CourseWithWeather {...props} weather={weather} />
-      </Suspense>
+      <AxisCursorProvider>
+        <Suspense fallback={<CourseWorkspace {...props} weather={null} />}>
+          <CourseWithWeather {...props} weather={weather} />
+        </Suspense>
+      </AxisCursorProvider>
     </>
   );
 }
