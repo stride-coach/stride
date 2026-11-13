@@ -43,9 +43,13 @@ test("a populated race opens every workspace section on desktop and mobile", asy
       name: "Position sur le parcours",
     });
     const cursor = page.getByRole("region", { name: "Sous le curseur" });
-    await axis.focus();
-    await axis.press("End");
-    await expect(axis).toHaveAttribute("aria-valuetext", /^km 30, /);
+    await expect(async () => {
+      await axis.focus();
+      await axis.press("End");
+      await expect(axis).toHaveAttribute("aria-valuetext", /^km 30, /, {
+        timeout: 1000,
+      });
+    }).toPass();
     await expect(cursor).toContainText("km 30 ·");
     await axis.press("Home");
     await expect(axis).toHaveAttribute("aria-valuetext", /^km 0, /);
@@ -644,7 +648,9 @@ test("a road 10 km shows only the course and accepts a new start time", async ({
   await expect(page.getByText("Simulation par tronçon")).toHaveCount(0);
   await expect(page.getByText("Marche en pente")).toHaveCount(0);
   await expect(
-    page.locator("dl > div", { hasText: "Allure moy" }),
+    page
+      .locator("dl > div", { hasText: "Allure moy" })
+      .filter({ visible: true }),
   ).toContainText("3:54 /km");
   await page.screenshot({
     path: "test-results/race-road-1440.png",
@@ -791,7 +797,9 @@ test("replacing the course shows what changes before anything is replaced", asyn
     mimeType: "application/gpx+xml",
     buffer: replacementGpx(),
   };
-  const upload = page.locator('input[type="file"][accept*=".gpx"]');
+  const upload = page
+    .locator('input[type="file"][accept*=".gpx"]')
+    .filter({ visible: true });
   await upload.setInputFiles(file);
 
   const preview = page.getByRole("region", { name: "Remplacer le tracé" });
@@ -833,9 +841,11 @@ test("a race without a course reads as an estimate and takes manual aid stations
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
 
   await expect(
-    page.getByText(
-      /^Sans tracé, je travaille avec la distance et le dénivelé annoncés\./,
-    ),
+    page
+      .getByText(
+        /^Sans tracé, je travaille avec la distance et le dénivelé annoncés\./,
+      )
+      .filter({ visible: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Dépose le tracé GPX de la course" }),
@@ -1019,7 +1029,9 @@ test("the crew follows a secret link that can be replaced or switched off", asyn
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/crew");
   const linkSwitch = page.getByRole("switch", { name: "Lien de suivi" });
-  await expect(page.getByText(/^actif du \d+ \S+ au \d+ \S+$/)).toBeVisible();
+  await expect(
+    page.getByText(/^actif du \d+ \S+ au \d+ \S+$/).filter({ visible: true }),
+  ).toBeVisible();
   await linkSwitch.click();
   const address = page.getByRole("textbox", {
     name: "Adresse du lien de suivi",

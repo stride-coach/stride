@@ -10,6 +10,13 @@ const status = JSON.parse(
     stdio: ["ignore", "pipe", "inherit"],
   }),
 );
+if (
+  process.env.RUNNER_ENVIRONMENT === "self-hosted" &&
+  new URL(status.API_URL).port === "54321"
+)
+  throw new Error(
+    "On a self-hosted runner, isolate Supabase first with scripts/ci-supabase-isolate.sh so the local stack is never touched.",
+  );
 process.env.NEXT_PUBLIC_SUPABASE_URL = status.API_URL;
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = status.ANON_KEY;
 process.env.SUPABASE_ONBOARDING_COMPLETION_KEY = status.SERVICE_ROLE_KEY;

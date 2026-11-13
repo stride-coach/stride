@@ -10,6 +10,13 @@ const status = JSON.parse(
     stdio: ["ignore", "pipe", "inherit"],
   }),
 );
+if (
+  process.env.RUNNER_ENVIRONMENT === "self-hosted" &&
+  new URL(status.API_URL).port === "54321"
+)
+  throw new Error(
+    "On a self-hosted runner, isolate Supabase first with scripts/ci-supabase-isolate.sh so the local stack is never touched.",
+  );
 const local = (value) =>
   Boolean(value) &&
   ["localhost", "127.0.0.1", "[::1]"].includes(new URL(value).hostname);
