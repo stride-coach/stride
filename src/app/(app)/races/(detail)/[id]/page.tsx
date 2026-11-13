@@ -97,6 +97,7 @@ function CourseWorkspace({
     return (
       <ScenarioRevisions race={data.race.revision} plan={data.plan.revision}>
         <RaceAxis
+          raceId={data.race.id}
           alert={
             cutoff && (
               <CutoffAlertCard
@@ -260,6 +261,7 @@ function EstimateWorkspace({
       <CourseDropZone raceId={data.race.id} />
       <RaceAxis
         estimate
+        raceId={data.race.id}
         lanes={axisLanes({
           profile: planProfile(profile, timeline),
           model,

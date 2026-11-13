@@ -11,10 +11,13 @@ import { estimateFor, planFor } from "@/server/races/views";
 
 export default async function WaypointsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const point = typeof query.point === "string" ? query.point : null;
   const { data } = await loadRace(id);
   if (data.race.kind === "road") redirect(`/races/${id}`);
   const estimated = data.course
@@ -31,6 +34,7 @@ export default async function WaypointsPage({
         passages={estimateFor(data)?.planned.simulation.passages ?? []}
         distanceM={estimated.course.distanceM}
         stops={data.plan}
+        initialPoint={point}
       />
     );
   if (!data.course)
@@ -67,6 +71,7 @@ export default async function WaypointsPage({
       passages={planned?.simulation.passages ?? []}
       distanceM={model.course.distanceM}
       stops={data.plan}
+      initialPoint={point}
     />
   );
 }

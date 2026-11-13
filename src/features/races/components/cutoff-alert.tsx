@@ -18,6 +18,7 @@ import {
 } from "../cutoff-alert";
 import { actionMessage } from "../messages";
 import { useRevisions } from "./scenario-actions";
+import { useReportRecalculation } from "./recalculation";
 
 const undoMilliseconds = 10_000;
 
@@ -33,6 +34,7 @@ export function CutoffAlertCard({
   coachHref: string;
 }) {
   const [pending, startTransition] = useTransition();
+  useReportRecalculation(pending);
   const revisions = useRevisions();
   const recommended = alert.remedies.find(
     (remedy) => remedy.marginSeconds >= threatenedMarginSeconds,
