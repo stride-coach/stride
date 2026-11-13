@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   compareEditions,
+  editionChanges,
+  editionConditions,
   editionKey,
   nextEditionDate,
   raceEditions,
@@ -115,5 +117,106 @@ describe("edition comparison", () => {
 
   it("cuts five equal sections without stations", () => {
     expect(compareEditions({ current, previous }).sections).toHaveLength(5);
+  });
+});
+
+describe("what changed between two editions", () => {
+  const run = (year: string, seconds: number, heart: number[]) => ({
+    year,
+    seconds,
+    distanceMeters: 80_000,
+    averageHeartRate: 145,
+    series: {
+      distance_m: [0, 8_000, 16_000, 40_000, 80_000],
+      elapsed_s: [0, 2_800, 5_600, 17_500, seconds],
+      heart_rate: heart,
+    },
+  });
+  const previous = run("2025", 41_700, [140, 152, 150, 148, 150]);
+  const current = run("2026", 38_880, [134, 144, 142, 146, 148]);
+
+  it("reads the time strip", () => {
+    const comparison = compareEditions({
+      current,
+      previous,
+      stations: [{ name: "km 16", distanceM: 16_000 }],
+    });
+    expect(comparison.kpis.map((kpi) => [kpi.value, kpi.label])).toEqual([
+      ["10h48", "2026 · 11h35 en 2025"],
+      ["−47 min", "Sur le même parcours"],
+      ["8:06 /km", "Allure moyenne · 8:41 /km en 2025"],
+      ["145 bpm", "FC moyenne · 145 bpm en 2025"],
+    ]);
+    expect(comparison.startM).toBe(16_000);
+  });
+
+  it("lists the start heart rate, fueling, walking and training volume", () => {
+    expect(
+      editionChanges({
+        current,
+        previous,
+        startM: 16_000,
+        settings: {
+          current: {
+            walkGradePercent: 10,
+            carbsPerHourG: 62,
+            runSeconds: 118_000,
+          },
+          previous: {
+            walkGradePercent: 12,
+            carbsPerHourG: 48,
+            runSeconds: 100_000,
+          },
+        },
+      }).map((row) => [row.label, row.value, row.detail]),
+    ).toEqual([
+      ["Départ", "−7 bpm", "sur 16 km"],
+      ["Glucides prévus", "+14 g/h", "48 g/h en 2025"],
+      ["Marche", "dès 10 %", "12 % en 2025"],
+      ["Volume", "+18 %", "sur 16 semaines"],
+    ]);
+  });
+
+  it("leaves out what was not measured both times", () => {
+    expect(
+      editionChanges({
+        current: { ...current, series: null },
+        previous,
+        startM: 16_000,
+        settings: {
+          current: {
+            walkGradePercent: null,
+            carbsPerHourG: 62,
+            runSeconds: null,
+          },
+          previous: {
+            walkGradePercent: 12,
+            carbsPerHourG: null,
+            runSeconds: 0,
+          },
+        },
+      }),
+    ).toEqual([]);
+  });
+
+  it("reads the conditions of both race days", () => {
+    expect(
+      editionConditions([
+        { year: "2025", temperatureC: 24.2, dry: true },
+        { year: "2026", temperatureC: 17.1, dry: false },
+      ]),
+    ).toEqual({
+      rows: [
+        { year: "2025", temperature: "24 °C", sky: "sec" },
+        { year: "2026", temperature: "17 °C", sky: "pluie" },
+      ],
+      reading: "Il faisait 7 degrés de moins en 2026.",
+    });
+    expect(
+      editionConditions([
+        { year: "2025", temperatureC: 18, dry: true },
+        { year: "2026", temperatureC: 19, dry: true },
+      ]).reading,
+    ).toBeNull();
   });
 });
