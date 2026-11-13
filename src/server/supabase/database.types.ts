@@ -2174,6 +2174,51 @@ export type Database = {
           },
         ];
       };
+      race_lessons: {
+        Row: {
+          body: string;
+          created_at: string;
+          id: string;
+          kind: string;
+          position: number;
+          race_id: string;
+          revision: number;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          position?: number;
+          race_id: string;
+          revision?: number;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          position?: number;
+          race_id?: string;
+          revision?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_lessons_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       race_nutrition_plans: {
         Row: {
           created_at: string;

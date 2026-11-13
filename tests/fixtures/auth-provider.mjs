@@ -2832,6 +2832,7 @@ createServer(async (request, response) => {
     race.target_duration_seconds = road ? 39 * 60 : 21600;
     race.race_date = new Date(Date.now() + 2 * day).toISOString().slice(0, 10);
     tables.race_scenarios = [];
+    tables.race_lessons = [];
     tables.race_plans = [
       {
         race_id: race.id,
@@ -4043,6 +4044,26 @@ createServer(async (request, response) => {
           ? { id: row.id }
           : [{ id: row.id }],
       );
+    }
+    if (url.pathname === "/rest/v1/race_lessons") {
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        const row = { id: randomUUID(), ...value, revision: 1 };
+        tables.race_lessons = [...(tables.race_lessons ?? []), row];
+        return send(201, [row]);
+      }
+      if (request.method === "DELETE") {
+        const removed = (tables.race_lessons ?? []).filter(
+          (row) => url.searchParams.get("id") === `eq.${row.id}`,
+        );
+        tables.race_lessons = tables.race_lessons.filter(
+          (row) => !removed.includes(row),
+        );
+        return send(
+          200,
+          removed.map((row) => ({ id: row.id })),
+        );
+      }
     }
     if (url.pathname === "/rest/v1/race_scenarios") {
       if (request.method === "POST") {

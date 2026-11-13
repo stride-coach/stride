@@ -14,6 +14,9 @@ import {
 } from "@/features/races/after-race";
 import { profileData } from "@/features/races/profile";
 import { AfterRaceChart } from "@/features/races/components/after-race-chart";
+import { RaceLessons } from "@/features/races/components/race-lessons";
+import { lessonSuggestions, maximumLessons } from "@/features/races/lessons";
+import { readRaceLessons } from "@/server/races/lesson-store";
 import { EmptyState } from "@/features/races/components/race-ui";
 import { readNutritionLibrary } from "@/server/fueling/products";
 import { loadAfterRace } from "@/server/races/after";
@@ -75,6 +78,14 @@ export default async function RaceAfterPage({
         finishSeconds: result.seconds,
       })
     : [];
+  const lessons =
+    (await readRaceLessons(context, [data.race.id]))[data.race.id] ?? [];
+  const suggestions = lessonSuggestions({
+    passages,
+    resultSeconds: result.seconds,
+    targetSeconds: data.race.targetSeconds,
+    saved: lessons,
+  });
   const kpis = afterKpis({
     race: data.race,
     result,
@@ -228,6 +239,12 @@ export default async function RaceAfterPage({
               Ajoute le GPX et un objectif pour comparer tes passages au plan.
             </EmptyState>
           )}
+          <RaceLessons
+            raceId={data.race.id}
+            lessons={lessons}
+            suggestions={suggestions}
+            limit={maximumLessons}
+          />
         </div>
         <aside
           aria-label="Après la course"
