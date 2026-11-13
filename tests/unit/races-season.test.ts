@@ -69,6 +69,19 @@ describe("race outcome", () => {
     });
   });
 
+  it("calls a personal record when faster than every earlier edition", () => {
+    const earlier = { ...result(600), seconds: result(600).seconds + 600 };
+    expect(raceOutcome(race(), result(1140), [earlier])).toEqual({
+      label: "Record personnel",
+      tone: "success",
+    });
+    expect(
+      raceOutcome(race(), result(1140), [
+        { ...earlier, seconds: result(1140).seconds },
+      ]),
+    ).toEqual({ label: "+19 min sur l’objectif", tone: "warning" });
+  });
+
   it("stays neutral without a target or a result", () => {
     expect(raceOutcome(race({ targetSeconds: null }), result(null))).toEqual({
       label: "Terminé",

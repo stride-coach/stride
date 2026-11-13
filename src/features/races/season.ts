@@ -31,8 +31,14 @@ export function seasonRole(race: RaceSummary, races: RaceSummary[]) {
 export function raceOutcome(
   race: Pick<RaceSummary, "targetSeconds">,
   result: RaceResult | undefined,
+  previous: RaceResult[] = [],
 ): { label: string; tone: SeasonTone } {
   if (!result) return { label: "Résultat non trouvé", tone: "muted" };
+  if (
+    previous.length > 0 &&
+    previous.every((edition) => result.seconds < edition.seconds)
+  )
+    return { label: "Record personnel", tone: "success" };
   if (race.targetSeconds === null || result.deltaSeconds === null)
     return { label: "Terminé", tone: "muted" };
   return result.deltaSeconds <= 0
