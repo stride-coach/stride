@@ -382,6 +382,7 @@ export function RaceAxis({
   summary?: React.ReactNode;
 }) {
   const { cursorM, setCursorM, highlight, setHighlight } = useAxisFocus();
+  const [inspecting, setInspecting] = useState(false);
   const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
   const [stalled, setStalled] = useState(false);
   const busyIds = useRef(new Set<string>());
@@ -405,8 +406,10 @@ export function RaceAxis({
     return () => clearTimeout(timer);
   }, [recalculating]);
   const reading = readings[nearestReading(readings, cursorM)]!;
-  const pick = (target: number) =>
+  const pick = (target: number) => {
     setCursorM(readings[nearestReading(readings, target)]!.distanceM);
+    setInspecting(true);
+  };
   const mainRows = (summary ? 1 : 0) + (alert ? 1 : 0) + (map ? 1 : 0) + 2;
   const profileLanes = { ...lanes, pace: [], temperature: [], fueling: [] };
   return (
@@ -425,7 +428,7 @@ export function RaceAxis({
               title={map.title}
               rainLabel={map.rainLabel}
               hasWeather={map.hasWeather}
-              cursor={reading.position}
+              cursor={inspecting ? reading.position : null}
               cursorLines={cursorLines(reading)}
               highlight={highlight}
               fileName={map.fileName ?? null}
@@ -437,6 +440,7 @@ export function RaceAxis({
                   readings={readings}
                   cursorM={reading.distanceM}
                   onCursor={setCursorM}
+                  onInspect={setInspecting}
                   highlight={highlight}
                   walkThreshold={walkThreshold}
                   raceId={raceId}
@@ -456,6 +460,7 @@ export function RaceAxis({
             readings={readings}
             cursorM={reading.distanceM}
             onCursor={setCursorM}
+            onInspect={setInspecting}
             highlight={highlight}
             pending={recalculating && !stalled}
             walkThreshold={walkThreshold}
