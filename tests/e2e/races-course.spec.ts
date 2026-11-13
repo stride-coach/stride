@@ -490,6 +490,33 @@ test("a past race is redone with its course", async ({ page, request }) => {
   ).toBeVisible();
 });
 
+test("a past race compares two editions", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?past=1&edition=1`,
+  );
+  await signInAs(page, "athlete@example.com");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/after/compare");
+  const workspace = page.locator("#race-workspace");
+  const metrics = workspace.locator("[data-slot=metric]");
+  await expect(metrics.first()).toHaveText("6h12");
+  await expect(workspace.getByText(/^\d{4} · 6h35 en \d{4}$/)).toBeVisible();
+  await expect(metrics.nth(1)).toHaveText("−23 min");
+  const sections = page.getByRole("region", { name: "Section par section" });
+  await expect(sections.getByRole("table")).toContainText("Ravito du Bois");
+  const changes = page.getByRole("region", {
+    name: "Ce qui a changé entre les deux",
+  });
+  await expect(changes).toContainText("dès 10 %");
+  await expect(changes).toContainText(/12 % en \d{4}/);
+  await expect(changes).toContainText(/Glucides prévus\s*\+12 g\/h/);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    sections.getByRole("list", { name: /section par section$/ }),
+  ).toContainText("Ravito du Bois");
+});
+
 test("the scenarios view compares, creates and chooses a scenario", async ({
   page,
   request,

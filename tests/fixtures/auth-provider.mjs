@@ -2956,6 +2956,17 @@ createServer(async (request, response) => {
     tables.race_crew_links = [];
     if (url.searchParams.get("crew"))
       race.race_date = new Date(Date.now() + day).toISOString().slice(0, 10);
+    const editionRaceId = "bbbbbbbb-bbbb-4bbb-8bbb-000000000565";
+    const editionActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000000566";
+    tables.athlete_races = tables.athlete_races.filter(
+      (row) => row.id !== editionRaceId,
+    );
+    tables.provider_activities = tables.provider_activities.filter(
+      (row) => row.id !== editionActivityId,
+    );
+    tables.provider_activity_tracks = tables.provider_activity_tracks.filter(
+      (row) => row.activity_id !== editionActivityId,
+    );
     const pastActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000000565";
     tables.provider_activities = tables.provider_activities.filter(
       (row) => row.id !== pastActivityId,
@@ -3012,6 +3023,59 @@ createServer(async (request, response) => {
         heart_rate_histogram: null,
         source_point_count: points.length,
       });
+      if (url.searchParams.get("edition")) {
+        const editionPaces = [690, 780, 900];
+        let editionElapsed = 0;
+        const editionSeries = points.map((meters, index) => {
+          if (index > 0)
+            editionElapsed +=
+              (250 / 1000) *
+              editionPaces[Math.min(2, Math.floor((meters - 1) / 10000))];
+          return Math.round(editionElapsed);
+        });
+        tables.athlete_races.push({
+          ...race,
+          id: editionRaceId,
+          race_date: new Date(Date.now() - 367 * day)
+            .toISOString()
+            .slice(0, 10),
+          revision: 1,
+        });
+        tables.provider_activities.push(
+          activity(566, 367, {
+            id: editionActivityId,
+            activity_type: "trail_running",
+            activity_name: "EcoTrail Paris 120K",
+            distance_meters: 30000,
+            duration_seconds: editionSeries[editionSeries.length - 1],
+            elevation_gain_meters: 600,
+            average_heart_rate: 147,
+            ...daysAgo(367, "07:00:00"),
+          }),
+        );
+        tables.provider_activity_tracks.push({
+          activity_id: editionActivityId,
+          user_id: user.id,
+          status: "available",
+          route: null,
+          bounds: null,
+          series: {
+            elapsed_s: editionSeries,
+            distance_m: points,
+            heart_rate: points.map((meters) =>
+              Math.round(146 + Math.sin(meters / 3000) * 6),
+            ),
+          },
+          heart_rate_histogram: null,
+          source_point_count: points.length,
+        });
+        tables.race_plans.push({
+          ...tables.race_plans[0],
+          race_id: editionRaceId,
+          walk_grade_percent: 12,
+          carbs_per_hour_g: 48,
+        });
+      }
       tables.activity_feelings.push({
         id: randomUUID(),
         activity_id: pastActivityId,
