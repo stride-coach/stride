@@ -37,6 +37,8 @@ import type { SettingChange } from "@/features/races/settings-history";
 import { listCourseActivities } from "@/server/races/activities";
 import { coachRequestHref } from "@/features/coach/request";
 import { CutoffAlertCard } from "@/features/races/components/cutoff-alert";
+import { PlanNotices } from "@/features/races/components/plan-notices";
+import { fuelingNotice, rainNotice } from "@/features/races/plan-notices";
 import { CutoffContext } from "@/features/races/components/cutoff-context";
 import { ScenarioRevisions } from "@/features/races/components/scenario-actions";
 import { CoachNote } from "@/components/stride/coach-note";
@@ -94,6 +96,10 @@ function CourseWorkspace({
       weather,
     });
     const cutoff = cutoffFor(data, model, planned);
+    const notices = [
+      rainNotice(weather),
+      fuelingNotice(data.plan.carbsPerHourG, data.fuelingCapG ?? null),
+    ].filter((notice) => notice !== null);
     return (
       <ScenarioRevisions race={data.race.revision} plan={data.plan.revision}>
         <RaceAxis
@@ -112,13 +118,18 @@ function CourseWorkspace({
             />
           }
           alert={
-            cutoff && (
-              <CutoffAlertCard
-                raceId={data.race.id}
-                kind={data.race.kind}
-                alert={cutoff.alert}
-                coachHref={coachRequestHref(null, null, data.race.id)}
-              />
+            (cutoff || notices.length > 0) && (
+              <div className="flex flex-col gap-3">
+                {cutoff && (
+                  <CutoffAlertCard
+                    raceId={data.race.id}
+                    kind={data.race.kind}
+                    alert={cutoff.alert}
+                    coachHref={coachRequestHref(null, null, data.race.id)}
+                  />
+                )}
+                <PlanNotices raceId={data.race.id} notices={notices} />
+              </div>
             )
           }
           context={

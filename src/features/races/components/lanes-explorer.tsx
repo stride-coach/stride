@@ -299,7 +299,9 @@ export function LanesExplorer({
         lanes={lanes}
         estimate={estimate}
         weatherLabel={
-          lanes.weatherNormals ? "Météo · moyennes de saison" : "Météo"
+          lanes.weatherNormals
+            ? "Météo · estimation, moyennes de saison"
+            : "Météo"
         }
         window={window}
         overview={showsOverview(window, total)}
