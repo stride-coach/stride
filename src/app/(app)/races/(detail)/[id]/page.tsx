@@ -14,7 +14,8 @@ import {
   estimateFor,
   planFor,
   timelineFor,
-  weatherFor,
+  weatherWatchFor,
+  type WeatherWatch,
 } from "@/server/races/views";
 import {
   axisLanes,
@@ -38,6 +39,7 @@ import { listCourseActivities } from "@/server/races/activities";
 import { coachRequestHref } from "@/features/coach/request";
 import { CutoffAlertCard } from "@/features/races/components/cutoff-alert";
 import { PlanNotices } from "@/features/races/components/plan-notices";
+import { AdoptWeather } from "@/features/races/components/adopt-weather";
 import { fuelingNotice, rainNotice } from "@/features/races/plan-notices";
 import { CutoffContext } from "@/features/races/components/cutoff-context";
 import { ScenarioRevisions } from "@/features/races/components/scenario-actions";
@@ -58,8 +60,9 @@ type Workspace = {
 async function CourseWithWeather({
   weather,
   ...props
-}: Workspace & { weather: Promise<RaceWeather | null> }) {
-  return <CourseWorkspace {...props} weather={await weather} />;
+}: Workspace & { weather: Promise<WeatherWatch> }) {
+  const watch = await weather;
+  return <CourseWorkspace {...props} weather={watch.weather} watch={watch} />;
 }
 
 function CourseWorkspace({
@@ -68,7 +71,8 @@ function CourseWorkspace({
   products,
   history,
   weather,
-}: Workspace & { weather: RaceWeather | null }) {
+  watch,
+}: Workspace & { weather: RaceWeather | null; watch?: WeatherWatch }) {
   const { model, planned } = views;
   const { profile, map } = chartViews(model, planned, weather);
   const road = data.race.kind === "road";
@@ -97,6 +101,7 @@ function CourseWorkspace({
     });
     const cutoff = cutoffFor(data, model, planned);
     const notices = [
+      watch?.notice ?? null,
       rainNotice(weather),
       fuelingNotice(data.plan.carbsPerHourG, data.fuelingCapG ?? null),
     ].filter((notice) => notice !== null);
@@ -128,7 +133,22 @@ function CourseWorkspace({
                     coachHref={coachRequestHref(null, null, data.race.id)}
                   />
                 )}
-                <PlanNotices raceId={data.race.id} notices={notices} />
+                <PlanNotices
+                  raceId={data.race.id}
+                  notices={notices}
+                  actions={
+                    watch?.latestOn
+                      ? {
+                          weather: (
+                            <AdoptWeather
+                              raceId={data.race.id}
+                              observedOn={watch.latestOn}
+                            />
+                          ),
+                        }
+                      : {}
+                  }
+                />
               </div>
             )
           }
@@ -175,9 +195,11 @@ function CourseWorkspace({
                 weatherNote={
                   weather === null
                     ? null
-                    : weather.mode === "forecast"
-                      ? "La météo suit la prévision du jour."
-                      : "Avant J-10, la météo suit les moyennes de saison."
+                    : watch?.frozenOn
+                      ? "Le plan est figé avec la météo de J-2 jusqu’à la course, sauf alerte."
+                      : weather.mode === "forecast"
+                        ? "La météo suit la prévision du jour, puis se fige à J-2."
+                        : "Avant J-10, la météo suit les moyennes de saison."
                 }
               />
               <TakeAlong
@@ -396,7 +418,7 @@ export default async function RaceCoursePage({
         <CourseWorkspace {...props} weather={null} />
       </>
     );
-  const weather = weatherFor(data, views.model, planned);
+  const weather = weatherWatchFor(data, views.model, planned);
   return (
     <>
       <RaceStatus data={data} />

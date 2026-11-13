@@ -1,4 +1,4 @@
-import { CloudRainIcon, UtensilsIcon } from "lucide-react";
+import { CloudRainIcon, ThermometerIcon, UtensilsIcon } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Status } from "@/components/stride/status";
 import type { PlanNotice } from "../plan-notices";
@@ -6,19 +6,23 @@ import type { PlanNotice } from "../plan-notices";
 const icons = {
   rain: CloudRainIcon,
   fueling: UtensilsIcon,
+  weather: ThermometerIcon,
 } as const;
 
 const links = {
   rain: { path: "/weather", label: "Voir la météo" },
   fueling: { path: "/nutrition", label: "Voir le ravitaillement" },
+  weather: { path: "/weather", label: "Voir la météo" },
 } as const;
 
 export function PlanNotices({
   raceId,
   notices,
+  actions = {},
 }: {
   raceId: string;
   notices: PlanNotice[];
+  actions?: Partial<Record<PlanNotice["key"], React.ReactNode>>;
 }) {
   if (notices.length === 0) return null;
   return (
@@ -52,6 +56,9 @@ export function PlanNotices({
               <p className="text-pretty text-secondary-foreground">
                 {notice.text}
               </p>
+              {actions[notice.key] && (
+                <div className="pt-1.5">{actions[notice.key]}</div>
+              )}
             </div>
             <Link
               href={`/races/${raceId}${link.path}`}

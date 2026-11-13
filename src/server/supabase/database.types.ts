@@ -2637,6 +2637,42 @@ export type Database = {
           },
         ];
       };
+      race_weather_snapshots: {
+        Row: {
+          adopted: boolean;
+          created_at: string;
+          observed_on: string;
+          race_id: string;
+          user_id: string;
+          weather: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          adopted?: boolean;
+          created_at?: string;
+          observed_on: string;
+          race_id: string;
+          user_id: string;
+          weather: NonNullable<Json>;
+        };
+        Update: {
+          adopted?: boolean;
+          created_at?: string;
+          observed_on?: string;
+          race_id?: string;
+          user_id?: string;
+          weather?: NonNullable<Json>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_weather_snapshots_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       session_activity_matches: {
         Row: {
           activity_id: string | null;

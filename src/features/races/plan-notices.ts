@@ -2,7 +2,7 @@ import { formatClock } from "./format";
 import type { RaceWeather } from "./weather";
 
 export type PlanNotice = {
-  key: "rain" | "fueling";
+  key: "rain" | "fueling" | "weather";
   title: string;
   text: string;
 };

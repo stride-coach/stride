@@ -28,6 +28,19 @@ import { crewPlan } from "@/features/races/crew";
 import { printedRoadbook } from "@/features/races/printed-roadbook";
 import { paceFactorsOf, type RaceStrategy } from "@/features/races/proposals";
 import { raceWeather } from "./weather";
+import {
+  readWeatherSnapshots,
+  recordWeatherSnapshot,
+} from "./weather-snapshots";
+import { getOnboardingContext } from "@/server/onboarding/context";
+import { addDays, localDate } from "@/features/races/sun";
+import type { PlanNotice } from "@/features/races/plan-notices";
+import {
+  frozenReference,
+  previousSnapshot,
+  weatherChange,
+  weatherChangeNotice,
+} from "@/features/races/weather-watch";
 import type { NutritionProduct } from "@/features/fueling/products";
 import { raceAllocation } from "@/features/races/race-nutrition";
 import { raceTimeline, timelineFueling } from "@/features/races/timeline";
@@ -150,6 +163,61 @@ export function cutoffFor(
 }
 
 export async function weatherFor(
+  data: RaceWorkspaceData,
+  model: CourseModel,
+  planned: RacePlanModel | null,
+) {
+  return (await weatherWatchFor(data, model, planned)).weather;
+}
+
+export type WeatherWatch = {
+  weather: RaceWeather | null;
+  notice: PlanNotice | null;
+  frozenOn: string | null;
+  latestOn: string | null;
+};
+
+export async function weatherWatchFor(
+  data: RaceWorkspaceData,
+  model: CourseModel,
+  planned: RacePlanModel | null,
+): Promise<WeatherWatch> {
+  const live = await liveWeatherFor(data, model, planned);
+  const quiet = { weather: live, notice: null, frozenOn: null, latestOn: null };
+  if (!live || live.mode !== "forecast" || !data.race.date || !data.course)
+    return quiet;
+  const context = await getOnboardingContext().catch(() => null);
+  if (!context) return quiet;
+  const today = localDate(Date.now(), data.course.timeZone);
+  await recordWeatherSnapshot(context, data.race.id, today, live).catch(
+    () => undefined,
+  );
+  const snapshots = await readWeatherSnapshots(
+    context,
+    data.race.id,
+    addDays(today, -7),
+  );
+  const frozen = frozenReference(snapshots, data.race.date, today);
+  if (frozen && frozen.observedOn !== today) {
+    const change = weatherChange(live, frozen.weather);
+    return {
+      weather: frozen.weather,
+      notice: change ? weatherChangeNotice(change, "freeze") : null,
+      frozenOn: frozen.observedOn,
+      latestOn: change ? today : null,
+    };
+  }
+  const previous = previousSnapshot(snapshots, today);
+  const change = previous ? weatherChange(live, previous.weather) : null;
+  return {
+    weather: live,
+    notice: change ? weatherChangeNotice(change, "yesterday") : null,
+    frozenOn: frozen ? today : null,
+    latestOn: null,
+  };
+}
+
+async function liveWeatherFor(
   data: RaceWorkspaceData,
   model: CourseModel,
   planned: RacePlanModel | null,
