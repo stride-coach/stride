@@ -1,6 +1,16 @@
 import type { Series } from "@/features/activities/track";
-import type { RecoveryNight } from "@/features/progress/recovery";
-import { formatDuration, formatInteger, formatKm, formatPace } from "./format";
+import {
+  restingRange,
+  usualRange,
+  type RecoveryNight,
+} from "@/features/progress/recovery";
+import {
+  formatClock,
+  formatDuration,
+  formatInteger,
+  formatKm,
+  formatPace,
+} from "./format";
 import type { RaceSummary } from "./race";
 import {
   formatResultDelta,
@@ -26,6 +36,29 @@ export type RecoveryDay = {
   label: string;
   restingHeartRate: { value: string; delta: string | null } | null;
   hrv: { value: string; delta: string | null } | null;
+};
+
+export type RecoveryPhase = {
+  key: string;
+  days: string;
+  title: string;
+  detail: string;
+};
+
+export type AfterChart = {
+  distanceM: number;
+  stations: { id: string; name: string; distanceM: number; clock: string }[];
+  elevation: [distanceM: number, ele: number][];
+  night: { fromM: number; toM: number }[];
+  gaps: { distanceM: number; deltaSeconds: number; label: string | null }[];
+  paces: {
+    fromM: number;
+    toM: number;
+    plannedSecondsPerKm: number;
+    actualSecondsPerKm: number;
+    planned: string;
+    actual: string;
+  }[];
 };
 
 const baselineDays = 28;
@@ -87,6 +120,71 @@ export function passageChecks({
         },
       ];
     });
+}
+
+export function afterChart({
+  stations,
+  series,
+  finishSeconds,
+  elevation,
+  night,
+}: {
+  stations: TimelineStation[];
+  series: Series | null;
+  finishSeconds: number;
+  elevation: [number, number][];
+  night: { fromM: number; toM: number }[];
+}): AfterChart | null {
+  const start = stations[0];
+  if (!series || !start || stations.length < 2) return null;
+  const passed = stations.flatMap((station) => {
+    const actual =
+      station.kind === "start"
+        ? 0
+        : station.kind === "finish"
+          ? finishSeconds
+          : elapsedAtDistance(series, station.distanceM);
+    return actual === null ? [] : [{ station, actual }];
+  });
+  if (passed.length < 2) return null;
+  const startClock = start.clockMinutes - start.elapsedSeconds / 60;
+  return {
+    distanceM: stations[stations.length - 1].distanceM,
+    stations: passed.map(({ station, actual }) => ({
+      id: station.id,
+      name: station.name,
+      distanceM: station.distanceM,
+      clock: formatClock(startClock + actual / 60),
+    })),
+    elevation,
+    night,
+    gaps: passed.map(({ station, actual }, index) => {
+      const deltaSeconds = actual - station.elapsedSeconds;
+      return {
+        distanceM: station.distanceM,
+        deltaSeconds,
+        label: index === 0 ? null : formatResultDelta(deltaSeconds),
+      };
+    }),
+    paces: passed.slice(1).flatMap(({ station, actual }, index) => {
+      const from = passed[index];
+      const km = (station.distanceM - from.station.distanceM) / 1000;
+      if (km <= 0) return [];
+      const plannedSecondsPerKm =
+        (station.elapsedSeconds - from.station.elapsedSeconds) / km;
+      const actualSecondsPerKm = (actual - from.actual) / km;
+      return [
+        {
+          fromM: from.station.distanceM,
+          toM: station.distanceM,
+          plannedSecondsPerKm,
+          actualSecondsPerKm,
+          planned: formatPace(plannedSecondsPerKm),
+          actual: formatPace(actualSecondsPerKm),
+        },
+      ];
+    }),
+  };
 }
 
 export function afterKpis({
@@ -253,4 +351,99 @@ export function recoveryDays({
       ? `Ta base des ${baselineDays} jours avant la course : ${parts.join(", ")}.`
       : null,
   };
+}
+
+type RecoveryState = "both" | "rest" | "hrv" | "within";
+
+const phaseTitles: Record<RecoveryState, string> = {
+  both: "FC repos haute, VFC basse",
+  rest: "FC repos au-dessus de ta plage",
+  hrv: "VFC sous ta plage",
+  within: "Retour dans ta plage",
+};
+
+export function recoveryPhases({
+  nights,
+  raceDate,
+  today,
+}: {
+  nights: RecoveryNight[];
+  raceDate: string;
+  today: string;
+}): RecoveryPhase[] {
+  const before = nights.filter(
+    (night) =>
+      night.day < raceDate && night.day >= addDays(raceDate, -baselineDays),
+  );
+  const rests = before.flatMap((night) =>
+    night.restingHeartRate === null ? [] : [night.restingHeartRate],
+  );
+  const hrvs = before.flatMap((night) =>
+    night.hrv === null ? [] : [night.hrv],
+  );
+  const restBand = restingRange(rests);
+  const hrvBand = usualRange(hrvs);
+  if (!restBand || !hrvBand) return [];
+  const restBase = median(rests)!;
+  const hrvBase = median(hrvs)!;
+  const after = nights.filter(
+    (night) =>
+      night.day > raceDate &&
+      night.day <= addDays(raceDate, recoveryHorizon) &&
+      night.day <= today &&
+      (night.restingHeartRate !== null || night.hrv !== null),
+  );
+  const groups: {
+    state: RecoveryState;
+    offsets: number[];
+    rest: number;
+    hrv: number;
+  }[] = [];
+  for (const night of after) {
+    const restHigh =
+      night.restingHeartRate !== null && night.restingHeartRate > restBand.high;
+    const hrvLow = night.hrv !== null && night.hrv < hrvBand.low;
+    const state: RecoveryState =
+      restHigh && hrvLow
+        ? "both"
+        : restHigh
+          ? "rest"
+          : hrvLow
+            ? "hrv"
+            : "within";
+    const offset = Math.round(
+      (Date.parse(`${night.day}T00:00:00Z`) -
+        Date.parse(`${raceDate}T00:00:00Z`)) /
+        86_400_000,
+    );
+    const rest =
+      night.restingHeartRate === null ? 0 : night.restingHeartRate - restBase;
+    const hrv = night.hrv === null ? 0 : night.hrv - hrvBase;
+    const last = groups[groups.length - 1];
+    if (last?.state === state) {
+      last.offsets.push(offset);
+      last.rest = Math.max(last.rest, rest);
+      last.hrv = Math.min(last.hrv, hrv);
+    } else groups.push({ state, offsets: [offset], rest, hrv });
+  }
+  return groups.map((group) => {
+    const first = group.offsets[0];
+    const last = group.offsets[group.offsets.length - 1];
+    const details = [
+      group.state === "both" || group.state === "rest"
+        ? `FC repos jusqu’à ${signed(group.rest)}`
+        : null,
+      group.state === "both" || group.state === "hrv"
+        ? `VFC jusqu’à ${signed(group.hrv)} ms`
+        : null,
+    ].filter(Boolean);
+    return {
+      key: `${group.state}-${first}`,
+      days: first === last ? `J+${first}` : `J+${first} → J+${last}`,
+      title: phaseTitles[group.state],
+      detail: details.length
+        ? details.join(" · ")
+        : "FC repos et VFC dans ta plage",
+    };
+  });
 }

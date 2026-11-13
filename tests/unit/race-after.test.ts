@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  afterChart,
   afterKpis,
   afterReading,
+  recoveryPhases,
   elapsedAtDistance,
   passageChecks,
   recoveryDays,
@@ -149,5 +151,129 @@ describe("recovery after the race", () => {
       ],
       ["J+4", { value: "47 bpm", delta: "+2" }, null],
     ]);
+  });
+});
+
+describe("recovery phases", () => {
+  const night = (
+    day: string,
+    restingHeartRate: number | null,
+    hrv: number | null,
+  ): RecoveryNight => ({
+    day,
+    readiness: null,
+    sleepSeconds: null,
+    sleepScore: null,
+    hrv,
+    hrvStatus: null,
+    restingHeartRate,
+  });
+  const before = [
+    [45, 60],
+    [46, 62],
+    [44, 58],
+    [45, 60],
+    [46, 61],
+    [44, 59],
+    [45, 60],
+  ].map(([rest, hrv], index) =>
+    night(`2027-03-${String(10 + index).padStart(2, "0")}`, rest, hrv),
+  );
+
+  it("groups the nights after the race by where they sit in the usual range", () => {
+    const phases = recoveryPhases({
+      nights: [
+        ...before,
+        night("2027-03-21", 52, 41),
+        night("2027-03-22", 51, 50),
+        night("2027-03-23", 46, 52),
+        night("2027-03-25", 45, 60),
+      ],
+      raceDate: "2027-03-20",
+      today: "2027-03-26",
+    });
+    expect(
+      phases.map((phase) => [phase.days, phase.title, phase.detail]),
+    ).toEqual([
+      [
+        "J+1 → J+2",
+        "FC repos haute, VFC basse",
+        "FC repos jusqu’à +7 · VFC jusqu’à −19 ms",
+      ],
+      ["J+3", "VFC sous ta plage", "VFC jusqu’à −8 ms"],
+      ["J+5", "Retour dans ta plage", "FC repos et VFC dans ta plage"],
+    ]);
+  });
+
+  it("needs a week of nights before the race to set the range", () => {
+    expect(
+      recoveryPhases({
+        nights: [before[0], night("2027-03-21", 52, 41)],
+        raceDate: "2027-03-20",
+        today: "2027-03-26",
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("the race on its plan", () => {
+  const chart = afterChart({
+    stations,
+    series,
+    finishSeconds: 11_400,
+    elevation: [
+      [0, 100],
+      [15_000, 300],
+      [30_000, 120],
+    ],
+    night: [{ fromM: 25_000, toM: 30_000 }],
+  })!;
+
+  it("places every station at its actual clock", () => {
+    expect(chart.distanceM).toBe(30_000);
+    expect(
+      chart.stations.map((item) => [item.name, item.distanceM, item.clock]),
+    ).toEqual([
+      ["Départ", 0, "06:00"],
+      ["Buc", 10_000, "06:58"],
+      ["Chaville", 20_000, "08:13"],
+      ["Arrivée", 30_000, "09:10"],
+    ]);
+  });
+
+  it("draws the gap to the plan from the start", () => {
+    expect(chart.gaps.map((gap) => [gap.distanceM, gap.label])).toEqual([
+      [0, null],
+      [10_000, "−2 min"],
+      [20_000, "+13 min"],
+      [30_000, "+10 min"],
+    ]);
+  });
+
+  it("compares the planned and actual pace of each section", () => {
+    expect(
+      chart.paces.map((pace) => [
+        pace.fromM,
+        pace.toM,
+        pace.planned,
+        pace.actual,
+      ]),
+    ).toEqual([
+      [0, 10_000, "6:00", "5:50"],
+      [10_000, 20_000, "6:00", "7:30"],
+      [20_000, 30_000, "6:00", "5:40"],
+    ]);
+  });
+
+  it("needs the activity track to draw the race", () => {
+    expect(
+      afterChart({
+        stations,
+        series: null,
+        finishSeconds: 11_400,
+        elevation: [],
+        night: [],
+      }),
+    ).toBeNull();
   });
 });
