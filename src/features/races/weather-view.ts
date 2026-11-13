@@ -20,6 +20,7 @@ export type WeatherAlternative = {
   current: boolean;
 };
 export type WeatherRange = { fromM: number; toM: number };
+export type WeatherReliability = { label: string; value: string }[];
 
 export type WeatherView = {
   mode: RaceWeather["mode"];
@@ -28,6 +29,7 @@ export type WeatherView = {
   rain: WeatherRange[];
   adjustments: WeatherAdjustment[];
   alternatives: WeatherAlternative[];
+  reliability: WeatherReliability;
   source: string;
 };
 
@@ -74,6 +76,53 @@ function rainDistance(
   }, 0);
 }
 
+const windNames: Record<string, string> = {
+  N: "de nord",
+  NE: "de nord-est",
+  E: "d’est",
+  SE: "de sud-est",
+  S: "de sud",
+  SO: "de sud-ouest",
+  O: "d’ouest",
+  NO: "de nord-ouest",
+};
+
+export function windLabel(degrees: number | null) {
+  return degrees === null ? "Vent" : `Vent ${windNames[cardinal(degrees)]}`;
+}
+
+const forecastDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+
+export function weatherReliability(
+  weather: Pick<RaceWeather, "mode" | "forecastFrom">,
+  daysToRace: number | null,
+): WeatherReliability {
+  if (weather.mode === "normals")
+    return [
+      { label: "Source", value: "Moyennes de saison" },
+      {
+        label: "Prévision",
+        value: `dès le ${forecastDate.format(new Date(`${weather.forecastFrom}T00:00:00Z`))}`,
+      },
+    ];
+  return [
+    {
+      label: "Prévision",
+      value:
+        daysToRace === null || daysToRace < 0
+          ? "Prévision"
+          : daysToRace === 0
+            ? "le jour même"
+            : `J-${daysToRace}`,
+    },
+    { label: "Mise à jour", value: "toutes les heures" },
+  ];
+}
+
 function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -85,6 +134,7 @@ export function weatherView({
   timeline,
   startMinutes,
   alternatives = [],
+  daysToRace = null,
 }: {
   weather: RaceWeather;
   course: Course;
@@ -92,6 +142,7 @@ export function weatherView({
   timeline: RaceTimeline;
   startMinutes: number;
   alternatives?: { scenario: Scenario; planned: RacePlanModel }[];
+  daysToRace?: number | null;
 }): WeatherView {
   const slots = weather.slots;
   const clock = (elapsedSeconds: number) =>
@@ -146,10 +197,7 @@ export function weatherView({
           {
             key: "wind",
             value: `${Math.round(windiest.windKmh!)} km/h`,
-            label:
-              windiest.windDirection === null
-                ? "Vent"
-                : `Vent · ${cardinal(windiest.windDirection)}`,
+            label: windLabel(windiest.windDirection),
           },
         ]
       : []),
@@ -214,6 +262,21 @@ export function weatherView({
       where: `vers ${clock(hottest.elapsedSeconds)}`,
     });
   }
+  if (rain.length > 0) {
+    const dryAt = rain.at(-1)!.toM;
+    const station = timeline.stations.find(
+      (item) =>
+        item.distanceM >= dryAt &&
+        item.kind !== "finish" &&
+        item.kind !== "start",
+    );
+    if (station)
+      adjustments.push({
+        topic: "Pieds",
+        text: `Chaussettes de rechange à ${station.name}, après la pluie.`,
+        where: `km ${km(station.distanceM)}`,
+      });
+  }
   if (windiest && windiest.windKmh! >= windyKmh)
     adjustments.push({
       topic: "Vent",
@@ -240,6 +303,7 @@ export function weatherView({
             };
           })
         : [],
+    reliability: weatherReliability(weather, daysToRace),
     source: weather.source,
   };
 }

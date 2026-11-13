@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { distanceAtElapsed } from "@/features/races/simulation";
 import type { RaceWeather, WeatherSlot } from "@/features/races/weather";
-import { weatherView } from "@/features/races/weather-view";
+import {
+  weatherReliability,
+  weatherView,
+  windLabel,
+} from "@/features/races/weather-view";
 import { planModel } from "@/features/races/workspace";
 import {
   course,
@@ -87,7 +91,7 @@ describe("weather along the race", () => {
         temperature: { value: "3 → 12 °C", label: "Température" },
         rain: { label: "Averses" },
         wet: { label: "Sous la pluie" },
-        wind: { value: "35 km/h", label: "Vent · SO" },
+        wind: { value: "35 km/h", label: "Vent de sud-ouest" },
         night: { value: "Départ", label: "Nuit dès le départ" },
         finish: { value: "6 °C", label: "À l’arrivée" },
       },
@@ -101,11 +105,43 @@ describe("weather along the race", () => {
   });
 
   it("derives the adjustments from the weather met", () => {
-    expect(view().adjustments.map((item) => [item.topic, item.where])).toEqual([
-      ["Équipement", expect.stringMatching(/^km /)],
-      ["Couches", "dès le départ"],
-      ["Lumière", "dès le départ"],
-      ["Vent", expect.stringMatching(/^km /)],
+    const topics = view().adjustments.map((item) => item.topic);
+    expect(topics.filter((topic) => topic !== "Pieds")).toEqual([
+      "Équipement",
+      "Couches",
+      "Lumière",
+      "Vent",
+    ]);
+    const feet = view().adjustments.find((item) => item.topic === "Pieds");
+    const dryAt = view().rain.at(-1)!.toM;
+    const station = timeline.stations.find(
+      (item) =>
+        item.distanceM >= dryAt &&
+        item.kind !== "finish" &&
+        item.kind !== "start",
+    );
+    expect(feet?.text ?? null).toBe(
+      station
+        ? `Chaussettes de rechange à ${station.name}, après la pluie.`
+        : null,
+    );
+  });
+
+  it("names the wind and how reliable the forecast is", () => {
+    expect(windLabel(225)).toBe("Vent de sud-ouest");
+    expect(windLabel(90)).toBe("Vent d’est");
+    expect(windLabel(null)).toBe("Vent");
+    expect(
+      weatherReliability({ mode: "forecast", forecastFrom: "2027-03-05" }, 2),
+    ).toEqual([
+      { label: "Prévision", value: "J-2" },
+      { label: "Mise à jour", value: "toutes les heures" },
+    ]);
+    expect(
+      weatherReliability({ mode: "normals", forecastFrom: "2027-03-05" }, 40),
+    ).toEqual([
+      { label: "Source", value: "Moyennes de saison" },
+      { label: "Prévision", value: "dès le 5 mars" },
     ]);
   });
 

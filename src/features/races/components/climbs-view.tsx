@@ -3,44 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { AxisLanes, AxisReading } from "../axis";
 import type { ClimbRow } from "../climbs";
 import { useAxisFocus } from "./axis-focus";
-import { LanesExplorer } from "./lanes-explorer";
 
 const shownClimbs = 10;
-
-export function ClimbsAxis({
-  lanes,
-  readings,
-  walkThreshold,
-  raceId,
-  label,
-  threshold,
-}: {
-  lanes: AxisLanes;
-  readings: AxisReading[];
-  walkThreshold: number;
-  raceId: string;
-  label: string;
-  threshold: React.ReactNode;
-}) {
-  const { cursorM, setCursorM, highlight } = useAxisFocus();
-  return (
-    <LanesExplorer
-      lanes={lanes}
-      readings={readings}
-      cursorM={cursorM}
-      onCursor={setCursorM}
-      highlight={highlight}
-      walkThreshold={walkThreshold}
-      raceId={raceId}
-      headingId="climbs-profile"
-      title={label}
-      actions={threshold}
-    />
-  );
-}
 
 const head = "px-2 py-2 text-left text-label font-normal text-muted-foreground";
 const cell = "px-2 py-2.5 tabular-nums whitespace-nowrap";
