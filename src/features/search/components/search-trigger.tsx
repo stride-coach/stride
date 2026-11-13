@@ -52,7 +52,7 @@ export function MobileSearchButton() {
       size="icon"
       onClick={openSearch}
       aria-haspopup="dialog"
-      aria-label="Rechercher"
+      aria-label="Rechercher dans Stride"
       className="size-10 text-secondary-foreground"
     >
       <SearchIcon className="size-4.5" />
