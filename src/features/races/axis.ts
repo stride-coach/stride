@@ -13,6 +13,7 @@ import type {
   PlanProfileData,
   RaceTimeline,
   TimelineSegment,
+  TimelineStation,
 } from "./timeline";
 import { wet, type RaceWeather, type WeatherSlot } from "./weather";
 import type { CourseModel, RacePlanModel } from "./workspace";
@@ -55,16 +56,37 @@ export type RoadbookTotals = {
   finish: string;
 };
 
+export type AxisBand = { fromM: number; toM: number; label: string };
+
 export type AxisLanes = {
   distanceM: number;
   elevation: [distanceM: number, ele: number][];
+  elevationTicks: { ele: number; label: string }[];
   walk: { fromM: number; toM: number }[];
-  night: { fromM: number; toM: number }[];
-  rain: { fromM: number; toM: number }[];
-  stations: { distanceM: number; name: string; cutoff: boolean }[];
-  pace: { fromM: number; toM: number; secondsPerKm: number | null }[];
-  temperature: { distanceM: number; temperature: number }[];
-  fueling: { fromM: number; toM: number; carbsG: number }[];
+  night: AxisBand[];
+  rain: AxisBand[];
+  stations: {
+    distanceM: number;
+    name: string;
+    clock: string;
+    cutoff: string | null;
+  }[];
+  pace: {
+    fromM: number;
+    toM: number;
+    secondsPerKm: number | null;
+    label: string | null;
+  }[];
+  temperature: { distanceM: number; temperature: number; label: string }[];
+  fueling: {
+    fromM: number;
+    toM: number;
+    carbsG: number;
+    perHour: number | null;
+    label: string | null;
+  }[];
+  ticks: { distanceM: number; label: string }[];
+  weatherNormals: boolean;
 };
 
 export const axisStepM = 500;
@@ -318,6 +340,81 @@ export function roadbookTotals(
   };
 }
 
+export function clockAtDistance(
+  stations: Pick<
+    TimelineStation,
+    "distanceM" | "clockMinutes" | "stopSeconds"
+  >[],
+  distanceM: number,
+) {
+  const first = stations[0];
+  if (!first) return 0;
+  for (let index = 1; index < stations.length; index += 1) {
+    const from = stations[index - 1]!;
+    const to = stations[index]!;
+    if (distanceM > to.distanceM) continue;
+    const leave = from.clockMinutes + from.stopSeconds / 60;
+    const span = to.distanceM - from.distanceM;
+    const ratio = span > 0 ? (distanceM - from.distanceM) / span : 0;
+    return leave + Math.max(0, ratio) * (to.clockMinutes - leave);
+  }
+  return stations.at(-1)!.clockMinutes;
+}
+
+function hourLabel(minutes: number, round: (value: number) => number) {
+  return `${((round(minutes / 60) % 24) + 24) % 24}h`;
+}
+
+export function rainLabel(fromMinutes: number, toMinutes: number) {
+  const from = hourLabel(fromMinutes, Math.floor);
+  const to = hourLabel(toMinutes, Math.ceil);
+  return from === to ? `Averses vers ${from}` : `Averses ${from}–${to}`;
+}
+
+export function nightLabel(fromMinutes: number) {
+  return `Nuit dès ${formatClock(fromMinutes)}`;
+}
+
+const tickSteps = [1, 2, 5, 10, 20, 25, 50, 100];
+
+export function axisTicks(distanceM: number, maxTicks = 7) {
+  const kilometres = distanceM / 1000;
+  const step =
+    tickSteps.find((candidate) => kilometres / candidate <= maxTicks) ??
+    tickSteps.at(-1)!;
+  const ticks: { distanceM: number; label: string }[] = [];
+  for (let value = 0; value * 1000 <= distanceM; value += step)
+    ticks.push({ distanceM: value * 1000, label: `${value} km` });
+  return ticks;
+}
+
+export function elevationTicks(elevations: number[]) {
+  if (elevations.length === 0) return [];
+  const low = Math.min(...elevations);
+  const high = Math.max(...elevations);
+  const span = high - low;
+  const step =
+    [10, 20, 50, 100, 200, 250, 500, 1000].find(
+      (candidate) => span / candidate <= 3,
+    ) ?? 1000;
+  const ticks: { ele: number; label: string }[] = [];
+  for (let ele = Math.ceil(low / step) * step; ele <= high; ele += step)
+    ticks.push({ ele, label: `${formatInteger(ele)} m` });
+  return ticks;
+}
+
+function carbsPerHour(
+  timeline: RaceTimeline,
+  position: number,
+  carbsG: number,
+) {
+  const from = timeline.stations[position];
+  const to = timeline.stations[position + 1];
+  if (!from || !to || carbsG <= 0) return null;
+  const seconds = to.elapsedSeconds - (from.elapsedSeconds + from.stopSeconds);
+  return seconds > 0 ? Math.round((carbsG / seconds) * 3600) : null;
+}
+
 export function axisLanes({
   profile,
   model,
@@ -329,30 +426,55 @@ export function axisLanes({
   timeline: RaceTimeline;
   weather: RaceWeather | null;
 }): AxisLanes {
+  const clockAt = (distanceM: number) =>
+    clockAtDistance(timeline.stations, distanceM);
   return {
     distanceM: profile.distanceM,
     elevation: profile.elevation,
+    elevationTicks: elevationTicks(profile.elevation.map(([, ele]) => ele)),
     walk: model.portions.map(({ fromM, toM }) => ({ fromM, toM })),
-    night: profile.night,
-    rain: profile.rain,
+    night: profile.night.map((band) => ({
+      ...band,
+      label: nightLabel(clockAt(band.fromM)),
+    })),
+    rain: profile.rain.map((band) => ({
+      ...band,
+      label: rainLabel(clockAt(band.fromM), clockAt(band.toM)),
+    })),
     stations: timeline.stations.map((station) => ({
       distanceM: station.distanceM,
       name: station.name,
-      cutoff: station.cutoffMinutes !== null,
+      clock: formatClock(station.clockMinutes),
+      cutoff:
+        station.cutoffMinutes === null
+          ? null
+          : `barrière ${formatClock(station.cutoffMinutes)}`,
     })),
     pace: timeline.segments.map((segment) => ({
       fromM: segment.fromM,
       toM: segment.toM,
       secondsPerKm: segment.runPaceSecondsPerKm,
+      label:
+        segment.runPaceSecondsPerKm === null
+          ? null
+          : formatPace(segment.runPaceSecondsPerKm),
     })),
     temperature: (weather?.slots ?? []).map((slot) => ({
       distanceM: slot.distanceM,
       temperature: slot.temperature,
+      label: `${Math.round(slot.temperature)}°`,
     })),
-    fueling: timeline.segments.map((segment) => ({
-      fromM: segment.fromM,
-      toM: segment.toM,
-      carbsG: segment.carbsG,
-    })),
+    fueling: timeline.segments.map((segment, position) => {
+      const perHour = carbsPerHour(timeline, position, segment.carbsG);
+      return {
+        fromM: segment.fromM,
+        toM: segment.toM,
+        carbsG: segment.carbsG,
+        perHour,
+        label: perHour === null ? null : `${formatInteger(perHour)} g/h`,
+      };
+    }),
+    ticks: axisTicks(profile.distanceM),
+    weatherNormals: weather?.mode === "normals",
   };
 }

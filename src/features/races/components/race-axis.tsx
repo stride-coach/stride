@@ -10,8 +10,7 @@ import type {
 } from "../axis";
 import type { MapData } from "../map";
 import { MapCard, type MapSegment } from "./map-card";
-
-const width = 1000;
+import { RaceLanes } from "./race-lanes";
 
 const rowSpans: Record<number, string> = {
   2: "xl:row-span-2",
@@ -19,254 +18,23 @@ const rowSpans: Record<number, string> = {
   4: "xl:row-span-4",
 };
 
-type Range = { fromM: number; toM: number };
+const rainSwatch = {
+  backgroundImage:
+    "repeating-linear-gradient(135deg, color-mix(in oklab, var(--secondary-foreground) 45%, transparent) 0 1px, transparent 1px 4px)",
+};
 
-function x(distanceM: number, total: number) {
-  return (distanceM / total) * width;
-}
-
-function Bands({
-  ranges,
-  total,
-  height,
+function Swatch({
   className,
+  style,
 }: {
-  ranges: Range[];
-  total: number;
-  height: number;
   className: string;
+  style?: React.CSSProperties;
 }) {
-  return ranges.map((range) => (
-    <rect
-      key={`${range.fromM}-${range.toM}`}
-      x={x(range.fromM, total)}
-      width={Math.max(1, x(range.toM, total) - x(range.fromM, total))}
-      y={0}
-      height={height}
-      className={className}
-    />
-  ));
-}
-
-function Lane({
-  label,
-  short,
-  height,
-  children,
-}: {
-  label: string;
-  short?: string;
-  height: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="contents">
-      <span className="flex items-center border-t border-border pr-3 text-label text-muted-foreground">
-        {short ? (
-          <>
-            <span className="sm:hidden">{short}</span>
-            <span className="max-sm:hidden">{label}</span>
-          </>
-        ) : (
-          label
-        )}
-      </span>
-      <svg
-        aria-hidden="true"
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        className="block w-full border-t border-border"
-        style={{ height }}
-      >
-        {children}
-      </svg>
-    </div>
-  );
-}
-
-function scale(values: number[], low: number, high: number) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  return (value: number) => high - ((value - min) / span) * (high - low);
-}
-
-function ProfileLane({ lanes }: { lanes: AxisLanes }) {
-  const height = 88;
-  const total = lanes.distanceM;
-  const y = scale(
-    lanes.elevation.map(([, ele]) => ele),
-    10,
-    height - 4,
-  );
-  const line = (points: [number, number][]) =>
-    points
-      .map(
-        ([distanceM, ele], index) =>
-          `${index === 0 ? "M" : "L"}${x(distanceM, total).toFixed(1)},${y(ele).toFixed(1)}`,
-      )
-      .join("");
-  const area = `${line(lanes.elevation)}L${width},${height}L0,${height}Z`;
-  return (
-    <Lane label="Profil" height={height}>
-      <Bands
-        ranges={lanes.night}
-        total={total}
-        height={height}
-        className="fill-muted"
-      />
-      <path d={area} className="fill-secondary-foreground/15" />
-      <path
-        d={line(lanes.elevation)}
-        className="fill-none stroke-secondary-foreground"
-        strokeWidth={1.25}
-        vectorEffect="non-scaling-stroke"
-      />
-      {lanes.walk.map((range) => {
-        const points = lanes.elevation.filter(
-          ([distanceM]) => distanceM >= range.fromM && distanceM <= range.toM,
-        );
-        return points.length > 1 ? (
-          <path
-            key={`${range.fromM}-${range.toM}`}
-            d={line(points)}
-            className="fill-none stroke-warning"
-            strokeWidth={3}
-            vectorEffect="non-scaling-stroke"
-          />
-        ) : null;
-      })}
-      {lanes.stations.map((station) => (
-        <line
-          key={`${station.distanceM}-${station.name}`}
-          x1={x(station.distanceM, total)}
-          x2={x(station.distanceM, total)}
-          y1={0}
-          y2={height}
-          className={station.cutoff ? "stroke-warning" : "stroke-border"}
-          strokeDasharray={station.cutoff ? undefined : "3 3"}
-          vectorEffect="non-scaling-stroke"
-        />
-      ))}
-    </Lane>
-  );
-}
-
-function PaceLane({ lanes }: { lanes: AxisLanes }) {
-  const height = 36;
-  const paces = lanes.pace.flatMap((item) =>
-    item.secondsPerKm === null ? [] : [item.secondsPerKm],
-  );
-  if (paces.length === 0) return null;
-  const y = scale(
-    paces.map((pace) => -pace),
-    8,
-    height - 8,
-  );
-  return (
-    <Lane label="Allure" height={height}>
-      <Bands
-        ranges={lanes.night}
-        total={lanes.distanceM}
-        height={height}
-        className="fill-muted"
-      />
-      {lanes.pace.map((item) =>
-        item.secondsPerKm === null ? null : (
-          <line
-            key={item.fromM}
-            x1={x(item.fromM, lanes.distanceM)}
-            x2={x(item.toM, lanes.distanceM)}
-            y1={y(-item.secondsPerKm)}
-            y2={y(-item.secondsPerKm)}
-            className="stroke-primary"
-            strokeWidth={2.5}
-            vectorEffect="non-scaling-stroke"
-          />
-        ),
-      )}
-    </Lane>
-  );
-}
-
-function WeatherLane({ lanes }: { lanes: AxisLanes }) {
-  const height = 36;
-  if (lanes.temperature.length === 0) return null;
-  const y = scale(
-    lanes.temperature.map((item) => item.temperature),
-    8,
-    height - 8,
-  );
-  const line = lanes.temperature
-    .map(
-      (item, index) =>
-        `${index === 0 ? "M" : "L"}${x(item.distanceM, lanes.distanceM).toFixed(1)},${y(item.temperature).toFixed(1)}`,
-    )
-    .join("");
-  return (
-    <Lane label="Météo" height={height}>
-      <Bands
-        ranges={lanes.night}
-        total={lanes.distanceM}
-        height={height}
-        className="fill-muted"
-      />
-      <Bands
-        ranges={lanes.rain}
-        total={lanes.distanceM}
-        height={height}
-        className="fill-primary/25"
-      />
-      <path
-        d={line}
-        className="fill-none stroke-foreground"
-        strokeWidth={1.5}
-        vectorEffect="non-scaling-stroke"
-      />
-    </Lane>
-  );
-}
-
-function FuelingLane({ lanes }: { lanes: AxisLanes }) {
-  const height = 32;
-  const rates = lanes.fueling.map((item) =>
-    item.toM > item.fromM ? item.carbsG / (item.toM - item.fromM) : 0,
-  );
-  const max = Math.max(...rates, 0);
-  if (max === 0) return null;
-  return (
-    <Lane label="Ravitaillement" short="Ravito" height={height}>
-      <Bands
-        ranges={lanes.night}
-        total={lanes.distanceM}
-        height={height}
-        className="fill-muted"
-      />
-      {lanes.fueling.map((item, index) => {
-        const barHeight = (rates[index] / max) * (height - 8);
-        return (
-          <rect
-            key={item.fromM}
-            x={x(item.fromM, lanes.distanceM) + 1}
-            width={Math.max(
-              1,
-              x(item.toM, lanes.distanceM) - x(item.fromM, lanes.distanceM) - 2,
-            )}
-            y={height - barHeight}
-            height={barHeight}
-            className="fill-primary/45"
-          />
-        );
-      })}
-    </Lane>
-  );
-}
-
-function Swatch({ className }: { className: string }) {
   return (
     <span
       aria-hidden="true"
       className={cn("inline-block h-2 w-3 rounded-xs", className)}
+      style={style}
     />
   );
 }
@@ -288,13 +56,13 @@ function Legend({
       )}
       {lanes.rain.length > 0 && (
         <li className="flex items-center gap-1.5">
-          <Swatch className="bg-primary/25" />
+          <Swatch className="ring-1 ring-border" style={rainSwatch} />
           Pluie prévue
         </li>
       )}
       {lanes.night.length > 0 && (
         <li className="flex items-center gap-1.5">
-          <Swatch className="bg-muted ring-1 ring-border" />
+          <Swatch className="bg-foreground/10 ring-1 ring-border" />
           Nuit
         </li>
       )}
@@ -595,13 +363,14 @@ export function RaceAxis({
       PageUp: 10,
       PageDown: -10,
     };
-    if (event.key in steps) move(index + steps[event.key]);
+    const step = steps[event.key];
+    if (step !== undefined)
+      move(index + (event.shiftKey && Math.abs(step) === 1 ? step * 2 : step));
     else if (event.key === "Home") move(0);
     else if (event.key === "End") move(last);
     else return;
     event.preventDefault();
   };
-  const left = `${(reading.distanceM / lanes.distanceM) * 100}%`;
   const mainRows = (alert ? 1 : 0) + (map ? 1 : 0) + 2;
   return (
     <div
@@ -634,37 +403,30 @@ export function RaceAxis({
           </h2>
           <Legend lanes={lanes} walkThreshold={walkThreshold} />
         </div>
-        <div className="relative">
-          <div className="grid grid-cols-[88px_minmax(0,1fr)] max-sm:grid-cols-[64px_minmax(0,1fr)]">
-            {!estimate && <ProfileLane lanes={lanes} />}
-            <PaceLane lanes={lanes} />
-            {!estimate && <WeatherLane lanes={lanes} />}
-            <FuelingLane lanes={lanes} />
-          </div>
-          <div
-            role="slider"
-            tabIndex={0}
-            aria-label="Position sur le parcours"
-            aria-valuemin={0}
-            aria-valuemax={Math.round(lanes.distanceM / 100) / 10}
-            aria-valuenow={Math.round(reading.distanceM / 100) / 10}
-            aria-valuetext={readingText(reading)}
-            onPointerMove={onPointer}
-            onPointerDown={onPointer}
-            onKeyDown={onKey}
-            className="absolute inset-y-0 right-0 left-22 cursor-crosshair touch-pan-y rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring max-sm:left-16"
-          >
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 w-px bg-foreground"
-              style={{ left }}
+        <RaceLanes
+          lanes={lanes}
+          estimate={estimate}
+          weatherLabel={
+            lanes.weatherNormals ? "Météo · moyennes de saison" : "Météo"
+          }
+          cursorM={reading.distanceM}
+          cursorLabel={`km ${km(reading.distanceM)} · ${reading.clock}`}
+          slider={
+            <div
+              role="slider"
+              tabIndex={0}
+              aria-label="Position sur le parcours"
+              aria-valuemin={0}
+              aria-valuemax={Math.round(lanes.distanceM / 100) / 10}
+              aria-valuenow={Math.round(reading.distanceM / 100) / 10}
+              aria-valuetext={readingText(reading)}
+              onPointerMove={onPointer}
+              onPointerDown={onPointer}
+              onKeyDown={onKey}
+              className="absolute inset-0 cursor-crosshair touch-pan-y rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             />
-          </div>
-        </div>
-        <p className="flex justify-between text-label text-muted-foreground tabular-nums">
-          <span className="pl-22 max-sm:pl-16">km 0</span>
-          <span>km {km(lanes.distanceM)}</span>
-        </p>
+          }
+        />
       </section>
       <div
         className={cn(
