@@ -225,9 +225,14 @@ describe("lane labels", () => {
       "120 km",
     ]);
     expect(axisTicks(10_000).at(-1)!.label).toBe("10 km");
-    expect(
-      axisTicksBetween(61_000, 66_000).map((tick) => tick.label),
-    ).toEqual(["61 km", "62 km", "63 km", "64 km", "65 km", "66 km"]);
+    expect(axisTicksBetween(61_000, 66_000).map((tick) => tick.label)).toEqual([
+      "61 km",
+      "62 km",
+      "63 km",
+      "64 km",
+      "65 km",
+      "66 km",
+    ]);
     expect(elevationTicks([42, 180, 95]).map((tick) => tick.label)).toEqual([
       "50 m",
       "100 m",
