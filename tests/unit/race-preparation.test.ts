@@ -12,6 +12,7 @@ const session = (
 ) => ({
   sessionKey,
   title: `Séance ${sessionKey}`,
+  purpose: `But ${sessionKey}`,
   scheduledOn,
   isKey,
   kind,
@@ -48,6 +49,7 @@ describe("key sessions for a race", () => {
     expect(result.items[0]).toMatchObject({
       date: "16 janv.",
       href: "/plan/sessions/a",
+      purpose: "But a",
     });
   });
 
