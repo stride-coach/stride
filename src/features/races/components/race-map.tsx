@@ -386,7 +386,7 @@ function RaceMapView({
       if (!active || cursorRef.current) return;
       const element = document.createElement("span");
       element.setAttribute("aria-hidden", "true");
-      element.className = "relative block size-3.5";
+      element.className = "relative z-10 block size-3.5";
       const dot = document.createElement("span");
       dot.className =
         "block size-3.5 rounded-full border-2 border-background bg-primary shadow-float";

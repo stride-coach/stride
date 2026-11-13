@@ -142,6 +142,7 @@ export function LanesExplorer({
   readings,
   cursorM,
   onCursor,
+  onInspect,
   highlight = null,
   pending = false,
   walkThreshold,
@@ -156,6 +157,7 @@ export function LanesExplorer({
   readings: AxisReading[];
   cursorM: number;
   onCursor: (distanceM: number) => void;
+  onInspect?: (active: boolean) => void;
   highlight?: AxisRange | null;
   pending?: boolean;
   walkThreshold: number;
@@ -196,6 +198,7 @@ export function LanesExplorer({
     return window.fromM + ratio * (window.toM - window.fromM);
   };
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    onInspect?.(true);
     if (event.pointerType === "mouse") return;
     touches.current.set(event.pointerId, event.clientX);
     if (touches.current.size === 1) pick(distanceAt(event));
@@ -227,6 +230,9 @@ export function LanesExplorer({
     touches.current.delete(event.pointerId);
     if (touches.current.size < 2) pinch.current = null;
   };
+  const onPointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && !pinned) onInspect?.(false);
+  };
   const onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.detail > 1) return;
     pick(distanceAt(event));
@@ -253,6 +259,7 @@ export function LanesExplorer({
     else if (event.key === "+" || event.key === "=") zoom(reading.distanceM, 2);
     else if (event.key === "-") zoom(reading.distanceM, 0.5);
     else return;
+    onInspect?.(true);
     event.preventDefault();
   };
   const toggle = (key: LegendKey) =>
@@ -323,6 +330,10 @@ export function LanesExplorer({
             onPointerMove={onPointerMove}
             onPointerUp={onPointerEnd}
             onPointerCancel={onPointerEnd}
+            onPointerEnter={() => onInspect?.(true)}
+            onPointerLeave={onPointerLeave}
+            onFocus={() => onInspect?.(true)}
+            onBlur={() => !pinned && onInspect?.(false)}
             onClick={onClick}
             onDoubleClick={reset}
             onKeyDown={onKey}
