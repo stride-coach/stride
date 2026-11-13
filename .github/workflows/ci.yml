@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   scope:
-    runs-on: [self-hosted, wsl]
+    runs-on: [self-hosted, ci]
     outputs:
       documentation_only: ${{ steps.scope.outputs.documentation_only }}
       migrations: ${{ steps.scope.outputs.migrations }}
@@ -38,7 +38,7 @@ jobs:
   quality:
     needs: scope
     if: needs.scope.outputs.documentation_only != 'true'
-    runs-on: [self-hosted, wsl]
+    runs-on: [self-hosted, ci]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -191,7 +191,7 @@ jobs:
   validate:
     needs: [scope, quality, browser]
     if: always()
-    runs-on: [self-hosted, wsl]
+    runs-on: [self-hosted, ci]
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -220,7 +220,7 @@ jobs:
   database:
     needs: [scope, database-onboarding]
     if: always()
-    runs-on: [self-hosted, wsl]
+    runs-on: [self-hosted, ci]
     steps:
       - uses: actions/setup-node@v4
         with:
