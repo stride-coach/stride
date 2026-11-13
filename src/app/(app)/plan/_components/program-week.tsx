@@ -133,7 +133,7 @@ export function rowState(
 }
 
 const rowGrid =
-  "grid min-h-row-touch grid-cols-[14px_48px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:min-h-row sm:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_auto] sm:py-1.5 md:px-5 lg:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_62px_auto]";
+  "grid min-h-row-touch grid-cols-[14px_48px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:min-h-row sm:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_96px] sm:py-1.5 md:px-5 lg:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_62px_96px]";
 
 function SessionCells({
   day,
