@@ -16,10 +16,8 @@ export default async function EditRacePage({
 }) {
   const [context, { id }] = await Promise.all([requireAthlete(), params]);
   if (!z.uuid().safeParse(id).success) notFound();
-  const { race, primaryName, hasPlan, references } = await loadRaceForm(
-    context,
-    id,
-  );
+  const { race, primaryName, primary, hasPlan, references } =
+    await loadRaceForm(context, id);
   if (!race) notFound();
   const name = race.values.name ?? "Course";
   const href = `/races/${race.id}`;
@@ -38,6 +36,7 @@ export default async function EditRacePage({
         race={race}
         defaultPriority={race.values.priority ?? "B"}
         primaryName={primaryName}
+        primary={primary}
         hasPlan={hasPlan}
         references={references}
         today={localToday(new Date())}

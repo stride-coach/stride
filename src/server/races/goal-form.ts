@@ -59,6 +59,14 @@ export async function loadRaceForm(
         .eq("id", snapshot.id)
         .maybeSingle()
     : null;
+  const measured = snapshot
+    ? await context.client
+        .from("race_courses")
+        .select("distance_m, elevation_gain_m")
+        .eq("user_id", context.userId)
+        .eq("race_id", snapshot.id)
+        .maybeSingle()
+    : null;
   const stored = snapshot
     ? await context.client
         .from("race_plans")
@@ -76,14 +84,24 @@ export async function loadRaceForm(
         startTime: stored?.data?.start_time?.slice(0, 5) ?? null,
         cutoffSeconds: stored?.data?.cutoff_duration_seconds ?? null,
         details: raceDetailsOf(details?.data ?? null),
+        course: measured?.data
+          ? {
+              distanceM: Number(measured.data.distance_m),
+              elevationGainM: measured.data.elevation_gain_m,
+            }
+          : null,
       }
     : null;
-  const primaryName =
-    goals.races.find(
-      (item) =>
-        item.values.priority === "A" &&
-        item.id !== snapshot?.id &&
-        item.values.name,
-    )?.values.name ?? null;
-  return { race, primaryName, hasPlan: plan !== null, references };
+  const primaryRace = goals.races.find(
+    (item) =>
+      item.values.priority === "A" &&
+      item.id !== snapshot?.id &&
+      item.values.name,
+  );
+  const primaryName = primaryRace?.values.name ?? null;
+  const primary =
+    primaryRace && primaryName
+      ? { name: primaryName, kind: primaryRace.values.race_kind }
+      : null;
+  return { race, primaryName, primary, hasPlan: plan !== null, references };
 }

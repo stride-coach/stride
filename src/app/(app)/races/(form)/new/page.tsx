@@ -21,7 +21,7 @@ export default async function NewRacePage({
   const [context, query] = await Promise.all([requireAthlete(), searchParams]);
   const today = localToday(new Date());
   const from = z.uuid().safeParse(query.from);
-  const { primaryName, hasPlan, references } = await loadRaceForm(
+  const { primaryName, primary, hasPlan, references } = await loadRaceForm(
     context,
     null,
   );
@@ -63,6 +63,7 @@ export default async function NewRacePage({
         mode="create"
         defaultPriority={priority}
         primaryName={primaryName}
+        primary={primary}
         hasPlan={hasPlan}
         template={template}
         references={references}

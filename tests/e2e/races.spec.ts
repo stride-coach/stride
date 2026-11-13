@@ -162,9 +162,7 @@ for (const viewport of [
     await expect(
       page.getByRole("radio", { name: /C · Course de préparation/ }),
     ).toBeChecked();
-    await page
-      .getByRole("button", { name: "Voir l’effet sur le plan" })
-      .click();
+    await page.getByRole("button", { name: /^Voir l’effet/ }).click();
     await expect(
       page.getByText("Course ajoutée à tes objectifs."),
     ).toBeVisible();
@@ -204,9 +202,7 @@ for (const viewport of [
         "aria-pressed",
         "true",
       );
-    await page
-      .getByRole("button", { name: "Voir l’effet sur le plan" })
-      .click();
+    await page.getByRole("button", { name: /^Voir l’effet/ }).click();
     await expect(page.getByText("Course mise à jour.")).toBeVisible();
     await page.getByRole("link", { name: "Voir la course" }).click();
     await expect(
@@ -232,6 +228,79 @@ for (const viewport of [
     ).toBe(true);
   });
 }
+
+function chevreuseGpx() {
+  const points = Array.from({ length: 31 }, (_, index) => {
+    const lat = 48.7 + index * 0.009;
+    const ele = 100 + Math.sin(index) * 30;
+    return `<trkpt lat="${lat}" lon="2.05"><ele>${ele}</ele></trkpt>`;
+  });
+  return Buffer.from(
+    `<?xml version="1.0"?><gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1"><wpt lat="${48.7 + 15 * 0.009}" lon="2.05"><name>Ravito de Saint-Rémy</name></wpt><trk><name>Chevreuse</name><trkseg>${points.join("")}</trkseg></trk></gpx>`,
+  );
+}
+
+test("a race added with its GPX lands on its plan with the course", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+  await page.goto("/races/new");
+  await page.getByLabel("Nom", { exact: true }).fill("Trail de Chevreuse");
+  await page.getByLabel("Date", { exact: true }).fill("24/01/2027");
+  await page.getByLabel("Départ", { exact: true }).click();
+  await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
+    "24 janv. 2027",
+  );
+  await page.getByLabel("Fichier GPX de la course").setInputFiles({
+    name: "trail-chevreuse.gpx",
+    mimeType: "application/gpx+xml",
+    buffer: chevreuseGpx(),
+  });
+  await expect(page.getByText("trail-chevreuse.gpx")).toBeVisible();
+  await expect(
+    page.getByText(
+      /^\d+,\d km et \+\d+ m mesurés · annoncé \d+(,\d+)? km · 1 ravitaillement détecté$/,
+    ),
+  ).toBeVisible();
+  await expect(page.getByLabel("Distance", { exact: true })).not.toHaveValue(
+    "",
+  );
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByText("C · Course de préparation").click();
+  await expect(
+    page.getByText(/^Une C se court comme une séance/),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /^Voir l’effet/ }).click();
+  await expect(page.getByText("Course ajoutée à tes objectifs.")).toBeVisible({
+    timeout: 20_000,
+  });
+  await page.getByRole("link", { name: "Voir la course" }).click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Trail de Chevreuse" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Ajoute le GPX de la course" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Carte du parcours" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /^\d+ points de passage$/ }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("link", { name: "Modifier l’objectif" })
+    .filter({ visible: true })
+    .click();
+  await expect(page.getByText(/^Le plan de course suit le GPX/)).toBeVisible();
+  await page.getByRole("button", { name: "Supprimer la course" }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Supprimer la course" })
+    .click();
+  await expect(page).toHaveURL(/\/races$/);
+});
 
 test("the season page switches to past races and stacks on mobile", async ({
   page,
@@ -357,7 +426,7 @@ test("adding a race asks the coach for its effect on the plan", async ({
   await page.getByLabel("Date", { exact: true }).fill("10/08/2027");
   await page.getByLabel("Distance", { exact: true }).fill("21");
   await page.getByRole("button", { name: "Continuer" }).click();
-  await page.getByRole("button", { name: "Voir l’effet sur le plan" }).click();
+  await page.getByRole("button", { name: /^Voir l’effet/ }).click();
   await expect(page.getByText("Le coach prépare ton plan…")).toBeVisible();
   await expect(
     page.getByText(
