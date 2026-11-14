@@ -289,6 +289,12 @@
     outline-offset: 2px;
   }
 
+  @media (width < 48rem) {
+    [data-slot="sidebar-inset"]:has([data-slot="mobile-tab-bar"]) * {
+      scroll-padding-bottom: var(--spacing-tab-bar-reserve);
+    }
+  }
+
   ::selection {
     background: var(--primary);
     color: var(--primary-foreground);
