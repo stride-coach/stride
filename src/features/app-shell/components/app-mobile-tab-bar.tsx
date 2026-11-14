@@ -9,7 +9,7 @@ import {
   TabTodayIcon,
 } from "@/components/stride/nav-icons";
 import { MobileTab, MobileTabBar } from "@/components/stride/mobile-tab-bar";
-import { isActivePath } from "../mobile-nav";
+import { isActivePath, showsTabBar } from "../mobile-nav";
 import {
   coachActionLabel,
   coachWaiting,
@@ -23,6 +23,7 @@ export function AppMobileTabBar({
 }) {
   const pathname = useShellPathname();
   const waiting = coachWaiting(attention);
+  if (!showsTabBar(pathname)) return null;
   const tab = (
     href: string,
     icon: React.ReactNode,
@@ -37,7 +38,7 @@ export function AppMobileTabBar({
     />
   );
   return (
-    <MobileTabBar className="relative z-10 shrink-0 md:hidden print:hidden">
+    <MobileTabBar className="md:hidden print:hidden">
       {tab("/today", <TabTodayIcon />, "Aujourd’hui")}
       {tab("/plan", <TabPlanIcon />, "Plan")}
       <MobileTab
@@ -49,12 +50,10 @@ export function AppMobileTabBar({
         badge={
           waiting > 0 ? (
             <span
-              data-kind="count"
+              data-kind="dot"
               aria-hidden="true"
-              className="absolute top-0 left-1/2 ml-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-micro font-semibold text-primary-foreground tabular-nums ring-2 ring-background"
-            >
-              {waiting}
-            </span>
+              className="absolute top-1.75 left-[calc(50%+7px)] size-1.75 rounded-full bg-primary ring-2 ring-card"
+            />
           ) : undefined
         }
       />

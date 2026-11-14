@@ -93,7 +93,7 @@ export default async function ShellPage() {
         </SidebarContent>
         <SidebarRail />
       </Sidebar>
-      <SidebarInset className="min-h-svh pb-24 md:min-h-[calc(100svh-1rem)] md:pb-0">
+      <SidebarInset className="min-h-svh pb-tab-bar-reserve md:min-h-[calc(100svh-1rem)] md:pb-0">
         <header className="flex h-14 items-center gap-3 border-b border-border px-4">
           <SidebarTrigger />
           <Separator
@@ -138,35 +138,40 @@ export default async function ShellPage() {
           </SyncStatus>
         </div>
       </SidebarInset>
-      <MobileTabBar className="fixed inset-x-0 bottom-0 z-20 md:hidden">
-        <MobileTab href={shell} icon={<TabTodayIcon />} label="Aujourd’hui" />
-        <MobileTab href={`${shell}#plan`} icon={<TabPlanIcon />} label="Plan" />
-        <MobileTab
-          href={`${shell}#coach`}
-          icon={<TabCoachIcon />}
-          label="Coach"
-          accessibleLabel="Coach, 2 questions en attente"
-          isActive
-          badge={
-            <NavBadge
-              kind="count"
-              className="-top-1 -right-1 translate-y-0 ring-2 ring-background"
-            >
-              <span aria-hidden="true">2</span>
-            </NavBadge>
-          }
-        />
-        <MobileTab
-          href={`${shell}#activities`}
-          icon={<TabActivitiesIcon />}
-          label="Activités"
-        />
-        <MobileTab
-          href={`${shell}#progress`}
-          icon={<TabProgressIcon />}
-          label="Progression"
-        />
-      </MobileTabBar>
+      <div className="pointer-events-none fixed inset-0 z-20 md:hidden [&_nav]:pointer-events-auto">
+        <MobileTabBar>
+          <MobileTab href={shell} icon={<TabTodayIcon />} label="Aujourd’hui" />
+          <MobileTab
+            href={`${shell}#plan`}
+            icon={<TabPlanIcon />}
+            label="Plan"
+          />
+          <MobileTab
+            href={`${shell}#coach`}
+            icon={<TabCoachIcon />}
+            label="Coach"
+            accessibleLabel="Coach, 2 questions en attente"
+            isActive
+            badge={
+              <span
+                data-kind="dot"
+                aria-hidden="true"
+                className="absolute top-1.75 left-[calc(50%+7px)] size-1.75 rounded-full bg-primary ring-2 ring-card"
+              />
+            }
+          />
+          <MobileTab
+            href={`${shell}#activities`}
+            icon={<TabActivitiesIcon />}
+            label="Activités"
+          />
+          <MobileTab
+            href={`${shell}#progress`}
+            icon={<TabProgressIcon />}
+            label="Progression"
+          />
+        </MobileTabBar>
+      </div>
     </SidebarProvider>
   );
 }

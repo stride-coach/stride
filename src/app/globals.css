@@ -146,6 +146,12 @@
   --spacing-sidebar: 212px;
   --spacing-rail: 52px;
   --spacing-panel: 308px;
+  --spacing-tab-bar: 60px;
+  --spacing-tab-bar-offset: max(12px, calc(env(safe-area-inset-bottom) - 10px));
+  --spacing-tab-bar-top: calc(
+    var(--spacing-tab-bar-offset) + var(--spacing-tab-bar)
+  );
+  --spacing-tab-bar-reserve: calc(86px + env(safe-area-inset-bottom));
   --text-display: 2.75rem;
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.04em;
