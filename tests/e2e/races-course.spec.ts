@@ -424,8 +424,11 @@ test("the weather view reads the weather at the athlete's passage", async ({
     await expect(
       page
         .getByRole("heading", { name: "La météo au fil de ta course" })
-        .or(page.getByText("Météo indisponible pour l’instant")),
-    ).toBeVisible({ timeout: 20_000 });
+        .filter({ visible: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Météo indisponible pour l’instant"),
+    ).toHaveCount(0);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -1529,7 +1532,9 @@ test("the race-day view opens offline and sends its check-ins once back online",
     page.getByRole("heading", { level: 1, name: "Départ → Ravito du Bois" }),
   ).toBeVisible();
   await expect(page.getByText("Hors ligne", { exact: true })).toBeVisible();
-  await expect(page.getByText("Plan enregistré sur le téléphone")).toBeVisible();
+  await expect(
+    page.getByText("Plan enregistré sur le téléphone"),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Je suis au ravito de Ravito du Bois" })
     .click();

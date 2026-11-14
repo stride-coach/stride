@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { openMeteoUrls } from "./open-meteo";
 import { addDays, localDate, localMinutes } from "@/features/races/sun";
 import {
   summarizeForecast,
@@ -9,8 +10,6 @@ import {
   type WeatherSlot,
 } from "@/features/races/weather";
 
-const forecastUrl = "https://api.open-meteo.com/v1/forecast";
-const archiveUrl = "https://archive-api.open-meteo.com/v1/archive";
 const forecastHorizonDays = 15;
 const normalYears = 10;
 const windowDays = 3;
@@ -71,7 +70,7 @@ async function forecast(slots: SlotRequest[]): Promise<WeatherSlot[] | null> {
     start_date: new Date(first - 3_600_000).toISOString().slice(0, 10),
     end_date: new Date(last + 3_600_000).toISOString().slice(0, 10),
   });
-  const body = await getJson(`${forecastUrl}?${params}`, 3600);
+  const body = await getJson(`${openMeteoUrls().forecast}?${params}`, 3600);
   const responses = (Array.isArray(body) ? body : [body]).map(
     (item) => z.object({ hourly: forecastHourly }).parse(item).hourly,
   );
@@ -137,7 +136,7 @@ async function normals(
         start_date: addDays(center, -windowDays - 1),
         end_date: addDays(center, windowDays + 2),
       });
-      const body = await getJson(`${archiveUrl}?${params}`, 604_800);
+      const body = await getJson(`${openMeteoUrls().archive}?${params}`, 604_800);
       return z.object({ hourly: archiveHourly }).parse(body).hourly;
     }),
   );
@@ -293,7 +292,7 @@ export async function raceDayWeather({
     end_date: new Date(end).toISOString().slice(0, 10),
   });
   try {
-    const body = await getJson(`${archiveUrl}?${params}`, 604_800);
+    const body = await getJson(`${openMeteoUrls().archive}?${params}`, 604_800);
     const hourly = z.object({ hourly: archiveHourly }).parse(body).hourly;
     const temperatures: number[] = [];
     let rain = 0;
