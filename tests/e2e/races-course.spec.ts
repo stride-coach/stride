@@ -1491,3 +1491,63 @@ test("on race day the athlete checks in at an aid station and the plan follows",
     /mis à jour à Ravito du Bois, \d{2}:\d{2}/,
   );
 });
+
+test("the race-day view opens offline and sends its check-ins once back online", async ({
+  page,
+  context,
+  request,
+}) => {
+  test.skip(
+    process.env.PLAYWRIGHT_PRODUCTION !== "true",
+    "next dev waits for its hot-reload socket, so offline pages only hydrate in a production build",
+  );
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?day=1`,
+  );
+  const today = new Date().toISOString().slice(0, 10);
+  await page.clock.setFixedTime(new Date(`${today}T08:00:00Z`));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signInAs(page, "athlete@example.com");
+  const day = "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/day";
+  await page.goto(day);
+  await expect(
+    page.getByText("Plan enregistré sur le téléphone"),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("Plan enregistré sur le téléphone"),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() => navigator.serviceWorker.controller !== null),
+    )
+    .toBe(true);
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Départ → Ravito du Bois" }),
+  ).toBeVisible();
+  await expect(page.getByText("Hors ligne", { exact: true })).toBeVisible();
+  await expect(page.getByText("Plan enregistré sur le téléphone")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Je suis au ravito de Ravito du Bois" })
+    .click();
+  await page.getByRole("button", { name: "Je repars" }).click();
+  await expect(page.getByText("1 pointage à envoyer")).toBeVisible();
+
+  const sent = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/checkins") &&
+      response.request().method() === "POST",
+  );
+  await context.setOffline(false);
+  expect((await sent).ok()).toBe(true);
+  await expect(page.getByText("1 pointage à envoyer")).toBeHidden();
+
+  await page.evaluate(() => window.localStorage.clear());
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Maintenant" })).toContainText(
+    /mis à jour à Ravito du Bois, \d{2}:\d{2}/,
+  );
+});
