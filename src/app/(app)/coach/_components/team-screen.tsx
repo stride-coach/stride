@@ -235,7 +235,7 @@ export function TeamScreen({
       />
       <CoachTabs className="border-b border-border px-4 py-2.5" />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="flex w-full flex-col pb-18 md:pb-6 xl:flex-row xl:items-start">
+        <main className="flex w-full flex-col pb-tab-bar-reserve md:pb-6 xl:flex-row xl:items-start">
           <div className="flex min-w-0 flex-1 flex-col gap-4 px-4 py-4.5 md:px-5">
             <div className="flex flex-col gap-2">
               <h1 className="max-w-160 text-verdict font-semibold text-balance">

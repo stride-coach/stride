@@ -18,7 +18,7 @@ export function RaceFormFrame({
     <>
       <AppHeader title={title} crumbs={crumbs} back={back} />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="flex w-full flex-col px-4 pt-4 pb-18 md:px-5 md:pb-6">
+        <main className="flex w-full flex-col px-4 pt-4 pb-tab-bar-reserve md:px-5 md:pb-6">
           {children}
         </main>
       </div>

@@ -19,7 +19,7 @@ export default async function TodayPage() {
     <>
       <AppHeader title="Aujourd’hui" detail={view.header.date} />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="flex w-full flex-col pb-18 md:pb-6 xl:flex-row xl:items-start">
+        <main className="flex w-full flex-col pb-tab-bar-reserve md:pb-6 xl:flex-row xl:items-start">
           <h1 className="sr-only">Aujourd’hui, {view.header.date}</h1>
           <div className="flex min-w-0 flex-1 flex-col">
             <SessionSection session={view.session} verdict={view.verdict} />
