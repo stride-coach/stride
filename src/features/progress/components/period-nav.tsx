@@ -10,7 +10,7 @@ import {
   segmentCurrentClass,
   segmentGroupClass,
   segmentItemClass,
-} from "./health-frame";
+} from "@/components/stride/segment";
 
 export function PeriodNav({ period }: { period: ProgressPeriod }) {
   return (
