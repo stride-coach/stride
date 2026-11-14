@@ -556,7 +556,9 @@ test.describe("touch chart inspection", () => {
     await page.goto("/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004");
     const data = page.getByRole("region", { name: "Parcours et données" });
     const plot = data.getByRole("img", { name: /selon le temps écoulé$/ });
-    await plot.scrollIntoViewIfNeeded();
+    await plot.evaluate((element) =>
+      element.scrollIntoView({ block: "center" }),
+    );
     for (const position of [0.05, 0.5, 0.95]) {
       const box = await plot.boundingBox();
       await page.touchscreen.tap(
