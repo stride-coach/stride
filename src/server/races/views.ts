@@ -33,7 +33,8 @@ import {
   recordWeatherSnapshot,
 } from "./weather-snapshots";
 import { getOnboardingContext } from "@/server/onboarding/context";
-import { addDays, localDate } from "@/features/races/sun";
+import { addDays, localDate, zonedEpoch } from "@/features/races/sun";
+import { defaultStartMinutes } from "@/features/races/race";
 import type { PlanNotice } from "@/features/races/plan-notices";
 import {
   frozenReference,
@@ -44,6 +45,7 @@ import {
 import type { NutritionProduct } from "@/features/fueling/products";
 import { raceAllocation } from "@/features/races/race-nutrition";
 import { raceTimeline, timelineFueling } from "@/features/races/timeline";
+import { raceDayPlan } from "@/features/races/race-day-plan";
 
 export type CourseViews = {
   model: CourseModel;
@@ -275,6 +277,55 @@ export function chartViews(
   return { profile, map: mapData(model.course, profile) };
 }
 
+function allocationFor(
+  data: RaceWorkspaceData,
+  model: CourseModel,
+  planned: RacePlanModel,
+  weather: RaceWeather | null,
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] },
+) {
+  return raceAllocation({
+    model,
+    planned,
+    plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
+    nutritionPlan: data.nutritionPlan?.plan ?? null,
+    dropBagExtras: data.dropBag?.extras ?? [],
+    products: products.active,
+    archivedProducts: products.archived,
+    weather,
+  });
+}
+
+export async function raceDayFor(
+  data: RaceWorkspaceData,
+  products: { active: NutritionProduct[]; archived: NutritionProduct[] },
+) {
+  const views = data.course ? planFor(data) : estimateFor(data);
+  if (!views?.planned) return null;
+  const { model, planned } = views;
+  const weather = data.course
+    ? await weatherFor(data, model, planned).catch(() => null)
+    : null;
+  const allocation = allocationFor(data, model, planned, weather, products);
+  const startEpochMs =
+    planned.startEpochMs ??
+    (data.race.date
+      ? zonedEpoch(
+          data.race.date,
+          data.plan.startMinutes ?? defaultStartMinutes,
+          "Europe/Paris",
+        )
+      : null);
+  return raceDayPlan({
+    race: data.race,
+    model,
+    planned: { ...planned, startEpochMs },
+    timeline: timelineFor({ data, model, planned, weather, products }),
+    allocation,
+    timeZone: data.course?.timeZone ?? "Europe/Paris",
+  });
+}
+
 export function timelineFor({
   data,
   model,
@@ -294,16 +345,7 @@ export function timelineFor({
     weather,
     strategy: data.strategy,
     fueling: timelineFueling(
-      raceAllocation({
-        model,
-        planned,
-        plan: withFuelingCap(data.plan, data.fuelingCapG ?? null),
-        nutritionPlan: data.nutritionPlan?.plan ?? null,
-        dropBagExtras: data.dropBag?.extras ?? [],
-        products: products.active,
-        archivedProducts: products.archived,
-        weather,
-      }),
+      allocationFor(data, model, planned, weather, products),
     ),
     stops: data.plan,
     walkPaceSecondsPerKm: data.plan.walkPaceSecondsPerKm,
