@@ -1,4 +1,5 @@
 import "server-only";
+import { openMeteoUrls } from "./open-meteo";
 import { z } from "zod";
 import {
   buildRouteView,
@@ -57,7 +58,7 @@ async function timeZoneAt(lat: number, lon: number) {
       forecast_days: "1",
     });
     const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?${params}`,
+      `${openMeteoUrls().forecast}?${params}`,
       {
         signal: AbortSignal.timeout(5000),
         next: { revalidate: 2_592_000 },
