@@ -319,14 +319,14 @@ function Composer({
         event.preventDefault();
         void submit();
       }}
-      className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-3 md:bg-transparent md:px-5 md:pb-4"
+      className="relative z-30 mx-auto flex w-full max-w-180 flex-col gap-2.5 px-3 pt-2 md:border-t md:border-border md:px-5 md:pt-3 md:pb-4"
     >
       <SuggestedReplies
         replies={replies}
         onSelect={(message) => void reply(message)}
-        className="max-sm:-mx-4 max-sm:px-4"
+        className="max-sm:-mx-3 max-sm:px-3"
       />
-      <InputGroup className="h-auto flex-wrap rounded-lg bg-card p-1 has-[>[data-align=block-start]]:flex-row md:h-auto">
+      <InputGroup className="h-auto flex-wrap rounded-[14px] bg-card/92 p-1 backdrop-blur-[18px] has-[>[data-align=block-start]]:flex-row supports-[not(backdrop-filter:blur(1px))]:bg-card md:h-auto md:rounded-lg md:bg-card md:backdrop-blur-none">
         {!answering && attachments.length > 0 && (
           <InputGroupAddon
             align="block-start"
@@ -810,7 +810,7 @@ function ConversationPane({
       <div className="flex min-h-0 flex-1">
         <section
           aria-label={main ? "Fil principal" : (conversation.title ?? "Sujet")}
-          className="flex min-h-0 min-w-0 flex-1 flex-col"
+          className="flex min-h-0 min-w-0 flex-1 flex-col max-md:pb-[calc(var(--spacing-tab-bar-top)+10px)]"
         >
           {searchBar}
           {!main && (

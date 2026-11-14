@@ -289,7 +289,7 @@ export function ActivityDetail({
   const planned = card.kind === "planned";
   const aside = zones || effort || pair;
   return (
-    <div className="flex flex-col pb-18 md:pb-6 xl:flex-row xl:items-start">
+    <div className="flex flex-col pb-tab-bar-reserve md:pb-6 xl:flex-row xl:items-start">
       <article className="flex min-w-0 flex-1 flex-col gap-4.5 px-4 pt-4.5 md:px-5">
         <header className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">

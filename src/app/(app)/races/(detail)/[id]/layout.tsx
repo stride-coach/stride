@@ -113,7 +113,7 @@ export default async function RaceLayout({
         className="relative flex min-h-0 flex-1 flex-col print:block"
       >
         <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain print:overflow-visible">
-          <main className="flex w-full flex-col pb-18 md:pb-6 print:gap-3 print:p-0">
+          <main className="flex w-full flex-col pb-tab-bar-reserve md:pb-6 print:gap-3 print:p-0">
             <RaceHeader
               race={data.race}
               plan={data.plan}

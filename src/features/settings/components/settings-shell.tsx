@@ -231,7 +231,7 @@ export function SettingsShell({
             >
               <div
                 data-slot="settings-content"
-                className="mx-auto w-full max-w-180 px-4 pt-5 pb-18 md:px-5 md:pt-8 md:pb-12"
+                className="mx-auto w-full max-w-180 px-4 pt-5 pb-tab-bar-reserve md:px-5 md:pt-8 md:pb-12"
               >
                 {children}
               </div>

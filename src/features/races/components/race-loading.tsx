@@ -29,7 +29,7 @@ export function RaceEntryLoading() {
         }
       />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
-        <main className="flex w-full flex-col pb-18 md:pb-6">
+        <main className="flex w-full flex-col pb-tab-bar-reserve md:pb-6">
           <LoadingScope
             label="Chargement de la course"
             className="flex flex-col"

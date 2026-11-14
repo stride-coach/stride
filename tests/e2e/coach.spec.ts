@@ -1081,20 +1081,15 @@ test("mobile tab bar reaches the main screens and stays in a topic", async ({
   await expect(tabs).toBeVisible();
   const coach = tabs.getByRole("link", { name: /^Coach, .+ en attente$/ });
   await expect(coach).toHaveAttribute("aria-current", "page");
-  await expect(coach.locator('[data-kind="count"]')).toHaveText(/^\d+$/);
+  await expect(coach.locator('[data-kind="dot"]')).toBeAttached();
   const box = await tabs.boundingBox();
-  expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(844);
-  const covered = await tabs.evaluate((nav) => {
-    const previous = nav.previousElementSibling;
-    if (!previous) return true;
-    const bottom = Math.max(
-      ...[...previous.children].map(
-        (child) => child.getBoundingClientRect().bottom,
-      ),
-    );
-    return bottom > nav.getBoundingClientRect().top + 1;
-  });
-  expect(covered).toBe(false);
+  expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(832);
+  const composer = await page
+    .getByRole("textbox", { name: "Écrire au staff" })
+    .boundingBox();
+  expect((composer?.y ?? 0) + (composer?.height ?? 0)).toBeLessThanOrEqual(
+    box?.y ?? 0,
+  );
 
   await tabs.getByRole("link", { name: "Aujourd’hui" }).focus();
   await page.keyboard.press("Tab");
@@ -1117,6 +1112,27 @@ test("mobile tab bar reaches the main screens and stays in a topic", async ({
     "aria-current",
     "page",
   );
+
+  await page.goto("/activities");
+  const scrolled = () =>
+    page.evaluate(() =>
+      Math.max(
+        ...[...document.querySelectorAll("[data-slot=sidebar-inset] *")].map(
+          (element) => element.scrollTop,
+        ),
+      ),
+    );
+  await page.evaluate(() => {
+    for (const element of document.querySelectorAll(
+      "[data-slot=sidebar-inset] *",
+    ))
+      if (element.scrollHeight > element.clientHeight + 10)
+        element.scrollTop = element.scrollHeight;
+  });
+  expect(await scrolled()).toBeGreaterThan(0);
+  await tabs.getByRole("link", { name: "Activités" }).click();
+  await expect.poll(scrolled).toBe(0);
+  await expect(page).toHaveURL(/\/activities$/);
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(tabs).toBeHidden();
