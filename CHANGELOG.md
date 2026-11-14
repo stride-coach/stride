@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.0](https://github.com/stride-coach/stride/compare/v2.3.0...v2.4.0) (2026-11-14)
+
+
+### Features
+
+* **app-shell:** ask the coach about the screen from the top bar with ⌘J ([#609](https://github.com/stride-coach/stride/issues/609)) ([42fe5a4](https://github.com/stride-coach/stride/commit/42fe5a48eaeeb908a09b60ec76c344f7447401af))
+* **today:** switch between the day and the week ([#606](https://github.com/stride-coach/stride/issues/606)) ([fd3745b](https://github.com/stride-coach/stride/commit/fd3745b1dfa36e22d351993ec06ce6844097b714))
+
 ## [2.3.0](https://github.com/stride-coach/stride/compare/v2.2.0...v2.3.0) (2026-11-14)
 
 
