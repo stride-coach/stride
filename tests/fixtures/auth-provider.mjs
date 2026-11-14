@@ -2852,6 +2852,7 @@ createServer(async (request, response) => {
     );
     redoneRaceIds.clear();
     tables.race_lessons = [];
+    tables.race_checkins = [];
     tables.race_weather_snapshots = url.searchParams.get("watch")
       ? [
           {
@@ -3008,6 +3009,8 @@ createServer(async (request, response) => {
     tables.race_crew_links = [];
     if (url.searchParams.get("crew") || url.searchParams.get("watch"))
       race.race_date = new Date(Date.now() + day).toISOString().slice(0, 10);
+    if (url.searchParams.get("day"))
+      race.race_date = new Date().toISOString().slice(0, 10);
     const editionRaceId = "bbbbbbbb-bbbb-4bbb-8bbb-000000000565";
     const editionActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000000566";
     tables.athlete_races = tables.athlete_races.filter(
@@ -4278,6 +4281,21 @@ createServer(async (request, response) => {
           rows.map((row) => ({ observed_on: row.observed_on })),
         );
       }
+    }
+    if (
+      url.pathname === "/rest/v1/race_checkins" &&
+      request.method === "POST"
+    ) {
+      const value = Array.isArray(body) ? body[0] : body;
+      tables.race_checkins = [
+        ...(tables.race_checkins ?? []).filter(
+          (row) =>
+            row.race_id !== value.race_id ||
+            row.waypoint_id !== value.waypoint_id,
+        ),
+        value,
+      ];
+      return send(201, []);
     }
     if (url.pathname === "/rest/v1/race_lessons") {
       if (request.method === "POST") {
