@@ -1,11 +1,20 @@
 import { CountUp } from "@/components/stride/count-up";
-import { CheckIcon, MessageCircleIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MessageCircleIcon,
+} from "lucide-react";
+import { todayHref } from "../view-mode";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
 import {
+  MissingValue,
   SessionList,
   SessionRow,
+  SessionStateMark,
+  sessionStateLabels,
   type SessionRowState,
 } from "@/components/stride/session-row";
 import { SessionShape } from "@/components/stride/session-shape";
@@ -508,26 +517,216 @@ export function WeekSection({ week }: { week: TodayWeek }) {
           Plan
         </Link>
       </div>
-      <SessionList className="rounded-none border-0">
-        {week.days.map((day) => (
-          <SessionRow
-            key={day.date}
-            state={rowState(day)}
-            past={day.isPast && !day.isToday}
-            current={day.isToday ? "date" : undefined}
-            day={day.dayLabel}
-            title={rowTitle(day)}
-            intensity={day.intensity}
-            duration={day.family === "rest" ? undefined : day.duration}
-            distance={day.family === "rest" ? undefined : day.distance}
-            elevation={day.elevation}
-            compliance={rowCompliance(day)}
-            href={day.href ?? undefined}
-            label={day.label}
-            className="sm:px-2"
-          />
-        ))}
-      </SessionList>
+      <WeekRows days={week.days} />
+    </section>
+  );
+}
+
+function WeekRows({ days }: { days: TodayWeekDay[] }) {
+  return (
+    <SessionList className="rounded-none border-0">
+      {days.map((day) => (
+        <SessionRow
+          key={day.date}
+          state={rowState(day)}
+          past={day.isPast && !day.isToday}
+          current={day.isToday ? "date" : undefined}
+          day={day.dayLabel}
+          title={rowTitle(day)}
+          intensity={day.intensity}
+          duration={day.family === "rest" ? undefined : day.duration}
+          distance={day.family === "rest" ? undefined : day.distance}
+          elevation={day.elevation}
+          compliance={rowCompliance(day)}
+          href={day.href ?? undefined}
+          label={day.label}
+          className="sm:px-2"
+        />
+      ))}
+    </SessionList>
+  );
+}
+
+function WeekCards({ days }: { days: TodayWeekDay[] }) {
+  return (
+    <ol className="grid grid-cols-7 gap-2 px-5 py-4 max-lg:hidden">
+      {days.map((day) => {
+        const state = rowState(day);
+        const compliance = rowCompliance(day);
+        const metrics =
+          day.family === "rest"
+            ? undefined
+            : [day.duration, day.distance, day.elevation]
+                .filter(Boolean)
+                .join(" · ") || undefined;
+        const content = (
+          <>
+            <span className="flex items-center gap-1 text-label whitespace-nowrap">
+              <SessionStateMark state={state} />
+              <span className="text-muted-foreground tabular-nums">
+                {day.dayLabel}
+              </span>
+              <span className="sr-only">{sessionStateLabels[state]}</span>
+              {compliance && (
+                <span className="ml-auto font-medium text-primary tabular-nums">
+                  {compliance}
+                </span>
+              )}
+            </span>
+            <span className="line-clamp-2 font-medium">{rowTitle(day)}</span>
+            {day.intensity && (
+              <span>
+                <Chip intensity={day.intensity.level ?? undefined}>
+                  {day.intensity.label}
+                </Chip>
+              </span>
+            )}
+            <span className="mt-auto text-label text-muted-foreground tabular-nums">
+              <MissingValue value={metrics} />
+            </span>
+          </>
+        );
+        const card = cn(
+          "flex h-full min-h-44 flex-col gap-2 rounded-lg border bg-card p-3",
+          day.isToday ? "border-foreground" : "border-border",
+          day.isPast && !day.isToday && "opacity-55",
+        );
+        return (
+          <li key={day.date} aria-current={day.isToday ? "date" : undefined}>
+            {day.href ? (
+              <Link
+                href={day.href}
+                aria-label={day.label}
+                className={cn(
+                  card,
+                  "transition-colors duration-150 ease-stride hover:bg-muted",
+                )}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div className={card}>{content}</div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function WeekStep({
+  week,
+  direction,
+}: {
+  week: string | null;
+  direction: "previous" | "next";
+}) {
+  const label =
+    direction === "previous" ? "Semaine précédente" : "Semaine suivante";
+  const icon =
+    direction === "previous" ? (
+      <ChevronLeftIcon aria-hidden="true" />
+    ) : (
+      <ChevronRightIcon aria-hidden="true" />
+    );
+  if (!week)
+    return (
+      <Button variant="outline" size="icon" aria-label={label} disabled>
+        {icon}
+      </Button>
+    );
+  return (
+    <Button asChild variant="outline" size="icon">
+      <Link href={todayHref("week", week)} aria-label={label} scroll={false}>
+        {icon}
+      </Link>
+    </Button>
+  );
+}
+
+export function WeekPlanSection({ week }: { week: TodayWeek }) {
+  const metrics = [
+    { key: "duration", value: week.planned.duration, note: "durée" },
+    week.planned.distance && {
+      key: "distance",
+      value: week.planned.distance,
+      note: "distance",
+    },
+    week.planned.elevation && {
+      key: "elevation",
+      value: week.planned.elevation,
+      note: "dénivelé",
+    },
+  ].filter((metric) => !!metric);
+  return (
+    <section
+      aria-labelledby="today-week-title"
+      className="flex min-w-0 flex-col"
+    >
+      <div className="flex flex-col gap-3 border-b border-border px-4 py-4 md:px-5 md:py-4.5">
+        <div className="flex items-center gap-2.5">
+          <h2
+            id="today-week-title"
+            className="shrink-0 text-title font-semibold"
+          >
+            Semaine {week.number}
+          </h2>
+          <span className="min-w-0 flex-1 truncate text-muted-foreground tabular-nums">
+            {week.range} · {week.blockName}
+          </span>
+          <span className="flex shrink-0 gap-1">
+            <WeekStep week={week.previous} direction="previous" />
+            <WeekStep week={week.next} direction="next" />
+          </span>
+        </div>
+        <dl className="flex flex-wrap items-baseline gap-x-4.5 gap-y-2.5">
+          {metrics.map((metric) => (
+            <div key={metric.key} className="flex items-baseline gap-1.25">
+              <dt className="order-2 text-label text-muted-foreground">
+                {metric.note}
+              </dt>
+              <dd className="order-1 text-body-lg font-semibold tabular-nums">
+                {metric.value}
+              </dd>
+            </div>
+          ))}
+          {week.split && (
+            <div className="flex items-center gap-2 max-md:basis-full">
+              <dt className="order-2 text-label text-muted-foreground">
+                facile
+              </dt>
+              <dd className="order-1 text-body-lg font-semibold tabular-nums">
+                {week.split.easyPct} %
+              </dd>
+              <dd
+                aria-hidden="true"
+                className="order-3 flex h-1.5 w-32 gap-0.5 max-md:flex-1"
+              >
+                <span
+                  className="rounded-mark bg-intensity-2"
+                  style={{ flexGrow: week.split.easyPct }}
+                />
+                {week.split.easyPct < 100 && (
+                  <span
+                    className="rounded-mark bg-intensity-4"
+                    style={{ flexGrow: 100 - week.split.easyPct }}
+                  />
+                )}
+              </dd>
+            </div>
+          )}
+        </dl>
+        {week.note && (
+          <p className="flex max-w-180 items-start gap-2.5 text-secondary-foreground">
+            <StaffAvatar agent="coach" size={22} decorative />
+            {week.note}
+          </p>
+        )}
+      </div>
+      <WeekCards days={week.days} />
+      <div className="lg:hidden">
+        <WeekRows days={week.days} />
+      </div>
     </section>
   );
 }
