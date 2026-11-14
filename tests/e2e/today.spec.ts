@@ -177,3 +177,63 @@ test("today stacks the day in reading order on mobile", async ({ page }) => {
     ),
   ).toBe(true);
 });
+
+test("today switches between the day and the week from the URL", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page, "plan@example.com");
+  await page.goto("/today");
+  const views = page
+    .getByRole("navigation", { name: "Vue" })
+    .filter({ visible: true });
+  await expect(views.getByRole("link", { name: "Jour" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await views.getByRole("link", { name: "Semaine" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/today\?view=week$/);
+  const week = page.getByRole("region", { name: /^Semaine \d+$/ });
+  await expect(week).toBeVisible();
+  await expect(week.getByRole("listitem")).toHaveCount(7);
+  await expect(
+    page.getByRole("region", { name: "Séance du jour" }),
+  ).toHaveCount(0);
+  const title = await week.getByRole("heading", { level: 2 }).textContent();
+
+  await page.reload();
+  await expect(views.getByRole("link", { name: "Semaine" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(week.getByRole("heading", { level: 2 })).toHaveText(title ?? "");
+
+  const next = week.getByRole("link", { name: "Semaine suivante" });
+  if (await next.count()) {
+    await next.click();
+    await expect(page).toHaveURL(/\/today\?view=week&week=\d{4}-\d{2}-\d{2}$/);
+    await expect(week.getByRole("heading", { level: 2 })).not.toHaveText(
+      title ?? "",
+    );
+    await week.getByRole("link", { name: "Semaine précédente" }).click();
+    await expect(week.getByRole("heading", { level: 2 })).toHaveText(
+      title ?? "",
+    );
+  }
+
+  await views.getByRole("link", { name: "Jour" }).click();
+  await expect(page).toHaveURL(/\/today$/);
+  await expect(
+    page.getByRole("region", { name: "Séance du jour" }),
+  ).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await views.getByRole("link", { name: "Semaine" }).click();
+  await expect(week).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+});

@@ -4,7 +4,7 @@ import {
   segmentCurrentClass,
   segmentGroupClass,
   segmentItemClass,
-} from "./health-frame";
+} from "@/components/stride/segment";
 import {
   recoveryHref,
   healthViewLabels,
