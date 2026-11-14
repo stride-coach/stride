@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { releasePushSubscription } from "@/features/notifications/components/release-push";
 import { clearOnboardingCaches } from "@/features/onboarding/components/use-autosave";
+import { clearRaceDayCopies } from "@/features/races/components/race-day-store";
 import { signOut } from "@/server/auth/actions";
 import { AccountMenuSignOutIcon } from "./account-menu-icons";
 
@@ -14,7 +15,7 @@ function useSignOut() {
   const run = () => {
     clearOnboardingCaches();
     startTransition(async () => {
-      await releasePushSubscription();
+      await Promise.all([releasePushSubscription(), clearRaceDayCopies()]);
       const result = await signOut();
       if (result.error)
         toast.error("Déconnexion impossible. Réessaie.", { id: "sign-out" });
