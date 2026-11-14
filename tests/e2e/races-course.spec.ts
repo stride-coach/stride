@@ -1440,3 +1440,54 @@ test("the crew follows a secret link that can be replaced or switched off", asyn
   ).toBeVisible();
   await crew.close();
 });
+
+test("on race day the athlete checks in at an aid station and the plan follows", async ({
+  page,
+  request,
+}) => {
+  await request.post(
+    `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}/__test__/race-course?day=1`,
+  );
+  const today = new Date().toISOString().slice(0, 10);
+  await page.clock.setFixedTime(new Date(`${today}T08:00:00Z`));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signInAs(page, "athlete@example.com");
+  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  await page.getByRole("link", { name: "Jour J" }).click();
+  await expect(page).toHaveURL(
+    /\/races\/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb\/day$/,
+  );
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Départ → Ravito du Bois" }),
+  ).toBeVisible();
+  const now = page.getByRole("region", { name: "Maintenant" });
+  await expect(now).toContainText("d’après le plan");
+  await expect(now).toContainText("Prochain ravito");
+
+  const sent = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/checkins") &&
+      response.request().method() === "POST",
+  );
+  await page
+    .getByRole("button", { name: "Je suis au ravito de Ravito du Bois" })
+    .click();
+  expect((await sent).ok()).toBe(true);
+  const sheet = page.getByRole("dialog", { name: "Ravito du Bois · km 10" });
+  await expect(sheet).toContainText("Pointé à");
+  await expect(sheet).toContainText(/d’avance|de retard|dans les temps/);
+  await expect(sheet).toContainText("Arrivée recalculée");
+  await sheet.getByRole("button", { name: "Je repars" }).click();
+  await expect(sheet).toBeHidden();
+
+  const passages = page.getByRole("region", { name: "Tes passages" });
+  await expect(passages).toContainText(/km 10 · pointé \d{2}:\d{2}/);
+  await expect(
+    page.getByRole("button", { name: "Je suis au point d’eau de Point d’eau" }),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Maintenant" })).toContainText(
+    /mis à jour à Ravito du Bois, \d{2}:\d{2}/,
+  );
+});

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PencilIcon, UploadIcon } from "lucide-react";
+import { FlagIcon, PencilIcon, UploadIcon } from "lucide-react";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { localToday } from "@/features/app-shell/shell";
 import { raceWorkspaceId } from "@/features/races/map";
 import { raceOnTrack } from "@/features/races/on-track";
+import { raceDayWindow } from "@/features/races/race-day";
 import { Button } from "@/components/ui/button";
 import { requireAthlete } from "@/server/app/session";
 import { loadOnTrackInputs } from "@/server/races/on-track";
@@ -50,6 +51,14 @@ export default async function RaceLayout({
         className="print:hidden"
         actions={
           <>
+            {raceDayWindow(data.race.date, today) === "open" && (
+              <Button asChild className="shrink-0">
+                <Link href={`${base}/day`}>
+                  <FlagIcon aria-hidden="true" className="size-3.5" />
+                  Jour J
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="ghost" className="shrink-0 max-md:hidden">
               <Link href={`${base}/edit`} title="Modifier l’objectif">
                 <PencilIcon aria-hidden="true" className="size-3.5" />

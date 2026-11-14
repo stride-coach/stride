@@ -1969,6 +1969,49 @@ export type Database = {
         };
         Relationships: [];
       };
+      race_checkins: {
+        Row: {
+          checked_at: string;
+          created_at: string;
+          race_id: string;
+          updated_at: string;
+          user_id: string;
+          waypoint_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          checked_at: string;
+          created_at?: string;
+          race_id: string;
+          updated_at?: string;
+          user_id: string;
+          waypoint_id: string;
+        };
+        Update: {
+          checked_at?: string;
+          created_at?: string;
+          race_id?: string;
+          updated_at?: string;
+          user_id?: string;
+          waypoint_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "race_checkins_race_id_fkey";
+            columns: ["race_id"];
+            isOneToOne: false;
+            referencedRelation: "athlete_races";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "race_checkins_waypoint_id_fkey";
+            columns: ["waypoint_id"];
+            isOneToOne: false;
+            referencedRelation: "race_waypoints";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       race_checklist_items: {
         Row: {
           checked: boolean;
