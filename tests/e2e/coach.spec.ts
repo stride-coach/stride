@@ -1349,3 +1349,59 @@ test("a refresh during a turn keeps the staff working and shows its result", asy
   await expect(page.getByRole("button", { name: "Envoyer" })).toBeEnabled();
   await resetCoach();
 });
+
+test("the top bar asks the coach about the session on screen with ⌘J", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signInAs(page, "plan@example.com");
+  await page.goto("/today");
+  const ask = page.getByRole("link", { name: /^Demander au coach/ });
+  await expect(ask).toHaveAttribute("href", /^\/coach\?session=s-[a-z0-9-]+$/);
+  const href = (await ask.getAttribute("href")) ?? "";
+  const sessionKey = new URLSearchParams(href.split("?")[1]).get("session");
+  await expect(ask).toHaveAttribute("aria-keyshortcuts", "Meta+J Control+J");
+
+  await page.keyboard.press("ControlOrMeta+j");
+  await expect(page).toHaveURL(href, { timeout: 20_000 });
+  await expect(
+    page.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+  ).toBeVisible();
+
+  await page.goto(`/plan/sessions/${sessionKey}`);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("ControlOrMeta+j");
+  await expect(page).toHaveURL(`/coach?session=${sessionKey}`, {
+    timeout: 20_000,
+  });
+  await page.goto("/plan");
+  await expect(ask).toHaveAttribute("href", "/coach");
+
+  await page.keyboard.press("Shift+?");
+  const help = page.getByRole("dialog", { name: "Raccourcis clavier" });
+  await expect(help.getByText("Demander au coach")).toBeVisible();
+});
+
+test("the top bar asks the coach about the race or the activity on screen", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signInAs(page, "athlete@example.com");
+  const race = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  await page.goto(`/races/${race}`);
+  const ask = page.getByRole("link", { name: /^Demander au coach/ });
+  await expect(ask).toHaveAttribute("href", `/coach?race=${race}`);
+  await page.keyboard.press("ControlOrMeta+j");
+  await expect(page).toHaveURL(`/coach?race=${race}`, { timeout: 20_000 });
+
+  const activity = "aaaaaaaa-aaaa-4aaa-8aaa-000000000004";
+  await page.goto(`/activities/${activity}`);
+  await expect(ask).toHaveAttribute("href", `/coach?activity=${activity}`);
+  await ask.click();
+  await expect(page).toHaveURL(`/coach?activity=${activity}`, {
+    timeout: 20_000,
+  });
+  await expect(
+    page.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+  ).toBeVisible();
+});
