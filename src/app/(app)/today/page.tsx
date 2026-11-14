@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { EmptyState } from "@/components/stride/feedback";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/features/app-shell/components/app-header";
+import { CoachContextSource } from "@/features/coach/components/coach-context";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import {
   BodySection,
@@ -29,6 +30,11 @@ export default async function TodayPage({
   const weekly = mode === "week";
   return (
     <>
+      {view.session.kind === "session" && (
+        <CoachContextSource
+          context={{ kind: "session", id: view.session.panel.sessionKey }}
+        />
+      )}
       <AppHeader
         title="Aujourd’hui"
         detail={weekly && week ? week.detail : view.header.date}

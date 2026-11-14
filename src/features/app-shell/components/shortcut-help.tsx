@@ -84,6 +84,7 @@ export function ShortcutHelp() {
     ["Réglages", "⌘ , ctrl ,"],
     ["Raccourcis clavier", "?"],
     ["Rechercher dans Stride", "⌘ k ctrl k / recherche"],
+    ["Demander au coach", "⌘ j ctrl j coach question"],
     ["Rechercher dans cette aide", "/"],
   ].filter(([label, terms]) =>
     matchesShortcutSearch(label, terms, query),
@@ -287,6 +288,17 @@ export function ShortcutHelp() {
                           ou
                         </span>
                         <Shortcut>/</Shortcut>
+                      </>
+                    }
+                  />
+                  <ShortcutRow
+                    label="Demander au coach"
+                    terms="⌘ j ctrl j coach question"
+                    query={query}
+                    keys={
+                      <>
+                        <Shortcut>{modifier}</Shortcut>
+                        <Shortcut>J</Shortcut>
                       </>
                     }
                   />
