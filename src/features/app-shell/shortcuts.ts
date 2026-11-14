@@ -16,6 +16,7 @@ export const shortcutGroups: readonly {
       { label: "Réglages", keys: { combo: ["⌘", ","] } },
       { label: "Raccourcis clavier", keys: { combo: ["?"] } },
       { label: "Rechercher dans Stride", keys: { combo: ["⌘", "K"] } },
+      { label: "Demander au coach", keys: { combo: ["⌘", "J"] } },
     ],
   },
 ];
