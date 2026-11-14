@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   ChartNoAxesColumnIcon,
   CircleCheckIcon,
   CircleIcon,
   FlagIcon,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Widget } from "@/components/stride/widget";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,7 +29,22 @@ import {
   type RaceDayPlan,
   type RaceDayRow,
 } from "../race-day";
+import {
+  mergeCheckins,
+  pendingCheckins,
+  pendingLabel,
+  raceDayKeepMs,
+  withCheckin,
+  withDone,
+  withSent,
+} from "../race-day-local";
 import { localDate, localMinutes, zonedEpoch } from "../sun";
+import {
+  readRaceDayLocal,
+  saveRaceDayCopy,
+  updateRaceDayLocal,
+  useRaceDayLocal,
+} from "./race-day-store";
 
 const tick = 15_000;
 
@@ -68,8 +82,30 @@ async function sendCheckin(raceId: string, checkin: RaceDayCheckin) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(checkin),
   }).catch(() => null);
-  if (!response?.ok)
-    toast.error("Pointage gardé ici, mais pas encore envoyé à Stride.");
+  return response !== null && (response.ok || response.status === 422);
+}
+
+const sending = new Set<string>();
+
+async function sendPending(raceId: string) {
+  if (sending.has(raceId)) return;
+  sending.add(raceId);
+  try {
+    let queue = pendingCheckins(readRaceDayLocal(raceId));
+    while (queue.length > 0) {
+      const [checkin] = queue;
+      if (!(await sendCheckin(raceId, checkin))) return;
+      queue = pendingCheckins(
+        updateRaceDayLocal(raceId, (local) => withSent(local, checkin)),
+      ).filter(
+        (item) =>
+          item.waypointId !== checkin.waypointId ||
+          item.checkedAt !== checkin.checkedAt,
+      );
+    }
+  } finally {
+    sending.delete(raceId);
+  }
 }
 
 function Rows({ rows }: { rows: RaceDayRow[] }) {
@@ -100,16 +136,19 @@ function Rows({ rows }: { rows: RaceDayRow[] }) {
 function CheckinSheet({
   plan,
   checkin,
+  done,
   onChange,
+  onToggle,
   onClose,
 }: {
   plan: RaceDayPlan;
   checkin: RaceDayCheckin;
+  done: readonly string[];
   onChange: (checkin: RaceDayCheckin) => void;
+  onToggle: (item: string, checked: boolean) => void;
   onClose: () => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [done, setDone] = useState<Set<string>>(new Set());
   const summary = checkinSummary(plan, checkin.waypointId, checkin.checkedAt);
   if (!summary) return null;
   const minutes = localMinutes(checkin.checkedAt, plan.timeZone);
@@ -195,7 +234,7 @@ function CheckinSheet({
               <ul className="flex flex-col">
                 {summary.todo.map((item, index) => {
                   const id = `todo-${index}`;
-                  const checked = done.has(item);
+                  const checked = done.includes(item);
                   return (
                     <li
                       key={item}
@@ -205,12 +244,7 @@ function CheckinSheet({
                         id={id}
                         checked={checked}
                         onCheckedChange={(value) =>
-                          setDone((current) => {
-                            const next = new Set(current);
-                            if (value === true) next.add(item);
-                            else next.delete(item);
-                            return next;
-                          })
+                          onToggle(item, value === true)
                         }
                       />
                       <Label
@@ -256,17 +290,34 @@ export function RaceDay({
     () => navigator.onLine,
     () => true,
   );
-  const [checkins, setCheckins] = useState(initial);
+  const local = useRaceDayLocal(plan.raceId);
+  const [saved, setSaved] = useState<boolean | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const checkins = mergeCheckins(initial, local);
   const view = raceDayView(plan, checkins, now);
   const current = checkins.find((item) => item.waypointId === open) ?? null;
+  const pending = pendingLabel(local.pending.length);
+
+  useEffect(() => {
+    let live = true;
+    void saveRaceDayCopy(plan.startEpochMs + raceDayKeepMs).then((ok) => {
+      if (live) setSaved(ok);
+    });
+    return () => {
+      live = false;
+    };
+  }, [plan.startEpochMs]);
+
+  useEffect(() => {
+    const flush = () => void sendPending(plan.raceId);
+    flush();
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [plan.raceId]);
 
   const save = (checkin: RaceDayCheckin) => {
-    setCheckins((items) => [
-      ...items.filter((item) => item.waypointId !== checkin.waypointId),
-      checkin,
-    ]);
-    void sendCheckin(plan.raceId, checkin);
+    updateRaceDayLocal(plan.raceId, (value) => withCheckin(value, checkin));
+    void sendPending(plan.raceId);
   };
 
   function checkIn() {
@@ -288,6 +339,14 @@ export function RaceDay({
         />
         <span className="font-medium text-foreground">
           {online ? "En ligne" : "Hors ligne"}
+        </span>
+        <span className="min-w-0 truncate" role="status">
+          {pending ??
+            (saved === null
+              ? null
+              : saved
+                ? "Plan enregistré sur le téléphone"
+                : "Plan non enregistré sur le téléphone")}
         </span>
         <span className="ml-auto tabular-nums">
           {formatClock(localMinutes(now, plan.timeZone))}
@@ -393,7 +452,13 @@ export function RaceDay({
           key={current.waypointId}
           plan={plan}
           checkin={current}
+          done={local.done[current.waypointId] ?? []}
           onChange={save}
+          onToggle={(item, checked) =>
+            updateRaceDayLocal(plan.raceId, (value) =>
+              withDone(value, current.waypointId, item, checked),
+            )
+          }
           onClose={() => setOpen(null)}
         />
       )}
