@@ -13,6 +13,7 @@ import {
   formatTodayDate,
   todaySessionKey,
   todaySessionKeys,
+  todayWeek,
   type TodayInput,
   type TodayMatch,
 } from "@/features/today/today";
@@ -244,6 +245,34 @@ describe("today view", () => {
         hint: "Ton ressenti complète la forme du jour.",
       },
     ]);
+  });
+
+  it("opens the requested week with its neighbours and summary", () => {
+    const week = todayWeek(input().program, "2026-10-26");
+    expect(week).toMatchObject({
+      number: 3,
+      weekStart: "2026-10-26",
+      previous: "2026-10-19",
+      next: "2026-11-02",
+      current: false,
+      detail: "semaine du 26 oct.",
+      href: "/plan?week=2026-10-26",
+    });
+    expect(week?.range).toEqual(expect.any(String));
+    expect(week?.planned.duration).toEqual(expect.any(String));
+    expect(week?.days).toHaveLength(7);
+  });
+
+  it("falls back to the current week and stops at the plan edges", () => {
+    const { program } = input();
+    expect(todayWeek(program, null)).toMatchObject({
+      weekStart: "2026-10-19",
+      current: true,
+    });
+    expect(todayWeek(program, "2031-01-06")?.weekStart).toBe("2026-10-19");
+    expect(todayWeek(program, "2026-10-12")?.previous).toBeNull();
+    expect(todayWeek(program, "2026-11-02")?.next).toBeNull();
+    expect(todayWeek(null, null)).toBeNull();
   });
 
   it("summarizes the current week day by day", () => {

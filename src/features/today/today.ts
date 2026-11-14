@@ -29,6 +29,7 @@ import {
   type ProgramOverview,
   type ProgramRace,
   type SessionFamily,
+  weekSplit,
 } from "@/features/plans/view/program";
 import type { SessionPanel } from "@/features/plans/view/session-panel";
 import {
@@ -121,13 +122,31 @@ export function shortDayLabel(date: string) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+const weekStartFormat = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
 export type TodayWeek = {
+  weekStart: string;
+  detail: string;
   number: number;
   total: number;
   blockName: string;
+  range: string;
+  current: boolean;
+  previous: string | null;
+  next: string | null;
+  note: string | null;
+  split: { easyPct: number; met: boolean } | null;
   days: TodayWeekDay[];
   done: { duration: string; distance: string | null };
-  planned: { duration: string; distance: string | null };
+  planned: {
+    duration: string;
+    distance: string | null;
+    elevation: string | null;
+  };
   pct: number;
   href: string;
 };
@@ -452,9 +471,17 @@ function form(model: RecoveryModel): TodayForm {
   };
 }
 
-function week(program: ProgramOverview | null): TodayWeek | null {
-  const current = currentWeek(program);
-  if (!current || !program) return null;
+export function todayWeek(
+  program: ProgramOverview | null,
+  weekStart: string | null,
+): TodayWeek | null {
+  if (!program) return null;
+  const current =
+    program.weeks.find((item) => item.weekStart === weekStart) ??
+    currentWeek(program);
+  if (!current) return null;
+  const index = program.weeks.indexOf(current);
+  const split = weekSplit(current);
   const distance = (meters: number | null, estimated: boolean) =>
     meters === null
       ? null
@@ -467,9 +494,17 @@ function week(program: ProgramOverview | null): TodayWeek | null {
     proposed: "changement proposé",
   };
   return {
+    weekStart: current.weekStart,
+    detail: `semaine du ${weekStartFormat.format(new Date(`${current.weekStart}T00:00:00Z`))}`,
     number: current.number,
     total: program.weeks.length,
     blockName: current.blockName,
+    range: current.range,
+    current: current.weekKey === program.currentWeekKey,
+    previous: program.weeks[index - 1]?.weekStart ?? null,
+    next: program.weeks[index + 1]?.weekStart ?? null,
+    note: current.note,
+    split: split ? { easyPct: split.easyPct, met: split.met } : null,
     days: current.days.map((day, index) => {
       const state = day.family === "rest" ? null : day.state;
       const multiple = day.sessions.length > 1;
@@ -531,6 +566,9 @@ function week(program: ProgramOverview | null): TodayWeek | null {
         current.totals.distanceMeters,
         current.totals.distanceEstimated,
       ),
+      elevation: current.totals.elevationMeters
+        ? `+${formatInteger(current.totals.elevationMeters)} m`
+        : null,
     },
     pct:
       current.totals.durationSeconds > 0
@@ -726,7 +764,7 @@ export function buildToday(input: TodayInput): TodayView {
         }),
     form: day,
     queue: queue(input),
-    week: week(input.program),
+    week: todayWeek(input.program, null),
     goal: goal(input),
   };
 }
