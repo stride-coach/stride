@@ -154,8 +154,9 @@ describe("raceDayView", () => {
     ]);
   });
 
-  it("says the athlete should be at the next station once the plan gets there", () => {
-    const view = raceDayView(plan, [], at(2 * hour + 60));
+  it("waits at the next station until the athlete checks in there", () => {
+    const view = raceDayView(plan, [], at(3 * hour));
+    expect(view.title).toBe("Saint-Quentin → Buc");
     expect(view.rows).toContainEqual({
       label: "Prochain ravito",
       value: "Buc : tu devrais y être",

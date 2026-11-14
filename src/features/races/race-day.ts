@@ -304,20 +304,20 @@ export function raceDayView(
     };
   }
 
+  const target = nextStation ?? finish;
   const adjusted = Math.max(0, elapsed - offset);
   const floor = latest?.station.distanceM ?? 0;
   const distanceM = Math.min(
-    plan.distanceM,
+    target.distanceM,
     Math.max(floor, distanceAt(plan, adjusted)),
   );
   const sectionEnd =
     plan.stations.find(
       (station, index) =>
-        index > (latest?.index ?? 0) && station.distanceM > distanceM,
+        index > (latest?.index ?? 0) && station.distanceM >= distanceM,
     ) ?? finish;
   const sectionIndex = Math.max(1, plan.stations.indexOf(sectionEnd));
   const sectionStart = plan.stations[sectionIndex - 1];
-  const target = nextStation ?? finish;
   const intake = plan.intakes.find((item) => item.atSeconds + offset > elapsed);
   const rows = [
     terrainRow(plan, distanceM, sectionEnd),
