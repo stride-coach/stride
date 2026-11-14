@@ -48,6 +48,8 @@ PLAYWRIGHT_REUSE_APP=true npx playwright test tests/e2e/<area>.spec.ts --project
 
 ## Main browser suite
 
+The browser suite never calls the live Open-Meteo API. Playwright sets `OPEN_METEO_URL` to the auth fixture (`/open-meteo`), whose `tests/fixtures/open-meteo.mjs` answers the forecast, archive and time-zone requests with deterministic weather: about 6 to 14 °C, dry, 14 km/h wind. The variable is unset outside tests, so production keeps the public hosts. Next caches these fetches in `.next-e2e/cache/fetch-cache`, so clear that folder after changing the fixture weather.
+
 `npm run test:e2e` still starts the development server locally. The `chromium` project covers ordinary application journeys; `chromium-development` covers the design-system gallery, remote development origin and data-activity API/loading journeys; `chromium-race-course` runs its serial fixture mutations after `chromium` by default. The serial settings suite remains intact when sharding.
 
 CI selects projects explicitly with `--no-deps`, so each runner has its own auth and Garmin fixtures and the course fixture cannot affect another project. For the full suite, the main and development projects are each split across two runners and the course project uses its own runner; smaller selections use one runner per project. Spec membership of the development and course lanes, and the spec areas used for pull-request selection, live in `tests/e2e/lanes.json`, which both the Playwright config and CI scope read.

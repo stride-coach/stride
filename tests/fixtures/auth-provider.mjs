@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { openMeteoResponse } from "./open-meteo.mjs";
 import { createHmac, createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -2599,6 +2600,10 @@ createServer(async (request, response) => {
     response.writeHead(status, headers);
     response.end(JSON.stringify(value));
   };
+  if (url.pathname.startsWith("/open-meteo/")) {
+    const weather = openMeteoResponse(url);
+    return weather ? send(200, weather) : send(404, {});
+  }
   if (url.pathname.startsWith("/storage/v1/")) {
     if (
       request.headers.authorization !== `Bearer ${token}` &&
