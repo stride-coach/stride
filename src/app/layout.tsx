@@ -37,6 +37,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body suppressHydrationWarning className="min-h-full">
+        <div
+          aria-hidden="true"
+          data-slot="top-edge"
+          className="pointer-events-none fixed inset-x-0 top-0 z-40 hidden h-2 bg-background print:hidden [@media(display-mode:standalone)]:max-md:block"
+        />
         <TooltipProvider>{children}</TooltipProvider>
         <ThemeToaster />
       </body>
