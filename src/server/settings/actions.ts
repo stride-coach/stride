@@ -9,9 +9,7 @@ import {
   type ProfilePatch,
 } from "@/features/onboarding/profile";
 import { changedProfileSources } from "@/features/settings/profile";
-import {
-  goalFocuses,
-} from "@/features/onboarding/goals";
+import { goalFocuses } from "@/features/onboarding/goals";
 import { getOnboardingContext } from "@/server/onboarding/context";
 import { saveGoal } from "@/server/onboarding/goals";
 import { readProfile, saveProfile } from "@/server/onboarding/profile";
@@ -74,8 +72,7 @@ export async function saveSettingsTraining(data: FormData) {
     !values.primary_terrain ||
     !values.long_run_day ||
     !values.weekday_session_minutes ||
-    !values.available_weekdays?.length ||
-    values.available_weekdays.length > 5
+    !values.available_weekdays?.length
   )
     redirect(resultPath(trainingPath, "invalid"));
   await commitProfile(data, values, "/settings/training");
@@ -145,7 +142,6 @@ export async function updateSettingsProfile(data: FormData) {
     };
   }
 }
-
 
 export async function saveSettingsPlanning(data: FormData) {
   const timeZone = nullableText(data.get("time_zone"));
