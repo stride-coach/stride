@@ -94,11 +94,7 @@ export default async function TrainingSettingsPage({
               ]}
             />
           </PreferenceRow>
-          <PreferenceRow
-            labelId="t-days"
-            label="Jours où tu peux courir"
-            hint="5 jours par semaine au maximum."
-          >
+          <PreferenceRow labelId="t-days" label="Jours où tu peux courir">
             <WeekdayField
               name="available_weekdays"
               labelledBy="t-days"
