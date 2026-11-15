@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { ProgressRace } from "@/features/progress/history";
 import { addDays } from "@/features/progress/period";
 import {
+  checkinDone,
   checkinFieldSchema,
+  checkinRowSchema,
   raceRecoveries,
   readinessLevel,
   recoveryModel,
@@ -95,6 +97,42 @@ describe("recovery observations", () => {
     expect(
       checkinFieldSchema.safeParse({ field: "mood", value: "low" }).success,
     ).toBe(false);
+    expect(
+      checkinFieldSchema.safeParse({ field: "sleepFeel", value: "good" })
+        .success,
+    ).toBe(true);
+    expect(
+      checkinFieldSchema.safeParse({ field: "sleepFeel", value: "great" })
+        .success,
+    ).toBe(false);
+  });
+
+  it("reads the felt sleep from a stored check-in", () => {
+    expect(
+      checkinRowSchema.parse({
+        checkin_date: "2026-11-15",
+        legs: "fresh",
+        sleepFeel: null,
+        soreness: null,
+        stress: null,
+        sleep_feel: "poor",
+        updated_at: null,
+      }),
+    ).toMatchObject({ day: "2026-11-15", legs: "fresh", sleepFeel: "poor" });
+  });
+
+  it("counts the check-in as done once every question is answered", () => {
+    const answered = {
+      day: "2026-11-15",
+      legs: "fresh",
+      sleepFeel: "good",
+      soreness: "none",
+      stress: "low",
+      updatedAt: null,
+    } as const;
+    expect(checkinDone(answered)).toBe(true);
+    expect(checkinDone({ ...answered, sleepFeel: null })).toBe(false);
+    expect(checkinDone(null)).toBe(false);
   });
 });
 
@@ -216,6 +254,7 @@ describe("recovery reading", () => {
         checkin: {
           day: today,
           legs: "fresh",
+          sleepFeel: null,
           soreness: null,
           stress: null,
           updatedAt: null,

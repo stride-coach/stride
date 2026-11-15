@@ -30,7 +30,7 @@ export async function readCheckin(
 ): Promise<Checkin | null> {
   const { data, error } = await context.client
     .from("athlete_wellness_checkins")
-    .select("checkin_date, legs, soreness, stress, updated_at")
+    .select("checkin_date, legs, sleep_feel, soreness, stress, updated_at")
     .eq("user_id", context.userId)
     .eq("checkin_date", today)
     .maybeSingle();
@@ -45,7 +45,7 @@ export async function readCheckinHistory(
 ): Promise<Checkin[]> {
   const { data, error } = await context.client
     .from("athlete_wellness_checkins")
-    .select("checkin_date, legs, soreness, stress, updated_at")
+    .select("checkin_date, legs, sleep_feel, soreness, stress, updated_at")
     .eq("user_id", context.userId)
     .gte("checkin_date", since)
     .order("checkin_date", { ascending: true });

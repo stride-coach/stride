@@ -4,6 +4,7 @@ import type {
   Legs,
   RangeSignal,
   RecoveryModel,
+  SleepFeel,
   Soreness,
   Stress,
 } from "./recovery";
@@ -62,6 +63,11 @@ export const legsLabels: Record<Legs, string> = {
   heavy: "Lourdes",
   normal: "Normales",
   fresh: "Fraîches",
+};
+export const sleepFeelLabels: Record<SleepFeel, string> = {
+  good: "Reposant",
+  average: "Moyen",
+  poor: "Mauvais",
 };
 export const sorenessLabels: Record<Soreness, string> = {
   none: "Aucune",
