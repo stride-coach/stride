@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.4.0](https://github.com/stride-coach/stride/compare/v2.3.0...v2.4.0) (2026-11-15)
+
+
+### Features
+
+* **app-shell:** answer the daily check-in from the sidebar ([#610](https://github.com/stride-coach/stride/issues/610)) ([9e20198](https://github.com/stride-coach/stride/commit/9e20198a0b92ce9fa7e273e39ad1a4fadc9fff55))
+* **app-shell:** ask the coach about the screen from the top bar with ⌘J ([#609](https://github.com/stride-coach/stride/issues/609)) ([42fe5a4](https://github.com/stride-coach/stride/commit/42fe5a48eaeeb908a09b60ec76c344f7447401af))
+* **coaching:** show the felt sleep to the staff in health reports ([#611](https://github.com/stride-coach/stride/issues/611)) ([d5e3347](https://github.com/stride-coach/stride/commit/d5e334749b2e37b6b03c19878b21dd0cdf4210b9))
+* **today:** switch between the day and the week ([#606](https://github.com/stride-coach/stride/issues/606)) ([fd3745b](https://github.com/stride-coach/stride/commit/fd3745b1dfa36e22d351993ec06ce6844097b714))
+
 ## [2.3.0](https://github.com/stride-coach/stride/compare/v2.2.0...v2.3.0) (2026-11-14)
 
 
