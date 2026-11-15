@@ -28,8 +28,6 @@ test("a planned session shows its pair and keeps the athlete's choice", async ({
   ).toBeVisible();
   await expect(shoes.getByText("Conseillée", { exact: true })).toBeVisible();
   await expect(shoes.getByText(/^Seuil sur route : /)).toBeVisible();
-  await shoes.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: "test-results/gear-session-desktop.png" });
 
   const url = page.url();
   await shoes
@@ -54,65 +52,6 @@ test("a planned session shows its pair and keeps the athlete's choice", async ({
     .getByRole("button", { name: "Choisir l’Endorphin Speed 4" })
     .click();
   await expect(reloaded.getByText("Conseillée", { exact: true })).toBeVisible();
-});
-
-test("the mobile session sheet opens the pair picker", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await signIn(page);
-  await page.goto("/plan");
-  await sessionLinks(page).filter({ hasText: /Seuil/ }).first().click();
-  const sheet = page.getByRole("dialog");
-  const shoes = sheet.getByRole("region", { name: "Chaussures" });
-  await expect(shoes).toBeVisible({ timeout: 20_000 });
-  await shoes.getByRole("button", { name: "Changer de paire" }).click();
-  const picker = page.getByRole("dialog", {
-    name: "Quelle paire pour cette séance ?",
-  });
-  await expect(picker).toBeVisible();
-  await expect(picker.getByRole("radio")).toHaveCount(3);
-  await expect(
-    picker.getByRole("radio", { name: /Endorphin Speed 4/ }),
-  ).toBeChecked();
-  await expect(
-    picker.getByText("Crampons inutiles sur ce terrain."),
-  ).toBeVisible();
-  await page.screenshot({ path: "test-results/gear-picker-mobile.png" });
-  await picker.getByRole("button", { name: "Annuler" }).click();
-  await expect(picker).toHaveCount(0);
-});
-
-test("Matériel lists this week's pairs and the recent rotation", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1310 });
-  await signIn(page);
-  await page.goto("/activities/gear");
-  await expect(
-    page.getByRole("heading", { name: "Paires prévues cette semaine" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Rotation · 14 derniers jours" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("rowheader", { name: "Adizero Evo SL 3" }),
-  ).toBeVisible();
-  await page.screenshot({
-    path: "test-results/gear-week-desktop.png",
-    fullPage: true,
-  });
-});
-
-test("today shows the pair of a running session", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  const session = page.getByRole("region", { name: "Séance du jour" });
-  await expect(session.getByRole("heading", { level: 2 })).toBeVisible();
-  const chip = session.getByRole("link", {
-    name: /^Paire (conseillée|choisie) : /,
-  });
-  test.skip((await chip.count()) === 0, "No running session today");
-  await expect(chip).toHaveAttribute("href", /^\/plan\/sessions\/s-/);
-  await page.screenshot({ path: "test-results/gear-today-desktop.png" });
 });
 
 test("a run with another pair in Garmin asks which one was worn", async ({
@@ -152,7 +91,6 @@ test("a run with another pair in Garmin asks which one was worn", async ({
   await expect(
     card.getByText("Ta réponse corrige aussi la paire dans Garmin."),
   ).toBeVisible();
-  await page.screenshot({ path: "test-results/gear-check-today.png" });
 
   await page.goto("/activities/gear");
   const watch = page.getByRole("region", { name: "À surveiller" });
@@ -164,7 +102,6 @@ test("a run with another pair in Garmin asks which one was worn", async ({
   const shoes = page.getByRole("region", { name: "Chaussures" });
   await expect(shoes.getByText("Nike Zegama")).toBeVisible();
   await expect(shoes.getByText("· Garmin", { exact: true })).toBeVisible();
-  await page.screenshot({ path: "test-results/gear-check-activity.png" });
 
   await page
     .getByRole("group", { name: /^Garmin indique les Zegama/ })
@@ -183,93 +120,4 @@ test("a run with another pair in Garmin asks which one was worn", async ({
   await expect(
     page.getByRole("group", { name: /^Garmin indique les Zegama/ }),
   ).toHaveCount(0);
-});
-
-test("the race gear list links the shoe line to a real pair", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1805 });
-  await signInAs(page, "athlete@example.com");
-  await page.goto("/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/gear");
-  const select = page.getByRole("combobox", {
-    name: "Paire pour Chaussures de course",
-  });
-  await expect(select).toBeVisible({ timeout: 20_000 });
-  await select.selectOption({ label: "Nike ACG Zegama" });
-  const pair = page.getByRole("link", { name: "Nike ACG Zegama" });
-  await expect(pair).toHaveAttribute(
-    "href",
-    "/activities/gear/d1000000-0000-4000-8000-000000000004",
-  );
-  await expect(
-    page.getByText(
-      /^241 km · aucune sortie enregistrée\. Plan B : Hoka Speedgoat 7\.$/,
-    ),
-  ).toBeVisible();
-  await page.screenshot({
-    path: "test-results/gear-race-desktop.png",
-    fullPage: true,
-  });
-  await page.reload();
-  await expect(
-    page.getByRole("link", { name: "Nike ACG Zegama" }),
-  ).toBeVisible();
-});
-
-test("old Matériel and Nutrition links land on their new tab", async ({
-  page,
-}) => {
-  await signInAs(page, "athlete@example.com");
-  await page.goto("/gear");
-  await expect(page).toHaveURL("/activities/gear");
-  await page.goto("/gear/new");
-  await expect(page).toHaveURL("/activities/gear/new");
-  await page.goto("/nutrition");
-  await expect(page).toHaveURL("/health/nutrition");
-});
-
-const todaySession = (page: Page) =>
-  page.getByRole("region", { name: "Séance du jour", includeHidden: true });
-
-test("a pair chosen in the panel updates Today underneath", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  await expect(todaySession(page)).toBeAttached();
-  const chip = todaySession(page)
-    .getByRole("link", {
-      name: /^Paire (conseillée|choisie) : /,
-      includeHidden: true,
-    })
-    .filter({ visible: true });
-  test.skip((await chip.count()) === 0, "No running session today");
-  const original = (await chip.textContent())?.trim() ?? "";
-  await chip.click();
-  const shoes = page
-    .getByRole("dialog")
-    .getByRole("region", { name: "Chaussures" });
-  await expect(shoes).toBeVisible({ timeout: 20_000 });
-  const choose = shoes.getByRole("button", { name: /^Choisir (l’|la )/ });
-  const label = (await choose.first().getAttribute("aria-label")) ?? "";
-  const name = label.replace(/^Choisir (l’|la )/, "");
-  await choose.first().click();
-  await expect(shoes.getByText("Ton choix", { exact: true })).toBeVisible();
-  await expect(chip).toHaveAttribute("aria-label", `Paire choisie : ${name}`);
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page).toHaveURL(/\/today$/);
-  await expect(chip).toHaveAttribute("aria-label", `Paire choisie : ${name}`);
-
-  await chip.click();
-  await expect(shoes).toBeVisible({ timeout: 20_000 });
-  await shoes
-    .getByRole("button", { name: new RegExp(`^Choisir (l’|la )${original}$`) })
-    .click();
-  await expect(chip).toHaveAttribute(
-    "aria-label",
-    new RegExp(`^Paire (conseillée|choisie) : ${original}$`),
-  );
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
 });

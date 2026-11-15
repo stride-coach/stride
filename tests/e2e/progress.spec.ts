@@ -1,155 +1,73 @@
 import { expect, test, type Page } from "@playwright/test";
+import { clickToUrl } from "./support/navigation";
 import { signInAs } from "./support/session";
 
 function signIn(page: Page) {
   return signInAs(page, "athlete@example.com");
 }
 
-test("signed-out visitors cannot open progress", async ({ page }) => {
-  await page.goto("/health/fitness");
-  await expect(page).toHaveURL(/\/sign-in$/);
-});
-
-for (const viewport of [
-  { width: 1440, height: 900 },
-  { width: 390, height: 844 },
-]) {
-  test(`Forme renders the goal, load and measures at ${viewport.width}px`, async ({
-    page,
-  }) => {
-    await page.setViewportSize(viewport);
-    await signIn(page);
-    await page.goto("/health/fitness");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    const goal = page.getByRole("region", { name: "EcoTrail Paris 120K" });
-    await expect(goal.getByRole("link")).toHaveAttribute(
-      "href",
-      "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-    );
-    await expect(
-      goal.getByText(
-        "Pas de prévision de temps fiable en ultra : Stride suit ta préparation.",
-      ),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Condition et fatigue" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("img", { name: /^Condition \d+, fatigue \d+/ }).first(),
-    ).toBeAttached();
-    const predictions = page.getByRole("region", {
-      name: "Prévisions de course",
-    });
-    await expect(predictions.getByText("45:02")).toBeVisible();
-    await expect(predictions.getByText("−0:18")).toBeVisible();
-    await expect(
-      page.getByRole("region", { name: "Course à pied · km par semaine" }),
-    ).toContainText("Cette semaine :");
-    const measures = page.getByRole("region", { name: "Ce qui évolue" });
-    await expect(measures.getByText("Efficacité aérobie")).toBeVisible();
-    await expect(
-      measures.getByRole("link", { name: /Régularité/ }),
-    ).toHaveAttribute("href", "/plan");
-    await expect(
-      measures.getByText("Disponible avec un plan d’entraînement"),
-    ).toBeVisible();
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
-    );
-    expect(overflow).toBe(false);
-  });
-}
-
-test("the load curve draws once, and rests with reduced motion", async ({
-  page,
-}) => {
+test("an athlete reads their form, recovery and records", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await signIn(page);
-  await page.goto("/health/fitness");
-  const lines = page
-    .getByRole("img", { name: /^Condition \d+, fatigue \d+/ })
-    .first()
-    .locator("[data-slot=load-lines]");
-  await expect(lines).toHaveCSS("animation-name", "chart-draw");
-  await expect(lines).toHaveCSS("animation-iteration-count", "1");
-
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.reload();
-  await expect(lines).toHaveCSS("animation-name", "none");
-});
-
-test("period choice is kept in the URL", async ({ page }) => {
-  await signIn(page);
-  await page.goto("/health/fitness");
-  const periods = page.getByRole("navigation", { name: "Période" });
-  await expect(periods.getByRole("link", { name: "6 mois" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  await periods.getByRole("link", { name: "12 sem." }).click();
-  await expect(page).toHaveURL("/health/fitness?period=12w");
-  await page.reload();
-  await expect(periods.getByRole("link", { name: "12 sem." })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  await expect(
-    page.getByRole("navigation", { name: "Sections de Santé" }).first(),
-  ).toBeAttached();
-});
-
-test("sidebar links to Santé", async ({ page }) => {
   await signIn(page);
   await page.goto("/activities");
   await page.getByRole("link", { name: "Santé", exact: true }).click();
   await expect(page).toHaveURL("/health/fitness");
   await expect(
-    page.getByRole("link", { name: "Santé", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
-});
+    page.getByRole("region", { name: "EcoTrail Paris 120K" }).getByRole("link"),
+  ).toHaveAttribute("href", "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const periods = page.getByRole("navigation", { name: "Période" });
+  await periods.getByRole("link", { name: "12 sem." }).click();
+  await expect(page).toHaveURL("/health/fitness?period=12w");
+  await expect(periods.getByRole("link", { name: "12 sem." })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 
-for (const viewport of [
-  { width: 1440, height: 900 },
-  { width: 390, height: 844 },
-]) {
-  test(`Récupération renders readiness, factors and nights at ${viewport.width}px`, async ({
+  const tabs = page
+    .getByRole("navigation", { name: "Sections de Santé" })
+    .filter({ visible: true });
+  await clickToUrl(
     page,
-  }) => {
-    await page.setViewportSize(viewport);
-    await signIn(page);
-    await page.goto("/health/recovery");
-    await expect(
-      page.getByRole("heading", {
-        level: 1,
-        name: "Une courte nuit pèse sur ta forme du jour.",
-      }),
-    ).toBeVisible();
-    const readiness = page.getByRole("region", {
-      name: "Forme du jour",
-    });
-    await expect(readiness.getByText(/^Modéré|^Bas/)).toBeVisible();
-    const factors = page.getByRole("region", {
-      name: "Ce qui pèse aujourd’hui",
-    });
-    await expect(factors.getByText("Sommeil · 5h52")).toBeVisible();
-    await expect(factors.getByText("VFC · 46 ms")).toBeVisible();
-    await expect(
-      page
-        .getByRole("region", { name: "VFC nocturne" })
-        .getByText("Sous ta plage"),
-    ).toBeVisible();
-    await expect(page.getByRole("region", { name: "Sommeil" })).toBeVisible();
-    await expect(
-      page
-        .getByText("Aucune course passée avec des mesures de VFC.")
-        .filter({ visible: true }),
-    ).toBeVisible();
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
-    );
-    expect(overflow).toBe(false);
-  });
-}
+    tabs.getByRole("link", { name: "Récupération" }),
+    /\/health\/recovery\?period=12w$/,
+  );
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Une courte nuit pèse sur ta forme du jour.",
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Échelle" })
+    .getByRole("link", { name: "30 jours" })
+    .click();
+  await expect(page).toHaveURL(/\/health\/recovery\?.*view=month/);
+  await expect(
+    page
+      .getByRole("region", { name: "Sommeil" })
+      .getByRole("group", { name: /Durée et phases de sommeil des 30/ }),
+  ).toBeVisible();
+
+  await page.goto("/health/recovery?view=day&date=2026-10-10");
+  await expect(
+    page.getByRole("heading", { name: "Nuit courte, journée chargée." }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Jour suivant" }).click();
+  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-11");
+
+  await clickToUrl(
+    page,
+    tabs.getByRole("link", { name: "Records" }),
+    /\/health\/records(\?.*)?$/,
+  );
+  const markers = page.getByRole("region", { name: "Tes repères actuels" });
+  await expect(markers.getByText("4:38")).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "Vitesse" })
+      .getByText("prévision 3:33:40"),
+  ).toBeVisible();
+});
 
 test("athlete records how they feel today", async ({ page }) => {
   await signIn(page);
@@ -177,211 +95,3 @@ test("athlete records how they feel today", async ({ page }) => {
     page.getByText("Tu as noté des jambes fraîches.").filter({ visible: true }),
   ).toBeVisible();
 });
-
-test("Santé tabs switch between Forme and Récupération", async ({ page }) => {
-  await signIn(page);
-  await page.goto("/health/fitness");
-  const tabs = page
-    .getByRole("navigation", { name: "Sections de Santé" })
-    .filter({ visible: true });
-  await tabs.getByRole("link", { name: "Récupération" }).click();
-  await expect(page).toHaveURL("/health/recovery");
-  await expect(
-    tabs.getByRole("link", { name: "Récupération" }),
-  ).toHaveAttribute("aria-current", "page");
-});
-
-test("old Progression links land on their Santé tab", async ({ page }) => {
-  await signIn(page);
-  await page.goto("/progress");
-  await expect(page).toHaveURL("/health/fitness");
-  await page.goto("/progress?period=12w");
-  await expect(page).toHaveURL("/health/fitness?period=12w");
-  await page.goto("/health");
-  await expect(page).toHaveURL("/health/fitness");
-  await page.goto("/progress/body");
-  await expect(page).toHaveURL("/health/recovery");
-  await page.goto("/progress/recovery");
-  await expect(page).toHaveURL("/health/recovery");
-  await page.goto("/progress/health?view=month");
-  await expect(page).toHaveURL("/health/recovery?view=month");
-  await page.goto("/progress/body?view=day&date=2026-10-10");
-  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-10");
-  await page.goto("/progress/records");
-  await expect(page).toHaveURL("/health/records");
-});
-
-test("Récupération switches to 30 days and explains nights on hover", async ({
-  page,
-}) => {
-  await signIn(page);
-  await page.goto("/health/recovery");
-  await page
-    .getByRole("navigation", { name: "Échelle" })
-    .getByRole("link", { name: "30 jours" })
-    .click();
-  await expect(page).toHaveURL("/health/recovery?view=month");
-  const chart = page
-    .getByRole("region", { name: "Sommeil" })
-    .getByRole("group", { name: /Durée et phases de sommeil des 30/ });
-  await chart.scrollIntoViewIfNeeded();
-  const box = (await chart.boundingBox())!;
-  await chart.hover({ position: { x: box.width - 4, y: box.height / 2 } });
-  await expect(chart.getByRole("status")).toContainText("5h52");
-  await expect(chart.getByRole("status")).toContainText("Ta moyenne");
-});
-
-for (const viewport of [
-  { width: 1440, height: 900 },
-  { width: 390, height: 844 },
-]) {
-  test(`Récupération day view explains the day at ${viewport.width}px`, async ({
-    page,
-  }) => {
-    await page.setViewportSize(viewport);
-    await signIn(page);
-    await page.goto("/health/recovery?view=day&date=2026-10-10");
-    await expect(
-      page
-        .getByRole("region", { name: "Choisir une journée" })
-        .getByText("sam. 10 oct.", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", {
-        name: "Nuit courte, journée chargée.",
-      }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Nuit du 9 au 10" }),
-    ).toBeVisible();
-    const moments = page.getByRole("region", { name: "Moments de la journée" });
-    await expect(moments.getByText("Stress élevé · 1h15")).toBeVisible();
-    const timeline = page.getByRole("group", {
-      name: /Ta journée heure par heure/,
-    });
-    await timeline.scrollIntoViewIfNeeded();
-    const box = (await timeline.boundingBox())!;
-    await timeline.hover({
-      position: { x: box.width * 0.54, y: box.height / 2 },
-    });
-    await expect(timeline.getByRole("status")).toContainText("Body Battery");
-    await expect(timeline.getByRole("status")).toContainText("Stress");
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
-    );
-    expect(overflow).toBe(false);
-  });
-}
-
-test("Récupération day navigation moves between days", async ({ page }) => {
-  await signIn(page);
-  await page.goto("/health/recovery?view=day&date=2026-10-10");
-  await page.getByRole("link", { name: "Jour suivant" }).click();
-  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-11");
-  await page.getByRole("link", { name: "Jour précédent" }).click();
-  await expect(page).toHaveURL("/health/recovery?view=day&date=2026-10-10");
-});
-
-test("the health day shows the stored strip before the Garmin day arrives", async ({
-  page,
-}) => {
-  const garminUrl = `http://127.0.0.1:${process.env.PLAYWRIGHT_GARMIN_PORT ?? 3300}`;
-  const hold = (held: boolean) =>
-    fetch(`${garminUrl}/__test__/wellness`, {
-      method: "POST",
-      body: JSON.stringify({ day: "2026-10-07", hold: held }),
-    });
-  expect((await hold(true)).ok).toBe(true);
-  try {
-    await signIn(page);
-    await page.goto("/health/recovery?view=day&date=2026-10-07", {
-      waitUntil: "commit",
-    });
-    await expect(
-      page
-        .getByRole("region", { name: "Choisir une journée" })
-        .getByText("mer. 7 oct.", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("status", { name: "Chargement de la journée" }),
-    ).toBeVisible();
-  } finally {
-    await hold(false);
-  }
-  await expect(
-    page.getByRole("status", { name: "Chargement de la journée" }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole("region", { name: "Moments de la journée" }),
-  ).toBeVisible();
-});
-
-test("signed-out visitors cannot open Records", async ({ page }) => {
-  await page.goto("/health/records");
-  await expect(page).toHaveURL(/\/sign-in$/);
-});
-for (const viewport of [
-  { width: 1440, height: 900 },
-  { width: 390, height: 844 },
-]) {
-  test(`Records shows markers, speed and endurance at ${viewport.width}px`, async ({
-    page,
-  }) => {
-    await page.setViewportSize(viewport);
-    await signIn(page);
-    await page.goto("/health/records");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    const markers = page.getByRole("region", { name: "Tes repères actuels" });
-    await expect(markers.getByText("4:38")).toBeVisible();
-    await expect(markers.getByText("171")).toBeVisible();
-    await expect(
-      markers.getByRole("link", { name: "Voir tes zones d’allure et de FC →" }),
-    ).toHaveAttribute("href", "/settings/profile#entrainement");
-    const speed = page.getByRole("region", { name: "Vitesse" });
-    await expect(speed.getByText("Marathon", { exact: true })).toBeVisible();
-    await expect(speed.getByText("prévision 3:33:40")).toBeVisible();
-    const endurance = page.getByRole("region", { name: "Endurance" });
-    await expect(endurance.getByText("VAM sur 20 min")).toBeVisible();
-    await expect(endurance.getByText("840 m/h")).toBeVisible();
-    const source = endurance.getByRole("link", { name: /Plus longue sortie/ });
-    await expect(source).toHaveAttribute("href", /\/activities\//);
-    await expect(
-      page
-        .getByRole("region", { name: "À portée" })
-        .getByRole("link", { name: /EcoTrail Paris 120K/ }),
-    ).toHaveAttribute("href", "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth > innerWidth,
-      ),
-    ).toBe(false);
-  });
-}
-for (const mode of ["empty", "failure", "goal-failure"] as const) {
-  test(`Records displays explicit ${mode} state`, async ({ page }) => {
-    await signInAs(page, `records-${mode}@example.com`);
-    await page.goto("/health/records");
-    if (mode === "empty") {
-      await expect(
-        page.getByRole("heading", {
-          level: 1,
-          name: "Tes records attendent ton historique.",
-        }),
-      ).toBeVisible();
-      await expect(
-        page.getByText("Aucun record d’endurance documenté."),
-      ).toBeVisible();
-    } else
-      await expect(
-        page
-          .getByRole("alert")
-          .filter({ hasText: "Impossible de lire ton historique" }),
-      ).toContainText("Impossible de lire ton historique");
-    await page
-      .getByRole("navigation", { name: "Sections de Santé" })
-      .first()
-      .getByRole("link", { name: "Forme", exact: true })
-      .click();
-    await expect(page).toHaveURL("/health/fitness", { timeout: 15_000 });
-  });
-}

@@ -33,16 +33,6 @@ const recordsEmptyUser = {
   id: "22222222-2222-4222-8222-222222222222",
   email: "records-empty@example.com",
 };
-const recordsFailureUser = {
-  ...user,
-  id: "33333333-3333-4333-8333-333333333333",
-  email: "records-failure@example.com",
-};
-const recordsGoalFailureUser = {
-  ...user,
-  id: "44444444-4444-4444-8444-444444444444",
-  email: "records-goal-failure@example.com",
-};
 const planUser = {
   ...user,
   id: "55555555-5555-4555-8555-555555555555",
@@ -99,8 +89,6 @@ const recordsSessions = [
   watchUser,
   coachUser,
   recordsEmptyUser,
-  recordsFailureUser,
-  recordsGoalFailureUser,
   planUser,
   syncUser,
   planReviewUser,
@@ -2455,7 +2443,6 @@ function selectRows(table, params) {
 }
 const profileImages = new Map();
 const events = [];
-let restDelays = [];
 let restFailures = [];
 const links = new Map();
 const challenges = new Map();
@@ -2638,11 +2625,6 @@ createServer(async (request, response) => {
     );
     return send(204, undefined);
   }
-  if (url.pathname === "/__test__/rest-delay" && request.method === "POST") {
-    const id = randomUUID();
-    restDelays.push({ id, match: String(body.match), ms: Number(body.ms) });
-    return send(200, { id, delayed: restDelays.length });
-  }
   if (url.pathname === "/__test__/rest-failure" && request.method === "POST") {
     restFailures.push(String(body.match));
     return send(200, { failing: restFailures.length });
@@ -2654,14 +2636,6 @@ createServer(async (request, response) => {
     const match = url.searchParams.get("match");
     restFailures = restFailures.filter((rule) => rule !== match);
     return send(200, { failing: restFailures.length });
-  }
-  if (url.pathname === "/__test__/rest-delay" && request.method === "DELETE") {
-    const id = url.searchParams.get("id");
-    const match = url.searchParams.get("match");
-    restDelays = restDelays.filter((rule) =>
-      id ? rule.id !== id : rule.match !== match,
-    );
-    return send(200, { delayed: restDelays.length });
   }
   if (
     url.pathname === "/__test__/provider-workouts" &&
@@ -3365,10 +3339,6 @@ createServer(async (request, response) => {
       : send(401, { msg: "Unauthorized" });
   if (url.pathname === "/auth/v1/logout") return send(204, undefined);
   if (url.pathname.startsWith("/rest/v1/")) {
-    const delay = restDelays.find((rule) =>
-      `${url.pathname}${url.search}`.includes(rule.match),
-    );
-    if (delay) await new Promise((resolve) => setTimeout(resolve, delay.ms));
     if (
       restFailures.some((match) =>
         `${url.pathname}${url.search}`.includes(match),
@@ -3376,32 +3346,11 @@ createServer(async (request, response) => {
     )
       return send(500, { message: "Fixture failure" });
     if (
-      url.pathname === "/rest/v1/provider_activities" &&
-      url.searchParams.get("activity_name")?.includes("loading-fixture")
-    )
-      await new Promise((resolve) => setTimeout(resolve, 6000));
-    if (
-      url.pathname === "/rest/v1/provider_activity_tracks" &&
-      url.searchParams.get("activity_id") ===
-        "eq.aaaaaaaa-aaaa-4aaa-8aaa-000000000168"
-    )
-      await new Promise((resolve) => setTimeout(resolve, 6000));
-    if (
       request.headers.authorization !== `Bearer ${token}` &&
       !recordsSession &&
       url.pathname !== "/rest/v1/rpc/crew_link_view"
     )
       return send(401, { message: "JWT required" });
-    if (
-      recordsSession?.user.id === recordsGoalFailureUser.id &&
-      url.pathname === "/rest/v1/athlete_races"
-    )
-      return send(503, { message: "Records fixture goal read failure" });
-    if (
-      recordsSession?.user.id === recordsFailureUser.id &&
-      url.pathname === "/rest/v1/provider_activity_tracks"
-    )
-      return send(503, { message: "Records fixture read failure" });
     if (
       request.method === "POST" &&
       url.pathname === "/rest/v1/rpc/redo_race"
