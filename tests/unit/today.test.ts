@@ -239,10 +239,10 @@ describe("today view", () => {
     });
     expect(view.queue).toEqual([
       {
-        kind: "legs",
-        key: "legs",
-        label: "tes jambes",
-        hint: "Ton ressenti complète la forme du jour.",
+        kind: "checkin",
+        key: "checkin",
+        label: "ton check-in",
+        checkin: null,
       },
     ]);
   });
@@ -298,7 +298,7 @@ describe("today view", () => {
     expect(week?.pct).toBeGreaterThan(0);
   });
 
-  it("queues the feeling, then the pair, then the legs", () => {
+  it("queues the feeling, then the pair, then the check-in", () => {
     const debrief = buildDebriefView({
       session: planState().sessions.find(
         (item) => item.sessionKey === "s-2026-10-20-1",
@@ -339,7 +339,7 @@ describe("today view", () => {
     expect(queue.map((item) => [item.kind, item.label])).toEqual([
       ["feeling", "ton ressenti d’hier"],
       ["pair", "ta paire d’hier"],
-      ["legs", "tes jambes"],
+      ["checkin", "ton check-in"],
     ]);
     expect(queue[0]).toMatchObject({
       activityId: "activity-1",
@@ -366,8 +366,9 @@ describe("today view", () => {
           checkin: {
             day: "2026-10-21",
             legs: "fresh",
-            soreness: null,
-            stress: null,
+            sleepFeel: "good",
+            soreness: "none",
+            stress: "low",
             updatedAt: null,
           },
           races: [],

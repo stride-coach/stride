@@ -9,7 +9,7 @@ import { PairQuestionCard } from "@/features/gear/components/activity-pair";
 import { cn } from "@/lib/utils";
 import { queueNext, queueOrder } from "../queue";
 import type { TodayActivity, TodayQueueItem } from "../today";
-import { LegsCheckin } from "./legs-checkin";
+import { DailyCheckin } from "@/features/progress/components/daily-checkin";
 
 function ActivityRow({ activity }: { activity: TodayActivity }) {
   return (
@@ -57,7 +57,7 @@ function QueueItem({ item }: { item: TodayQueueItem }) {
         <PairQuestionCard question={item.question} />
       </>
     );
-  return <LegsCheckin initial={null} hint={item.hint} />;
+  return <DailyCheckin initial={item.checkin} variant="queue" />;
 }
 
 export function TodayQueue({ items }: { items: TodayQueueItem[] }) {
