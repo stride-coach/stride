@@ -28,7 +28,7 @@ Self-hosted runners are not used (#515). On a public repository, a pull request 
 | ------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
 | `quality`                 | Lint, typecheck, unit tests and normal production build                                                | No browser or database stack                         |
 | `browser` main-1/2        | Main Chromium tests, two shards with four workers (one shard for small selections)                     | Production app, independent auth/Garmin fixtures     |
-| `browser` course          | Serial race-course and session-matching tests                                                          | Production app, independent mutable course fixture   |
+| `browser` course          | Serial race-course tests                                                                               | Production app, independent mutable course fixture   |
 | `browser` development-1/2 | Gallery, remote-origin and data-activity tests, two shards (one for small selections)                  | Development app, independent auth/Garmin fixtures    |
 | `database-onboarding`     | Only with migrations: database checks and the 21 onboarding tests in one job                           | Development app, isolated `stride-ci` Supabase stack |
 | `browser-quarantine`      | Only on `main` pushes, non-blocking: tests tagged `@quarantine` (see [Testing](testing.md#quarantine)) | Production app, independent auth/Garmin fixtures     |

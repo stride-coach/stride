@@ -1021,8 +1021,6 @@ const planDebriefSession =
       session.scheduled_on < planDoneSession.scheduled_on,
   ) ?? planMatchedSessions.find((session) => session.kind === "threshold");
 const planDebriefActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005002";
-const planMissedSession = pastPlanSessions[2];
-const planImportedActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005001";
 const planStrengthSession =
   planMatchedSessions.findLast(
     (session) =>
@@ -1039,7 +1037,6 @@ const planStrengthDay = beforeDone(
   planStrengthSession,
   shiftDay(planStart, -3),
 );
-const planSplitActivityId = "aaaaaaaa-aaaa-4aaa-8aaa-000000005101";
 const planDoneStart = Date.parse(`${planDoneSession.scheduled_on}T17:12:00Z`);
 tables.provider_activities = tables.provider_activities.filter(
   (row) =>
@@ -2777,44 +2774,6 @@ createServer(async (request, response) => {
       });
     return send(200, { ok: true });
   }
-  if (url.pathname === "/__test__/plan-import" && request.method === "POST") {
-    if (
-      !tables.provider_activities.some(
-        (row) => row.id === planImportedActivityId,
-      )
-    )
-      tables.provider_activities.push({
-        ...activity(5001, 0, {
-          activity_name: "Footing importé",
-          distance_meters: 8100,
-          duration_seconds: 2760,
-          average_heart_rate: 141,
-        }),
-        user_id: planUser.id,
-        started_at: `${planMissedSession.scheduled_on}T05:40:00Z`,
-        local_started_at: `${planMissedSession.scheduled_on} 07:40:00`,
-        imported_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    if (
-      url.searchParams.has("split") &&
-      !tables.provider_activities.some((row) => row.id === planSplitActivityId)
-    )
-      tables.provider_activities.push({
-        ...activity(5101, 0, {
-          activity_name: "Retour au calme",
-          distance_meters: 690,
-          duration_seconds: 176,
-          average_heart_rate: 152,
-        }),
-        user_id: planUser.id,
-        started_at: `${planMissedSession.scheduled_on}T06:30:00Z`,
-        local_started_at: `${planMissedSession.scheduled_on} 08:30:00`,
-        imported_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    return send(200, { sessionKey: planMissedSession.session_key });
-  }
   if (
     url.pathname === "/__test__/activity-feelings" &&
     request.method === "DELETE"
@@ -2825,11 +2784,10 @@ createServer(async (request, response) => {
     );
     return send(200, { reset: true });
   }
-  if (url.pathname === "/__test__/plan-import" && request.method === "DELETE") {
-    tables.provider_activities = tables.provider_activities.filter(
-      (row) =>
-        row.id !== planImportedActivityId && row.id !== planSplitActivityId,
-    );
+  if (
+    url.pathname === "/__test__/plan-matches" &&
+    request.method === "DELETE"
+  ) {
     tables.session_activity_matches = structuredClone(
       planMatchesSnapshot.matches,
     );

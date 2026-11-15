@@ -227,3 +227,49 @@ test("old Matériel and Nutrition links land on their new tab", async ({
   await page.goto("/nutrition");
   await expect(page).toHaveURL("/health/nutrition");
 });
+
+const todaySession = (page: Page) =>
+  page.getByRole("region", { name: "Séance du jour", includeHidden: true });
+
+test("a pair chosen in the panel updates Today underneath", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await expect(todaySession(page)).toBeAttached();
+  const chip = todaySession(page)
+    .getByRole("link", {
+      name: /^Paire (conseillée|choisie) : /,
+      includeHidden: true,
+    })
+    .filter({ visible: true });
+  test.skip((await chip.count()) === 0, "No running session today");
+  const original = (await chip.textContent())?.trim() ?? "";
+  await chip.click();
+  const shoes = page
+    .getByRole("dialog")
+    .getByRole("region", { name: "Chaussures" });
+  await expect(shoes).toBeVisible({ timeout: 20_000 });
+  const choose = shoes.getByRole("button", { name: /^Choisir (l’|la )/ });
+  const label = (await choose.first().getAttribute("aria-label")) ?? "";
+  const name = label.replace(/^Choisir (l’|la )/, "");
+  await choose.first().click();
+  await expect(shoes.getByText("Ton choix", { exact: true })).toBeVisible();
+  await expect(chip).toHaveAttribute("aria-label", `Paire choisie : ${name}`);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/today$/);
+  await expect(chip).toHaveAttribute("aria-label", `Paire choisie : ${name}`);
+
+  await chip.click();
+  await expect(shoes).toBeVisible({ timeout: 20_000 });
+  await shoes
+    .getByRole("button", { name: new RegExp(`^Choisir (l’|la )${original}$`) })
+    .click();
+  await expect(chip).toHaveAttribute(
+    "aria-label",
+    new RegExp(`^Paire (conseillée|choisie) : ${original}$`),
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});

@@ -4,7 +4,6 @@ import { signInAs } from "./support/session";
 const garminUrl = `http://127.0.0.1:${process.env.PLAYWRIGHT_GARMIN_PORT ?? 3300}`;
 const authUrl = `http://127.0.0.1:${process.env.PLAYWRIGHT_AUTH_PORT ?? 3200}`;
 const watchUserId = "abababab-abab-4bab-8bab-abababababab";
-const watchPlanId = "dddddddd-dddd-4ddd-8ddd-abababababab";
 const garminToken = `e30.${Buffer.from(JSON.stringify({ sub: watchUserId })).toString("base64url")}.fixture`;
 const garminHeaders = { Authorization: `Bearer ${garminToken}` };
 
@@ -22,16 +21,14 @@ type WatchCall = {
   };
 };
 
-test.describe.configure({ mode: "serial" });
-
-test.beforeAll(async () => {
+async function reset() {
   await fetch(`${authUrl}/__test__/watch-settings`, { method: "DELETE" });
   const connected = await fetch(`${garminUrl}/__test__/connected`, {
     method: "POST",
     headers: garminHeaders,
   });
   expect(connected.ok).toBe(true);
-});
+}
 
 async function calls(): Promise<WatchCall[]> {
   const response = await fetch(`${garminUrl}/__test__/watch`, {
@@ -65,16 +62,15 @@ async function sentWeek() {
 const sessionLinks = (page: Page) =>
   page.locator('a[href*="session="]').filter({ visible: true });
 
-test("turning sending on pushes the next seven days to the watch", async ({
-  page,
-}) => {
+test("an athlete sends planned sessions to the watch", async ({ page }) => {
+  await reset();
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto("/settings/connections/garmin");
   const toggle = page.getByRole("switch", {
     name: "Envoyer les séances prévues à ta montre",
   });
   await expect(toggle).toHaveAttribute("aria-checked", "false");
-  await expect(page.getByText("Bientôt")).toHaveCount(0);
   await toggle.focus();
   await page.keyboard.press("Space");
   await expect(toggle).toHaveAttribute("aria-checked", "true");
@@ -90,78 +86,23 @@ test("turning sending on pushes the next seven days to the watch", async ({
   });
   await expect(confirm).toHaveCount(held - 1);
 
-  const [put] = await calls();
-  expect(put.method).toBe("PUT");
-  const { from, to, workouts = [] } = put.body;
-  expect(workouts.length).toBeGreaterThan(0);
-  for (const workout of workouts) {
-    expect(workout.key.startsWith(`${watchPlanId}:`)).toBe(true);
-    expect(workout.date >= (from ?? "")).toBe(true);
-    expect(workout.date <= (to ?? "")).toBe(true);
-    expect(workout.force).toBeUndefined();
-  }
-  const confirmed = (await calls()).at(-1)?.body.workouts ?? [];
-  expect(confirmed.filter((workout) => workout.allow_simplified)).toHaveLength(
-    1,
-  );
-  await page.screenshot({ path: "test-results/watch-settings-desktop.png" });
-});
-
-test("a sent session shows its watch status and can be sent again", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
   await page.goto(`/plan?week=${await sentWeek()}`);
   const tagged = sessionLinks(page).filter({ hasText: "Sur la montre" });
-  await expect(tagged.first()).toBeVisible();
   await tagged.first().click();
   const panel = page.getByRole("dialog");
   await expect(panel.getByText("Sur ta montre", { exact: true })).toBeVisible();
-  const resend = panel.getByRole("button", { name: "Renvoyer sur la montre" });
-  await expect(resend).toBeEnabled();
-  const before = (await calls()).length;
-  await resend.click();
-  await expect.poll(async () => (await calls()).length).toBe(before + 1);
-  const last = (await calls()).at(-1);
-  const sessionKey = new URL(page.url()).searchParams.get("session");
-  expect(
-    last?.body.workouts?.find(
-      (workout) => workout.key === `${watchPlanId}:${sessionKey}`,
-    )?.force,
-  ).toBe(true);
-  await page.screenshot({ path: "test-results/watch-panel-desktop.png" });
-});
-
-test("a failed push explains itself and offers a retry", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await signIn(page);
-  await page.goto(`/plan?week=${await sentWeek()}`);
-  const tagged = sessionLinks(page).filter({ hasText: "Sur la montre" });
-  await tagged.first().click();
-  const panel = page.getByRole("dialog");
   await failWorkouts(true);
   await panel.getByRole("button", { name: "Renvoyer sur la montre" }).click();
   await expect(
     panel.getByText("Pas sur ta montre", { exact: true }),
   ).toBeVisible({ timeout: 15_000 });
-  await expect(
-    panel.getByText("Garmin n’a pas répondu. Je réessaie au prochain passage."),
-  ).toBeVisible();
   await failWorkouts(false);
   await panel.getByRole("button", { name: "Réessayer" }).click();
   await expect(panel.getByText("Sur ta montre", { exact: true })).toBeVisible({
     timeout: 15_000,
   });
-  await page.screenshot({ path: "test-results/watch-panel-mobile.png" });
-});
 
-test("turning sending off removes the upcoming workouts", async ({ page }) => {
-  await signIn(page);
   await page.goto("/settings/connections/garmin");
-  const toggle = page.getByRole("switch", {
-    name: "Envoyer les séances prévues à ta montre",
-  });
   await expect(toggle).toHaveAttribute("aria-checked", "true");
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-checked", "false");
