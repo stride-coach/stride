@@ -38,7 +38,9 @@ import {
 } from "@/features/plans/view/session-activities";
 import { formatClock, formatInteger } from "@/features/progress/format";
 import {
+  checkinDone,
   readinessTones,
+  type Checkin,
   type Readiness,
   type RecoveryModel,
 } from "@/features/progress/recovery";
@@ -175,7 +177,7 @@ export type TodayQueueItem =
       question: PairQuestion;
       activity: TodayActivity | null;
     }
-  | { kind: "legs"; key: string; label: string; hint: string };
+  | { kind: "checkin"; key: string; label: string; checkin: Checkin | null };
 
 export type TodayGoal = {
   id: string;
@@ -691,12 +693,12 @@ function queue(input: TodayInput): TodayQueueItem[] {
       question,
       activity: question.activityId === input.latest?.id ? activity : null,
     });
-  if (!input.recovery.checkin?.legs)
+  if (!checkinDone(input.recovery.checkin))
     items.push({
-      kind: "legs",
-      key: "legs",
-      label: "tes jambes",
-      hint: "Ton ressenti complète la forme du jour.",
+      kind: "checkin",
+      key: "checkin",
+      label: "ton check-in",
+      checkin: input.recovery.checkin,
     });
   return items;
 }

@@ -26,20 +26,37 @@ export type RecoveryNight = {
 export const legsOptions = ["heavy", "normal", "fresh"] as const;
 export const sorenessOptions = ["none", "light", "marked"] as const;
 export const stressOptions = ["low", "normal", "high"] as const;
+export const sleepFeelOptions = ["good", "average", "poor"] as const;
 export type Legs = (typeof legsOptions)[number];
 export type Soreness = (typeof sorenessOptions)[number];
 export type Stress = (typeof stressOptions)[number];
+export type SleepFeel = (typeof sleepFeelOptions)[number];
 
 export type Checkin = {
   day: string;
   legs: Legs | null;
+  sleepFeel: SleepFeel | null;
   soreness: Soreness | null;
   stress: Stress | null;
   updatedAt: string | null;
 };
 
+export function checkinDone(checkin: Checkin | null) {
+  return (
+    checkin !== null &&
+    checkin.legs !== null &&
+    checkin.sleepFeel !== null &&
+    checkin.soreness !== null &&
+    checkin.stress !== null
+  );
+}
+
 export const checkinFieldSchema = z.discriminatedUnion("field", [
   z.strictObject({ field: z.literal("legs"), value: z.enum(legsOptions) }),
+  z.strictObject({
+    field: z.literal("sleepFeel"),
+    value: z.enum(sleepFeelOptions),
+  }),
   z.strictObject({
     field: z.literal("soreness"),
     value: z.enum(sorenessOptions),
@@ -52,6 +69,7 @@ export const checkinRowSchema = z
   .object({
     checkin_date: z.string(),
     legs: z.enum(legsOptions).nullable(),
+    sleep_feel: z.enum(sleepFeelOptions).nullable(),
     soreness: z.enum(sorenessOptions).nullable(),
     stress: z.enum(stressOptions).nullable(),
     updated_at: z.string().nullable(),
@@ -59,6 +77,7 @@ export const checkinRowSchema = z
   .transform((row): Checkin => ({
     day: row.checkin_date,
     legs: row.legs,
+    sleepFeel: row.sleep_feel,
     soreness: row.soreness,
     stress: row.stress,
     updatedAt: row.updated_at,

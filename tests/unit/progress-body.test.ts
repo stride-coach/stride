@@ -116,6 +116,7 @@ describe("readiness factors", () => {
         checkin: {
           day: today,
           legs: "heavy",
+          sleepFeel: null,
           soreness: null,
           stress: null,
           updatedAt: null,
@@ -154,6 +155,7 @@ describe("body history", () => {
         {
           day: today,
           legs: "heavy",
+          sleepFeel: null,
           soreness: null,
           stress: null,
           updatedAt: null,
@@ -161,6 +163,7 @@ describe("body history", () => {
         {
           day: addDays(today, -1),
           legs: "heavy",
+          sleepFeel: null,
           soreness: null,
           stress: null,
           updatedAt: null,
@@ -168,6 +171,7 @@ describe("body history", () => {
         {
           day: addDays(today, -3),
           legs: "fresh",
+          sleepFeel: null,
           soreness: null,
           stress: null,
           updatedAt: null,

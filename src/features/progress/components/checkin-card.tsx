@@ -1,19 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { saveCheckin } from "@/server/progress/actions";
 import type { CheckinDay } from "../body";
-import {
-  sorenessOptions,
-  stressOptions,
-  type Checkin,
-  type CheckinField,
-  type Legs,
-} from "../recovery";
-import { legsLabels, sorenessLabels, stressLabels } from "../recovery-view";
+import type { Checkin, Legs } from "../recovery";
+import { CheckinQuestions, useCheckinAnswers } from "./checkin-questions";
 
 const time = new Intl.DateTimeFormat("fr-FR", {
   hour: "2-digit",
@@ -21,37 +11,11 @@ const time = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "Europe/Paris",
 });
 
-const errors = {
-  invalid: "Cette réponse n’est pas valide.",
-  error: "Enregistrement impossible. Réessaie dans un instant.",
-  "session-expired": "Ta session a expiré. Reconnecte-toi pour enregistrer.",
-} as const;
-
-const legsOrder: readonly Legs[] = ["fresh", "normal", "heavy"];
-
 const legsDots: Record<Legs, string> = {
   fresh: "bg-primary",
   normal: "bg-secondary-foreground",
   heavy: "bg-warning",
 };
-
-const questions = [
-  { field: "legs", label: "Jambes", options: legsOrder, labels: legsLabels },
-  {
-    field: "soreness",
-    label: "Courbatures",
-    options: sorenessOptions,
-    labels: sorenessLabels,
-  },
-  {
-    field: "stress",
-    label: "Stress hors sport",
-    options: stressOptions,
-    labels: stressLabels,
-  },
-] as const;
-
-type Answers = Pick<Checkin, "legs" | "soreness" | "stress">;
 
 export function CheckinCard({
   initial,
@@ -60,27 +24,7 @@ export function CheckinCard({
   initial: Checkin | null;
   history: { days: CheckinDay[]; label: string };
 }) {
-  const [answers, setAnswers] = useState<Answers>({
-    legs: initial?.legs ?? null,
-    soreness: initial?.soreness ?? null,
-    stress: initial?.stress ?? null,
-  });
-  const [savedAt, setSavedAt] = useState(initial?.updatedAt ?? null);
-  const [, start] = useTransition();
-
-  function answer(input: CheckinField) {
-    const before = answers;
-    setAnswers((current) => ({ ...current, [input.field]: input.value }));
-    start(async () => {
-      const result = await saveCheckin(input);
-      if (result.status === "saved") {
-        setSavedAt(result.updatedAt);
-        return;
-      }
-      setAnswers(before);
-      toast.error(errors[result.status], { id: "progress-checkin" });
-    });
-  }
+  const { answers, savedAt, answer } = useCheckinAnswers(initial);
 
   const days = history.days.map((day, index) =>
     index === history.days.length - 1 ? { ...day, legs: answers.legs } : day,
@@ -103,37 +47,11 @@ export function CheckinCard({
             : "À saisir ce matin"}
         </span>
       </div>
-      {questions.map((question) => (
-        <div key={question.field} className="flex flex-col gap-1.5">
-          <span
-            id={`checkin-${question.field}`}
-            className="text-label text-secondary-foreground"
-          >
-            {question.label}
-          </span>
-          <ToggleGroup
-            type="single"
-            variant="choice"
-            aria-labelledby={`checkin-${question.field}`}
-            value={answers[question.field] ?? ""}
-            onValueChange={(value) => {
-              if (value)
-                answer({ field: question.field, value } as CheckinField);
-            }}
-            className="grid grid-cols-3 gap-1.5"
-          >
-            {question.options.map((option) => (
-              <ToggleGroupItem
-                key={option}
-                value={option}
-                className="max-md:min-h-control-touch"
-              >
-                {(question.labels as Record<string, string>)[option]}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
-      ))}
+      <CheckinQuestions
+        answers={answers}
+        onAnswer={answer}
+        idPrefix="checkin"
+      />
       <div className="flex flex-col gap-1.5">
         <span className="text-label text-secondary-foreground">
           7 matins · jambes

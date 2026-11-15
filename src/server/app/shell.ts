@@ -1,4 +1,5 @@
 import "server-only";
+import { readCheckin } from "@/server/progress/recovery";
 import { cache } from "react";
 import {
   localToday,
@@ -92,15 +93,16 @@ export async function loadShellNavigation(
   context: OnboardingContext,
   now: Date,
 ): Promise<ShellNavigation> {
-  const [plan, planHistoryCount, coachAttention, readiness] = await Promise.all(
-    [
+  const [plan, planHistoryCount, coachAttention, readiness, checkin] =
+    await Promise.all([
       loadPlanOverview(context).catch(() => null),
       countPlanProposals(context).catch(() => null),
       countCoachAttention(context).catch(() => null),
       readTodayReadiness(context, now).catch(() => null),
-    ],
-  );
+      readCheckin(context, localToday(now)).catch(() => null),
+    ]);
   return {
+    checkin,
     planNav: plan ? programNavigation(buildProgram(programInput(plan))) : null,
     planHistoryCount,
     coachAttention,

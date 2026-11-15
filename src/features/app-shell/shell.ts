@@ -1,4 +1,5 @@
 import type { GoalFocus } from "@/features/onboarding/goals";
+import type { Checkin } from "@/features/progress/recovery";
 import type { ProgramNav } from "@/features/plans/view/program";
 import {
   seasonCountdown,
@@ -44,6 +45,7 @@ export type ShellBadge = {
   tone?: "success" | "warning" | "danger";
 };
 export type ShellNavigation = {
+  checkin: Checkin | null;
   planNav: ProgramNav | null;
   planHistoryCount: number | null;
   coachAttention: CoachAttention | null;

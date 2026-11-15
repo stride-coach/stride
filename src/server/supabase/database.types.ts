@@ -514,6 +514,7 @@ export type Database = {
           id: string;
           legs: string | null;
           revision: number;
+          sleep_feel: string | null;
           soreness: string | null;
           stress: string | null;
           updated_at: string;
@@ -526,6 +527,7 @@ export type Database = {
           id?: string;
           legs?: string | null;
           revision?: number;
+          sleep_feel?: string | null;
           soreness?: string | null;
           stress?: string | null;
           updated_at?: string;
@@ -537,6 +539,7 @@ export type Database = {
           id?: string;
           legs?: string | null;
           revision?: number;
+          sleep_feel?: string | null;
           soreness?: string | null;
           stress?: string | null;
           updated_at?: string;

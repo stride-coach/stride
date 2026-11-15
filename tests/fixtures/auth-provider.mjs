@@ -3914,6 +3914,7 @@ createServer(async (request, response) => {
       );
       const checkin = {
         legs: null,
+        sleep_feel: null,
         soreness: null,
         stress: null,
         ...existing,

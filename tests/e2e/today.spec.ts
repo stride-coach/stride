@@ -5,6 +5,23 @@ function signIn(page: Page, email = "athlete@example.com") {
   return signInAs(page, email);
 }
 
+async function answerCheckin(page: Page) {
+  const dialog = page.getByRole("dialog", { name: "Check-in du jour" });
+  for (const [question, answer] of [
+    ["Jambes", "Fraîches"],
+    ["Sommeil ressenti", "Reposant"],
+    ["Courbatures", "Aucune"],
+    ["Stress hors sport", "Bas"],
+  ])
+    await dialog
+      .getByRole("radiogroup", { name: question })
+      .getByRole("radio", { name: answer })
+      .click();
+  await expect(dialog.getByText(/^Enregistré à \d{2}:\d{2}$/)).toBeVisible();
+  await dialog.getByRole("button", { name: "Terminé" }).click();
+  await expect(dialog).toBeHidden();
+}
+
 test("signed-out athletes are sent to sign-in", async ({ page }) => {
   await page.goto("/today");
   await expect(page).toHaveURL(/\/sign-in/);
@@ -33,14 +50,17 @@ test("today weighs the session against the form and asks one question at a time"
   const waiting = session.getByText(
     "Le Coach attend tes données de la nuit pour confirmer la séance. En attendant, voici ce que prévoit le plan.",
   );
-  await expect(verdict.or(waiting)).toBeVisible();
+  const proposed = session.getByText("Proposition", { exact: true });
+  await expect(verdict.or(waiting).or(proposed)).toBeVisible();
 
   const form = page.getByRole("region", { name: "Ton corps ce matin" });
   await expect(form.getByRole("link", { name: "Détail" })).toHaveAttribute(
     "href",
     "/health/recovery",
   );
-  if (await waiting.isVisible()) {
+  if (await proposed.isVisible()) {
+    await expect(waiting).toHaveCount(0);
+  } else if (await waiting.isVisible()) {
     await expect(session.getByText("Prévue au plan")).toBeVisible();
     await expect(verdict).toHaveCount(0);
     await expect(form.getByText("En attente de ta montre")).toBeVisible();
@@ -75,29 +95,23 @@ test("today weighs the session against the form and asks one question at a time"
   ).toHaveCount(1);
 
   const queue = page.getByRole("region", { name: "À faire" });
-  const legs = queue.getByRole("radiogroup", {
-    name: "Et tes jambes ce matin ?",
-  });
+  const checkin = queue.getByRole("button", { name: "Faire le check-in" });
   const later = queue.getByRole("button", { name: "Plus tard" });
   const count = queue.getByText(/^\d+ sur \d+$/);
   const total = (await queue.count())
     ? Number((await count.textContent())?.split(" sur ")[1])
     : 0;
-  for (let step = 1; step < total && !(await legs.count()); step++)
+  for (let step = 1; step < total && !(await checkin.count()); step++)
     await later.click();
-  if (await legs.count()) {
-    const saved = page.waitForResponse(
-      (response) =>
-        response.request().method() === "POST" &&
-        new URL(response.url()).pathname === "/today",
-    );
-    await legs.getByRole("radio", { name: "Fraîches" }).click();
-    await saved;
-    await expect(page.getByText("Ressenti enregistré.")).toBeVisible();
+  if (await checkin.count()) {
+    await checkin.click();
+    await answerCheckin(page);
     await page.reload();
   }
   await expect(
-    page.getByRole("radiogroup", { name: "Et tes jambes ce matin ?" }),
+    page
+      .getByRole("region", { name: "À faire" })
+      .getByRole("button", { name: "Faire le check-in" }),
   ).toHaveCount(0);
 });
 
@@ -236,4 +250,29 @@ test("today switches between the day and the week from the URL", async ({
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+});
+
+test("the sidebar check-in records the morning in under a minute", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page, "seasons@example.com");
+  await page.goto("/plan");
+  const entry = page.getByRole("button", { name: "Check-in du jour" });
+  await expect(entry).toBeVisible();
+  await entry.click();
+  await answerCheckin(page);
+  await expect(entry).toHaveCount(0);
+  await expect(page).toHaveURL(/\/plan$/);
+
+  await page.goto("/health/recovery");
+  const feeling = page.getByRole("region", { name: "Ton ressenti" });
+  await expect(
+    feeling
+      .getByRole("radiogroup", { name: "Sommeil ressenti" })
+      .getByRole("radio", { name: "Reposant" }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("button", { name: "Check-in du jour" }),
+  ).toHaveCount(0);
 });
