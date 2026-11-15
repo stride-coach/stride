@@ -248,7 +248,7 @@ describe("CI scope", () => {
         specs: "tests/e2e/races-course.spec.ts",
       },
       {
-        lane: "development-1",
+        lane: "development",
         project: "chromium-development",
         shard: "1/1",
         production: "false",
@@ -269,8 +269,7 @@ describe("CI scope", () => {
       ["main-1", "1/2", ""],
       ["main-2", "2/2", ""],
       ["course", "1/1", ""],
-      ["development-1", "1/2", ""],
-      ["development-2", "2/2", ""],
+      ["development", "1/1", ""],
     ]);
   });
 });
