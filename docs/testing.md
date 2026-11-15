@@ -1,7 +1,7 @@
 # Testing expectations
 
 - Use Vitest for focused unit tests of domain rules, parsing, and deterministic behavior. The `server` Vitest project runs `tests/unit/server-render` with the `react-server` condition to check request-scoped server reads through a Flight render.
-- Use Playwright for user-visible browser flows and smoke coverage.
+- Use Playwright for user journeys only (see [Browser journeys and unit tests](#browser-journeys-and-unit-tests)).
 - Keep domain code framework-independent where practical so it is easy to test.
 - Validate external inputs at boundaries and cover valid, invalid, and incomplete cases.
 - Add integration tests when persistence or external service behavior is introduced.
@@ -9,6 +9,12 @@
 - AI behavior will need curated evaluations for coaching quality, safety, and regression; no evaluation framework is included yet.
 
 Run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` before a pull request when relevant. Locally, run only the Playwright specs the change touches, such as `npx playwright test tests/e2e/<area>.spec.ts --project=chromium`. Pull requests run the browser specs selected from their changes, `main` runs the full browser suite, and onboarding runs only with migrations (see [CI design](ci.md)). CI retries a failed browser test once. A test that passes only on retry keeps the job green but is listed as flaky in the job's browser report (see [CI design](ci.md)); treat it as a failure to fix, not as noise.
+
+### Browser journeys and unit tests
+
+The browser suite covers user journeys, not rules (#613). A browser test earns its place when only a real browser can verify the step: navigation and URL state, focus and history, server writes seen after a reload, intercepted routes, or a flow across screens. One test follows one journey from start to finish, for example opening the plan, moving between weeks, opening a session and leaving it with focus restored.
+
+Test everything else in Vitest, next to the domain module: rules, formatting, French copy, state transitions, ownership and not-found decisions in loaders. Do not add browser tests for layout geometry, overflow, CSS motion values or Radix keyboard behaviour; the visual review covers layout. Before removing a browser assertion, name the Vitest test that covers it in the pull request.
 
 ### Writing stable browser specs
 

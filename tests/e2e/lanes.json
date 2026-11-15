@@ -1,22 +1,17 @@
 {
   "development": ["design-system", "dev-origin", "data-activity"],
-  "course": ["races-course", "session-matching"],
+  "course": ["races-course"],
   "database": ["onboarding"],
   "smoke": ["auth", "today"],
   "areas": {
-    "activities": [
-      "activities",
-      "data-activity",
-      "loading-motion",
-      "session-matching"
-    ],
+    "activities": ["activities", "data-activity", "loading-motion"],
     "ai": ["coach", "coach-runtime"],
     "auth": ["auth", "auth-integration", "home"],
     "coach": ["coach", "coach-runtime", "plan-review"],
     "coaching": ["coach", "coach-runtime", "plan-review"],
     "consent": ["consent", "settings"],
     "garmin": ["garmin-sync", "watch-workouts", "data-activity", "settings"],
-    "gear": ["gear-session", "session-panel"],
+    "gear": ["gear-session"],
     "heart-rate": ["progress", "settings"],
     "home": ["home"],
     "insights": ["progress"],
@@ -31,21 +26,17 @@
     "onboarding": ["auth", "home"],
     "plans": [
       "plan",
-      "plan-calendar",
-      "plan-history",
       "plan-review",
       "plan-session",
-      "session-matching",
       "watch-workouts",
-      "session-panel",
       "today-decisions"
     ],
-    "progress": ["progress", "session-panel"],
+    "progress": ["progress"],
     "push": ["settings-notifications"],
     "races": ["races", "races-course"],
     "search": ["search"],
     "settings": ["settings", "garmin-sync", "settings-notifications"],
     "theme": ["theme"],
-    "today": ["today", "today-decisions", "session-panel"]
+    "today": ["today", "today-decisions", "plan", "gear-session"]
   }
 }
