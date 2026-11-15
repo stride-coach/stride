@@ -11,6 +11,7 @@ import { defineTool } from "./define";
 export const checkinSchema = z.strictObject({
   date: z.iso.date(),
   legs: z.string().optional(),
+  sleepFeel: z.string().optional(),
   soreness: z.string().optional(),
   stress: z.string().optional(),
 });
@@ -20,6 +21,7 @@ export type Checkin = z.infer<typeof checkinSchema>;
 type CheckinRow = {
   checkin_date: string;
   legs: string | null;
+  sleep_feel: string | null;
   soreness: string | null;
   stress: string | null;
 };
@@ -28,6 +30,7 @@ export function toCheckin(row: CheckinRow): Checkin {
   return {
     date: row.checkin_date,
     ...(row.legs ? { legs: row.legs } : {}),
+    ...(row.sleep_feel ? { sleepFeel: row.sleep_feel } : {}),
     ...(row.soreness ? { soreness: row.soreness } : {}),
     ...(row.stress ? { stress: row.stress } : {}),
   };
@@ -39,7 +42,7 @@ export async function readCheckins(
 ): Promise<Checkin[]> {
   const { data, error } = await context.client
     .from("athlete_wellness_checkins")
-    .select("checkin_date, legs, soreness, stress")
+    .select("checkin_date, legs, sleep_feel, soreness, stress")
     .eq("user_id", context.userId)
     .gte("checkin_date", since)
     .order("checkin_date", { ascending: false });
@@ -50,7 +53,7 @@ export async function readCheckins(
 export const readHealthReportsTool = defineTool({
   name: "read_health_reports",
   description:
-    "Read the athlete's health reports for the last days: wellness check-ins newest first (legs, soreness and stress by date; values the athlete did not report are absent), and condition reports with their ids, open ones plus those resolved in the period. Returns JSON. Use it before giving any health opinion and before recording or updating a condition report.",
+    "Read the athlete's health reports for the last days: wellness check-ins newest first (legs, felt sleep, soreness and stress by date; values the athlete did not report are absent), and condition reports with their ids, open ones plus those resolved in the period. Returns JSON. Use it before giving any health opinion and before recording or updating a condition report.",
   class: "read",
   dataClasses: ["health"],
   input: z.strictObject({

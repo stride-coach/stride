@@ -1148,6 +1148,7 @@ describe("read_health_reports", () => {
     expect((outcome.content as { checkins: unknown[] }).checkins[2]).toEqual({
       date: "2026-10-12",
       legs: "fresh",
+      sleepFeel: "poor",
       stress: "low",
     });
     expect(calls[0].steps).toContainEqual([
