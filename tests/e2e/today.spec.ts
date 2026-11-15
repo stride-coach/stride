@@ -50,14 +50,17 @@ test("today weighs the session against the form and asks one question at a time"
   const waiting = session.getByText(
     "Le Coach attend tes données de la nuit pour confirmer la séance. En attendant, voici ce que prévoit le plan.",
   );
-  await expect(verdict.or(waiting)).toBeVisible();
+  const proposed = session.getByText("Proposition", { exact: true });
+  await expect(verdict.or(waiting).or(proposed)).toBeVisible();
 
   const form = page.getByRole("region", { name: "Ton corps ce matin" });
   await expect(form.getByRole("link", { name: "Détail" })).toHaveAttribute(
     "href",
     "/health/recovery",
   );
-  if (await waiting.isVisible()) {
+  if (await proposed.isVisible()) {
+    await expect(waiting).toHaveCount(0);
+  } else if (await waiting.isVisible()) {
     await expect(session.getByText("Prévue au plan")).toBeVisible();
     await expect(verdict).toHaveCount(0);
     await expect(form.getByText("En attente de ta montre")).toBeVisible();
