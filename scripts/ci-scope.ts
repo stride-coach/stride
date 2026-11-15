@@ -196,7 +196,6 @@ export function browserMatrix(
     (spec) => !development.includes(spec) && !course.includes(spec),
   );
   const shards = scope === "all" || main.length > 8 ? 2 : 1;
-  const developmentShards = scope === "all" ? 2 : 1;
   return [
     ...(main.length
       ? Array.from({ length: shards }, (_, index) => ({
@@ -219,13 +218,15 @@ export function browserMatrix(
         ]
       : []),
     ...(development.length
-      ? Array.from({ length: developmentShards }, (_, index) => ({
-          lane: `development-${index + 1}`,
-          project: "chromium-development",
-          shard: `${index + 1}/${developmentShards}`,
-          production: "false" as const,
-          specs: files(development),
-        }))
+      ? [
+          {
+            lane: "development",
+            project: "chromium-development",
+            shard: "1/1",
+            production: "false" as const,
+            specs: files(development),
+          },
+        ]
       : []),
   ];
 }

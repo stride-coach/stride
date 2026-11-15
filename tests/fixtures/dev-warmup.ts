@@ -1,16 +1,9 @@
 import { chromium, type FullConfig } from "@playwright/test";
 
 const routes = [
-  "/today",
+  "/sign-up",
   "/activities",
-  "/activities/aaaaaaaa-aaaa-4aaa-8aaa-000000000004",
-  "/races",
-  "/races/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
   "/health/fitness",
-  "/health/recovery",
-  "/health/records",
-  "/settings",
-  "/settings/profile",
   "/design-system",
   "/design-system/shell",
 ];
