@@ -129,6 +129,7 @@ export function profileFixture(): ProfileValues {
 export const checkinFixture = Array.from({ length: 14 }, (_, index) => ({
   checkin_date: addDays(fixtureToday, -index),
   legs: index % 3 === 0 ? "heavy" : "fresh",
+  sleep_feel: index === 2 ? "poor" : null,
   soreness: index === 2 ? null : "none",
   stress: "low",
 }));
