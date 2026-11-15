@@ -88,6 +88,12 @@ test("a slow navigation shows the header thread until another one replaces it", 
   await page.goto("/activities");
   const list = page.getByRole("region", { name: "Liste des activités" });
   await expect(list).toBeVisible();
+  await expect(
+    page
+      .getByRole("button", { name: /État des données/ })
+      .filter({ visible: true })
+      .first(),
+  ).toContainText("Reconnecter");
   const before = await list.boundingBox();
   const gate = await holdNavigation(page, "/health/fitness");
   try {
