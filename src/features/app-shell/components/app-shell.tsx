@@ -43,6 +43,7 @@ import { CoachContextProvider } from "@/features/coach/components/coach-context"
 import { ShellIdentityProvider } from "./shell-identity";
 import { Relief } from "@/components/stride/relief";
 import { ShortcutHelp } from "./shortcut-help";
+import { DailyCheckin } from "@/features/progress/components/daily-checkin";
 import { GlobalSearch } from "@/features/search/components/global-search";
 
 type Navigation = { navigation: Promise<ShellNavigation> };
@@ -60,6 +61,15 @@ function TodayNavLink({ badge = null }: { badge?: ShellBadge | null }) {
       label="Aujourd’hui"
       badge={badge}
     />
+  );
+}
+
+async function CheckinEntry({ navigation }: Navigation) {
+  const { checkin } = await navigation;
+  return (
+    <div className="max-md:hidden">
+      <DailyCheckin initial={checkin} variant="sidebar" />
+    </div>
   );
 }
 
@@ -164,6 +174,9 @@ export function AppShell({
                     <ProgressSidebarGroup />
                   </SidebarContent>
                   <SidebarFooter>
+                    <Suspense fallback={null}>
+                      <CheckinEntry navigation={navigation} />
+                    </Suspense>
                     <DataActivityStatus
                       compact
                       className="hidden justify-center group-data-[collapsible=icon]:flex"
