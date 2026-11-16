@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { blocksBodySchema } from "./blocks";
 import { maxAttachments, sentAttachmentSchema } from "./attachments";
 import { staffAgents } from "./staff";
 
@@ -67,6 +68,7 @@ const bodies = {
     code: z.enum(turnErrorCodes),
     text,
   }),
+  blocks: blocksBodySchema.extend({ agent }),
   topic_summary: z.object({
     topicId: z.uuid(),
     title: z.string().max(120),
