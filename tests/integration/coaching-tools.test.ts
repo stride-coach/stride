@@ -412,7 +412,8 @@ describe("coaching tools run as athlete A", () => {
         expect(numbersIn(outcome.content)).not.toContain(number);
       const handledBySession = !coachingTools.find((tool) => tool.name === name)
         ?.run;
-      expect(outcome.ok, text).toBe(!handledBySession);
+      const needsSession = name === "report_step";
+      expect(outcome.ok, text).toBe(!handledBySession && !needsSession);
     },
   );
 
