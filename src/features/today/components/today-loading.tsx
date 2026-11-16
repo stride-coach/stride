@@ -20,6 +20,43 @@ export function TodayLoading() {
         >
           <h1 className="sr-only">Aujourd’hui, {date}</h1>
           <div className="flex min-w-0 flex-1 flex-col">
+            <div aria-hidden="true" className="max-lg:hidden">
+              <div className="flex flex-col gap-3 border-b border-border px-5 py-4.5">
+                <div className="flex items-center gap-2.5">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-3.5 w-44" />
+                </div>
+                <div className="flex gap-4.5">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-5 w-52" />
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <Skeleton className="size-5.5 rounded-full" />
+                  <div className="flex max-w-180 flex-1 flex-col gap-2">
+                    <Skeleton className="h-3 w-11/12" />
+                    <Skeleton className="h-3 w-3/5" />
+                  </div>
+                </div>
+              </div>
+              <ol className="grid grid-cols-7 gap-2 px-5 py-4">
+                {Array.from({ length: 7 }, (_, index) => (
+                  <li
+                    key={index}
+                    className="flex min-h-44 flex-col gap-2 rounded-lg border border-border bg-card p-3"
+                  >
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-3.5 w-4/5" />
+                    <Skeleton className="h-5 w-14" />
+                    <Skeleton className="mt-auto h-3 w-2/3" />
+                  </li>
+                ))}
+              </ol>
+              <p className="flex min-h-8 items-center border-y border-border bg-muted px-5 text-label font-medium text-secondary-foreground">
+                Séance du jour
+              </p>
+            </div>
             <section
               aria-hidden="true"
               className="flex flex-col gap-3 border-b border-border px-4 py-4.5 md:px-5"
@@ -57,10 +94,21 @@ export function TodayLoading() {
                 </div>
               </div>
             </section>
-            <section className="flex flex-col">
+            <section className="flex flex-col lg:hidden">
               <p className="flex min-h-8 items-center border-b border-border bg-muted px-4 text-label font-medium text-secondary-foreground md:px-5">
                 Cette semaine
               </p>
+              <div
+                aria-hidden="true"
+                className="flex items-start gap-2.5 border-b border-border px-4 py-3 md:px-5"
+              >
+                <Skeleton className="size-5.5 shrink-0 rounded-full" />
+                <div className="flex flex-1 flex-col gap-2">
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
               <ul aria-hidden="true">
                 {Array.from({ length: 7 }, (_, index) => (
                   <li

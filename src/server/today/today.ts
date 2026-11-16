@@ -1,11 +1,7 @@
 import "server-only";
 import { localToday } from "@/features/app-shell/shell";
 import { buildProgram } from "@/features/plans/view/program";
-import {
-  buildToday,
-  todaySessionKeys,
-  todayWeek,
-} from "@/features/today/today";
+import { buildToday, todaySessionKeys } from "@/features/today/today";
 import type { Activity } from "@/features/activities/activities";
 import { listActivities, readActivity } from "@/server/activities/activities";
 import { pairQuestion } from "@/features/gear/check-view";
@@ -45,11 +41,7 @@ async function loadLatestGroup(
   return activities.filter((activity) => activity !== null);
 }
 
-export async function loadToday(
-  context: OnboardingContext,
-  now: Date,
-  weekStart: string | null = null,
-) {
+export async function loadToday(context: OnboardingContext, now: Date) {
   const overviewRead = loadPlanOverview(context);
   const latestRead = listActivities(context, "all", 1)
     .then(({ activities }) => activities[0] ?? null)
@@ -104,25 +96,21 @@ export async function loadToday(
   reconcileGearNotificationsAfterResponse(context, checks);
   const latestCheck = latest ? checks?.checks.get(latest.id) : null;
   const program = overview ? buildProgram(programInput(overview, paces)) : null;
-  return {
-    week: todayWeek(program, weekStart),
-    view: buildToday({
-      today,
-      plan,
-      program,
-      races,
-      matches: overview?.matches ?? [],
-      panels,
-      recovery,
-      latest,
-      latestGroup,
-      debrief,
-      pairQuestion:
-        latestCheck && checks ? pairQuestion(latestCheck, checks.shoes) : null,
-      pain: conditions.some(
-        (condition) =>
-          condition.kind === "pain" && condition.status === "active",
-      ),
-    }),
-  };
+  return buildToday({
+    today,
+    plan,
+    program,
+    races,
+    matches: overview?.matches ?? [],
+    panels,
+    recovery,
+    latest,
+    latestGroup,
+    debrief,
+    pairQuestion:
+      latestCheck && checks ? pairQuestion(latestCheck, checks.shoes) : null,
+    pain: conditions.some(
+      (condition) => condition.kind === "pain" && condition.status === "active",
+    ),
+  });
 }
