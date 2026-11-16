@@ -1,10 +1,18 @@
-import { ActivityIcon, CalendarIcon, FlagIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  CalendarIcon,
+  FlagIcon,
+  HeartPulseIcon,
+  PaperclipIcon,
+} from "lucide-react";
 import type { AttachmentKind } from "@/features/coach/attachments";
 
 const icons = {
   session: CalendarIcon,
   activity: ActivityIcon,
   race: FlagIcon,
+  health: HeartPulseIcon,
+  file: PaperclipIcon,
 } satisfies Record<AttachmentKind, unknown>;
 
 export function AttachmentIcon({

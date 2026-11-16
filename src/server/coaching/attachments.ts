@@ -10,6 +10,18 @@ import {
   type AttachmentRef,
   type SentAttachment,
 } from "@/features/coach/attachments";
+import {
+  healthMetricKeys,
+  healthSeries,
+  healthTopicIds,
+  healthTopics,
+  healthTopicSchema,
+  healthWindowDays,
+  type HealthObservation,
+  type HealthTopicId,
+} from "@/features/coach/health-attachments";
+import { fileSizeLabel } from "@/features/coach/files";
+import { readCoachFiles } from "@/server/coaching/files";
 import { addDays } from "@/features/plans/model/dates";
 import { listActivities, readActivity } from "@/server/activities/activities";
 import type { OnboardingContext } from "@/server/onboarding/context";
@@ -94,6 +106,53 @@ const raceContextSchema = z.strictObject({
   targetSeconds: z.int().positive().optional(),
 });
 
+const healthContextSchema = z.strictObject({
+  kind: z.literal("health"),
+  id: healthTopicSchema,
+  title: z.string(),
+  date: isoDate,
+  metrics: z
+    .array(
+      z.strictObject({ key: z.string(), label: z.string(), unit: z.string() }),
+    )
+    .max(4),
+  days: z
+    .array(
+      z.strictObject({
+        date: isoDate,
+        values: z.record(z.string(), z.number()),
+      }),
+    )
+    .max(healthWindowDays),
+});
+
+const fileContextSchema = z.strictObject({
+  kind: z.literal("file"),
+  id: z.string(),
+  title: z.string(),
+  date: isoDate,
+  contentType: z.string(),
+  sizeBytes: z.int().positive(),
+  note: z.string(),
+  gpx: z
+    .strictObject({
+      name: z.string().optional(),
+      distanceKm: z.number().nonnegative(),
+      elevationGainM: z.number().nonnegative().optional(),
+      points: z.int().nonnegative(),
+      waypoints: z.int().nonnegative(),
+    })
+    .optional(),
+  image: z
+    .strictObject({ width: z.int().positive(), height: z.int().positive() })
+    .optional(),
+});
+
+const imageNote =
+  "Image jointe par l’athlète. Le staff ne voit pas l’image : seuls son nom, son format et ses dimensions sont transmis. Si son contenu compte, demande à l’athlète de le décrire.";
+const gpxNote =
+  "Trace GPX jointe par l’athlète. Le staff reçoit le résumé du parcours (distance, dénivelé positif, points), pas les coordonnées.";
+
 export const attachmentContextSchema = z.strictObject({
   type: z.literal("athlete_attachments"),
   note: z.string(),
@@ -103,6 +162,8 @@ export const attachmentContextSchema = z.strictObject({
         sessionContextSchema,
         activityContextSchema,
         raceContextSchema,
+        healthContextSchema,
+        fileContextSchema,
       ]),
     )
     .min(1)
@@ -242,6 +303,99 @@ async function resolveRaces(
   });
 }
 
+const observationSchema = z.object({
+  metric: z.string(),
+  observed_on: z.string(),
+  value_numeric: z.union([z.number(), z.string()]).nullable(),
+});
+
+async function readHealthObservations(
+  context: OnboardingContext,
+  metrics: readonly string[],
+): Promise<HealthObservation[]> {
+  const { data, error } = await context.client
+    .from("provider_observations")
+    .select("metric, observed_on, value_numeric")
+    .eq("user_id", context.userId)
+    .in("metric", [...metrics])
+    .in("availability", ["available", "partial"])
+    .not("value_numeric", "is", null)
+    .order("observed_on", { ascending: false })
+    .limit(healthWindowDays * metrics.length);
+  if (error) throw new Error("health_observations_unreadable");
+  return (data ?? []).flatMap((row) => {
+    const parsed = observationSchema.safeParse(row);
+    const value = Number(parsed.success ? parsed.data.value_numeric : NaN);
+    return parsed.success && Number.isFinite(value)
+      ? [{ metric: parsed.data.metric, day: parsed.data.observed_on, value }]
+      : [];
+  });
+}
+
+async function resolveHealth(
+  context: OnboardingContext,
+  ids: HealthTopicId[],
+): Promise<ResolvedAttachment[]> {
+  if (ids.length === 0) return [];
+  const observations = await readHealthObservations(
+    context,
+    ids.flatMap((id) => healthTopics[id].metrics.map((metric) => metric.key)),
+  );
+  return ids.map((id) => {
+    const series = healthSeries(id, observations);
+    if (!series.latestDay) throw new AttachmentAccessError();
+    return {
+      kind: "health",
+      id,
+      title: series.title,
+      date: series.latestDay,
+      metrics: healthTopics[id].metrics.map(({ key, label, unit }) => ({
+        key,
+        label,
+        unit,
+      })),
+      days: series.days,
+    };
+  });
+}
+
+async function resolveFiles(
+  context: OnboardingContext,
+  ids: string[],
+): Promise<ResolvedAttachment[]> {
+  const rows = await readCoachFiles(context, ids);
+  return ids.map((id) => {
+    const row = rows.find((item) => item.id === id);
+    if (!row) throw new AttachmentAccessError();
+    const { summary } = row;
+    return {
+      kind: "file",
+      id,
+      title: row.file_name,
+      date: row.created_at.slice(0, 10),
+      contentType: row.content_type,
+      sizeBytes: row.size_bytes,
+      note:
+        summary.type === "gpx"
+          ? `${gpxNote} Taille : ${fileSizeLabel(row.size_bytes)}.`
+          : `${imageNote} Taille : ${fileSizeLabel(row.size_bytes)}.`,
+      ...(summary.type === "gpx"
+        ? {
+            gpx: {
+              ...(summary.name && { name: summary.name }),
+              distanceKm: summary.distanceKm,
+              ...(summary.elevationGainM !== null && {
+                elevationGainM: summary.elevationGainM,
+              }),
+              points: summary.points,
+              waypoints: summary.waypoints,
+            },
+          }
+        : { image: { width: summary.width, height: summary.height } }),
+    };
+  });
+}
+
 export async function resolveAttachments(
   context: OnboardingContext,
   refs: readonly AttachmentRef[],
@@ -250,12 +404,19 @@ export async function resolveAttachments(
   if (unique.length > maxAttachments) throw new AttachmentAccessError();
   const idsOf = (kind: AttachmentRef["kind"]) =>
     unique.flatMap((ref) => (ref.kind === kind ? [ref.id] : []));
-  const [sessions, activities, races] = await Promise.all([
+  const healthIds = idsOf("health").flatMap((id) => {
+    const topic = healthTopicSchema.safeParse(id);
+    if (!topic.success) throw new AttachmentAccessError();
+    return [topic.data];
+  });
+  const [sessions, activities, races, health, files] = await Promise.all([
     resolveSessions(context, idsOf("session")),
     resolveActivities(context, idsOf("activity")),
     resolveRaces(context, idsOf("race")),
+    resolveHealth(context, healthIds),
+    resolveFiles(context, idsOf("file")),
   ]);
-  const resolved = [...sessions, ...activities, ...races];
+  const resolved = [...sessions, ...activities, ...races, ...health, ...files];
   return unique.map((ref) =>
     resolved.find((item) => item.kind === ref.kind && item.id === ref.id)!,
   );
@@ -410,14 +571,37 @@ function orEmpty(options: Promise<AttachmentOption[]>, kind: string) {
   });
 }
 
+async function healthOptions(
+  context: OnboardingContext,
+): Promise<AttachmentOption[]> {
+  const observations = await readHealthObservations(context, healthMetricKeys);
+  return healthTopicIds.flatMap((id) => {
+    const series = healthSeries(id, observations);
+    return series.latestDay
+      ? [
+          {
+            kind: "health" as const,
+            id,
+            title: series.title,
+            date: series.latestDay,
+            distanceKm: null,
+            elevationGainM: null,
+            detail: series.latest,
+          },
+        ]
+      : [];
+  });
+}
+
 export async function loadAttachmentOptions(
   context: OnboardingContext,
   today: string,
 ): Promise<AttachmentOptions> {
-  const [session, activity, race] = await Promise.all([
+  const [session, activity, race, health] = await Promise.all([
     orEmpty(sessionOptions(context, today), "session"),
     orEmpty(activityOptions(context), "activity"),
     orEmpty(raceOptions(context), "race"),
+    orEmpty(healthOptions(context), "health"),
   ]);
-  return { session, activity, race };
+  return { session, activity, race, health, file: [] };
 }
