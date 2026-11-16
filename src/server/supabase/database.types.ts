@@ -607,6 +607,7 @@ export type Database = {
           list_cost_cents: number;
           managed_session_id: string;
           mode: string;
+          notify_when_ready: boolean;
           pending_tool_use_id: string | null;
           race_id: string | null;
           read_at: string | null;
@@ -614,6 +615,7 @@ export type Database = {
           title: string | null;
           updated_at: string;
           user_id: string;
+          writing_step: Json | null;
         };
         ComputedFields: never;
         Insert: {
@@ -628,6 +630,7 @@ export type Database = {
           list_cost_cents?: number;
           managed_session_id: string;
           mode: string;
+          notify_when_ready?: boolean;
           pending_tool_use_id?: string | null;
           race_id?: string | null;
           read_at?: string | null;
@@ -635,6 +638,7 @@ export type Database = {
           title?: string | null;
           updated_at?: string;
           user_id: string;
+          writing_step?: Json | null;
         };
         Update: {
           budget_cents?: number;
@@ -648,6 +652,7 @@ export type Database = {
           list_cost_cents?: number;
           managed_session_id?: string;
           mode?: string;
+          notify_when_ready?: boolean;
           pending_tool_use_id?: string | null;
           race_id?: string | null;
           read_at?: string | null;
@@ -655,6 +660,7 @@ export type Database = {
           title?: string | null;
           updated_at?: string;
           user_id?: string;
+          writing_step?: Json | null;
         };
         Relationships: [
           {

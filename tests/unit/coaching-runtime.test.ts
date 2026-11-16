@@ -117,6 +117,8 @@ function record(overrides: Partial<CoachSessionRecord> = {}) {
     lastActivityAt: "2026-10-16T09:00:00Z",
     readAt: null,
     composingSince: null,
+    writingStep: null,
+    notifyWhenReady: false,
     createdAt: "2026-10-16T09:00:00Z",
     kind: "topic",
     raceId: null,

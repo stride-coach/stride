@@ -3,6 +3,8 @@ import { displayTimeZone } from "@/features/app-shell/shell";
 import { isUnread } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
 import type { ProposalCard } from "@/features/coach/proposal-card";
+import { notifyOffer, type NotifyOffer } from "@/features/coach/notify";
+import type { StepReport } from "@/features/coach/steps";
 import { messageKinds, type ThreadAnchor } from "@/features/coach/search";
 import { zonedEpoch } from "@/features/races/sun";
 import {
@@ -13,6 +15,7 @@ import {
   type TopicSummary,
 } from "@/features/coach/topics";
 import type { OnboardingContext } from "@/server/onboarding/context";
+import { readPushSettings } from "@/server/push/preferences";
 import {
   findFirstItemSince,
   findItemInSessions,
@@ -37,6 +40,9 @@ export type CoachMainData = {
   pendingToolUseId: string | null;
   lastTurnAt: string | null;
   composingSince: string | null;
+  writingStep: StepReport | null;
+  notifyWhenReady: boolean;
+  notifyOffer: NotifyOffer;
   unreadIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
@@ -54,6 +60,9 @@ export type CoachTopicData = {
   pendingToolUseId: string | null;
   lastTurnAt: string | null;
   composingSince: string | null;
+  writingStep: StepReport | null;
+  notifyWhenReady: boolean;
+  notifyOffer: NotifyOffer;
   createdAt: string;
   unread: boolean;
   items: ThreadItem[];
@@ -63,6 +72,14 @@ export type CoachTopicData = {
 };
 
 const threadWindow = 500;
+
+async function readNotifyOffer(context: OnboardingContext) {
+  const settings = await readPushSettings(context).catch(() => null);
+  return notifyOffer({
+    devices: settings?.publicKey ? settings.endpoints.length : 0,
+    staffEnabled: settings?.preferences.plan_staff ?? false,
+  });
+}
 
 async function readAnchoredItems(
   context: OnboardingContext,
@@ -129,6 +146,9 @@ export async function loadMainThread(
     pendingToolUseId: live?.pendingToolUseId ?? null,
     lastTurnAt: live?.lastTurnAt ?? null,
     composingSince: live?.composingSince ?? null,
+    writingStep: live?.writingStep ?? null,
+    notifyWhenReady: live?.notifyWhenReady ?? false,
+    notifyOffer: await readNotifyOffer(context),
     unreadIds: sessions
       .filter((session) => isUnread(session.lastActivityAt, session.readAt))
       .map((session) => session.id),
@@ -210,6 +230,9 @@ export async function loadTopic(
       pendingToolUseId: thread.pendingToolUseId,
       lastTurnAt: thread.lastTurnAt,
       composingSince: thread.composingSince,
+      writingStep: thread.writingStep,
+      notifyWhenReady: thread.notifyWhenReady,
+      notifyOffer: await readNotifyOffer(context),
       createdAt: thread.createdAt,
       unread: isUnread(thread.lastActivityAt, thread.readAt),
       items,
