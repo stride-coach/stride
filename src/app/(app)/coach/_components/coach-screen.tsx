@@ -59,12 +59,12 @@ import {
   sendsNow,
   type OutboxMessage,
 } from "@/features/coach/outbox";
+import { interruptFailure, turnFailure } from "@/features/coach/stream";
 import {
-  interruptFailure,
-  refusalText,
-  splitFrames,
-  turnFailure,
-} from "@/features/coach/stream";
+  interruptTurn,
+  readTurnEvents,
+  refusalFromResponse,
+} from "@/features/coach/turn-client";
 import {
   currentResultIndex,
   filterResults,
@@ -431,12 +431,7 @@ function ConversationPane({
   }, [resumed, router]);
 
   async function interrupt(thread: string) {
-    const response = await fetch("/api/coach/turns/interrupt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ threadId: thread }),
-    }).catch(() => null);
-    if (response && (response.ok || response.status === 409)) return;
+    if (await interruptTurn(thread)) return;
     toast.error(interruptFailure, { id: "coach-stop" });
     setStopping(false);
   }
@@ -534,61 +529,44 @@ function ConversationPane({
         }),
       });
       if (!response.ok) {
-        const data: unknown = await response.json().catch(() => null);
-        fail(
-          refusalText(
-            data && typeof data === "object" && "code" in data
-              ? data.code
-              : null,
-          ),
-        );
+        fail(await refusalFromResponse(response));
         setSending(null);
       } else {
         sent = true;
-        const reader = response.body
-          ?.pipeThrough(new TextDecoderStream())
-          .getReader();
-        let buffer = "";
-        while (reader) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          const { events, rest } = splitFrames(buffer + value);
-          buffer = rest;
-          for (const event of events) {
-            if (event.type === "session") {
-              started = true;
-              currentThread = event.threadId;
-              turnThread.current = event.threadId;
-              if (stopRequested.current) {
-                stopRequested.current = false;
-                void interrupt(event.threadId);
-              }
-              if (conversation.target.kind === "new_topic")
-                moveOutbox(conversation.key, event.threadId);
-              setThreadId(event.threadId);
-              setState("running");
-              setLastTurnAt(new Date().toISOString());
+        await readTurnEvents(response, (event) => {
+          if (event.type === "session") {
+            started = true;
+            currentThread = event.threadId;
+            turnThread.current = event.threadId;
+            if (stopRequested.current) {
+              stopRequested.current = false;
+              void interrupt(event.threadId);
             }
-            if (event.type === "item") {
-              if (event.item.kind === "athlete" || event.item.kind === "answer")
-                setSending(null);
-              if (event.item.kind === "answer") setPendingQuestion(null);
-              if (event.item.kind === "error") errorShown = true;
-              setLive((current) => ({
-                ...current,
-                items: [...current.items, event.item],
-              }));
-            }
-            if (event.type === "question") setPendingQuestion(event.toolUseId);
-            if (event.type === "composing") setComposingSince(event.since);
-            if (event.type === "error") turnError = event.text;
-            if (event.type === "done") {
-              finished = true;
-              setState(event.status as SessionState);
-              if (event.status !== "awaiting_athlete") setPendingQuestion(null);
-            }
+            if (conversation.target.kind === "new_topic")
+              moveOutbox(conversation.key, event.threadId);
+            setThreadId(event.threadId);
+            setState("running");
+            setLastTurnAt(new Date().toISOString());
           }
-        }
+          if (event.type === "item") {
+            if (event.item.kind === "athlete" || event.item.kind === "answer")
+              setSending(null);
+            if (event.item.kind === "answer") setPendingQuestion(null);
+            if (event.item.kind === "error") errorShown = true;
+            setLive((current) => ({
+              ...current,
+              items: [...current.items, event.item],
+            }));
+          }
+          if (event.type === "question") setPendingQuestion(event.toolUseId);
+          if (event.type === "composing") setComposingSince(event.since);
+          if (event.type === "error") turnError = event.text;
+          if (event.type === "done") {
+            finished = true;
+            setState(event.status as SessionState);
+            if (event.status !== "awaiting_athlete") setPendingQuestion(null);
+          }
+        });
       }
     } catch {
       if (!started && !answering && !navigator.onLine)
