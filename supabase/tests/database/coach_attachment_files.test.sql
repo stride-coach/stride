@@ -41,6 +41,7 @@ select is((select count(*)::int from public.coach_attachment_files), 1, 'athlete
 
 select pg_temp.act_as('b7000000-0000-4000-8000-0000000000b7');
 select is((select count(*)::int from public.coach_attachment_files), 0, 'another athlete reads nothing');
+reset role;
 select is(
   (select count(*)::int from storage.buckets where id = 'coach-files' and not public),
   1,
