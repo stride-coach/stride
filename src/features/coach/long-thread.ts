@@ -12,10 +12,22 @@ export type ThreadRow = { threadId: string; item: ThreadItem };
 
 export type UnreadBoundary = { firstId: string; count: number };
 
-const ownKinds: readonly ThreadItem["kind"][] = ["athlete", "answer"];
+const incomingKinds: readonly ThreadItem["kind"][] = [
+  "coach",
+  "staff_message",
+  "question",
+  "proposal",
+  "blocks",
+  "error",
+  "topic_summary",
+];
+
+export function isIncomingMessage(item: ThreadItem) {
+  return incomingKinds.includes(item.kind);
+}
 
 function isUnreadItem(item: ThreadItem, marker: ReadMarker | undefined) {
-  if (!item.id || ownKinds.includes(item.kind)) return false;
+  if (!item.id || !isIncomingMessage(item)) return false;
   if (!marker) return false;
   if (marker.readThroughId !== null)
     return BigInt(item.id) > BigInt(marker.readThroughId);
@@ -61,6 +73,7 @@ export type OlderState = {
   base: ThreadItem[];
   items: ThreadItem[];
   hasMore: boolean;
+  loaded: number;
 };
 
 export function syncOlder(
@@ -72,16 +85,35 @@ export function syncOlder(
   const first = base[0]?.id;
   const oldest = previous.items[0]?.id ?? previous.base[0]?.id;
   const newest = previous.base.at(-1)?.id;
-  if (!first || !oldest || !newest) return { base, items: [], hasMore };
+  if (!first || !oldest || !newest)
+    return { base, items: [], hasMore, loaded: 0 };
   const start = BigInt(first);
   if (start <= BigInt(oldest) || start > BigInt(newest))
-    return { base, items: [], hasMore };
+    return { base, items: [], hasMore, loaded: 0 };
   return {
     base,
     items: [...previous.items, ...previous.base].filter(
       (item) => item.id && BigInt(item.id) < start,
     ),
     hasMore: previous.hasMore,
+    loaded: previous.loaded,
+  };
+}
+
+export function applyOlderPage(
+  state: OlderState,
+  before: string,
+  page: readonly ThreadItem[],
+  hasMore: boolean,
+): OlderState {
+  const oldest = state.items[0]?.id ?? state.base[0]?.id;
+  if (oldest !== before) return state;
+  const items = prependOlder(state.items, page);
+  return {
+    ...state,
+    items,
+    hasMore,
+    loaded: state.loaded + items.length - state.items.length,
   };
 }
 

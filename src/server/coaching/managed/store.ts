@@ -449,25 +449,37 @@ export async function findFirstItemSince(
 export async function markThreadsRead(
   context: OnboardingContext,
   threadIds: readonly string[],
+  throughId?: string,
 ) {
   if (!threadIds.length) return;
   const readAt = new Date().toISOString();
   const results = await Promise.all(
     threadIds.map(async (threadId) => {
-      const latest = await context.client
+      let latestQuery = context.client
         .from("coach_thread_items")
         .select("id")
         .eq("user_id", context.userId)
-        .eq("coach_session_id", threadId)
+        .eq("coach_session_id", threadId);
+      if (throughId) latestQuery = latestQuery.lte("id", throughId);
+      const latest = await latestQuery
         .order("id", { ascending: false })
         .limit(1);
       if (latest.error) return latest;
       const readThrough = latest.data?.[0]?.id ?? null;
-      return context.client
+      const stamped = await context.client
         .from("coach_sessions")
-        .update({ read_at: readAt, read_through_item_id: readThrough })
+        .update({ read_at: readAt })
         .eq("user_id", context.userId)
         .eq("id", threadId);
+      if (stamped.error || readThrough === null) return stamped;
+      return context.client
+        .from("coach_sessions")
+        .update({ read_through_item_id: readThrough })
+        .eq("user_id", context.userId)
+        .eq("id", threadId)
+        .or(
+          `read_through_item_id.is.null,read_through_item_id.lt.${readThrough}`,
+        );
     }),
   );
   if (results.some((result) => result.error))

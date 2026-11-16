@@ -94,8 +94,9 @@ import {
   type TopicSummary,
 } from "@/features/coach/topics";
 import {
+  applyOlderPage,
+  isIncomingMessage,
   olderCursor,
-  prependOlder,
   syncOlder,
   unreadEntryIndex,
   type OlderState,
@@ -148,7 +149,6 @@ type Conversation = {
   readIds: string[];
   hasMore: boolean;
   unread: UnreadBoundary | null;
-  messageTotal: number | null;
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
   proposalCards: Record<string, ProposalCard>;
@@ -182,7 +182,6 @@ function conversationOf(
   view: CoachView,
   draft: { mode: "conversation" | "plan" },
   draftTopic: DraftTopic | null,
-  messageTotal: number | null,
 ): Conversation {
   if (draftTopic)
     return {
@@ -208,7 +207,6 @@ function conversationOf(
       readIds: [],
       hasMore: false,
       unread: null,
-      messageTotal: null,
       items: noItems,
       proposalStatuses: noStatuses,
       proposalCards: noCards,
@@ -233,7 +231,6 @@ function conversationOf(
       readIds: view.data.unread ? [view.data.id] : [],
       hasMore: view.data.hasMore,
       unread: view.data.unreadBoundary,
-      messageTotal,
       items: view.data.items,
       proposalStatuses: view.data.proposalStatuses,
       proposalCards: view.data.proposalCards,
@@ -257,7 +254,6 @@ function conversationOf(
     readIds: view.data.unreadIds,
     hasMore: view.data.hasMore,
     unread: view.data.unread,
-    messageTotal: null,
     items: view.data.items,
     proposalStatuses: view.data.proposalStatuses,
     proposalCards: view.data.proposalCards,
@@ -323,7 +319,9 @@ function ConversationPane({
   searchPanel,
   threadSearch,
   focusId,
+  messageTotal,
 }: {
+  messageTotal: number | null;
   searchBar: React.ReactNode;
   searchPanel: React.ReactNode;
   threadSearch: ThreadSearch;
@@ -363,6 +361,7 @@ function ConversationPane({
     base: baseItems,
     items: [],
     hasMore: conversation.hasMore,
+    loaded: 0,
   });
   const [known, setKnown] = useState<{
     statuses: Record<string, string>;
@@ -476,12 +475,17 @@ function ConversationPane({
       : revisableQuestion(items);
 
   const readIds = conversation.readIds;
+  const markRead = useEffectEvent(() => {
+    void markCoachThreadsRead({
+      threadIds: readIds,
+      throughId: items.findLast((item) => item.id)?.id,
+    });
+  });
   useEffect(() => {
-    if (readIds.length) void markCoachThreadsRead({ threadIds: readIds });
+    if (readIds.length) markRead();
   }, [readIds]);
 
   const lastId = items.at(-1)?.id;
-  const olderLoaded = useRef(0);
   const seenTail = useRef(items.length);
   const preserve = useRef<{ height: number; top: number } | null>(null);
   const atBottom = useRef(true);
@@ -498,7 +502,7 @@ function ConversationPane({
   }, [older.items]);
 
   const settleScroll = useEffectEvent(() => {
-    const tail = items.length - olderLoaded.current;
+    const tail = items.length - older.loaded;
     const grown = tail - seenTail.current;
     seenTail.current = tail;
     if (focusId && !sending) {
@@ -523,12 +527,7 @@ function ConversationPane({
     }
     if (grown > 0)
       setBehind(
-        (count) =>
-          count +
-          items
-            .slice(-grown)
-            .filter((item) => item.kind !== "athlete" && item.kind !== "answer")
-            .length,
+        (count) => count + items.slice(-grown).filter(isIncomingMessage).length,
       );
   });
   useEffect(() => {
@@ -569,12 +568,9 @@ function ConversationPane({
           height: element.scrollHeight,
           top: element.scrollTop,
         };
-      olderLoaded.current += page.items.length;
-      setOlder((current) => ({
-        ...current,
-        items: prependOlder(current.items, page.items),
-        hasMore: page.hasMore,
-      }));
+      setOlder((current) =>
+        applyOlderPage(current, before, page.items, page.hasMore),
+      );
       setKnown((current) => ({
         statuses: { ...page.proposalStatuses, ...current.statuses },
         cards: { ...page.proposalCards, ...current.cards },
@@ -939,8 +935,8 @@ function ConversationPane({
                   {conversation.createdAt
                     ? topicOpenedLine(
                         conversation.createdAt,
-                        older.hasMore && conversation.messageTotal !== null
-                          ? conversation.messageTotal
+                        older.hasMore && messageTotal !== null
+                          ? messageTotal
                           : topicMessageCount(items),
                         timeZone,
                       )
@@ -1295,15 +1291,11 @@ export function CoachScreen({
   const [sheetOpen, setSheetOpen] = useState(false);
   const currentId = view.kind === "topic" && !draftTopic ? view.data.id : null;
   const conversation = useMemo(
-    () =>
-      conversationOf(
-        view,
-        draft,
-        draftTopic,
-        topics.find((topic) => topic.id === currentId)?.messages ?? null,
-      ),
-    [view, draft, draftTopic, topics, currentId],
+    () => conversationOf(view, draft, draftTopic),
+    [view, draft, draftTopic],
   );
+  const messageTotal =
+    topics.find((topic) => topic.id === currentId)?.messages ?? null;
   const openTopics = topics.filter((topic) => topic.closedAt === null).length;
   const title =
     conversation.target.kind === "main"
@@ -1423,6 +1415,7 @@ export function CoachScreen({
         timeZone={timeZone}
         threadSearch={threadSearch}
         focusId={focusId}
+        messageTotal={messageTotal}
         searchBar={
           searchOpen ? (
             <SearchBar

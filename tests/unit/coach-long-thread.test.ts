@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ThreadItem } from "../../src/features/coach/items";
 import { buildThread } from "../../src/features/coach/thread";
 import {
+  applyOlderPage,
   newMessagesLabel,
   olderCursor,
   prependOlder,
@@ -13,9 +14,19 @@ import {
 
 function item(
   id: string,
-  kind: "athlete" | "coach" | "answer",
+  kind: "athlete" | "coach" | "answer" | "read",
   at: string,
 ): ThreadItem {
+  if (kind === "read")
+    return {
+      kind,
+      id,
+      at,
+      thread: "t",
+      agent: "coach",
+      tool: "x",
+      label: "Plan",
+    };
   return kind === "coach"
     ? { kind, id, at, text: "Message" }
     : kind === "answer"
@@ -62,6 +73,21 @@ describe("unreadBoundary", () => {
     expect(unreadBoundary(own, new Map([["a", marker("10")]]), false)).toBe(
       null,
     );
+  });
+
+  it("ignores items the thread never shows as messages", () => {
+    const mixed = [
+      { threadId: "a", item: item("10", "coach", "2026-11-10T08:00:00Z") },
+      { threadId: "a", item: item("11", "read", "2026-11-10T08:01:00Z") },
+      { threadId: "a", item: item("12", "read", "2026-11-10T08:02:00Z") },
+      { threadId: "a", item: item("13", "coach", "2026-11-10T08:03:00Z") },
+    ];
+    expect(
+      unreadBoundary(mixed, new Map([["a", marker("10")]]), false),
+    ).toEqual({
+      firstId: "13",
+      count: 1,
+    });
   });
 
   it("returns null when everything is read", () => {
@@ -146,7 +172,7 @@ describe("syncOlder", () => {
 
   it("returns the same state while the first page is unchanged", () => {
     const base = page(41, 42);
-    const state = { base, items: [], hasMore: true };
+    const state = { base, items: [], hasMore: true, loaded: 0 };
     expect(syncOlder(state, base, true)).toBe(state);
   });
 
@@ -155,6 +181,7 @@ describe("syncOlder", () => {
       base: page(41, 42, 43),
       items: page(30, 31),
       hasMore: true,
+      loaded: 0,
     };
     const next = syncOlder(state, page(43, 44, 45), false);
     expect(ids(next.items)).toEqual(["30", "31", "41", "42"]);
@@ -162,21 +189,31 @@ describe("syncOlder", () => {
   });
 
   it("keeps the dropped items even when no older page was loaded", () => {
-    const state = { base: page(41, 42, 43), items: [], hasMore: true };
+    const state = {
+      base: page(41, 42, 43),
+      items: [],
+      hasMore: true,
+      loaded: 0,
+    };
     const next = syncOlder(state, page(42, 43, 44), false);
     expect(ids(next.items)).toEqual(["41"]);
     expect(next.hasMore).toBe(true);
   });
 
   it("resets to the server answer when the new page starts earlier", () => {
-    const state = { base: page(41, 42), items: page(30), hasMore: true };
+    const state = {
+      base: page(41, 42),
+      items: page(30),
+      hasMore: true,
+      loaded: 0,
+    };
     const next = syncOlder(state, page(10, 11), false);
     expect(next.items).toEqual([]);
     expect(next.hasMore).toBe(false);
   });
 
   it("resets when the new page does not overlap the previous one", () => {
-    const state = { base: page(41, 42), items: [], hasMore: true };
+    const state = { base: page(41, 42), items: [], hasMore: true, loaded: 0 };
     const next = syncOlder(state, page(300, 301), true);
     expect(next.items).toEqual([]);
     expect(next.hasMore).toBe(true);
@@ -214,5 +251,36 @@ describe("unreadEntryIndex", () => {
 
   it("returns -1 when no entry holds an item that new", () => {
     expect(unreadEntryIndex(entries, "99")).toBe(-1);
+  });
+});
+
+describe("applyOlderPage", () => {
+  const at = "2026-11-10T08:00:00Z";
+  const page = (...ids: number[]) =>
+    ids.map((id) => item(String(id), "coach", at));
+  const ids = (items: ThreadItem[]) => items.map((entry) => entry.id);
+
+  it("prepends a page requested against the oldest known item", () => {
+    const state = { base: page(41, 42), items: [], hasMore: true, loaded: 0 };
+    const next = applyOlderPage(state, "41", page(39, 40), false);
+    expect(ids(next.items)).toEqual(["39", "40"]);
+    expect(next.hasMore).toBe(false);
+    expect(next.loaded).toBe(2);
+  });
+
+  it("discards a late page once the oldest known item changed", () => {
+    const state = { base: page(300, 301), items: [], hasMore: true, loaded: 0 };
+    expect(applyOlderPage(state, "41", page(39, 40), false)).toBe(state);
+  });
+
+  it("counts only the items it really added", () => {
+    const state = {
+      base: page(41, 42),
+      items: page(40),
+      hasMore: true,
+      loaded: 1,
+    };
+    const next = applyOlderPage(state, "40", page(39, 40), true);
+    expect(next.loaded).toBe(2);
   });
 });
