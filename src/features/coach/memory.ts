@@ -10,6 +10,13 @@ export const factCategoryLabels: Record<FactCategory, string> = {
   upcoming: "À venir",
 };
 
+export const factCategoryChoices: Record<FactCategory, string> = {
+  goal: "Objectif",
+  body: "Ton corps",
+  habit: "Habitude",
+  upcoming: "À venir",
+};
+
 export const factTextLimit = 300;
 export const factLimit = 100;
 const staffFactLimit = 40;
@@ -118,10 +125,20 @@ export function groupFacts(facts: readonly Fact[]): FactGroup[] {
   });
 }
 
-export function clearAllLine(count: number) {
-  return count === 1
-    ? "Le staff oubliera cette information."
-    : `Le staff oubliera les ${count} informations de cette page.`;
+const clearAllThemes: Record<FactCategory, string> = {
+  goal: "tes objectifs",
+  body: "ce que tu lui as dit de ton corps",
+  habit: "tes habitudes",
+  upcoming: "ce qui t’attend",
+};
+
+export function clearAllLine(
+  count: number,
+  categories: readonly FactCategory[] = [],
+) {
+  if (count === 1) return "Le staff oubliera cette information.";
+  const themes = categories.map((category) => clearAllThemes[category]);
+  return `Le staff oubliera les ${count} informations de cette page${themes.length ? ` : ${themes.join(", ")}` : ""}.`;
 }
 
 export type StaffFact = {
@@ -160,4 +177,19 @@ export function memoryExport(facts: readonly Fact[], now: Date) {
       saidOn: fact.createdAt.slice(0, 10),
     })),
   };
+}
+
+export function factActionMessage(
+  reason: "invalid" | "limit" | "missing" | "failed",
+) {
+  switch (reason) {
+    case "invalid":
+      return "Vérifie le texte et les dates, puis réessaie.";
+    case "limit":
+      return `Tu as atteint la limite de ${factLimit} informations. Oublie-en une pour en ajouter.`;
+    case "missing":
+      return "Cette information n’existe plus.";
+    case "failed":
+      return "L’information n’a pas pu être enregistrée. Réessaie dans un instant.";
+  }
 }

@@ -1,6 +1,11 @@
 export const coachTabs = [
   { href: "/coach", label: "Conversation", short: "Conversation" },
   { href: "/coach/decisions", label: "Décisions", short: "Décisions" },
+  {
+    href: "/coach/memory",
+    label: "Ce que je sais de toi",
+    short: "Sur toi",
+  },
   { href: "/coach/team", label: "Le staff", short: "Staff" },
 ] as const;
 

@@ -192,6 +192,9 @@ describe("clearAllLine", () => {
     expect(clearAllLine(9)).toBe(
       "Le staff oubliera les 9 informations de cette page.",
     );
+    expect(clearAllLine(9, ["goal", "body", "habit"])).toBe(
+      "Le staff oubliera les 9 informations de cette page : tes objectifs, ce que tu lui as dit de ton corps, tes habitudes.",
+    );
   });
 });
 

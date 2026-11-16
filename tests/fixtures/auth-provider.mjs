@@ -1721,12 +1721,14 @@ const coachTables = [
   "coach_sessions",
   "coach_thread_items",
   "coach_message_corrections",
+  "athlete_facts",
   "plan_proposals",
   "plan_decisions",
   "push_subscriptions",
 ];
 tables.push_subscriptions = [];
 tables.coach_message_corrections = [];
+tables.athlete_facts = [];
 const coachSnapshot = structuredClone(
   Object.fromEntries(
     coachTables.map((table) => [
@@ -4076,6 +4078,35 @@ createServer(async (request, response) => {
         created_at: new Date().toISOString(),
       });
       return send(201, undefined);
+    }
+    if (url.pathname === "/rest/v1/athlete_facts") {
+      if (request.method === "POST") {
+        const now = new Date().toISOString();
+        tables.athlete_facts.push({
+          id: randomUUID(),
+          starts_on: null,
+          ends_on: null,
+          created_at: now,
+          updated_at: now,
+          ...body,
+        });
+        return send(201, undefined);
+      }
+      if (request.method === "PATCH") {
+        const { rows } = selectRows("athlete_facts", url.searchParams);
+        for (const row of rows)
+          Object.assign(row, body, {
+            updated_at: new Date(Date.now() + 1000).toISOString(),
+          });
+        return send(200, rows);
+      }
+      if (request.method === "DELETE") {
+        const { rows } = selectRows("athlete_facts", url.searchParams);
+        tables.athlete_facts = tables.athlete_facts.filter(
+          (item) => !rows.includes(item),
+        );
+        return send(200, rows);
+      }
     }
     if (
       url.pathname === "/rest/v1/coach_message_corrections" &&
