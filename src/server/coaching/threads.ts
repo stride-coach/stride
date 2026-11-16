@@ -2,6 +2,7 @@ import "server-only";
 import { displayTimeZone } from "@/features/app-shell/shell";
 import { isUnread } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
+import type { ProposalCard } from "@/features/coach/proposal-card";
 import { messageKinds, type ThreadAnchor } from "@/features/coach/search";
 import { zonedEpoch } from "@/features/races/sun";
 import {
@@ -25,6 +26,7 @@ import {
   type CoachSessionRecord,
   type ItemScope,
 } from "./managed/store";
+import { readProposalCards } from "./proposal-cards";
 
 export const coachTimeZone = displayTimeZone;
 
@@ -38,6 +40,7 @@ export type CoachMainData = {
   unreadIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
+  proposalCards: Record<string, ProposalCard>;
   anchorId: string | null;
 };
 
@@ -55,6 +58,7 @@ export type CoachTopicData = {
   unread: boolean;
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
+  proposalCards: Record<string, ProposalCard>;
   anchorId: string | null;
 };
 
@@ -82,6 +86,12 @@ async function readAnchoredItems(
   return { rows: await readItemsAround(context, ids, anchorId), anchorId };
 }
 
+function cardsOf(context: OnboardingContext, items: readonly ThreadItem[]) {
+  return readProposalCards(context, items).catch(
+    (): Record<string, ProposalCard> => ({}),
+  );
+}
+
 function mergedStatuses(statuses: Map<string, Record<string, string>>) {
   return Object.assign({}, ...statuses.values()) as Record<string, string>;
 }
@@ -107,6 +117,8 @@ export async function loadMainThread(
         readAnchoredItems(context, ids, null),
         readThreadProposalStatuses(context, ids),
       ]);
+  const items = rows.map((row) => row.item);
+  const proposalCards = await cardsOf(context, items);
   const latest = sessions[0] ?? null;
   const live =
     latest && mainSessionReusable(latest, now, coachTimeZone) ? latest : null;
@@ -120,8 +132,9 @@ export async function loadMainThread(
     unreadIds: sessions
       .filter((session) => isUnread(session.lastActivityAt, session.readAt))
       .map((session) => session.id),
-    items: rows.map((row) => row.item),
+    items,
     proposalStatuses: mergedStatuses(statuses),
+    proposalCards,
     anchorId,
   };
 }
@@ -184,6 +197,7 @@ export async function loadTopic(
   ]);
   const items = rows.map((row) => row.item);
   if (thread.title === null && items.length === 0) return null;
+  const proposalCards = await cardsOf(context, items);
   return {
     kind: "topic",
     topic: {
@@ -200,6 +214,7 @@ export async function loadTopic(
       unread: isUnread(thread.lastActivityAt, thread.readAt),
       items,
       proposalStatuses: proposals.get(thread.id) ?? {},
+      proposalCards,
       anchorId,
     },
   };

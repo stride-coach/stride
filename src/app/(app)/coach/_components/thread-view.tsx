@@ -1,10 +1,12 @@
 "use client";
 
-import { createContext, useContext, useId } from "react";
+import { createContext, useContext, useId, useTransition } from "react";
 import { CheckIcon, RotateCcwIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ContextChipLink } from "@/components/stride/context-chip";
 import { Chip } from "@/components/stride/chip";
+import { SessionShape } from "@/components/stride/session-shape";
 import { Status } from "@/components/stride/status";
 import { Widget } from "@/components/stride/widget";
 import { cn } from "@/lib/utils";
@@ -23,7 +25,18 @@ import {
   type Highlight,
 } from "@/features/coach/components/highlighted";
 import { StrideMark } from "@/components/stride/stride-mark";
+import {
+  proposalStatusLine,
+  type ProposalCard,
+} from "@/features/coach/proposal-card";
 import { summaryCard } from "@/features/coach/topics";
+import { reasonText } from "@/features/plans/review/proposal";
+import {
+  acceptProposal,
+  rejectProposal,
+  undoProposal,
+  type ProposalActionResult,
+} from "@/server/plans/actions";
 import { staff as allStaff } from "@/features/coach/staff";
 import type { StaffAgent } from "@/features/coach/staff";
 import {
@@ -201,20 +214,115 @@ const proposalKickers: Record<
   race_nutrition: "Proposition · Nutrition de course",
 };
 
-function ProposalCard({
+const decisionFailures: Partial<
+  Record<ProposalActionResult["status"], string>
+> = {
+  error: "Ta décision n’a pas pu être enregistrée. Réessaie dans un instant.",
+  pending:
+    "Ta décision est enregistrée, mais le plan n’a pas pu être mis à jour. Réessaie depuis Plan.",
+  "session-expired": "Ta session a expiré. Reconnecte-toi pour décider.",
+  "invalid-request": "Cette proposition ne peut plus être décidée.",
+};
+
+function ProposalDecisionLine({
+  card,
+  timeZone,
+  pending,
+  onUndo,
+}: {
+  card: ProposalCard;
+  timeZone: string;
+  pending: boolean;
+  onUndo: () => void;
+}) {
+  const line = proposalStatusLine(card.decision, card, timeZone);
+  if (!line) return null;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="flex items-center gap-2">
+        <Status
+          level="ok"
+          className={cn(line.tone === "muted" && "text-muted-foreground")}
+        >
+          {line.label}
+        </Status>
+        {card.decision.canUndo && (
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            disabled={pending}
+            onClick={onUndo}
+            className="ml-auto h-auto p-0"
+          >
+            Annuler
+          </Button>
+        )}
+      </span>
+      {line.outcome && (
+        <span className="text-label text-muted-foreground">{line.outcome}</span>
+      )}
+    </div>
+  );
+}
+
+function ProposalWidget({
   block,
+  timeZone,
 }: {
   block: Extract<StaffBlock, { type: "proposal" }>;
+  timeZone: string;
 }) {
   const staff = allStaff;
   const highlight = useHighlight(block.itemId);
+  const [pending, startTransition] = useTransition();
   const status = proposalStatus[block.status];
+  const card = block.card;
+  const preview = card?.preview ?? null;
+  const decidable =
+    card !== null &&
+    card.decision.state === "pending" &&
+    card.decision.canDecide;
+  const race =
+    block.raceId &&
+    (block.scope === "race_strategy" || block.scope === "race_nutrition");
+
+  function decide(
+    action: (input: unknown) => Promise<ProposalActionResult>,
+    success: string,
+  ) {
+    startTransition(async () => {
+      const result = await action({ proposalId: block.proposalId }).catch(
+        (): ProposalActionResult => ({ status: "error" }),
+      );
+      if (
+        result.status === "applied" ||
+        result.status === "rejected" ||
+        result.status === "reverted"
+      ) {
+        toast.success(success, { id: "coach-decision" });
+        return;
+      }
+      const text =
+        result.status === "stale" || result.status === "invalid"
+          ? reasonText(result.reason)
+          : decisionFailures[result.status];
+      if (text) toast.error(text, { id: "coach-decision" });
+    });
+  }
+
+  const keepLabel = preview?.keep ? `Garder ${preview.keep}` : "Refuser";
   return (
     <Widget
       {...searchMark(block.itemId, highlight)}
-      title={proposalKickers[block.scope]}
+      aria-busy={pending}
+      title={preview?.heading ?? proposalKickers[block.scope]}
       verdict={
-        status.level ? (
+        card ? (
+          card.decision.state === "pending" ? (
+            <Chip proposal>Proposition</Chip>
+          ) : null
+        ) : status.level ? (
           <Status level={status.level}>{status.label}</Status>
         ) : (
           <span className="text-label font-normal text-muted-foreground">
@@ -222,20 +330,35 @@ function ProposalCard({
           </span>
         )
       }
-      className="max-w-150"
+      className={cn(
+        "max-w-150",
+        card?.decision.state === "expired" && "opacity-60",
+      )}
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <p className="text-body-lg font-semibold">
-            <Highlighted text={block.title} highlight={highlight} />
+          <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="text-body-lg font-semibold">
+              <Highlighted text={block.title} highlight={highlight} />
+            </span>
+            {preview?.meta && (
+              <span className="text-label text-muted-foreground tabular-nums">
+                {preview.meta}
+              </span>
+            )}
           </p>
-          {block.summary && (
+          {!preview && block.summary && (
             <p className="text-secondary-foreground">
               <Highlighted text={block.summary} highlight={highlight} />
             </p>
           )}
         </div>
-        {block.opinions.length > 0 && (
+        {preview &&
+          card?.decision.state === "pending" &&
+          preview.blocks.length > 0 && (
+            <SessionShape blocks={preview.blocks} className="h-5.5" />
+          )}
+        {!preview && block.opinions.length > 0 && (
           <div className="flex flex-col border-t border-border">
             {block.opinions.map((opinion, index) => (
               <div
@@ -253,34 +376,76 @@ function ProposalCard({
             ))}
           </div>
         )}
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            asChild
-            variant={block.status === "pending" ? "default" : "outline"}
-          >
-            {block.raceId &&
-            (block.scope === "race_strategy" ||
-              block.scope === "race_nutrition") ? (
-              <Link
-                href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "scenarios" : "nutrition"}?proposal=${block.proposalId}`}
-                data-proposal-id={block.proposalId}
+        {card && (
+          <ProposalDecisionLine
+            card={card}
+            timeZone={timeZone}
+            pending={pending}
+            onUndo={() =>
+              decide(
+                undoProposal,
+                card.scope === "session" && preview
+                  ? "Ta séance revient comme avant."
+                  : "Ton plan revient comme avant.",
+              )
+            }
+          />
+        )}
+        {decidable ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={() => decide(acceptProposal, "Proposition appliquée.")}
+            >
+              Accepter
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() =>
+                decide(
+                  rejectProposal,
+                  preview?.keep
+                    ? `Tu gardes ${preview.keep}.`
+                    : "Proposition refusée.",
+                )
+              }
+            >
+              {keepLabel}
+            </Button>
+          </div>
+        ) : (
+          !card && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                asChild
+                variant={block.status === "pending" ? "default" : "outline"}
               >
-                {block.status === "pending"
-                  ? "Examiner"
-                  : "Voir la proposition"}
-              </Link>
-            ) : (
-              <ProposalLink
-                href={`/plan?proposal=${block.proposalId}`}
-                data-proposal-id={block.proposalId}
-              >
-                {block.status === "pending"
-                  ? "Examiner"
-                  : "Voir la proposition"}
-              </ProposalLink>
-            )}
-          </Button>
-        </div>
+                {race ? (
+                  <Link
+                    href={`/races/${block.raceId}/${block.scope === "race_strategy" ? "scenarios" : "nutrition"}?proposal=${block.proposalId}`}
+                    data-proposal-id={block.proposalId}
+                  >
+                    {block.status === "pending"
+                      ? "Examiner"
+                      : "Voir la proposition"}
+                  </Link>
+                ) : (
+                  <ProposalLink
+                    href={`/plan?proposal=${block.proposalId}`}
+                    data-proposal-id={block.proposalId}
+                  >
+                    {block.status === "pending"
+                      ? "Examiner"
+                      : "Voir la proposition"}
+                  </ProposalLink>
+                )}
+              </Button>
+            </div>
+          )
+        )}
       </div>
     </Widget>
   );
@@ -332,7 +497,9 @@ function StaffMessage({
             />
           );
         if (block.type === "proposal")
-          return <ProposalCard key={index} block={block} />;
+          return (
+            <ProposalWidget key={index} block={block} timeZone={timeZone} />
+          );
         return (
           <div
             key={index}

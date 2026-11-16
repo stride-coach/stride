@@ -1,4 +1,5 @@
 import type { SentAttachment } from "./attachments";
+import type { ProposalCard } from "./proposal-card";
 import type {
   ItemOf,
   ProposalOpinion,
@@ -33,6 +34,7 @@ export type StaffBlock = { itemId?: string } & (
       summary: string | null;
       opinions: ProposalOpinion[];
       status: ProposalCardStatus;
+      card: ProposalCard | null;
     }
   | { type: "error"; text: string }
 );
@@ -75,6 +77,7 @@ export type ThreadInput = {
   live: boolean;
   pendingToolUseId: string | null;
   proposalStatuses?: Readonly<Record<string, string>>;
+  proposalCards?: Readonly<Record<string, ProposalCard>>;
 };
 
 export function proposalCardStatus(status: string | undefined) {
@@ -251,6 +254,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
           summary: item.summary,
           opinions: item.opinions,
           status: proposalCardStatus(input.proposalStatuses?.[item.proposalId]),
+          card: input.proposalCards?.[item.proposalId] ?? null,
         });
         return;
       case "error":

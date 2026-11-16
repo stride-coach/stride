@@ -48,6 +48,7 @@ import {
   type SessionState,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
+import type { ProposalCard } from "@/features/coach/proposal-card";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
 import {
@@ -120,6 +121,7 @@ type Conversation = {
   readIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
+  proposalCards: Record<string, ProposalCard>;
 };
 
 export type CoachView =
@@ -133,6 +135,7 @@ type Live = {
 
 const noItems: ThreadItem[] = [];
 const noStatuses: Record<string, string> = {};
+const noCards: Record<string, ProposalCard> = {};
 
 function mergeLive(live: Live, base: ThreadItem[]): Live {
   if (live.base === base) return live;
@@ -171,6 +174,7 @@ function conversationOf(
       readIds: [],
       items: noItems,
       proposalStatuses: noStatuses,
+      proposalCards: noCards,
     };
   if (view.kind === "topic")
     return {
@@ -189,6 +193,7 @@ function conversationOf(
       readIds: view.data.unread ? [view.data.id] : [],
       items: view.data.items,
       proposalStatuses: view.data.proposalStatuses,
+      proposalCards: view.data.proposalCards,
     };
   return {
     key: "main",
@@ -206,6 +211,7 @@ function conversationOf(
     readIds: view.data.unreadIds,
     items: view.data.items,
     proposalStatuses: view.data.proposalStatuses,
+    proposalCards: view.data.proposalCards,
   };
 }
 
@@ -334,7 +340,7 @@ function ConversationPane({
     [live.base, live.items],
   );
   const main = conversation.target.kind === "main";
-  const { mode, proposalStatuses } = conversation;
+  const { mode, proposalStatuses, proposalCards } = conversation;
   const status =
     state === null
       ? null
@@ -363,8 +369,9 @@ function ConversationPane({
         live: working,
         pendingToolUseId: pendingQuestion,
         proposalStatuses,
+        proposalCards,
       }),
-    [items, working, pendingQuestion, proposalStatuses],
+    [items, working, pendingQuestion, proposalStatuses, proposalCards],
   );
   const closed =
     !main &&
