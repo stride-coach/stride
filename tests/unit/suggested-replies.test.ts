@@ -3,9 +3,6 @@ import type { ThreadItem } from "../../src/features/coach/items";
 import {
   starterPrompts,
   suggestedReplies,
-  suggestedReplyLength,
-  suggestedReplyLimit,
-  suggestedReplySets,
   type SuggestedReplyState,
 } from "../../src/features/coach/suggested-replies";
 
@@ -28,61 +25,68 @@ const consultEnd: ThreadItem = {
   agent: "medical",
 };
 
+const proposed: ThreadItem = {
+  kind: "blocks",
+  at,
+  agent: "coach",
+  card: null,
+  choices: [],
+  links: [],
+  replies: ["Pourquoi ?", "Et demain ?"],
+};
+
 const staffReplied: SuggestedReplyState = {
   mode: "conversation",
   busy: false,
   closed: false,
   questionPending: false,
   status: null,
-  items: [athlete, coach],
+  items: [athlete, coach, proposed],
 };
 
 describe("suggestedReplies", () => {
-  it("keeps every set short enough for the row", () => {
-    for (const set of Object.values(suggestedReplySets)) {
-      expect(set.length).toBeLessThanOrEqual(suggestedReplyLimit);
-      for (const reply of set)
-        expect(reply.length).toBeLessThanOrEqual(suggestedReplyLength);
-    }
-  });
-
-  it("follows up after a staff reply", () => {
-    expect(suggestedReplies(staffReplied)).toEqual(
-      suggestedReplySets.afterReply,
-    );
+  it("offers the replies the staff proposed for the turn", () => {
+    expect(suggestedReplies(staffReplied)).toEqual([
+      "Pourquoi ?",
+      "Et demain ?",
+    ]);
     expect(
       suggestedReplies({
         ...staffReplied,
-        items: [athlete, coach, consultEnd],
+        items: [athlete, proposed, coach, consultEnd],
       }),
-    ).toEqual(suggestedReplySets.afterReply);
+    ).toEqual(["Pourquoi ?", "Et demain ?"]);
   });
 
-  it("asks about a pending proposal without accepting it", () => {
-    const replies = suggestedReplies({ ...staffReplied, status: "proposal" });
-    expect(replies).toEqual(suggestedReplySets.proposal);
-    expect(replies.join(" ")).not.toMatch(/accept|valide|activer/i);
-  });
-
-  it("follows up on a proposal that is no longer pending", () => {
-    const proposal: ThreadItem = {
-      kind: "proposal",
-      at,
-      proposalId: "eeeeeeee-0000-4000-8000-900000000001",
-      scope: "new_plan",
-      title: "Plan EcoTrail",
-      summary: null,
-      opinions: [],
-    };
+  it("shows none when the staff proposes none", () => {
     expect(
-      suggestedReplies({ ...staffReplied, items: [athlete, proposal] }),
-    ).toEqual(suggestedReplySets.afterReply);
+      suggestedReplies({ ...staffReplied, items: [athlete, coach] }),
+    ).toEqual([]);
+    expect(
+      suggestedReplies({
+        ...staffReplied,
+        items: [athlete, coach, { ...proposed, replies: [] }],
+      }),
+    ).toEqual([]);
   });
 
-  it("follows up on an applied plan", () => {
-    expect(suggestedReplies({ ...staffReplied, status: "applied" })).toEqual(
-      suggestedReplySets.applied,
-    );
+  it("drops the replies of an earlier turn and of a failed one", () => {
+    expect(
+      suggestedReplies({
+        ...staffReplied,
+        items: [athlete, proposed, { ...athlete, text: "Merci" }, coach],
+      }),
+    ).toEqual([]);
+    expect(
+      suggestedReplies({
+        ...staffReplied,
+        items: [
+          athlete,
+          proposed,
+          { kind: "error", at, code: "failed", text: "Échec" },
+        ],
+      }),
+    ).toEqual([]);
   });
 
   it("hides the row while the staff works", () => {
@@ -110,9 +114,6 @@ describe("suggestedReplies", () => {
 
   it("leaves a new conversation to the starter cards", () => {
     expect(suggestedReplies({ ...staffReplied, items: [] })).toEqual([]);
-    expect(
-      suggestedReplies({ ...staffReplied, mode: "plan", items: [] }),
-    ).toEqual([]);
   });
 
   it("offers four starters with a title and a subtitle", () => {
@@ -121,9 +122,5 @@ describe("suggestedReplies", () => {
       expect(starter.title.length).toBeGreaterThan(0);
       expect(starter.subtitle.length).toBeGreaterThan(0);
     }
-  });
-
-  it("waits for the staff after an athlete message", () => {
-    expect(suggestedReplies({ ...staffReplied, items: [athlete] })).toEqual([]);
   });
 });
