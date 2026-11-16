@@ -69,6 +69,9 @@ export const turnRefusals: Record<string, string> = {
   no_pending_question: "Cette question n’attend plus de réponse.",
 };
 
+export const interruptFailure =
+  "La réponse n’a pas pu être arrêtée. Réessaie dans un instant.";
+
 export const turnFailure =
   "Le message n’a pas pu être envoyé. Réessaie dans quelques instants.";
 

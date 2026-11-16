@@ -38,7 +38,7 @@ export function AppMobileTabBar({
     />
   );
   return (
-    <MobileTabBar className="md:hidden print:hidden">
+    <MobileTabBar className="group-has-[[data-keyboard=open]]/inset:hidden md:hidden print:hidden">
       {tab("/today", <TabTodayIcon />, "Aujourd’hui")}
       {tab("/plan", <TabPlanIcon />, "Plan")}
       <MobileTab

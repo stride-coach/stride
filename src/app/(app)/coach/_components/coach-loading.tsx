@@ -40,12 +40,7 @@ function ThreadLogLoading() {
 function ComposerLoading() {
   return (
     <div className="mx-auto flex w-full max-w-180 flex-col gap-2.5 border-t border-border bg-background px-4 pt-3 pb-3 md:bg-transparent md:px-5 md:pb-4">
-      <Skeleton aria-hidden="true" className="h-12 w-full rounded-lg" />
-      <p className="text-label text-muted-foreground max-sm:hidden">
-        Le Coach lit chaque message et passe la main au bon spécialiste, deux au
-        plus par demande. Les questions d’un spécialiste lui reviennent
-        directement. Rien ne change sans ton accord.
-      </p>
+      <Skeleton aria-hidden="true" className="h-11 w-full rounded-lg md:h-10" />
     </div>
   );
 }

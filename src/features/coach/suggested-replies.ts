@@ -2,14 +2,34 @@ import type { ThreadStatus } from "./conversations";
 import type { ThreadItem } from "./items";
 
 export const suggestedReplyLimit = 3;
+
+export const starterPrompts = [
+  {
+    key: "week",
+    title: "Explique-moi ma semaine",
+    subtitle: "Pourquoi ces séances, dans cet ordre",
+  },
+  {
+    key: "fatigue",
+    title: "Je me sens fatigué",
+    subtitle: "Le staff regarde ta récupération",
+  },
+  {
+    key: "race",
+    title: "Parlons de ma course",
+    subtitle: "Objectif, allures, ravitaillement",
+  },
+  {
+    key: "missed",
+    title: "Je n’ai pas pu courir hier",
+    subtitle: "Le staff réorganise la semaine",
+  },
+] as const;
+
+export type StarterPrompt = (typeof starterPrompts)[number];
 export const suggestedReplyLength = 40;
 
 export const suggestedReplySets = {
-  start: [
-    "Comment s’est passée ma semaine ?",
-    "Prépare ma prochaine séance",
-    "J’ai une douleur à signaler",
-  ],
   afterReply: [
     "Pourquoi ?",
     "Explique-moi plus simplement",
@@ -56,8 +76,7 @@ export function suggestedReplies(
   if (state.busy || state.closed || state.questionPending) return [];
   if (state.status === "working" || state.status === "question") return [];
   if (state.status === "closed") return [];
-  if (state.items.length === 0)
-    return state.mode === "conversation" ? suggestedReplySets.start : [];
+  if (state.items.length === 0) return [];
   if (state.status === "proposal") return suggestedReplySets.proposal;
   if (state.status === "applied") return suggestedReplySets.applied;
   const last = state.items.findLast((item) =>

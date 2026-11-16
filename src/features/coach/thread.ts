@@ -5,7 +5,7 @@ import type {
   ProposalScope,
   ThreadItem,
 } from "./items";
-import type { StaffAgent, StaffMember } from "./staff";
+import type { SpecialistAgent, StaffAgent, StaffMember } from "./staff";
 
 export type ProposalCardStatus =
   "pending" | "applying" | "applied" | "rejected" | "closed";
@@ -287,7 +287,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
 
 export type RetryableMessage = {
   text: string;
-  consult: boolean;
+  consult: SpecialistAgent | null;
   attachments: SentAttachment[];
 };
 
@@ -302,7 +302,7 @@ export function retryableMessage(
     if (item.kind === "athlete")
       return {
         text: item.text,
-        consult: item.consult !== null,
+        consult: item.consult === "coach" ? null : item.consult,
         attachments: item.attachments,
       };
   }
