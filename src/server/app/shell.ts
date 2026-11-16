@@ -12,16 +12,10 @@ import {
   type ShellSeason,
 } from "@/features/app-shell/shell";
 import { profileRowSchema, profileValues } from "@/features/onboarding/profile";
-import { buildProgram, programNavigation } from "@/features/plans/view/program";
 import { localToday as planToday } from "@/features/plans/constraints";
-import {
-  loadPlanOverview,
-  loadPlanSeasons,
-  programInput,
-} from "@/server/plans/overview";
+import { loadPlanSeasons } from "@/server/plans/overview";
 import { readActivePlan } from "@/server/plans/stored";
 import { countCoachAttention } from "@/server/coaching/managed/store";
-import { countPlanProposals } from "@/server/plans/proposals";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { readGoals } from "@/server/onboarding/goals";
 import { athleteProfileColumns } from "@/server/onboarding/profile";
@@ -93,18 +87,13 @@ export async function loadShellNavigation(
   context: OnboardingContext,
   now: Date,
 ): Promise<ShellNavigation> {
-  const [plan, planHistoryCount, coachAttention, readiness, checkin] =
-    await Promise.all([
-      loadPlanOverview(context).catch(() => null),
-      countPlanProposals(context).catch(() => null),
-      countCoachAttention(context).catch(() => null),
-      readTodayReadiness(context, now).catch(() => null),
-      readCheckin(context, localToday(now)).catch(() => null),
-    ]);
+  const [coachAttention, readiness, checkin] = await Promise.all([
+    countCoachAttention(context).catch(() => null),
+    readTodayReadiness(context, now).catch(() => null),
+    readCheckin(context, localToday(now)).catch(() => null),
+  ]);
   return {
     checkin,
-    planNav: plan ? programNavigation(buildProgram(programInput(plan))) : null,
-    planHistoryCount,
     coachAttention,
     todayBadge: readinessBadge(readiness),
   };

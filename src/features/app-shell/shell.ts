@@ -1,6 +1,5 @@
 import type { GoalFocus } from "@/features/onboarding/goals";
 import type { Checkin } from "@/features/progress/recovery";
-import type { ProgramNav } from "@/features/plans/view/program";
 import {
   seasonCountdown,
   seasonHref,
@@ -46,8 +45,6 @@ export type ShellBadge = {
 };
 export type ShellNavigation = {
   checkin: Checkin | null;
-  planNav: ProgramNav | null;
-  planHistoryCount: number | null;
   coachAttention: CoachAttention | null;
   todayBadge: ShellBadge | null;
 };

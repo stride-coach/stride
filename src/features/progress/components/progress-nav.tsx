@@ -2,13 +2,6 @@
 
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { recoveryPath } from "../health";
 
@@ -123,51 +116,5 @@ export function HealthTabs() {
         </SectionLink>
       ))}
     </nav>
-  );
-}
-
-export function ProgressSidebarGroup() {
-  const pathname = usePathname();
-  const section = useSection();
-  const onNutrition =
-    pathname === "/health/nutrition" ||
-    pathname.startsWith("/health/nutrition/");
-  if (pathname !== "/health" && !pathname.startsWith("/health/")) return null;
-  return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Santé</SidebarGroupLabel>
-      <SidebarMenu>
-        {healthTabs.map((item) => {
-          const current = onNutrition
-            ? item.href === "/health/nutrition"
-            : item.href === section.href;
-          return (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                size="sm"
-                isActive={current}
-                className="min-h-7.5 gap-2 text-body data-[active=true]:font-semibold"
-              >
-                <SectionLink
-                  href={item.href}
-                  current={current}
-                  keepPeriod={item.href !== "/health/nutrition"}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "size-1 shrink-0 rounded-full",
-                      current ? "bg-primary" : "bg-control-border",
-                    )}
-                  />
-                  {item.label}
-                </SectionLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
   );
 }

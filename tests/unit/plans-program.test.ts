@@ -3,7 +3,6 @@ import type { PlanState } from "@/features/plans/model/plan";
 import {
   buildProgram,
   chartDescription,
-  programNavigation,
   sessionFamilyOf,
   weekSplit,
   withRaceValues,
@@ -748,28 +747,5 @@ describe("session families", () => {
     expect(
       sessionFamilyOf({ ...easyRun(30), kind: "mobility", ...placed }),
     ).toBe("mobility");
-  });
-});
-
-describe("program navigation", () => {
-  it("lists blocks and weeks with durations and states", () => {
-    const nav = programNavigation(
-      buildProgram(input({ state: withRace(planState()) })),
-    );
-    expect(nav.weekCount).toBe(4);
-    expect(nav.blocks).toHaveLength(1);
-    expect(nav.blocks[0]).toMatchObject({
-      name: "Base",
-      months: "oct.–nov.",
-      status: "current",
-    });
-    expect(
-      nav.blocks[0].weeks.map((week) => [week.label, week.status]),
-    ).toEqual([
-      ["Semaine 1", "past"],
-      ["Semaine 2 · allégée", "current"],
-      ["Semaine 3", "future"],
-      ["Semaine 4", "future"],
-    ]);
   });
 });

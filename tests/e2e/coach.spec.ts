@@ -85,12 +85,12 @@ test("the main thread, the topics list and a topic question at 1440", async ({
   );
   await coachLink.click();
   await expect(page).toHaveURL("/coach", { timeout: 20_000 });
-  await expect(
-    coachItem.getByRole("link", { name: "Conversation" }),
-  ).toHaveAttribute("aria-current", "page");
   const sections = page
     .getByRole("navigation", { name: "Sections du Coach" })
     .filter({ visible: true });
+  await expect(
+    sections.getByRole("link", { name: "Conversation" }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(sections.getByRole("link")).toHaveText([
     "Conversation",
     "Décisions",
@@ -1362,13 +1362,12 @@ test("the staff page shows five roles without faces and names them everywhere", 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto("/coach");
-  const coachLink = page.getByRole("link", { name: "Coach", exact: true });
-  const coachItem = page.locator("li", { has: coachLink }).first();
-  await coachItem.getByRole("link", { name: "Le staff" }).click();
+  await page
+    .getByRole("navigation", { name: "Sections du Coach" })
+    .filter({ visible: true })
+    .getByRole("link", { name: "Le staff" })
+    .click();
   await expect(page).toHaveURL("/coach/team", { timeout: 20_000 });
-  await expect(
-    coachItem.getByRole("link", { name: "Le staff" }),
-  ).toHaveAttribute("aria-current", "page");
   await expect(
     page
       .getByRole("navigation", { name: "Sections du Coach" })

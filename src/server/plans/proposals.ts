@@ -233,11 +233,3 @@ export const readCoachDecisions = cache(
     });
   },
 );
-
-export async function countPlanProposals(context: PlanContext) {
-  const { count, error } = await context.client
-    .from("plan_proposals")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", context.userId);
-  return error ? null : count;
-}
