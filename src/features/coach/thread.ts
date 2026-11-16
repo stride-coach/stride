@@ -61,6 +61,7 @@ export type ThreadEntry =
       agent: StaffAgent;
       blocks: StaffBlock[];
       reads: string[];
+      lookedAt: string[];
     }
   | {
       type: "typing";
@@ -130,6 +131,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
   const entries: ThreadEntry[] = [];
   let current: Extract<ThreadEntry, { type: "staff" }> | null = null;
   let handoffs = new Map<string, Handoff>();
+  let turnReads: string[] = [];
 
   function speak(agent: StaffAgent, at: string, index: number) {
     if (!current || current.agent !== agent) {
@@ -140,6 +142,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         agent,
         blocks: [],
         reads: [],
+        lookedAt: [...turnReads],
       };
       entries.push(current);
     }
@@ -169,6 +172,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
       case "athlete":
       case "answer": {
         current = null;
+        turnReads = [];
         if (item.kind === "athlete") handoffs = new Map();
         const target =
           item.kind === "answer"
@@ -213,6 +217,9 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         return;
       }
       case "read":
+        if (!turnReads.includes(item.label)) turnReads.push(item.label);
+        if (current && !current.lookedAt.includes(item.label))
+          current.lookedAt.push(item.label);
         if (item.agent !== "coach") {
           const handoff = handoffOf(item.thread, item.agent, item.at);
           if (!handoff.reads.includes(item.label))

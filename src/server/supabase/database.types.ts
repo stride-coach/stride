@@ -628,6 +628,55 @@ export type Database = {
         };
         Relationships: [];
       };
+      coach_message_corrections: {
+        Row: {
+          coach_session_id: string;
+          coach_thread_item_id: number;
+          created_at: string;
+          delivered_at: string | null;
+          excerpt: string;
+          id: number;
+          text: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          coach_session_id: string;
+          coach_thread_item_id: number;
+          created_at?: string;
+          delivered_at?: string | null;
+          excerpt: string;
+          id?: never;
+          text: string;
+          user_id: string;
+        };
+        Update: {
+          coach_session_id?: string;
+          coach_thread_item_id?: number;
+          created_at?: string;
+          delivered_at?: string | null;
+          excerpt?: string;
+          id?: never;
+          text?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "coach_message_corrections_coach_session_id_fkey";
+            columns: ["coach_session_id"];
+            isOneToOne: false;
+            referencedRelation: "coach_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coach_message_corrections_coach_thread_item_id_fkey";
+            columns: ["coach_thread_item_id"];
+            isOneToOne: false;
+            referencedRelation: "coach_thread_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       coach_sessions: {
         Row: {
           budget_cents: number;

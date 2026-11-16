@@ -431,6 +431,70 @@ export async function findItemInSessions(
   return parseItemRows(data)[0] ?? null;
 }
 
+export async function findOwnItem(context: OnboardingContext, itemId: string) {
+  const { data, error } = await itemsQuery(context, null)
+    .eq("id", Number(itemId))
+    .limit(1);
+  if (error) throw new Error("Unable to read the coach thread item");
+  return parseItemRows(data)[0] ?? null;
+}
+
+export async function recordCorrection(
+  context: OnboardingContext,
+  correction: {
+    threadId: string;
+    itemId: string;
+    excerpt: string;
+    text: string;
+  },
+) {
+  const { error } = await context.client
+    .from("coach_message_corrections")
+    .insert({
+      user_id: context.userId,
+      coach_session_id: correction.threadId,
+      coach_thread_item_id: Number(correction.itemId),
+      excerpt: correction.excerpt,
+      text: correction.text,
+    });
+  if (error) throw new Error("Unable to record the message correction");
+}
+
+const pendingCorrectionSchema = z.object({
+  id: z.union([z.number().int(), z.string().regex(/^\d+$/)]).transform(Number),
+  excerpt: z.string(),
+  text: z.string(),
+});
+
+export async function readPendingCorrections(
+  context: OnboardingContext,
+  threadIds: readonly string[],
+) {
+  if (!threadIds.length) return [];
+  const { data, error } = await context.client
+    .from("coach_message_corrections")
+    .select("id, excerpt, text")
+    .eq("user_id", context.userId)
+    .is("delivered_at", null)
+    .in("coach_session_id", [...threadIds])
+    .order("id", { ascending: true });
+  if (error) throw new Error("Unable to read the message corrections");
+  return z.array(pendingCorrectionSchema).parse(data ?? []);
+}
+
+export async function markCorrectionsDelivered(
+  context: OnboardingContext,
+  ids: readonly number[],
+) {
+  if (!ids.length) return;
+  const { error } = await context.client
+    .from("coach_message_corrections")
+    .update({ delivered_at: new Date().toISOString() })
+    .eq("user_id", context.userId)
+    .in("id", [...ids]);
+  if (error) throw new Error("Unable to mark the corrections as delivered");
+}
+
 export async function findFirstItemSince(
   context: OnboardingContext,
   scope: ItemScope,
