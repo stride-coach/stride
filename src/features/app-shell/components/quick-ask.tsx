@@ -43,6 +43,7 @@ import {
   quickAskScreen,
   quickAskSuggestions,
 } from "@/features/coach/quick-ask";
+import { suggestedReplies } from "@/features/coach/suggested-replies";
 import { coachContextHref } from "@/features/coach/request";
 import { buildThread } from "@/features/coach/thread";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -138,6 +139,14 @@ function QuickAskBody({
       }),
     [exchange.items, exchange.pendingQuestion, busy],
   );
+  const replies = suggestedReplies({
+    mode: "conversation",
+    busy,
+    closed: false,
+    questionPending: exchange.pendingQuestion !== null,
+    status: busy ? "working" : null,
+    items: exchange.items,
+  });
   const ready = data !== null;
   useEffect(() => {
     if (!ready) return;
@@ -192,7 +201,7 @@ function QuickAskBody({
             stopping={quick.stopping}
             initialText=""
             initialAttachments={started ? [] : data.attached}
-            replies={[]}
+            replies={replies}
             options={data.options}
             today={data.today}
             help={false}
