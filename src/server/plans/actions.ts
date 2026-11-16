@@ -14,6 +14,7 @@ import { submitSessionMove } from "@/server/plans/move";
 export type ProposalActionResult =
   | { status: "applied"; version: number | null }
   | { status: "rejected" }
+  | { status: "reverted"; version: number }
   | { status: "pending" }
   | { status: "stale" | "invalid"; reason: string }
   | { status: "invalid-request" | "session-expired" | "error" };
@@ -23,6 +24,7 @@ const inputSchema = z.strictObject({ proposalId: z.uuid() });
 function refresh() {
   revalidatePath("/plan", "layout");
   revalidatePath("/today");
+  revalidatePath("/coach", "layout");
 }
 
 async function decide(
@@ -85,6 +87,24 @@ export async function rejectProposal(
       p_proposal_id: proposalId,
     });
     return error ? { status: "error" } : { status: "rejected" };
+  });
+}
+
+export async function undoProposal(
+  input: unknown,
+): Promise<ProposalActionResult> {
+  return decide(input, async (context, proposalId) => {
+    const { data, error } = await context.client.rpc("revert_plan_proposal", {
+      p_proposal_id: proposalId,
+    });
+    if (error) {
+      const outcome = outcomeOf(error.message);
+      return outcome
+        ? { status: outcome, reason: error.message }
+        : { status: "error" };
+    }
+    await syncWatchAfterResponse(context);
+    return { status: "reverted", version: data };
   });
 }
 

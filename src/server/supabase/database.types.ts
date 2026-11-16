@@ -3272,6 +3272,10 @@ export type Database = {
       };
       request_manual_sync: { Args: { p_user_id: string }; Returns: Json };
       reset_own_plan: { Args: { p_plan_id?: string }; Returns: undefined };
+      revert_plan_proposal: {
+        Args: { p_proposal_id: string };
+        Returns: number;
+      };
       schedule_incremental_sync: {
         Args: Record<PropertyKey, never>;
         Returns: number;
