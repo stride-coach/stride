@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { parseThreadItem, type ThreadItem } from "./items";
+import { parseStoredStep, type StepReport } from "./steps";
 
 export type StreamEvent =
   | { type: "session"; sessionId: string; threadId: string }
   | { type: "item"; item: ThreadItem }
   | { type: "question"; toolUseId: string }
   | { type: "composing"; since: string | null }
+  | { type: "step"; step: StepReport }
   | { type: "error"; text: string }
   | { type: "done"; status: string };
 
@@ -24,6 +26,7 @@ const eventSchema = z.discriminatedUnion("type", [
     question: z.object({ toolUseId: z.string() }),
   }),
   z.object({ type: z.literal("composing"), since: z.string().nullable() }),
+  z.object({ type: z.literal("step"), step: z.unknown() }),
   z.object({ type: z.literal("done"), status: z.string() }),
   z.object({ type: z.literal("error"), text: z.string() }),
 ]);
@@ -39,6 +42,10 @@ export function parseStreamEvent(raw: unknown): StreamEvent | null {
   }
   if (event.type === "question")
     return { type: "question", toolUseId: event.question.toolUseId };
+  if (event.type === "step") {
+    const step = parseStoredStep(event.step);
+    return step ? { type: "step", step } : null;
+  }
   if (event.type === "error") return { type: "error", text: event.text };
   return event;
 }

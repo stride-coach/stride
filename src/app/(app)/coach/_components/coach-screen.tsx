@@ -48,7 +48,9 @@ import {
   type SessionState,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
+import { notifyFailure, type NotifyOffer } from "@/features/coach/notify";
 import type { ProposalCard } from "@/features/coach/proposal-card";
+import type { StepReport } from "@/features/coach/steps";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
 import {
@@ -91,6 +93,7 @@ import {
   type TopicSummary,
 } from "@/features/coach/topics";
 import { markCoachThreadsRead } from "@/server/coaching/actions";
+import { setNotifyWhenReady as saveNotifyWhenReady } from "@/server/coaching/notify-action";
 import type { CoachMainData, CoachTopicData } from "@/server/coaching/threads";
 import { CoachHeaderNav } from "./coach-tabs";
 import { Composer, type ComposerDraft, type ComposerRestore } from "./composer";
@@ -127,6 +130,9 @@ type Conversation = {
   pendingToolUseId: string | null;
   lastTurnAt: string | null;
   composingSince: string | null;
+  writingStep: StepReport | null;
+  notifyWhenReady: boolean;
+  notifyOffer: NotifyOffer;
   readIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
@@ -180,6 +186,9 @@ function conversationOf(
       pendingToolUseId: null,
       lastTurnAt: null,
       composingSince: null,
+      writingStep: null,
+      notifyWhenReady: false,
+      notifyOffer: "needs-push",
       readIds: [],
       items: noItems,
       proposalStatuses: noStatuses,
@@ -199,6 +208,9 @@ function conversationOf(
       pendingToolUseId: view.data.pendingToolUseId,
       lastTurnAt: view.data.lastTurnAt,
       composingSince: view.data.composingSince,
+      writingStep: view.data.writingStep,
+      notifyWhenReady: view.data.notifyWhenReady,
+      notifyOffer: view.data.notifyOffer,
       readIds: view.data.unread ? [view.data.id] : [],
       items: view.data.items,
       proposalStatuses: view.data.proposalStatuses,
@@ -217,6 +229,9 @@ function conversationOf(
     pendingToolUseId: view.data.pendingToolUseId,
     lastTurnAt: view.data.lastTurnAt,
     composingSince: view.data.composingSince,
+    writingStep: view.data.writingStep,
+    notifyWhenReady: view.data.notifyWhenReady,
+    notifyOffer: view.data.notifyOffer,
     readIds: view.data.unreadIds,
     items: view.data.items,
     proposalStatuses: view.data.proposalStatuses,
@@ -313,6 +328,10 @@ function ConversationPane({
   const [composingSince, setComposingSince] = useState(
     conversation.composingSince,
   );
+  const [writingStep, setWritingStep] = useState(conversation.writingStep);
+  const [notifyWhenReady, setNotifyWhenReady] = useState(
+    conversation.notifyWhenReady,
+  );
   const [busy, setBusy] = useState(false);
   const [synced, setSynced] = useState(conversation);
   if (synced !== conversation) {
@@ -323,6 +342,8 @@ function ConversationPane({
       setPendingQuestion(conversation.pendingToolUseId);
       setLastTurnAt(conversation.lastTurnAt);
       setComposingSince(conversation.composingSince);
+      setWritingStep(conversation.writingStep);
+      setNotifyWhenReady(conversation.notifyWhenReady);
     }
   }
   const [clock, setClock] = useState(now);
@@ -560,6 +581,7 @@ function ConversationPane({
           }
           if (event.type === "question") setPendingQuestion(event.toolUseId);
           if (event.type === "composing") setComposingSince(event.since);
+          if (event.type === "step") setWritingStep(event.step);
           if (event.type === "error") turnError = event.text;
           if (event.type === "done") {
             finished = true;
@@ -575,7 +597,11 @@ function ConversationPane({
     } finally {
       if (turnError && !errorShown)
         toast.error(turnError, { id: "coach-turn" });
-      if (finished) setComposingSince(null);
+      if (finished) {
+        setComposingSince(null);
+        setWritingStep(null);
+        setNotifyWhenReady(false);
+      }
       setSending(null);
       setBusy(false);
       turnThread.current = null;
@@ -589,6 +615,22 @@ function ConversationPane({
       else router.refresh();
     }
     return sent;
+  }
+
+  function toggleNotify(enabled: boolean) {
+    if (!threadId) return;
+    setNotifyWhenReady(enabled);
+    saveNotifyWhenReady({ threadId, enabled })
+      .then((result) => {
+        if (result.status === "saved") return;
+        setNotifyWhenReady(!enabled);
+        if (result.status !== "not-running")
+          toast.error(notifyFailure, { id: "coach-notify" });
+      })
+      .catch(() => {
+        setNotifyWhenReady(!enabled);
+        toast.error(notifyFailure, { id: "coach-notify" });
+      });
   }
 
   const answeringAgent = pendingQuestion
@@ -809,7 +851,20 @@ function ConversationPane({
               />
             )}
             {working && !entries.some((entry) => entry.type === "typing") && (
-              <StaffWorking composingSince={composingSince} now={clock} />
+              <StaffWorking
+                composingSince={composingSince}
+                now={clock}
+                step={writingStep}
+                notify={
+                  threadId
+                    ? {
+                        offer: conversation.notifyOffer,
+                        enabled: notifyWhenReady,
+                        onChange: toggleNotify,
+                      }
+                    : null
+                }
+              />
             )}
             <div ref={logEnd} />
           </div>

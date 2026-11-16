@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { parseStoredStep } from "@/features/coach/steps";
 import {
   itemBody,
   parseThreadItem,
@@ -38,6 +39,8 @@ const rowSchema = z
     last_activity_at: z.string(),
     read_at: z.string().nullable(),
     composing_since: z.string().nullable(),
+    writing_step: z.unknown().transform(parseStoredStep),
+    notify_when_ready: z.boolean().default(false),
     created_at: z.string(),
     kind: z.enum(sessionKinds),
     race_id: z.uuid().nullable(),
@@ -56,6 +59,8 @@ const rowSchema = z
     lastActivityAt: row.last_activity_at,
     readAt: row.read_at,
     composingSince: row.composing_since,
+    writingStep: row.writing_step,
+    notifyWhenReady: row.notify_when_ready,
     createdAt: row.created_at,
     kind: row.kind,
     raceId: row.race_id,
@@ -65,7 +70,7 @@ const rowSchema = z
 export type CoachSessionRecord = z.output<typeof rowSchema>;
 
 const columns =
-  "id, managed_session_id, mode, status, pending_tool_use_id, budget_cents, list_cost_cents, last_turn_at, title, last_activity_at, read_at, composing_since, created_at, kind, race_id, closed_at";
+  "id, managed_session_id, mode, status, pending_tool_use_id, budget_cents, list_cost_cents, last_turn_at, title, last_activity_at, read_at, composing_since, writing_step, notify_when_ready, created_at, kind, race_id, closed_at";
 
 export async function findOwnSession(
   context: OnboardingContext,
@@ -127,6 +132,8 @@ export async function updateSession(
       status: patch.status,
       pending_tool_use_id: patch.pendingToolUseId ?? null,
       composing_since: null,
+      writing_step: null,
+      notify_when_ready: false,
       last_activity_at: new Date().toISOString(),
       ...(patch.listCostCents === undefined
         ? {}

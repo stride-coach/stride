@@ -192,6 +192,33 @@ describe("tool registry", () => {
     expect(outcome.ok).toBe(false);
   });
 
+  it("lets only the Coach report a step and stores it for the thread", async () => {
+    expect(toolAllowed("coach", "report_step")).toBe(true);
+    expect(toolAllowed("medical", "report_step")).toBe(false);
+    const { calls, client } = fakeClient({
+      coach_sessions: { data: null, error: null },
+    });
+    const outcome = await runCustomTool(
+      { ...contextWith(client), coachSessionId: proposalId },
+      "report_step",
+      { step: 2, total: 4, label: "semaines de récupération" },
+    );
+    expect(outcome).toEqual({ ok: true, content: { step: 2, total: 4 } });
+    expect(calls[0].steps[0]).toEqual([
+      "update",
+      {
+        writing_step: { step: 2, total: 4, label: "semaines de récupération" },
+      },
+    ]);
+    expect(scopedToAthlete(calls[0])).toBe(true);
+    const invalid = await runCustomTool(contextWith(client), "report_step", {
+      step: 5,
+      total: 4,
+      label: "x",
+    });
+    expect(invalid.ok).toBe(false);
+  });
+
   it("has a French message for every error code", () => {
     for (const code of toolErrorCodes)
       expect(toolErrorMessages[code]).toMatch(/[a-zé]/);

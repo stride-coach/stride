@@ -32,3 +32,4 @@ Pre-production and production share the database, so Vault holds one URL, the pr
 
 - Scheduled work that needs no model call can run in Postgres with `pg_cron` and reach Stride through a secret-protected route. Background coaching runs still need the impersonation design from ADR 0009.
 - Enabling `pg_net` and `pg_cron` on the hosted project and creating the Vault secrets are an owner approval checkpoint.
+- Amended by #622: a finished turn always creates the in-app staff reply notification, but the tick pushes it only when the athlete asked « Me prévenir quand c'est prêt » for that turn (`coach_sessions.notify_when_ready`, copied into the notification payload as `notify`). The reply is still skipped when « Plan et staff » is off or the athlete has already read the thread. Staff questions and proposals keep pushing as before.

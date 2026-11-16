@@ -19,6 +19,8 @@ import {
   type SentAttachment,
 } from "@/features/coach/attachments";
 import { longWriteNote, workingLabel } from "@/features/coach/activity";
+import { notifyCopy, type NotifyOffer } from "@/features/coach/notify";
+import { stepLine, type StepReport } from "@/features/coach/steps";
 import {
   cardScale,
   cardText,
@@ -961,12 +963,21 @@ export function ThreadLog({
 export function StaffWorking({
   composingSince,
   now,
+  step = null,
+  notify = null,
 }: {
   composingSince: string | null;
   now: Date;
+  step?: StepReport | null;
+  notify?: {
+    offer: NotifyOffer;
+    enabled: boolean;
+    onChange: (enabled: boolean) => void;
+  } | null;
 }) {
   const staff = allStaff;
   const label = workingLabel(staff.coach, composingSince, now);
+  const long = label.writing || step !== null;
   return (
     <div
       role="status"
@@ -982,18 +993,68 @@ export function StaffWorking({
             </span>
           )}
         </span>
-        {label.writing && (
+        {long && (
           <>
-            <span
-              aria-hidden="true"
-              className="relative h-0.5 max-w-65 overflow-hidden rounded-full bg-muted"
-            >
-              <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-primary to-transparent motion-safe:animate-trace motion-reduce:hidden" />
-            </span>
-            <p className="max-w-115 text-muted-foreground">{longWriteNote}</p>
+            {step ? (
+              <span aria-hidden="true" className="flex max-w-65 gap-1">
+                {Array.from({ length: step.total }, (_, index) => (
+                  <span
+                    key={index}
+                    className={`h-0.75 flex-1 rounded-full ${index < step.step ? "bg-primary" : "bg-border"}`}
+                  />
+                ))}
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="relative h-0.5 max-w-65 overflow-hidden rounded-full bg-muted"
+              >
+                <span className="absolute inset-y-0 left-0 w-[30%] bg-linear-to-r from-transparent via-primary to-transparent motion-safe:animate-trace motion-reduce:hidden" />
+              </span>
+            )}
+            <p className="max-w-115 text-muted-foreground">
+              {step ? `${stepLine(step)}. ` : ""}
+              {longWriteNote}
+            </p>
+            {notify && <NotifyWhenReady {...notify} />}
           </>
         )}
       </StaffRow>
     </div>
+  );
+}
+
+function NotifyWhenReady({
+  offer,
+  enabled,
+  onChange,
+}: {
+  offer: NotifyOffer;
+  enabled: boolean;
+  onChange: (enabled: boolean) => void;
+}) {
+  if (offer !== "available")
+    return (
+      <p className="max-w-115 text-label text-muted-foreground">
+        {notifyCopy[offer]}{" "}
+        <Link
+          href="/settings/notifications"
+          className="underline underline-offset-2"
+        >
+          Ouvrir les réglages
+        </Link>
+      </p>
+    );
+  return (
+    <Button
+      variant="outline"
+      size="xs"
+      className="self-start"
+      aria-pressed={enabled}
+      onClick={() => onChange(!enabled)}
+    >
+      {enabled && <CheckIcon aria-hidden="true" />}
+      {enabled ? notifyCopy.active : notifyCopy.idle}
+    </Button>
   );
 }

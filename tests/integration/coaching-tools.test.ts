@@ -327,6 +327,7 @@ function inputFor(name: string) {
     ask_athlete: { question: "Comment te sens-tu ?" },
     message_athlete: { text: "Tu peux courir à plat." },
     attach_blocks: { replies: ["Merci coach"] },
+    report_step: { step: 1, total: 3, label: "Je lis ton plan" },
     record_condition_report: {
       kind: "fatigue",
       severity: 3,
@@ -411,7 +412,8 @@ describe("coaching tools run as athlete A", () => {
         expect(numbersIn(outcome.content)).not.toContain(number);
       const handledBySession = !coachingTools.find((tool) => tool.name === name)
         ?.run;
-      expect(outcome.ok, text).toBe(!handledBySession);
+      const needsSession = name === "report_step";
+      expect(outcome.ok, text).toBe(!handledBySession && !needsSession);
     },
   );
 

@@ -1474,6 +1474,8 @@ const coachSession = (values) => ({
   last_turn_at: null,
   read_at: null,
   composing_since: null,
+  writing_step: null,
+  notify_when_ready: false,
   kind: "topic",
   race_id: null,
   closed_at: null,
@@ -1720,7 +1722,9 @@ const coachTables = [
   "coach_thread_items",
   "plan_proposals",
   "plan_decisions",
+  "push_subscriptions",
 ];
+tables.push_subscriptions = [];
 const coachSnapshot = structuredClone(
   Object.fromEntries(
     coachTables.map((table) => [
@@ -2902,6 +2906,17 @@ createServer(async (request, response) => {
         .filter((row) => row.user_id !== coachUser.id)
         .concat(snapshot[table]);
     return send(200, { reset: true });
+  }
+  if (url.pathname === "/__test__/push-device" && request.method === "POST") {
+    tables.push_subscriptions = tables.push_subscriptions.filter(
+      (row) => row.user_id !== coachUser.id,
+    );
+    if (body.enabled)
+      tables.push_subscriptions.push({
+        user_id: coachUser.id,
+        endpoint: "https://fcm.googleapis.com/fcm/send/e2e-coach",
+      });
+    return send(200, { ok: true });
   }
   if (url.pathname === "/__test__/coach-session" && request.method === "POST") {
     tables.coach_sessions.push(coachSession(body.session));

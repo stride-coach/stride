@@ -25,8 +25,10 @@ import {
   resolveAttachments,
   sentAttachments,
 } from "@/server/coaching/attachments";
+import { stepReportSchema, type StepReport } from "@/features/coach/steps";
 import { askAthleteTool } from "@/server/coaching/tools/ask-athlete";
 import { attachBlocksTool } from "@/server/coaching/tools/attach-blocks";
+import { reportStepTool } from "@/server/coaching/tools/report-step";
 import { messageAthleteTool } from "@/server/coaching/tools/message-athlete";
 import { ToolError, toolError } from "@/server/coaching/tools/errors";
 import {
@@ -128,6 +130,7 @@ export type TurnEvent =
   | { type: "tool"; thread: string; name: string; ok: boolean; ms: number }
   | { type: "mcp"; thread: string; name: string }
   | { type: "composing"; since: string | null }
+  | { type: "step"; step: StepReport }
   | { type: "question"; question: PendingQuestion }
   | {
       type: "error";
@@ -466,6 +469,12 @@ function blocksItem(
     links,
     replies,
   };
+}
+
+function stepOf(name: string, input: unknown, outcome: ToolOutcome) {
+  if (name !== reportStepTool.name || !outcome.ok) return null;
+  const parsed = stepReportSchema.safeParse(input);
+  return parsed.success ? parsed.data : null;
 }
 
 function proposalItem(
@@ -855,6 +864,8 @@ export async function* streamCoachTurn(
           if (proposal) yield persist(proposal);
           const blocks = blocksItem(event.name, outcome, caller);
           if (blocks) yield persist(blocks);
+          const step = stepOf(event.name, event.input, outcome);
+          if (step) yield { type: "step", step };
           await sendToolResult(event.id, outcome);
           break;
         }
