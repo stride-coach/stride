@@ -1,6 +1,6 @@
 # ADR 0008: Versioned plans changed only through validated, athlete-approved proposals
 
-- Status: Accepted, amended by decisions D3 and D6 (2026-10-13, #94) and by the single active plan decision (2026-10-18, #141)
+- Status: Accepted, amended by decisions D3 and D6 (2026-10-13, #94), by the single active plan decision (2026-10-18, #141) and by the direct undo decision (2026-11-16, #621)
 - Date: 2026-10-13
 - RFC: [agentic coaching engine](../architecture/coaching-engine/README.md) (#86)
 
@@ -15,7 +15,7 @@ E-04 requires that a plan can be reviewed and rejected without changing the acti
 - Every AI-originated change is a proposal: a closed set of typed operations against an expected base version, with origin, requester, evidence, assumptions, uncertainty, specialist opinions, validator report and expiry. At most one ready proposal exists per target.
 - Status moves along draft → ready → accepted → applied, or to rejected, expired, superseded, stale, invalid or reverted. Every transition writes an append-only decision record.
 - The athlete accepts or rejects through ownership-checked RPCs. An accepted proposal is applied after the server re-validates it, through an ownership-checked RPC that delegates to one private transaction checking the base version ([ADR 0009](0009-coach-worker-runtime-on-postgres.md#amendment-2026-10-18-193)).
-- Undo creates an inverse proposal and a new version; history is never edited.
+- Undo restores the rows an applied proposal replaced as a new version, through an ownership-checked RPC, and marks the proposal `reverted` with a decision record (#621). It needs no confirmation of an inverse proposal, and it is refused once the plan has moved to another version or an affected session is past or matched to an activity. History is never edited.
 - Agents never modify athlete-owned profile, goal or race rows; plan-level race roles live in plan versions.
 - An athlete has at most one active plan (#141). Several races live in that plan through race roles (primary, preparation, secondary) and blocks attached to a race. A new race is added by amending the active plan, not by starting a second plan: a proposal assigns its role and, when the race falls after the plan's end, extends the plan with new blocks, weeks and fully detailed sessions. Past and frozen sessions stay untouched. A `new_plan` proposal stays the way to replace the whole plan, and the replaced plan is archived with its history. Its `updated_at` is its archive date: nothing updates an archived row afterwards.
 - Seasons are a view of the active plan, not stored data (#451, which supersedes the programme selector of #415). The Plan screen derives one season per A race, ending with that race's week when another A race follows (the recovery opens the next season, #468) and with its recovery for the last A race, and reads the plan one season at a time through `?season=`. Nothing is migrated, and proposals, versions and Coach tools still address the whole plan. An archived plan whose primary race is prepared by a later plan gives its weeks to that race's season (#486): only weeks up to its archive date, from the Monday after the previous A race's week, and not held by the newer plan, which wins a shared week. Every other archived plan is listed as one past season (`?season=plan-<plan id>`), cut at its archive date and read-only. In both cases its sessions and the matches stored for it are shown as they were, never recomputed, and nothing on it can create a proposal, a check-in or any other write.
@@ -28,6 +28,7 @@ E-04 requires that a plan can be reviewed and rejected without changing the acti
 - Event sourcing with replay on read.
 - One JSON document per version.
 - Letting the athlete-facing server apply changes with a service credential.
+- Undo as an inverse proposal the athlete confirms (the original decision, replaced in #621). Set aside because undo is offered right after acceptance on the same card, where a second confirmation adds a step without adding safety: restoring the replaced rows cannot touch training that the plan has moved past.
 
 ## Trade-offs
 
