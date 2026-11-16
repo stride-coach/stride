@@ -1720,11 +1720,13 @@ const coachTables = [
   "athlete_profiles",
   "coach_sessions",
   "coach_thread_items",
+  "coach_message_corrections",
   "plan_proposals",
   "plan_decisions",
   "push_subscriptions",
 ];
 tables.push_subscriptions = [];
+tables.coach_message_corrections = [];
 const coachSnapshot = structuredClone(
   Object.fromEntries(
     coachTables.map((table) => [
@@ -2901,6 +2903,11 @@ createServer(async (request, response) => {
     pendingGarminImport = true;
     return send(200, { pending: true });
   }
+  if (
+    url.pathname === "/__test__/coach-corrections" &&
+    request.method === "GET"
+  )
+    return send(200, tables.coach_message_corrections);
   if (url.pathname === "/__test__/coach" && request.method === "DELETE") {
     const snapshot = structuredClone(coachSnapshot);
     for (const table of coachTables)
@@ -4066,6 +4073,18 @@ createServer(async (request, response) => {
       tables.coach_thread_items.push({
         id: ++coachItemId,
         ...body,
+        created_at: new Date().toISOString(),
+      });
+      return send(201, undefined);
+    }
+    if (
+      url.pathname === "/rest/v1/coach_message_corrections" &&
+      request.method === "POST"
+    ) {
+      tables.coach_message_corrections.push({
+        id: tables.coach_message_corrections.length + 1,
+        ...body,
+        delivered_at: null,
         created_at: new Date().toISOString(),
       });
       return send(201, undefined);

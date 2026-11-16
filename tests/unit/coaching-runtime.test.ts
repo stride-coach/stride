@@ -10,6 +10,9 @@ const store = vi.hoisted(() => ({
   updateSession: vi.fn(),
   appendThreadItem: vi.fn(),
   recordComposing: vi.fn(),
+  listMainSessions: vi.fn(),
+  readPendingCorrections: vi.fn(),
+  markCorrectionsDelivered: vi.fn(),
 }));
 const managed = vi.hoisted(() => ({
   retrieve: vi.fn(),
@@ -266,6 +269,9 @@ describe("coach turn stream", () => {
     store.updateSession.mockResolvedValue(undefined);
     store.appendThreadItem.mockResolvedValue(undefined);
     store.recordComposing.mockResolvedValue(undefined);
+    store.listMainSessions.mockResolvedValue([]);
+    store.readPendingCorrections.mockResolvedValue([]);
+    store.markCorrectionsDelivered.mockResolvedValue(undefined);
     managed.send.mockResolvedValue({});
     managed.retrieve.mockResolvedValue({
       id: "sesn_01A",
@@ -490,6 +496,78 @@ describe("coach turn stream", () => {
       }),
       "read_health_reports",
       { days: 7 },
+    );
+  });
+
+  it("tells the staff about pending corrections with the next message and marks them delivered", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    store.readPendingCorrections.mockResolvedValue([
+      { id: 7, excerpt: "Feu vert de mon côté", text: "J'ai eu mal hier" },
+    ]);
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+
+    await collect(streamCoachTurn(contextFor(athleteA), request));
+
+    const sent = managed.send.mock.calls[0][1].events[0];
+    expect(sent.type).toBe("user.message");
+    expect(
+      sent.content.map((block: { text: string }) => block.text),
+    ).toContainEqual(
+      expect.stringContaining(
+        "- Sur « Feu vert de mon côté » : J'ai eu mal hier",
+      ),
+    );
+    expect(store.markCorrectionsDelivered).toHaveBeenCalledWith(
+      expect.anything(),
+      [7],
+    );
+  });
+
+  it("delivers at most ten corrections per message and keeps the rest pending", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    store.readPendingCorrections.mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: index + 1,
+        excerpt: `Message ${index + 1}`,
+        text: `Correction ${index + 1}`,
+      })),
+    );
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+
+    await collect(streamCoachTurn(contextFor(athleteA), request));
+
+    expect(store.markCorrectionsDelivered).toHaveBeenCalledWith(
+      expect.anything(),
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    );
+  });
+
+  it("sends the message without corrections when they cannot be read", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    store.readPendingCorrections.mockRejectedValue(new Error("unavailable"));
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+
+    await collect(streamCoachTurn(contextFor(athleteA), request));
+
+    const sent = managed.send.mock.calls[0][1].events[0];
+    expect(
+      sent.content.map((block: { text: string }) => block.text),
+    ).not.toContainEqual(expect.stringContaining("Corrections de l’athlète"));
+    expect(store.markCorrectionsDelivered).toHaveBeenCalledWith(
+      expect.anything(),
+      [],
     );
   });
 

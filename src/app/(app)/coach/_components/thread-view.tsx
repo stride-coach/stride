@@ -20,6 +20,7 @@ import {
 } from "@/features/coach/attachments";
 import { longWriteNote, workingLabel } from "@/features/coach/activity";
 import { newMessagesLabel } from "@/features/coach/long-thread";
+import { MessageActions } from "./message-actions";
 import { notifyCopy, type NotifyOffer } from "@/features/coach/notify";
 import { stepLine, type StepReport } from "@/features/coach/steps";
 import {
@@ -591,97 +592,99 @@ function StaffMessage({
   busy: boolean;
 }) {
   return (
-    <StaffRow agent={entry.agent} time={timeLabel(entry.at, timeZone)}>
-      {entry.blocks.map((block, index) => {
-        if (block.type === "text")
-          return (
-            <TextBlock key={index} itemId={block.itemId} text={block.text} />
-          );
-        if (block.type === "question")
-          return (
-            <QuestionCard
-              key={index}
-              block={block}
-              timeZone={timeZone}
-              onAnswer={onAnswer}
-              onOther={onOther}
-              onRevise={
-                onRevise && block.toolUseId === revisableId
-                  ? (text) => onRevise(block.toolUseId, text)
-                  : undefined
-              }
-              disabled={busy}
-            />
-          );
-        if (block.type === "proposal")
-          return (
-            <ProposalWidget key={index} block={block} timeZone={timeZone} />
-          );
-        if (block.type === "data_card")
-          return (
-            <DataCardBlock
-              key={index}
-              card={block.card}
-              itemId={block.itemId}
-            />
-          );
-        if (block.type === "choices")
-          return (
-            <ChoicesBlock
-              key={index}
-              choices={block.choices}
-              open={block.open}
-              disabled={busy}
-              onChoose={onAnswer}
-            />
-          );
-        if (block.type === "links")
-          return <LinksBlock key={index} links={block.links} />;
-        if (block.interrupted)
+    <MessageActions entry={entry}>
+      <StaffRow agent={entry.agent} time={timeLabel(entry.at, timeZone)}>
+        {entry.blocks.map((block, index) => {
+          if (block.type === "text")
+            return (
+              <TextBlock key={index} itemId={block.itemId} text={block.text} />
+            );
+          if (block.type === "question")
+            return (
+              <QuestionCard
+                key={index}
+                block={block}
+                timeZone={timeZone}
+                onAnswer={onAnswer}
+                onOther={onOther}
+                onRevise={
+                  onRevise && block.toolUseId === revisableId
+                    ? (text) => onRevise(block.toolUseId, text)
+                    : undefined
+                }
+                disabled={busy}
+              />
+            );
+          if (block.type === "proposal")
+            return (
+              <ProposalWidget key={index} block={block} timeZone={timeZone} />
+            );
+          if (block.type === "data_card")
+            return (
+              <DataCardBlock
+                key={index}
+                card={block.card}
+                itemId={block.itemId}
+              />
+            );
+          if (block.type === "choices")
+            return (
+              <ChoicesBlock
+                key={index}
+                choices={block.choices}
+                open={block.open}
+                disabled={busy}
+                onChoose={onAnswer}
+              />
+            );
+          if (block.type === "links")
+            return <LinksBlock key={index} links={block.links} />;
+          if (block.interrupted)
+            return (
+              <div
+                key={index}
+                data-item-id={block.itemId}
+                role="group"
+                aria-label="Réponse interrompue"
+                className="flex max-w-150 flex-col items-start gap-2 rounded-lg border border-border bg-card px-3.5 py-3"
+              >
+                <Status level="watch">Réponse interrompue</Status>
+                <p className="text-secondary-foreground">
+                  Je n’ai pas pu finir ma réponse. Rien n’a été modifié dans ton
+                  plan.
+                </p>
+                {onRetry && index === entry.blocks.length - 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={onRetry}
+                  >
+                    Réessayer
+                  </Button>
+                )}
+              </div>
+            );
           return (
             <div
               key={index}
               data-item-id={block.itemId}
-              role="group"
-              aria-label="Réponse interrompue"
-              className="flex max-w-150 flex-col items-start gap-2 rounded-lg border border-border bg-card px-3.5 py-3"
+              className="flex flex-col items-start gap-2"
             >
-              <Status level="watch">Réponse interrompue</Status>
-              <p className="text-secondary-foreground">
-                Je n’ai pas pu finir ma réponse. Rien n’a été modifié dans ton
-                plan.
-              </p>
-              {onRetry && index === entry.blocks.length - 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={onRetry}
-                >
-                  Réessayer
-                </Button>
-              )}
+              <p className="text-body text-destructive">{block.text}</p>
             </div>
           );
-        return (
-          <div
-            key={index}
-            data-item-id={block.itemId}
-            className="flex flex-col items-start gap-2"
-          >
-            <p className="text-body text-destructive">{block.text}</p>
+        })}
+        {entry.reads.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-label text-muted-foreground">A lu</span>
+            {entry.reads.map((read) => (
+              <Chip key={read}>{read}</Chip>
+            ))}
           </div>
-        );
-      })}
-      {entry.reads.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-label text-muted-foreground">A lu</span>
-          {entry.reads.map((read) => (
-            <Chip key={read}>{read}</Chip>
-          ))}
-        </div>
-      )}
-    </StaffRow>
+        )}
+      </StaffRow>
+    </MessageActions>
   );
 }
 

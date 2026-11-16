@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { correctionInputSchema, excerptOf } from "@/features/coach/corrections";
 import { clampItem } from "@/features/coach/items";
 import {
   mainThreadTitle,
@@ -22,10 +23,12 @@ import {
   closeOwnTopic,
   deleteOwnThread,
   findLatestMainSession,
+  findOwnItem,
   findOwnThread,
   markThreadsRead,
   readThreadItems,
   readThreadProposalStatuses,
+  recordCorrection,
   renameOwnTopic,
   type CoachSessionRecord,
 } from "./managed/store";
@@ -58,6 +61,38 @@ export async function markCoachThreadsRead(input: unknown) {
   ).catch(() => undefined);
   if (unread > 0) revalidatePath("/coach", "layout");
   return { ok: true } as const;
+}
+
+const correctableKinds = ["coach", "staff_message", "consult_reply"] as const;
+
+export async function correctMessage(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; reason: "invalid" | "failed" }> {
+  const parsed = correctionInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, reason: "invalid" };
+  const context = await getOnboardingContext({ writable: true });
+  if (!context) return { ok: false, reason: "failed" };
+  const found = await findOwnItem(context, parsed.data.itemId).catch(
+    () => null,
+  );
+  if (
+    !found ||
+    !(correctableKinds as readonly string[]).includes(found.item.kind)
+  )
+    return { ok: false, reason: "invalid" };
+  const text = "text" in found.item ? found.item.text : "";
+  if (!text.trim()) return { ok: false, reason: "invalid" };
+  try {
+    await recordCorrection(context, {
+      threadId: found.threadId,
+      itemId: parsed.data.itemId,
+      excerpt: excerptOf(text),
+      text: parsed.data.text,
+    });
+  } catch {
+    return { ok: false, reason: "failed" };
+  }
+  return { ok: true };
 }
 
 const olderSchema = z.strictObject({

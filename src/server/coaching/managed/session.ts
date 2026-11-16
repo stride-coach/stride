@@ -7,6 +7,10 @@ import {
   type ThreadItem,
   type TurnErrorCode,
 } from "@/features/coach/items";
+import {
+  correctionContext,
+  deliverableCorrections,
+} from "@/features/coach/corrections";
 import { readLabel } from "@/features/coach/reads";
 import { answerRevisionText, revisableQuestion } from "@/features/coach/thread";
 import {
@@ -49,6 +53,9 @@ import {
   findLatestMainSession,
   findOwnSession,
   findOwnThread,
+  listMainSessions,
+  markCorrectionsDelivered,
+  readPendingCorrections,
   readThreadItems,
   recordComposing,
   recordSession,
@@ -559,6 +566,21 @@ async function revisionText(
   return text;
 }
 
+async function pendingCorrectionsOf(
+  context: OnboardingContext,
+  record: CoachSessionRecord,
+) {
+  try {
+    const threadIds =
+      record.kind === "main"
+        ? (await listMainSessions(context)).map((session) => session.id)
+        : [record.id];
+    return await readPendingCorrections(context, threadIds);
+  } catch {
+    return [];
+  }
+}
+
 export async function* streamCoachTurn(
   context: OnboardingContext,
   request: TurnRequest,
@@ -676,6 +698,12 @@ export async function* streamCoachTurn(
   const turnStarted = Date.now();
   const group =
     request.input.kind === "message" ? await readGroupLine(context) : null;
+  const pendingCorrections =
+    request.input.kind === "message"
+      ? await pendingCorrectionsOf(context, record)
+      : [];
+  const deliveredCorrections = deliverableCorrections(pendingCorrections);
+  const corrections = correctionContext(deliveredCorrections);
 
   try {
     const stream = await client.beta.sessions.events.stream(
@@ -695,6 +723,9 @@ export async function* streamCoachTurn(
                   ? [{ type: "text" as const, text: attachmentContext }]
                   : []),
                 ...(group ? [{ type: "text" as const, text: group }] : []),
+                ...(corrections
+                  ? [{ type: "text" as const, text: corrections }]
+                  : []),
                 ...(input.consult
                   ? [
                       {
@@ -717,6 +748,10 @@ export async function* streamCoachTurn(
               },
       ],
     });
+    await markCorrectionsDelivered(
+      context,
+      deliveredCorrections.map((correction) => correction.id),
+    ).catch(() => undefined);
 
     loop: for await (const event of stream) {
       firstEventMs ??= Date.now() - turnStarted;
