@@ -25,6 +25,7 @@ import {
 import { proposeRaceStrategyTool } from "./race-proposal";
 import { readRaceStrategyTool } from "./race-strategy";
 import { rewritePlanRangeTool } from "./rewrite-plan-range";
+import { reportStepTool } from "./report-step";
 import { readSeasonCalendarTool } from "./season-calendar";
 import { submitPlanTool } from "./submit-plan";
 
@@ -42,6 +43,7 @@ export const coachingTools = [
   askAthleteTool,
   messageAthleteTool,
   attachBlocksTool,
+  reportStepTool,
   createPlanProposalTool,
   extendPlanTool,
   rewritePlanRangeTool,
@@ -68,6 +70,7 @@ export const agentTools = {
     "read_health_reports",
     "ask_athlete",
     "attach_blocks",
+    "report_step",
     "create_plan_proposal",
     "extend_plan",
     "rewrite_plan_range",
