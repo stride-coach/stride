@@ -78,6 +78,11 @@ const todayDecisionsUser = {
   id: "25252525-2525-4525-8525-252525252525",
   email: "today-decisions@example.com",
 };
+const coachDecisionsUser = {
+  ...user,
+  id: "41414141-4141-4141-8141-414141414141",
+  email: "coach-decisions@example.com",
+};
 const consentUser = {
   ...user,
   id: "efefefef-efef-4fef-8fef-efefefefefef",
@@ -95,6 +100,7 @@ const recordsSessions = [
   planHistoryUser,
   seasonsUser,
   todayDecisionsUser,
+  coachDecisionsUser,
 ].map((identity) => ({
   ...session,
   user: identity,
@@ -1858,6 +1864,78 @@ twinPlanAthlete(todayDecisionsUser, todayDecisionsPlanId, "2525");
     target_keys: [`s-${planToday}-1`],
   });
 }
+const coachDecisionsPlanId = "dddddddd-dddd-4ddd-8ddd-414141414141";
+const coachDecisionsThread = "c0c0c0c0-0000-4000-8000-414141414141";
+const coachDecisionsProposal = "41414141-0000-4000-8000-0000000000aa";
+twinPlanAthlete(coachDecisionsUser, coachDecisionsPlanId, "4141");
+{
+  const own = (row) => row.user_id === coachDecisionsUser.id;
+  const target = tables.plan_sessions.find(
+    (row) =>
+      own(row) &&
+      row.scheduled_on > planToday &&
+      row.sport === "run" &&
+      row.kind !== "race" &&
+      row.kind !== "easy",
+  );
+  tables.athlete_profiles.push({
+    ...tables.athlete_profiles[0],
+    user_id: coachDecisionsUser.id,
+  });
+  tables.plan_proposals.push({
+    ...readyPlanProposal(
+      coachDecisionsUser,
+      coachDecisionsPlanId,
+      coachDecisionsProposal,
+    ),
+    title: "Un footing à la place",
+    summary: "Un footing de 30 min à la place de la séance prévue.",
+    operations: [
+      {
+        op: "replace_session",
+        sessionKey: target.session_key,
+        content: {
+          ...placedContent(planSessionTemplates.easy(30)),
+          title: "Footing court",
+        },
+      },
+    ],
+    target_keys: [`session:${target.session_key}`],
+    coach_session_id: coachDecisionsThread,
+  });
+  tables.coach_sessions.push(
+    coachSession({
+      id: coachDecisionsThread,
+      user_id: coachDecisionsUser.id,
+      managed_session_id: "sesn_01Decide",
+      title: "Fil principal",
+      kind: "main",
+      budget_cents: 500,
+      last_turn_at: coachAt("05:00:00"),
+      last_activity_at: coachAt("05:01:00"),
+      read_at: coachAt("05:02:00"),
+      created_at: coachAt("05:00:00"),
+    }),
+  );
+  tables.coach_thread_items.push(
+    {
+      ...coachItem(coachDecisionsThread, "05:00:00", "coach", {
+        text: "Deux nuits courtes : je te propose d’alléger ta prochaine séance.",
+      }),
+      user_id: coachDecisionsUser.id,
+    },
+    {
+      ...coachItem(coachDecisionsThread, "05:01:00", "proposal", {
+        proposalId: coachDecisionsProposal,
+        scope: "session",
+        title: "Un footing à la place",
+        summary: "Un footing de 30 min à la place de la séance prévue.",
+        opinions: [],
+      }),
+      user_id: coachDecisionsUser.id,
+    },
+  );
+}
 tables.athlete_races.push({
   id: "12121212-0000-4000-8000-000000000009",
   user_id: seasonsUser.id,
@@ -2474,6 +2552,20 @@ const planReviewSnapshot = structuredClone(
     ]),
   ),
 );
+const coachDecisionsTables = [
+  ...reviewTables,
+  "coach_sessions",
+  "coach_thread_items",
+];
+const coachDecisionsSnapshot = structuredClone(
+  Object.fromEntries(
+    coachDecisionsTables.map((table) => [
+      table,
+      tables[table].filter((row) => row.user_id === coachDecisionsUser.id),
+    ]),
+  ),
+);
+const appliedPlanSessions = new Map();
 function currentPlanUser(request) {
   return recordsSessions.find(
     (item) => request.headers.authorization === `Bearer ${item.access_token}`,
@@ -2528,6 +2620,12 @@ function applyPlanProposal(request, proposalId) {
   const plan = tables.training_plans.find(
     (item) => item.id === proposal.plan_id,
   );
+  appliedPlanSessions.set(
+    proposal.id,
+    structuredClone(
+      tables.plan_sessions.filter((session) => session.plan_id === plan.id),
+    ),
+  );
   for (const operation of proposal.operations) {
     if (operation.op === "skip_session")
       tables.plan_sessions = tables.plan_sessions.filter(
@@ -2562,6 +2660,43 @@ function applyPlanProposal(request, proposalId) {
     proposal_id: proposal.id,
     decision: "applied",
     actor: "system",
+    note: null,
+    resulting_version: version,
+    created_at: new Date().toISOString(),
+  });
+  return [200, version];
+}
+
+function revertPlanProposal(request, proposalId) {
+  const owner = currentPlanUser(request);
+  if (!owner) return [401, { code: "PT401", message: "not_authenticated" }];
+  const proposal = tables.plan_proposals.find(
+    (item) => item.id === proposalId && item.user_id === owner.id,
+  );
+  if (!proposal) return [404, { code: "PT404", message: "not_found" }];
+  if (proposal.status !== "applied" || proposal.scope !== "session")
+    return [409, { code: "PT409", message: "invalid_state" }];
+  const plan = tables.training_plans.find(
+    (item) => item.id === proposal.plan_id,
+  );
+  if (plan.active_version !== proposal.applied_version)
+    return [409, { code: "PT409", message: "stale_version" }];
+  const before = appliedPlanSessions.get(proposal.id);
+  if (before)
+    tables.plan_sessions = tables.plan_sessions
+      .filter((session) => session.plan_id !== plan.id)
+      .concat(structuredClone(before));
+  const version = plan.active_version + 1;
+  plan.active_version = version;
+  plan.matches_version = version;
+  tables.plan_versions.find((row) => row.plan_id === plan.id).version = version;
+  proposal.status = "reverted";
+  tables.plan_decisions.push({
+    id: randomUUID(),
+    user_id: owner.id,
+    proposal_id: proposal.id,
+    decision: "reverted",
+    actor: "athlete",
     note: null,
     resulting_version: version,
     created_at: new Date().toISOString(),
@@ -2679,6 +2814,17 @@ createServer(async (request, response) => {
     for (const table of reviewTables)
       tables[table] = tables[table]
         .filter((row) => row.user_id !== todayDecisionsUser.id)
+        .concat(snapshot[table]);
+    return send(200, { reset: true });
+  }
+  if (
+    url.pathname === "/__test__/coach-decisions" &&
+    request.method === "DELETE"
+  ) {
+    const snapshot = structuredClone(coachDecisionsSnapshot);
+    for (const table of coachDecisionsTables)
+      tables[table] = tables[table]
+        .filter((row) => row.user_id !== coachDecisionsUser.id)
         .concat(snapshot[table]);
     return send(200, { reset: true });
   }
@@ -3558,6 +3704,13 @@ createServer(async (request, response) => {
         created_at: now,
       });
       return send(200, proposal);
+    }
+    if (
+      request.method === "POST" &&
+      url.pathname === "/rest/v1/rpc/revert_plan_proposal"
+    ) {
+      const [status, value] = revertPlanProposal(request, body.p_proposal_id);
+      return send(status, value);
     }
     if (
       request.method === "POST" &&

@@ -1587,3 +1587,45 @@ test("the top bar asks the coach about the race or the activity on screen", asyn
     page.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
   ).toBeVisible();
 });
+
+test("a session proposal is accepted then undone from the thread", async ({
+  page,
+}) => {
+  const reset = () =>
+    fetch(`http://127.0.0.1:${authPort}/__test__/coach-decisions`, {
+      method: "DELETE",
+    });
+  await reset();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page, "coach-decisions@example.com");
+  await page.goto("/coach");
+  const log = page.getByRole("log", { name: "Messages" });
+  await expect(log.getByText("Proposition", { exact: true })).toBeVisible();
+  await expect(
+    log.getByRole("img", { name: /^Structure de la séance/ }),
+  ).toBeVisible();
+
+  await log.getByRole("button", { name: "Accepter" }).click();
+  await expect(log.getByText(/^Acceptée · \d{2}:\d{2}$/)).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(log.getByText("Ta séance est mise à jour.")).toBeVisible();
+  await expect(
+    log.getByRole("heading", { name: "Footing court" }),
+  ).toBeVisible();
+  await expect(log.getByRole("button", { name: "Accepter" })).toHaveCount(0);
+
+  await log.getByRole("button", { name: "Annuler" }).click();
+  await expect(log.getByText(/^Annulée · \d{2}:\d{2}$/)).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(log.getByText("Ta séance revient comme avant.")).toBeVisible();
+  await expect(log.getByRole("button", { name: "Annuler" })).toHaveCount(0);
+
+  await page.reload();
+  await expect(log.getByText(/^Annulée · \d{2}:\d{2}$/)).toBeVisible();
+  await expect(log.getByRole("heading", { name: "Footing court" })).toHaveCount(
+    0,
+  );
+  await reset();
+});
