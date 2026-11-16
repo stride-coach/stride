@@ -16,6 +16,13 @@ import {
   type SentAttachment,
 } from "@/features/coach/attachments";
 import { longWriteNote, workingLabel } from "@/features/coach/activity";
+import {
+  cardScale,
+  cardText,
+  linkTargets,
+  type DataCard,
+} from "@/features/coach/blocks";
+import { PlageTrack } from "@/components/stride/plage";
 import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
 import { dayLabel, sameDay, timeLabel } from "@/features/coach/conversations";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
@@ -464,6 +471,88 @@ function ProposalWidget({
   );
 }
 
+function DataCardBlock({ card, itemId }: { card: DataCard; itemId?: string }) {
+  const text = cardText(card);
+  return (
+    <Widget
+      data-item-id={itemId}
+      aria-label={text.label}
+      title={text.label}
+      verdict={
+        <Status level={card.position === "within" ? "ok" : "watch"}>
+          {text.verdict}
+        </Status>
+      }
+      className="max-w-115"
+    >
+      <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3">
+        <span className="flex flex-col tabular-nums">
+          <b className="text-body-lg font-semibold">{text.value}</b>
+          <span className="text-label text-muted-foreground">
+            <span className="sr-only">Ta plage : </span>
+            {text.range}
+          </span>
+        </span>
+        <PlageTrack
+          scale={cardScale(card)}
+          level={card.position === "within" ? "ok" : "watch"}
+        />
+      </div>
+    </Widget>
+  );
+}
+
+function ChoicesBlock({
+  choices,
+  open,
+  disabled,
+  onChoose,
+}: {
+  choices: string[];
+  open: boolean;
+  disabled: boolean;
+  onChoose: (text: string) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Choix proposés"
+      className="flex flex-wrap gap-1.5"
+    >
+      {choices.map((choice) => (
+        <Button
+          key={choice}
+          type="button"
+          variant="outline"
+          disabled={!open || disabled}
+          onClick={() => onChoose(choice)}
+          className="h-auto min-h-control-auto py-1.5 text-left font-normal whitespace-normal text-secondary-foreground"
+        >
+          {choice}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function LinksBlock({
+  links,
+}: {
+  links: Extract<StaffBlock, { type: "links" }>["links"];
+}) {
+  return (
+    <nav aria-label="Aller à" className="flex flex-wrap gap-1.5">
+      {links.map((destination) => (
+        <Button key={destination} asChild variant="outline">
+          <Link href={linkTargets[destination].href} prefetch={false}>
+            {linkTargets[destination].label}
+          </Link>
+        </Button>
+      ))}
+    </nav>
+  );
+}
+
 function TextBlock({ itemId, text }: { itemId?: string; text: string }) {
   const highlight = useHighlight(itemId);
   return (
@@ -522,6 +611,26 @@ function StaffMessage({
           return (
             <ProposalWidget key={index} block={block} timeZone={timeZone} />
           );
+        if (block.type === "data_card")
+          return (
+            <DataCardBlock
+              key={index}
+              card={block.card}
+              itemId={block.itemId}
+            />
+          );
+        if (block.type === "choices")
+          return (
+            <ChoicesBlock
+              key={index}
+              choices={block.choices}
+              open={block.open}
+              disabled={busy}
+              onChoose={onAnswer}
+            />
+          );
+        if (block.type === "links")
+          return <LinksBlock key={index} links={block.links} />;
         if (block.interrupted)
           return (
             <div
@@ -626,6 +735,11 @@ function TypingMessage({
         <span className="text-secondary-foreground">
           {typingLabel(staff[entry.agent], entry.read)}
         </span>
+        {entry.preview && (
+          <span className="max-w-150 truncate text-muted-foreground">
+            {entry.preview}
+          </span>
+        )}
       </StaffRow>
     </div>
   );
