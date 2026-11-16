@@ -19,9 +19,9 @@ const cardRowSchema = z.object({
   scope: z.string(),
   title: z.string(),
   operations: z.unknown(),
-  plan_id: z.uuid().nullable(),
-  applied_version: z.int().nullable(),
-  superseded_by: z.uuid().nullable(),
+  plan_id: z.uuid().nullable().catch(null),
+  applied_version: z.int().nullable().catch(null),
+  superseded_by: z.uuid().nullable().catch(null),
   target_keys: z.array(z.string()).catch([]),
 });
 
