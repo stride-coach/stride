@@ -326,6 +326,7 @@ function inputFor(name: string) {
     },
     ask_athlete: { question: "Comment te sens-tu ?" },
     message_athlete: { text: "Tu peux courir à plat." },
+    attach_blocks: { replies: ["Merci coach"] },
     record_condition_report: {
       kind: "fatigue",
       severity: 3,
