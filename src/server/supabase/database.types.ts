@@ -165,6 +165,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      athlete_facts: {
+        Row: {
+          category: string;
+          created_at: string;
+          ends_on: string | null;
+          id: string;
+          starts_on: string | null;
+          text: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          created_at?: string;
+          ends_on?: string | null;
+          id?: string;
+          starts_on?: string | null;
+          text: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          ends_on?: string | null;
+          id?: string;
+          starts_on?: string | null;
+          text?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       athlete_goals: {
         Row: {
           created_at: string;

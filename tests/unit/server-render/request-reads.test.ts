@@ -10,6 +10,7 @@ import {
   readWeekActivities,
 } from "@/server/activities/activities";
 import { loadActivityList } from "@/server/activities/list";
+import { readFacts } from "@/server/coaching/memory";
 import { loadActivityPanel } from "@/server/activities/panel";
 import { loadWatchView } from "@/server/garmin/watch";
 import { loadGear } from "@/server/gear/load";
@@ -120,6 +121,7 @@ const reads: Record<string, (context: OnboardingContext) => Promise<unknown>> =
     readActivityDetail: (context) => readActivityDetail(context, "activity-1"),
     loadOnTrackInputs: (context) => loadOnTrackInputs(context, "2026-10-23"),
     readProductNames: (context) => readProductNames(context),
+    readFacts: (context) => readFacts(context),
   };
 
 describe("request-scoped server reads", () => {
