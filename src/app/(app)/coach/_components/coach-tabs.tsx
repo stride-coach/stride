@@ -2,16 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+import { coachTabs, currentCoachTab } from "@/features/coach/tabs";
 import { cn } from "@/lib/utils";
 
-const coachTabs = [
-  { href: "/coach", label: "Conversation" },
-  { href: "/coach/team", label: "Le staff" },
-] as const;
-
 function useCurrentTab() {
-  const pathname = usePathname();
-  return pathname.startsWith("/coach/team") ? "/coach/team" : "/coach";
+  return currentCoachTab(usePathname());
 }
 
 export function CoachHeaderNav() {
@@ -62,7 +57,7 @@ export function CoachTabs({ className }: { className?: string }) {
               : "border-border text-muted-foreground hover:text-foreground",
           )}
         >
-          {tab.label}
+          {tab.short}
         </Link>
       ))}
     </nav>

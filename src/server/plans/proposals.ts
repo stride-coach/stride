@@ -1,5 +1,10 @@
 import "server-only";
+import { cache } from "react";
 import { z } from "zod";
+import {
+  buildCoachDecisions,
+  type DecisionsView,
+} from "@/features/coach/decisions";
 import { localToday } from "@/features/plans/constraints";
 import {
   buildPlanHistory,
@@ -214,6 +219,20 @@ export async function readPlanHistory(
     filter,
   });
 }
+
+export const readCoachDecisions = cache(
+  async (context: OnboardingContext): Promise<DecisionsView> => {
+    const [records, active] = await Promise.all([
+      readProposalRecords(context),
+      readActivePlan(context),
+    ]);
+    return buildCoachDecisions({
+      proposals: records.map((item) => item.record),
+      timeZone: active?.state.plan.timeZone ?? "Europe/Paris",
+      now: new Date(),
+    });
+  },
+);
 
 export async function countPlanProposals(context: PlanContext) {
   const { count, error } = await context.client

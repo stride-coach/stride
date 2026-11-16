@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavBadge, NavItem } from "@/components/stride/navigation";
 import { StrideMark } from "@/components/stride/stride-mark";
+import { coachTabs, currentCoachTab } from "@/features/coach/tabs";
 import {
   coachAttentionLabel,
   coachWaiting,
@@ -25,7 +26,7 @@ export function CoachNavItem({
 }) {
   const pathname = useShellPathname();
   const active = pathname === "/coach" || pathname.startsWith("/coach/");
-  const team = pathname === "/coach/team";
+  const current = currentCoachTab(pathname);
   const waiting = coachWaiting(attention);
   return (
     <NavItem
@@ -45,20 +46,22 @@ export function CoachNavItem({
     >
       {active && (
         <SidebarMenuSub className="mx-0 ml-5 gap-px border-l-0 px-0 py-0.5">
-          <SidebarMenuSubItem>
-            <SidebarMenuSubButton asChild isActive={!team} className={subClass}>
-              <Link href="/coach" aria-current={team ? undefined : "page"}>
-                Conversation
-              </Link>
-            </SidebarMenuSubButton>
-          </SidebarMenuSubItem>
-          <SidebarMenuSubItem>
-            <SidebarMenuSubButton asChild isActive={team} className={subClass}>
-              <Link href="/coach/team" aria-current={team ? "page" : undefined}>
-                Le staff
-              </Link>
-            </SidebarMenuSubButton>
-          </SidebarMenuSubItem>
+          {coachTabs.map((tab) => (
+            <SidebarMenuSubItem key={tab.href}>
+              <SidebarMenuSubButton
+                asChild
+                isActive={tab.href === current}
+                className={subClass}
+              >
+                <Link
+                  href={tab.href}
+                  aria-current={tab.href === current ? "page" : undefined}
+                >
+                  {tab.label}
+                </Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
         </SidebarMenuSub>
       )}
     </NavItem>
