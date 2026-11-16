@@ -84,3 +84,22 @@ export function ContextChipLink({
     </Link>
   );
 }
+
+export function ContextChipStatic({
+  icon,
+  label,
+  meta,
+  className,
+}: ChipContent) {
+  return (
+    <span
+      data-slot="context-chip-static"
+      className={cn(
+        "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-md border border-control-border px-2.5 text-label text-secondary-foreground md:min-h-7",
+        className,
+      )}
+    >
+      <Content icon={icon} label={label} meta={meta} />
+    </span>
+  );
+}

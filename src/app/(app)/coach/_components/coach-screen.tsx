@@ -164,7 +164,7 @@ function conversationOf(
 ): Conversation {
   if (draftTopic)
     return {
-      key: "draft-topic",
+      key: `draft-topic:${draftTopic.title}:${draftTopic.attachments.map((item) => item.id).join(",")}`,
       target: {
         kind: "new_topic",
         title: draftTopic.title,
@@ -1173,7 +1173,11 @@ export function CoachScreen({
         conversation={conversation}
         draftText={view.kind === "main" && !draftTopic ? draft.text : ""}
         initialAttachments={
-          view.kind === "main" && !draftTopic ? initialAttachments : []
+          draftTopic
+            ? draftTopic.attachments
+            : view.kind === "main"
+              ? initialAttachments
+              : []
         }
         attachmentOptions={attachmentOptions}
         race={race}
@@ -1304,6 +1308,8 @@ export function CoachScreen({
         open={creating}
         onOpenChange={setCreating}
         races={attachmentOptions.race}
+        options={attachmentOptions}
+        today={localToday(now)}
         onOpenTopic={setDraftTopic}
       />
     </>

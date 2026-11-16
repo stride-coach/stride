@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { CheckIcon, XIcon } from "lucide-react";
+import { useRef, useState } from "react";
+import { CheckIcon, UploadIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,6 +17,7 @@ import {
   attachmentCountLabel,
   attachmentEmptyLabels,
   attachmentGroups,
+  optionsOf,
   attachmentKinds,
   attachmentMeta,
   attachmentTabLabels,
@@ -27,6 +28,8 @@ import {
   type AttachmentOptions,
 } from "@/features/coach/attachments";
 import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
+import { fileAccept } from "@/features/coach/files";
+import { uploadCoachFile } from "@/features/coach/upload";
 
 function OptionRow({
   option,
@@ -70,13 +73,80 @@ function OptionRow({
   );
 }
 
+function FileUpload({
+  disabled,
+  onUploaded,
+}: {
+  disabled: boolean;
+  onUploaded: (option: AttachmentOption) => void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function upload(file: File) {
+    setBusy(true);
+    setError(null);
+    const result = await uploadCoachFile(file);
+    setBusy(false);
+    if ("error" in result) setError(result.error);
+    else
+      onUploaded({
+        ...result.attachment,
+        distanceKm: null,
+        elevationGainM: null,
+        detail: null,
+      });
+  }
+
+  return (
+    <div className="flex flex-col gap-2 px-2.5 pt-3 pb-2">
+      <input
+        ref={input}
+        type="file"
+        accept={fileAccept}
+        tabIndex={-1}
+        aria-label="Fichier à joindre"
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) void upload(file);
+        }}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        disabled={disabled || busy}
+        onClick={() => input.current?.click()}
+        className="self-start max-md:min-h-control-touch"
+      >
+        <UploadIcon aria-hidden="true" className="size-3.5" />
+        {busy ? "Import en cours…" : "Choisir un fichier"}
+      </Button>
+      <p className="text-label text-muted-foreground">
+        Trace GPX ou image JPEG, PNG, WebP, 10 Mo au plus. Le fichier reste
+        privé. Le staff reçoit le résumé d’une trace, et le nom d’une image.
+      </p>
+      {error && (
+        <p role="alert" className="text-label text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ContextPicker({
   open,
   onOpenChange,
   options,
   selected,
   today,
+  tab,
+  onTabChange,
   onToggle,
+  onUploaded,
   returnFocus,
 }: {
   open: boolean;
@@ -84,13 +154,13 @@ export function ContextPicker({
   options: AttachmentOptions;
   selected: readonly AttachmentOption[];
   today: string;
+  tab: AttachmentKind;
+  onTabChange: (tab: AttachmentKind) => void;
   onToggle: (option: AttachmentOption) => void;
+  onUploaded: (option: AttachmentOption) => void;
   returnFocus: React.RefObject<HTMLElement | null>;
 }) {
   const mobile = useIsMobile();
-  const [tab, setTab] = useState<AttachmentKind>(
-    () => attachmentKinds.find((kind) => options[kind].length > 0) ?? "session",
-  );
   const full = selected.length >= maxAttachments;
 
   return (
@@ -117,7 +187,7 @@ export function ContextPicker({
         )}
         <Tabs
           value={tab}
-          onValueChange={(value) => setTab(value as AttachmentKind)}
+          onValueChange={(value) => onTabChange(value as AttachmentKind)}
           className="min-h-0 flex-1 gap-0"
         >
           <div className="flex flex-col gap-3.5 px-4 pt-3 pb-2.5 md:gap-4 md:px-5.5 md:pt-5.5 md:pb-3.5">
@@ -158,48 +228,55 @@ export function ContextPicker({
             </TabsList>
           </div>
           {attachmentKinds.map((kind) => {
-            const groups = attachmentGroups(kind, options[kind], today);
+            const groups = attachmentGroups(
+              kind,
+              optionsOf(options, kind),
+              today,
+            );
             return (
               <TabsContent
                 key={kind}
                 value={kind}
                 className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2 md:px-3 md:pb-3"
               >
-                {groups.length === 0 ? (
-                  <p className="px-2.5 py-6 text-secondary-foreground">
-                    {attachmentEmptyLabels[kind]}
-                  </p>
-                ) : (
-                  groups.map((group) => (
-                    <section
-                      key={group.label}
-                      aria-label={group.label}
-                      className="flex flex-col gap-0.5"
-                    >
-                      <span className="px-2.5 pt-3 pb-1 text-label font-medium text-muted-foreground">
-                        {group.label}
-                      </span>
-                      <ul className="flex flex-col gap-0.5">
-                        {group.options.map((option) => {
-                          const isSelected = selected.some((item) =>
-                            sameAttachment(item, option),
-                          );
-                          return (
-                            <li key={option.id}>
-                              <OptionRow
-                                option={option}
-                                selected={isSelected}
-                                disabled={full && !isSelected}
-                                today={today}
-                                onToggle={() => onToggle(option)}
-                              />
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </section>
-                  ))
+                {kind === "file" && (
+                  <FileUpload disabled={full} onUploaded={onUploaded} />
                 )}
+                {groups.length === 0
+                  ? kind !== "file" && (
+                      <p className="px-2.5 py-6 text-secondary-foreground">
+                        {attachmentEmptyLabels[kind]}
+                      </p>
+                    )
+                  : groups.map((group) => (
+                      <section
+                        key={group.label}
+                        aria-label={group.label}
+                        className="flex flex-col gap-0.5"
+                      >
+                        <span className="px-2.5 pt-3 pb-1 text-label font-medium text-muted-foreground">
+                          {group.label}
+                        </span>
+                        <ul className="flex flex-col gap-0.5">
+                          {group.options.map((option) => {
+                            const isSelected = selected.some((item) =>
+                              sameAttachment(item, option),
+                            );
+                            return (
+                              <li key={option.id}>
+                                <OptionRow
+                                  option={option}
+                                  selected={isSelected}
+                                  disabled={full && !isSelected}
+                                  today={today}
+                                  onToggle={() => onToggle(option)}
+                                />
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    ))}
               </TabsContent>
             );
           })}
