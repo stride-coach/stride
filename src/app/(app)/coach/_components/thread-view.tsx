@@ -38,7 +38,7 @@ import {
   type ProposalActionResult,
 } from "@/server/plans/actions";
 import { staff as allStaff } from "@/features/coach/staff";
-import type { StaffAgent } from "@/features/coach/staff";
+import type { SpecialistAgent, StaffAgent } from "@/features/coach/staff";
 import {
   questionAttribution,
   replyToLabel,
@@ -49,6 +49,15 @@ import {
 } from "@/features/coach/thread";
 import { ProposalLink } from "../../plan/_components/proposal-sheet";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+
+export type FailedMessage = {
+  key: string;
+  text: string;
+  consult: SpecialistAgent | null;
+  attachments: SentAttachment[];
+  revising: string | null;
+  reason: string | null;
+};
 
 export type ThreadSearch = {
   query: string;
@@ -680,6 +689,52 @@ function AthleteMessage({
   );
 }
 
+function FailedAthleteMessage({
+  message,
+  busy,
+  onRetry,
+  onDelete,
+}: {
+  message: FailedMessage;
+  busy: boolean;
+  onRetry: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex max-w-[84%] flex-col items-end gap-1 self-end sm:max-w-[72%]">
+      <div className="rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap opacity-70">
+        {message.text}
+        <SentChips attachments={message.attachments} />
+      </div>
+      <span className="flex items-center gap-2.5 text-label">
+        <Status level="watch">Non envoyé</Status>
+        <Button
+          type="button"
+          variant="link"
+          disabled={busy}
+          onClick={onRetry}
+          className="h-auto p-0 text-label"
+        >
+          Réessayer
+        </Button>
+        <Button
+          type="button"
+          variant="link"
+          onClick={onDelete}
+          className="h-auto p-0 text-label font-normal text-secondary-foreground"
+        >
+          Supprimer
+        </Button>
+      </span>
+      {message.reason && (
+        <span className="text-label text-muted-foreground">
+          {message.reason}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function ThreadLog({
   entries,
   pending,
@@ -689,11 +744,17 @@ export function ThreadLog({
   onAnswer,
   onOther,
   onRetry,
+  failed = [],
+  onRetryFailed,
+  onDeleteFailed,
   revisableId = null,
   onRevise,
   search = null,
 }: {
   entries: ThreadEntry[];
+  failed?: readonly FailedMessage[];
+  onRetryFailed?: (message: FailedMessage) => void;
+  onDeleteFailed?: (message: FailedMessage) => void;
   revisableId?: string | null;
   onRevise?: (toolUseId: string, text: string) => void;
   search?: ThreadSearch;
@@ -752,6 +813,15 @@ export function ThreadLog({
             </div>
           );
         })}
+        {failed.map((message) => (
+          <FailedAthleteMessage
+            key={message.key}
+            message={message}
+            busy={busy}
+            onRetry={() => onRetryFailed?.(message)}
+            onDelete={() => onDeleteFailed?.(message)}
+          />
+        ))}
         {pending && (
           <div className="flex max-w-[84%] flex-col self-end rounded-lg border border-border bg-muted px-3 py-2 whitespace-pre-wrap opacity-70">
             {pending.text}

@@ -422,9 +422,7 @@ test("a new topic keeps its messages apart and closes into a summary card", asyn
   await expect(page.getByText(/^Ce sujet est clos\./)).toBeVisible();
 });
 
-test("a refused turn shows a French message and keeps the draft", async ({
-  page,
-}) => {
+test("a refused turn stays in the thread as not sent", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page);
   await page.goto(`/coach/${planThread}`);
@@ -434,12 +432,16 @@ test("a refused turn shows a French message and keeps the draft", async ({
   const composer = page.getByRole("textbox", { name: "Écrire au staff" });
   await composer.fill("Et la semaine prochaine ?");
   await composer.press("Enter");
+  const log = page.getByRole("log", { name: "Messages" });
+  await expect(log.getByText("Non envoyé")).toBeVisible();
   await expect(
-    page
-      .locator("[data-sonner-toast]")
-      .filter({ hasText: "Le staff travaille déjà sur ta demande." }),
+    log.getByText("Le staff travaille déjà sur ta demande."),
   ).toBeVisible();
-  await expect(composer).toHaveValue("Et la semaine prochaine ?");
+  await expect(log.getByText("Et la semaine prochaine ?")).toBeVisible();
+  await expect(composer).toHaveValue("");
+  await log.getByRole("button", { name: "Supprimer" }).click();
+  await expect(log.getByText("Non envoyé")).toHaveCount(0);
+  await expect(log.getByText("Et la semaine prochaine ?")).toHaveCount(0);
 });
 
 test("suggested replies send from the keyboard and hide while the staff works", async ({
@@ -519,7 +521,7 @@ test("suggested replies send from the keyboard and hide while the staff works", 
   await expect(row).toBeVisible();
 });
 
-test("suggested replies scroll at 390 and restore a failed reply", async ({
+test("suggested replies scroll at 390 and keep a failed reply in the thread", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -554,14 +556,10 @@ test("suggested replies scroll at 390 and restore a failed reply", async ({
     route.fulfill({ status: 409, json: { code: "turn_in_progress" } }),
   );
   await row.getByRole("button", { name: "Pourquoi ce changement ?" }).click();
-  await expect(
-    page
-      .locator("[data-sonner-toast]")
-      .filter({ hasText: "Le staff travaille déjà sur ta demande." }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("textbox", { name: "Écrire au staff" }),
-  ).toHaveValue("Pourquoi ce changement ?");
+  const log = page.getByRole("log", { name: "Messages" });
+  await expect(log.getByText("Non envoyé")).toBeVisible();
+  await expect(log.getByText("Pourquoi ce changement ?")).toBeVisible();
+  await expect(log.getByRole("button", { name: "Réessayer" })).toBeVisible();
   await expect(row).toBeVisible();
 });
 
@@ -649,13 +647,13 @@ test("context chips are picked with the keyboard, survive a failed send and reac
   );
   await composer.fill("Analyse ça");
   await composer.press("Enter");
+  const log = page.getByRole("log", { name: "Messages" });
+  await expect(log.getByText("Non envoyé")).toBeVisible();
   await expect(
-    page.locator("[data-sonner-toast]").filter({
-      hasText: "Le message n’a pas pu être envoyé.",
-    }),
-  ).toBeVisible();
-  await expect(composer).toHaveValue("Analyse ça");
-  await expect(chips.getByRole("listitem")).toHaveCount(2);
+    log.getByRole("list", { name: "Contexte joint" }).getByRole("listitem"),
+  ).toHaveCount(2);
+  await expect(composer).toHaveValue("");
+  await expect(chips).toBeHidden();
 
   await page.unroute("**/api/coach/turns");
   const attachments = [
@@ -692,8 +690,9 @@ test("context chips are picked with the keyboard, survive a failed send and reac
       { type: "done", status: "idle" },
     ])(route);
   });
-  await page.getByRole("button", { name: "Envoyer" }).click();
-  await expect(chips).toBeHidden();
+  await log.getByRole("button", { name: "Réessayer" }).click();
+  await expect(log.getByText("Je regarde ta sortie.")).toBeVisible();
+  await expect(log.getByText("Non envoyé")).toHaveCount(0);
   expect(posted).toEqual({
     target: { kind: "main" },
     mode: "conversation",

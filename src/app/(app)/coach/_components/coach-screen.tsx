@@ -102,7 +102,12 @@ import { SuiviPanel } from "./suivi-panel";
 import { TopicAside } from "./topic-aside";
 import { CloseTopicDialog, TopicActions } from "./topic-actions";
 import { TopicList } from "./topic-list";
-import { StaffWorking, ThreadLog, type ThreadSearch } from "./thread-view";
+import {
+  StaffWorking,
+  ThreadLog,
+  type FailedMessage,
+  type ThreadSearch,
+} from "./thread-view";
 
 type Target =
   | { kind: "main" }
@@ -325,6 +330,7 @@ function ConversationPane({
     text: string;
     attachments: SentAttachment[];
   } | null>(null);
+  const [failed, setFailed] = useState<FailedMessage[]>([]);
   const [asideOpen, setAsideOpen] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [restore, setRestore] = useState<ComposerRestore | null>(null);
@@ -471,20 +477,30 @@ function ConversationPane({
   ) {
     if (working) return false;
     const answering = pendingQuestion;
+    const shown = attachments.map(({ kind, id, title, date }) => ({
+      kind,
+      id,
+      title,
+      date,
+    }));
+    const fail = (reason: string) =>
+      setFailed((current) => [
+        ...current,
+        {
+          key: crypto.randomUUID(),
+          text,
+          consult,
+          attachments: shown,
+          revising,
+          reason: reason === turnFailure ? null : reason,
+        },
+      ]);
     setComposingSince(null);
     setStopping(false);
     stopRequested.current = false;
     turnThread.current = null;
     setBusy(true);
-    setSending({
-      text,
-      attachments: attachments.map(({ kind, id, title, date }) => ({
-        kind,
-        id,
-        title,
-        date,
-      })),
-    });
+    setSending({ text, attachments: shown });
     let sent = false;
     let started = false;
     let currentThread = threadId;
@@ -519,13 +535,12 @@ function ConversationPane({
       });
       if (!response.ok) {
         const data: unknown = await response.json().catch(() => null);
-        toast.error(
+        fail(
           refusalText(
             data && typeof data === "object" && "code" in data
               ? data.code
               : null,
           ),
-          { id: "coach-turn" },
         );
         setSending(null);
       } else {
@@ -578,7 +593,7 @@ function ConversationPane({
     } catch {
       if (!started && !answering && !navigator.onLine)
         queued = queue({ text, consult, attachments }, true);
-      else if (!started) toast.error(turnFailure, { id: "coach-turn" });
+      else if (!started) fail(turnFailure);
     } finally {
       if (turnError && !errorShown)
         toast.error(turnError, { id: "coach-turn" });
@@ -636,9 +651,7 @@ function ConversationPane({
       setRestore(back);
       return;
     }
-    void send(message).then((sent) => {
-      if (!sent) setRestore(back);
-    });
+    void send(message);
   });
   const headId = head?.message.id ?? null;
   const headKind = head?.kind ?? null;
@@ -666,7 +679,7 @@ function ConversationPane({
         }
       : {}),
   };
-  const empty = items.length === 0 && !sending;
+  const empty = items.length === 0 && !sending && failed.length === 0;
   const replies =
     !main && items.length === 0
       ? []
@@ -788,6 +801,25 @@ function ConversationPane({
                 onRetry={retry ? () => void send(retry) : undefined}
                 onOther={() =>
                   document.getElementById("coach-composer")?.focus()
+                }
+                failed={failed}
+                onRetryFailed={(message) => {
+                  setFailed((current) =>
+                    current.filter((item) => item.key !== message.key),
+                  );
+                  void send(
+                    {
+                      text: message.text,
+                      consult: message.consult,
+                      attachments: message.attachments,
+                    },
+                    message.revising,
+                  );
+                }}
+                onDeleteFailed={(message) =>
+                  setFailed((current) =>
+                    current.filter((item) => item.key !== message.key),
+                  )
                 }
                 revisableId={revisableId}
                 onRevise={(toolUseId, answer) =>
