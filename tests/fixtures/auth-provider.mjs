@@ -1699,6 +1699,21 @@ tables.athlete_profiles.push({
   ...tables.athlete_profiles[0],
   user_id: coachUser.id,
 });
+tables.provider_observations.push(
+  ...[0, 1, 2].flatMap((age) =>
+    [
+      ["hrv_last_night_ms", 54 - age],
+      ["sleep_duration_seconds", 27_000 - age * 600],
+      ["sleep_score", 82 - age],
+    ].map(([metric, value_numeric]) => ({
+      user_id: coachUser.id,
+      metric,
+      observed_on: new Date(Date.now() - age * day).toISOString().slice(0, 10),
+      value_numeric,
+      availability: "available",
+    })),
+  ),
+);
 const coachTables = [
   "athlete_profiles",
   "coach_sessions",
@@ -2737,6 +2752,10 @@ createServer(async (request, response) => {
   if (url.pathname.startsWith("/storage/v1/")) {
     if (
       request.headers.authorization !== `Bearer ${token}` &&
+      !recordsSessions.some(
+        (item) =>
+          request.headers.authorization === `Bearer ${item.access_token}`,
+      ) &&
       !url.pathname.startsWith("/storage/v1/object/sign/")
     )
       return send(401, {});
@@ -4413,6 +4432,35 @@ createServer(async (request, response) => {
           removed.map((row) => ({ id: row.id })),
         );
       }
+    }
+    if (url.pathname === "/rest/v1/coach_attachment_files") {
+      tables.coach_attachment_files ??= [];
+      if (request.method === "POST") {
+        const value = Array.isArray(body) ? body[0] : body;
+        const row = {
+          id: randomUUID(),
+          created_at: new Date().toISOString(),
+          ...value,
+        };
+        tables.coach_attachment_files.push(row);
+        return send(
+          201,
+          request.headers.accept?.includes("vnd.pgrst.object") ? row : [row],
+        );
+      }
+      const ids = url.searchParams
+        .get("id")
+        ?.match(/^in\.\((.*)\)$/)?.[1]
+        .split(",")
+        .map((id) => id.replace(/"/g, ""));
+      return send(
+        200,
+        tables.coach_attachment_files.filter(
+          (row) =>
+            url.searchParams.get("user_id") === `eq.${row.user_id}` &&
+            (!ids || ids.includes(row.id)),
+        ),
+      );
     }
     if (url.pathname === "/rest/v1/race_crew_links") {
       if (request.method === "POST") {

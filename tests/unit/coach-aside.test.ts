@@ -36,9 +36,7 @@ const items: ThreadItem[] = [
 describe("coach aside details", () => {
   it("derives the last reply of each member", () => {
     expect(staffRepliedAt(items, "coach")).toBe("2026-11-16T13:11:00Z");
-    expect(staffRepliedAt(items, "director")).toBe(
-      "2026-11-16T13:03:00Z",
-    );
+    expect(staffRepliedAt(items, "director")).toBe("2026-11-16T13:03:00Z");
     expect(staffRepliedAt(items, "nutritionist")).toBeNull();
   });
 
