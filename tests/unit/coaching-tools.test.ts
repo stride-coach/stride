@@ -52,8 +52,10 @@ import {
   coachingTools,
   parseToolInput,
   runCustomTool,
+  toolAllowed,
 } from "../../src/server/coaching/tools/registry";
 import { askAthleteTool } from "../../src/server/coaching/tools/ask-athlete";
+import { attachBlocksTool } from "../../src/server/coaching/tools/attach-blocks";
 
 const athlete = "a0000000-0000-4000-8000-00000000000a";
 const proposalId = "c0000000-0000-4000-8000-00000000000c";
@@ -172,10 +174,22 @@ describe("tool registry", () => {
       "read_health_reports",
       "ask_athlete",
       "message_athlete",
+      "attach_blocks",
       "record_condition_report",
       "update_condition_report",
     ]);
     expect(agentTools.coach).not.toContain("record_condition_report");
+  });
+
+  it("offers the blocks tool to every agent and rejects unsafe or empty blocks", async () => {
+    for (const agent of Object.keys(agentTools) as (keyof typeof agentTools)[])
+      expect(toolAllowed(agent, "attach_blocks")).toBe(true);
+    expect(
+      attachBlocksTool.input.safeParse({ links: ["https://example.com"] })
+        .success,
+    ).toBe(false);
+    const outcome = await runCustomTool({} as never, "attach_blocks", {});
+    expect(outcome.ok).toBe(false);
   });
 
   it("has a French message for every error code", () => {

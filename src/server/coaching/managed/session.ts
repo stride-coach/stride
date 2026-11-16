@@ -26,6 +26,7 @@ import {
   sentAttachments,
 } from "@/server/coaching/attachments";
 import { askAthleteTool } from "@/server/coaching/tools/ask-athlete";
+import { attachBlocksTool } from "@/server/coaching/tools/attach-blocks";
 import { messageAthleteTool } from "@/server/coaching/tools/message-athlete";
 import { ToolError, toolError } from "@/server/coaching/tools/errors";
 import {
@@ -447,6 +448,26 @@ const submitPlanInputSchema = z.object({
 
 const proposalIdSchema = z.object({ proposalId: z.uuid() });
 
+function blocksItem(
+  name: string,
+  outcome: ToolOutcome,
+  agent: StaffAgent,
+): ThreadItem | null {
+  if (name !== attachBlocksTool.name || !outcome.ok) return null;
+  const output = attachBlocksTool.output.safeParse(outcome.content);
+  if (!output.success || output.data.shown.length === 0) return null;
+  const { card, choices, links, replies } = output.data;
+  return {
+    kind: "blocks",
+    at: new Date().toISOString(),
+    agent,
+    card,
+    choices,
+    links,
+    replies,
+  };
+}
+
 function proposalItem(
   name: string,
   input: unknown,
@@ -832,6 +853,8 @@ export async function* streamCoachTurn(
             caller,
           );
           if (proposal) yield persist(proposal);
+          const blocks = blocksItem(event.name, outcome, caller);
+          if (blocks) yield persist(blocks);
           await sendToolResult(event.id, outcome);
           break;
         }

@@ -1,4 +1,5 @@
 import type { SentAttachment } from "./attachments";
+import type { DataCard, LinkDestination } from "./blocks";
 import type { ProposalCard } from "./proposal-card";
 import type {
   ItemOf,
@@ -37,6 +38,9 @@ export type StaffBlock = { itemId?: string } & (
       card: ProposalCard | null;
     }
   | { type: "error"; text: string; interrupted: boolean }
+  | { type: "data_card"; card: DataCard }
+  | { type: "choices"; choices: string[]; open: boolean }
+  | { type: "links"; links: LinkDestination[] }
 );
 
 export type ThreadEntry =
@@ -64,6 +68,7 @@ export type ThreadEntry =
       at: string;
       agent: StaffAgent;
       read: string | null;
+      preview: string | null;
     }
   | {
       type: "topic_summary";
@@ -100,6 +105,7 @@ export function proposalCardStatus(status: string | undefined) {
 type Handoff = {
   agent: StaffAgent;
   at: string;
+  brief: string | null;
   reads: string[];
   done: boolean;
   spoke: boolean;
@@ -117,6 +123,9 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         ? [[item.toolUseId, item.askedFor] as const]
         : [],
     ),
+  );
+  const lastAthlete = input.items.findLastIndex(
+    (item) => item.kind === "athlete" || item.kind === "answer",
   );
   const entries: ThreadEntry[] = [];
   let current: Extract<ThreadEntry, { type: "staff" }> | null = null;
@@ -146,6 +155,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
     const handoff = handoffs.get(thread) ?? {
       agent,
       at,
+      brief: null,
       reads: [],
       done: false,
       spoke: false,
@@ -188,6 +198,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
         const handoff = handoffOf(item.thread, item.agent, item.at);
         handoff.done = false;
         handoff.spoke = false;
+        handoff.brief = item.text;
         return;
       }
       case "staff_message": {
@@ -265,6 +276,29 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
           interrupted: item.code !== "budget_reached",
         });
         return;
+      case "blocks": {
+        const staffEntry = speak(item.agent, item.at, index);
+        if (item.card)
+          staffEntry.blocks.push({
+            type: "data_card",
+            itemId: item.id,
+            card: item.card,
+          });
+        if (item.choices.length)
+          staffEntry.blocks.push({
+            type: "choices",
+            itemId: item.id,
+            choices: item.choices,
+            open: index > lastAthlete && !input.live && !input.pendingToolUseId,
+          });
+        if (item.links.length)
+          staffEntry.blocks.push({
+            type: "links",
+            itemId: item.id,
+            links: item.links,
+          });
+        return;
+      }
       case "topic_summary":
         current = null;
         entries.push({
@@ -286,6 +320,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
           at: handoff.at,
           agent: handoff.agent,
           read: handoff.reads.at(-1) ?? null,
+          preview: handoff.brief ? previewText(handoff.brief) : null,
         });
   return entries;
 }
@@ -347,6 +382,25 @@ export function answerRevisionText(
   );
   if (question?.kind !== "question" || previous?.kind !== "answer") return null;
   return `L’athlète change sa réponse à la question « ${question.question} ». Sa nouvelle réponse, « ${text} », remplace la précédente, « ${previous.text} ». Reprends ton avis avec cette réponse.`;
+}
+
+const previewLength = 90;
+
+export function previewText(text: string) {
+  const clean = text
+    .replace(
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+      "",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!clean) return null;
+  const sentence = /^.*?[.!?](?=\s|$)/.exec(clean)?.[0] ?? clean;
+  const cut =
+    sentence.length > previewLength
+      ? `${sentence.slice(0, previewLength).trimEnd()}…`
+      : sentence;
+  return cut.endsWith("…") ? cut : `${cut.replace(/[.!?]$/, "")}…`;
 }
 
 export function typingLabel(member: StaffMember, read: string | null) {

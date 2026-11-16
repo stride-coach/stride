@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { readActivePlanTool } from "./active-plan";
 import { askAthleteTool } from "./ask-athlete";
+import { attachBlocksTool } from "./attach-blocks";
 import { readAthleteContextTool } from "./athlete-context";
 import {
   recordConditionReportTool,
@@ -40,6 +41,7 @@ export const coachingTools = [
   readHealthReportsTool,
   askAthleteTool,
   messageAthleteTool,
+  attachBlocksTool,
   createPlanProposalTool,
   extendPlanTool,
   rewritePlanRangeTool,
@@ -65,6 +67,7 @@ export const agentTools = {
     "read_plan_history",
     "read_health_reports",
     "ask_athlete",
+    "attach_blocks",
     "create_plan_proposal",
     "extend_plan",
     "rewrite_plan_range",
@@ -75,6 +78,7 @@ export const agentTools = {
     "read_health_reports",
     "ask_athlete",
     "message_athlete",
+    "attach_blocks",
     "record_condition_report",
     "update_condition_report",
   ],
@@ -86,6 +90,7 @@ export const agentTools = {
     "read_health_reports",
     "ask_athlete",
     "message_athlete",
+    "attach_blocks",
   ],
   strategist: [
     "read_athlete_context",
@@ -95,6 +100,7 @@ export const agentTools = {
     "read_health_reports",
     "ask_athlete",
     "message_athlete",
+    "attach_blocks",
   ],
   nutritionist: [
     "read_athlete_context",
@@ -105,6 +111,7 @@ export const agentTools = {
     "read_health_reports",
     "ask_athlete",
     "message_athlete",
+    "attach_blocks",
   ],
 } as const satisfies Record<string, readonly CoachingToolName[]>;
 
