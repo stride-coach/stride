@@ -1646,6 +1646,17 @@ tables.coach_thread_items = [
     summary: "Quatre semaines de base.",
     opinions: [],
   }),
+  coachItem(coachPlanThread, "06:10:30", "blocks", {
+    agent: "coach",
+    card: null,
+    choices: [],
+    links: [],
+    replies: [
+      "Pourquoi ce changement ?",
+      "Quel impact sur ma semaine ?",
+      "Propose une autre option",
+    ],
+  }),
 ];
 tables.plan_proposals.push({
   id: coachNewPlanProposal,

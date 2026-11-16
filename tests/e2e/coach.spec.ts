@@ -487,6 +487,13 @@ test("suggested replies send from the keyboard and hide while the staff works", 
         attachments: [],
       }),
       item("coach", { text: "Je te prépare une variante plus douce." }),
+      item("blocks", {
+        agent: "coach",
+        card: null,
+        choices: [],
+        links: [],
+        replies: ["Pourquoi ce changement ?"],
+      }),
       { type: "done", status: "idle" },
     ])(route);
   });
@@ -1628,4 +1635,155 @@ test("a session proposal is accepted then undone from the thread", async ({
     0,
   );
   await reset();
+});
+
+test("the staff replies with a data card, choices and links that survive a reload", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/coach/${planThread}`);
+  await coachTurn({
+    session: { status: "idle", composing_since: null },
+    items: [
+      {
+        kind: "coach",
+        body: { text: "Je confirme : ta VFC est sortie de ta plage." },
+      },
+      {
+        kind: "blocks",
+        body: {
+          agent: "coach",
+          card: {
+            metric: "hrv",
+            value: 46,
+            low: 70,
+            high: 64,
+            position: "below",
+            day: "2026-11-16",
+          },
+          choices: [],
+          links: ["https://example.com"],
+          replies: [],
+        },
+      },
+      {
+        kind: "blocks",
+        body: {
+          agent: "coach",
+          card: {
+            metric: "hrv",
+            value: 46,
+            low: 52,
+            high: 64,
+            position: "below",
+            day: "2026-11-16",
+          },
+          choices: ["Décaler à jeudi", "Garder aujourd’hui"],
+          links: ["calendar", "add_race", "javascript:alert(1)"],
+          replies: ["Et ma sortie longue ?"],
+        },
+      },
+    ],
+  });
+  await page.reload();
+
+  const log = page.getByRole("log", { name: "Messages" });
+  const card = log.getByRole("region", { name: "VFC nocturne" });
+  await expect(card).toHaveCount(1);
+  await expect(card).toContainText("Sous ta plage");
+  await expect(card).toContainText("46 ms");
+  await expect(card).toContainText("52–64 ms");
+  const links = log.getByRole("navigation", { name: "Aller à" });
+  await expect(links.getByRole("link")).toHaveText([
+    "Voir le calendrier",
+    "Ajouter la course",
+  ]);
+  await expect(
+    links.getByRole("link", { name: "Voir le calendrier" }),
+  ).toHaveAttribute("href", "/plan/calendar");
+  await expect(
+    links.getByRole("link", { name: "Ajouter la course" }),
+  ).toHaveAttribute("href", "/races/new");
+  await expect(
+    log.locator('a[href^="javascript:"], a[href^="http"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("group", { name: "Réponses suggérées" }).getByRole("button"),
+  ).toHaveText(["Et ma sortie longue ?"]);
+  await page.screenshot({ path: "test-results/coach-blocks-desktop.png" });
+
+  let posted: unknown = null;
+  await page.route("**/api/coach/turns", async (route) => {
+    posted = route.request().postDataJSON();
+    await stream([
+      item("athlete", {
+        text: "Décaler à jeudi",
+        consult: null,
+        attachments: [],
+      }),
+      item("coach", { text: "C’est noté, je décale à jeudi." }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+  const choices = log.getByRole("group", { name: "Choix proposés" });
+  await choices.getByRole("button", { name: "Décaler à jeudi" }).click();
+  await expect(log.getByText("C’est noté, je décale à jeudi.")).toBeVisible();
+  expect(posted).toMatchObject({
+    input: { kind: "message", text: "Décaler à jeudi" },
+  });
+  for (const button of await choices.getByRole("button").all())
+    await expect(button).toBeDisabled();
+  await expect(
+    page.getByRole("group", { name: "Réponses suggérées" }),
+  ).toHaveCount(0);
+
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await page.reload();
+  await expect(
+    page
+      .getByRole("log", { name: "Messages" })
+      .getByRole("region", { name: "VFC nocturne" }),
+  ).toHaveCount(1);
+  await resetCoach();
+});
+
+test("the data card and the choices fit a phone at 390", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page);
+  await page.goto(`/coach/${planThread}`);
+  await coachTurn({
+    session: { status: "idle", composing_since: null },
+    items: [
+      {
+        kind: "blocks",
+        body: {
+          agent: "coach",
+          card: {
+            metric: "resting_heart_rate",
+            value: 58,
+            low: 50,
+            high: 56,
+            position: "above",
+            day: "2026-11-16",
+          },
+          choices: ["Décaler à jeudi", "Garder aujourd’hui en 4 × 6’"],
+          links: ["plan"],
+          replies: [],
+        },
+      },
+    ],
+  });
+  await page.reload();
+  const card = page.getByRole("region", { name: "FC au repos" });
+  await expect(card).toContainText("Au-dessus de ta plage");
+  await expect(card).toContainText("58 bpm");
+  await expect(card).toContainText("50–56 bpm");
+  await expect(
+    page.getByRole("button", { name: "Garder aujourd’hui en 4 × 6’" }),
+  ).toBeVisible();
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: "test-results/coach-blocks-mobile.png" });
+  await resetCoach();
 });
