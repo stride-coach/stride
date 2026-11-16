@@ -92,6 +92,7 @@ test("the main thread, the topics list and a topic question at 1440", async ({
     .filter({ visible: true });
   await expect(sections.getByRole("link")).toHaveText([
     "Conversation",
+    "Décisions",
     "Le staff",
   ]);
   const thread = page.getByRole("region", { name: "Fil principal" });
