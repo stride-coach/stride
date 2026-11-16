@@ -2472,6 +2472,8 @@ function selectRows(table, params) {
             (session) => session.id === row.coach_session_id,
           )?.kind === sessionKind.slice(3),
       );
+    const before = params.get("id")?.match(/^lt\.(\d+)$/);
+    if (before) rows = rows.filter((row) => row.id < Number(before[1]));
     const threadId = params.get("coach_session_id");
     if (threadId?.startsWith("eq."))
       rows = rows.filter((row) => row.coach_session_id === threadId.slice(3));

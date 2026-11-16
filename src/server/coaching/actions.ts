@@ -31,10 +31,15 @@ import {
 } from "./managed/store";
 import { turnAccessToken, turnTimeoutMs } from "./managed/token";
 import { syncAthleteVault } from "./managed/vault";
+import { loadOlderItems, type OlderPage } from "./threads";
 
 const inputSchema = z.strictObject({ threadId: z.uuid() });
 const readSchema = z.strictObject({
   threadIds: z.array(z.uuid()).min(1).max(60),
+  throughId: z
+    .string()
+    .regex(/^\d{1,18}$/)
+    .optional(),
 });
 
 export async function markCoachThreadsRead(input: unknown) {
@@ -46,9 +51,36 @@ export async function markCoachThreadsRead(input: unknown) {
     context,
     parsed.data.threadIds,
   ).catch(() => 0);
-  await markThreadsRead(context, parsed.data.threadIds).catch(() => undefined);
+  await markThreadsRead(
+    context,
+    parsed.data.threadIds,
+    parsed.data.throughId,
+  ).catch(() => undefined);
   if (unread > 0) revalidatePath("/coach", "layout");
   return { ok: true } as const;
+}
+
+const olderSchema = z.strictObject({
+  target: z.discriminatedUnion("kind", [
+    z.strictObject({ kind: z.literal("main") }),
+    z.strictObject({ kind: z.literal("topic"), threadId: z.uuid() }),
+  ]),
+  before: z.string().regex(/^\d{1,18}$/),
+});
+
+export async function loadOlderMessages(
+  input: unknown,
+): Promise<{ ok: true; page: OlderPage } | { ok: false }> {
+  const parsed = olderSchema.safeParse(input);
+  if (!parsed.success) return { ok: false };
+  const context = await getOnboardingContext({ writable: true });
+  if (!context) return { ok: false };
+  const page = await loadOlderItems(
+    context,
+    parsed.data.target,
+    parsed.data.before,
+  ).catch(() => null);
+  return page ? { ok: true, page } : { ok: false };
 }
 
 function turnRunning(thread: CoachSessionRecord) {

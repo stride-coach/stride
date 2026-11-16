@@ -116,6 +116,7 @@ function record(overrides: Partial<CoachSessionRecord> = {}) {
     title: "Ma semaine",
     lastActivityAt: "2026-10-16T09:00:00Z",
     readAt: null,
+    readThroughItemId: null,
     composingSince: null,
     writingStep: null,
     notifyWhenReady: false,

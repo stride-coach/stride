@@ -645,6 +645,7 @@ export type Database = {
           pending_tool_use_id: string | null;
           race_id: string | null;
           read_at: string | null;
+          read_through_item_id: number | null;
           status: string;
           title: string | null;
           updated_at: string;
@@ -668,6 +669,7 @@ export type Database = {
           pending_tool_use_id?: string | null;
           race_id?: string | null;
           read_at?: string | null;
+          read_through_item_id?: number | null;
           status?: string;
           title?: string | null;
           updated_at?: string;
@@ -690,6 +692,7 @@ export type Database = {
           pending_tool_use_id?: string | null;
           race_id?: string | null;
           read_at?: string | null;
+          read_through_item_id?: number | null;
           status?: string;
           title?: string | null;
           updated_at?: string;

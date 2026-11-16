@@ -38,6 +38,10 @@ const rowSchema = z
     title: z.string().nullable(),
     last_activity_at: z.string(),
     read_at: z.string().nullable(),
+    read_through_item_id: z
+      .union([z.number(), z.string()])
+      .nullish()
+      .transform((value) => (value == null ? null : String(value))),
     composing_since: z.string().nullable(),
     writing_step: z.unknown().transform(parseStoredStep),
     notify_when_ready: z.boolean().default(false),
@@ -58,6 +62,7 @@ const rowSchema = z
     title: row.title,
     lastActivityAt: row.last_activity_at,
     readAt: row.read_at,
+    readThroughItemId: row.read_through_item_id,
     composingSince: row.composing_since,
     writingStep: row.writing_step,
     notifyWhenReady: row.notify_when_ready,
@@ -70,7 +75,7 @@ const rowSchema = z
 export type CoachSessionRecord = z.output<typeof rowSchema>;
 
 const columns =
-  "id, managed_session_id, mode, status, pending_tool_use_id, budget_cents, list_cost_cents, last_turn_at, title, last_activity_at, read_at, composing_since, writing_step, notify_when_ready, created_at, kind, race_id, closed_at";
+  "id, managed_session_id, mode, status, pending_tool_use_id, budget_cents, list_cost_cents, last_turn_at, title, last_activity_at, read_at, read_through_item_id, composing_since, writing_step, notify_when_ready, created_at, kind, race_id, closed_at";
 
 export async function findOwnSession(
   context: OnboardingContext,
@@ -341,13 +346,29 @@ export async function readSessionsItems(
   scope: ItemScope,
   limit = 500,
   kinds?: readonly ThreadItem["kind"][],
+  before?: string,
 ) {
   if (emptyScope(scope)) return [];
-  const { data, error } = await itemsQuery(context, scope, kinds)
+  let query = itemsQuery(context, scope, kinds);
+  if (before) query = query.lt("id", before);
+  const { data, error } = await query
     .order("id", { ascending: false })
     .limit(limit);
   if (error) throw new Error("Unable to read the coach thread items");
   return parseItemRows(data).reverse();
+}
+
+export async function hasItemsBefore(
+  context: OnboardingContext,
+  scope: ItemScope,
+  itemId: string | undefined,
+) {
+  if (!itemId || emptyScope(scope)) return false;
+  const { data, error } = await itemsQuery(context, scope)
+    .lt("id", itemId)
+    .limit(1);
+  if (error) throw new Error("Unable to read the coach thread items");
+  return (data ?? []).length > 0;
 }
 
 const searchPage = 1000;
@@ -428,14 +449,41 @@ export async function findFirstItemSince(
 export async function markThreadsRead(
   context: OnboardingContext,
   threadIds: readonly string[],
+  throughId?: string,
 ) {
   if (!threadIds.length) return;
-  const { error } = await context.client
-    .from("coach_sessions")
-    .update({ read_at: new Date().toISOString() })
-    .eq("user_id", context.userId)
-    .in("id", [...threadIds]);
-  if (error) throw new Error("Unable to mark the coach threads as read");
+  const readAt = new Date().toISOString();
+  const results = await Promise.all(
+    threadIds.map(async (threadId) => {
+      let latestQuery = context.client
+        .from("coach_thread_items")
+        .select("id")
+        .eq("user_id", context.userId)
+        .eq("coach_session_id", threadId);
+      if (throughId) latestQuery = latestQuery.lte("id", throughId);
+      const latest = await latestQuery
+        .order("id", { ascending: false })
+        .limit(1);
+      if (latest.error) return latest;
+      const readThrough = latest.data?.[0]?.id ?? null;
+      const stamped = await context.client
+        .from("coach_sessions")
+        .update({ read_at: readAt })
+        .eq("user_id", context.userId)
+        .eq("id", threadId);
+      if (stamped.error || readThrough === null) return stamped;
+      return context.client
+        .from("coach_sessions")
+        .update({ read_through_item_id: readThrough })
+        .eq("user_id", context.userId)
+        .eq("id", threadId)
+        .or(
+          `read_through_item_id.is.null,read_through_item_id.lt.${readThrough}`,
+        );
+    }),
+  );
+  if (results.some((result) => result.error))
+    throw new Error("Unable to mark the coach threads as read");
 }
 
 const proposalStatusSchema = z.object({

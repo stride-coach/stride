@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -92,7 +93,19 @@ import {
   topicOpenedLine,
   type TopicSummary,
 } from "@/features/coach/topics";
-import { markCoachThreadsRead } from "@/server/coaching/actions";
+import {
+  applyOlderPage,
+  isIncomingMessage,
+  olderCursor,
+  syncOlder,
+  unreadEntryIndex,
+  type OlderState,
+  type UnreadBoundary,
+} from "@/features/coach/long-thread";
+import {
+  loadOlderMessages,
+  markCoachThreadsRead,
+} from "@/server/coaching/actions";
 import { setNotifyWhenReady as saveNotifyWhenReady } from "@/server/coaching/notify-action";
 import type { CoachMainData, CoachTopicData } from "@/server/coaching/threads";
 import { CoachHeaderNav } from "./coach-tabs";
@@ -134,6 +147,8 @@ type Conversation = {
   notifyWhenReady: boolean;
   notifyOffer: NotifyOffer;
   readIds: string[];
+  hasMore: boolean;
+  unread: UnreadBoundary | null;
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
   proposalCards: Record<string, ProposalCard>;
@@ -190,6 +205,8 @@ function conversationOf(
       notifyWhenReady: false,
       notifyOffer: "needs-push",
       readIds: [],
+      hasMore: false,
+      unread: null,
       items: noItems,
       proposalStatuses: noStatuses,
       proposalCards: noCards,
@@ -212,6 +229,8 @@ function conversationOf(
       notifyWhenReady: view.data.notifyWhenReady,
       notifyOffer: view.data.notifyOffer,
       readIds: view.data.unread ? [view.data.id] : [],
+      hasMore: view.data.hasMore,
+      unread: view.data.unreadBoundary,
       items: view.data.items,
       proposalStatuses: view.data.proposalStatuses,
       proposalCards: view.data.proposalCards,
@@ -233,6 +252,8 @@ function conversationOf(
     notifyWhenReady: view.data.notifyWhenReady,
     notifyOffer: view.data.notifyOffer,
     readIds: view.data.unreadIds,
+    hasMore: view.data.hasMore,
+    unread: view.data.unread,
     items: view.data.items,
     proposalStatuses: view.data.proposalStatuses,
     proposalCards: view.data.proposalCards,
@@ -298,7 +319,9 @@ function ConversationPane({
   searchPanel,
   threadSearch,
   focusId,
+  messageTotal,
 }: {
+  messageTotal: number | null;
   searchBar: React.ReactNode;
   searchPanel: React.ReactNode;
   threadSearch: ThreadSearch;
@@ -334,6 +357,26 @@ function ConversationPane({
   );
   const [busy, setBusy] = useState(false);
   const [synced, setSynced] = useState(conversation);
+  const [olderState, setOlder] = useState<OlderState>({
+    base: baseItems,
+    items: [],
+    hasMore: conversation.hasMore,
+    loaded: 0,
+  });
+  const [known, setKnown] = useState<{
+    statuses: Record<string, string>;
+    cards: Record<string, ProposalCard>;
+  }>({ statuses: {}, cards: {} });
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const older = syncOlder(olderState, baseItems, conversation.hasMore);
+  if (older !== olderState) {
+    setOlder(older);
+    if (older.items.length)
+      setKnown((current) => ({
+        statuses: { ...current.statuses, ...synced.proposalStatuses },
+        cards: { ...current.cards, ...synced.proposalCards },
+      }));
+  }
   if (synced !== conversation) {
     setSynced(conversation);
     if (!busy) {
@@ -367,11 +410,19 @@ function ConversationPane({
   const [outbox, updateOutbox] = useCoachOutbox(outboxKey);
 
   const items = useMemo(
-    () => [...live.base, ...live.items],
-    [live.base, live.items],
+    () => [...older.items, ...live.base, ...live.items],
+    [older.items, live.base, live.items],
   );
   const main = conversation.target.kind === "main";
-  const { mode, proposalStatuses, proposalCards } = conversation;
+  const { mode } = conversation;
+  const proposalStatuses = useMemo(
+    () => ({ ...known.statuses, ...conversation.proposalStatuses }),
+    [known.statuses, conversation.proposalStatuses],
+  );
+  const proposalCards = useMemo(
+    () => ({ ...known.cards, ...conversation.proposalCards }),
+    [known.cards, conversation.proposalCards],
+  );
   const status =
     state === null
       ? null
@@ -404,6 +455,12 @@ function ConversationPane({
       }),
     [items, working, pendingQuestion, proposalStatuses, proposalCards],
   );
+  const [unread] = useState(conversation.unread);
+  const unreadMark = useMemo(() => {
+    if (!unread) return null;
+    const entryIndex = unreadEntryIndex(entries, unread.firstId);
+    return entryIndex < 0 ? null : { entryIndex, count: unread.count };
+  }, [unread, entries]);
   const closed =
     !main &&
     (conversation.closedAt !== null ||
@@ -418,21 +475,114 @@ function ConversationPane({
       : revisableQuestion(items);
 
   const readIds = conversation.readIds;
+  const markRead = useEffectEvent(() => {
+    void markCoachThreadsRead({
+      threadIds: readIds,
+      throughId: items.findLast((item) => item.id)?.id,
+    });
+  });
   useEffect(() => {
-    if (readIds.length) void markCoachThreadsRead({ threadIds: readIds });
+    if (readIds.length) markRead();
   }, [readIds]);
 
-  const firstId = items[0]?.id;
   const lastId = items.at(-1)?.id;
-  useEffect(() => {
+  const seenTail = useRef(items.length);
+  const preserve = useRef<{ height: number; top: number } | null>(null);
+  const atBottom = useRef(true);
+  const opened = useRef(false);
+  const [away, setAway] = useState(false);
+  const [behind, setBehind] = useState(0);
+
+  useLayoutEffect(() => {
+    const element = scroller.current;
+    const kept = preserve.current;
+    if (!element || !kept) return;
+    element.scrollTop = kept.top + (element.scrollHeight - kept.height);
+    preserve.current = null;
+  }, [older.items]);
+
+  const settleScroll = useEffectEvent(() => {
+    const tail = items.length - older.loaded;
+    const grown = tail - seenTail.current;
+    seenTail.current = tail;
     if (focusId && !sending) {
       scroller.current
         ?.querySelector(`[data-item-id="${focusId}"]`)
         ?.scrollIntoView({ block: "center" });
       return;
     }
+    if (!opened.current) {
+      opened.current = true;
+      const divider = scroller.current?.querySelector("#coach-unread");
+      if (divider) {
+        divider.scrollIntoView({ block: "start" });
+        atBottom.current = false;
+        setAway(true);
+        return;
+      }
+    }
+    if (atBottom.current || sending) {
+      logEnd.current?.scrollIntoView({ block: "end" });
+      return;
+    }
+    if (grown > 0)
+      setBehind(
+        (count) => count + items.slice(-grown).filter(isIncomingMessage).length,
+      );
+  });
+  useEffect(() => {
+    settleScroll();
+  }, [lastId, live.items.length, sending, focusId]);
+
+  function trackScroll() {
+    const element = scroller.current;
+    if (!element) return;
+    const bottom =
+      element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+    atBottom.current = bottom;
+    setAway(!bottom);
+    if (bottom) setBehind(0);
+  }
+
+  function scrollToEnd() {
     logEnd.current?.scrollIntoView({ block: "end" });
-  }, [items.length, firstId, lastId, sending, focusId]);
+  }
+
+  async function loadOlder() {
+    const before = olderCursor(items);
+    const target = conversation.target;
+    if (!before || loadingOlder || target.kind === "new_topic") return;
+    setLoadingOlder(true);
+    const element = scroller.current;
+    const result = await loadOlderMessages({
+      target:
+        target.kind === "main"
+          ? { kind: "main" }
+          : { kind: "topic", threadId: target.threadId },
+      before,
+    }).catch(() => ({ ok: false as const }));
+    if (result.ok) {
+      const { page } = result;
+      if (element)
+        preserve.current = {
+          height: element.scrollHeight,
+          top: element.scrollTop,
+        };
+      setOlder((current) =>
+        applyOlderPage(current, before, page.items, page.hasMore),
+      );
+      setKnown((current) => ({
+        statuses: { ...page.proposalStatuses, ...current.statuses },
+        cards: { ...page.proposalCards, ...current.cards },
+      }));
+    } else {
+      toast.error(
+        "Les messages précédents n’ont pas pu être chargés. Réessaie dans un instant.",
+        { id: "coach-older" },
+      );
+    }
+    setLoadingOlder(false);
+  }
 
   const markThinking = useDataActivity()?.markThinking;
   useEffect(() => {
@@ -785,7 +935,9 @@ function ConversationPane({
                   {conversation.createdAt
                     ? topicOpenedLine(
                         conversation.createdAt,
-                        topicMessageCount(items),
+                        older.hasMore && messageTotal !== null
+                          ? messageTotal
+                          : topicMessageCount(items),
                         timeZone,
                       )
                     : "Nouveau sujet"}
@@ -796,6 +948,7 @@ function ConversationPane({
           )}
           <div
             ref={scroller}
+            onScroll={trackScroll}
             className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
           >
             {empty ? (
@@ -810,6 +963,12 @@ function ConversationPane({
             ) : (
               <ThreadLog
                 entries={entries}
+                older={
+                  older.hasMore
+                    ? { loading: loadingOlder, onLoad: () => void loadOlder() }
+                    : null
+                }
+                unread={unreadMark}
                 search={threadSearch}
                 pending={sending}
                 timeZone={timeZone}
@@ -867,6 +1026,20 @@ function ConversationPane({
               />
             )}
             <div ref={logEnd} />
+            {away && (
+              <div className="pointer-events-none sticky bottom-3 z-10 flex h-0 justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={scrollToEnd}
+                  className="pointer-events-auto -translate-y-full rounded-full bg-background shadow-float"
+                >
+                  ↓ Revenir en bas
+                  {behind > 0 &&
+                    ` · ${behind} ${behind === 1 ? "nouveau" : "nouveaux"}`}
+                </Button>
+              </div>
+            )}
           </div>
           {closed ? (
             <ClosedNotice conversation={conversation} busy={working} />
@@ -1116,11 +1289,13 @@ export function CoachScreen({
   const [creating, setCreating] = useState(false);
   const [listOpen, setListOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const currentId = view.kind === "topic" && !draftTopic ? view.data.id : null;
   const conversation = useMemo(
     () => conversationOf(view, draft, draftTopic),
     [view, draft, draftTopic],
   );
-  const currentId = view.kind === "topic" && !draftTopic ? view.data.id : null;
+  const messageTotal =
+    topics.find((topic) => topic.id === currentId)?.messages ?? null;
   const openTopics = topics.filter((topic) => topic.closedAt === null).length;
   const title =
     conversation.target.kind === "main"
@@ -1240,6 +1415,7 @@ export function CoachScreen({
         timeZone={timeZone}
         threadSearch={threadSearch}
         focusId={focusId}
+        messageTotal={messageTotal}
         searchBar={
           searchOpen ? (
             <SearchBar
