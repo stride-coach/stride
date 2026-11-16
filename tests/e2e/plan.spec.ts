@@ -10,7 +10,7 @@ test("an athlete browses the plan and opens its sessions", async ({ page }) => {
   await signInAs(page, "plan@example.com");
 
   const todayLink = page
-    .locator('[data-slot="session-row"] a[href^="/plan/sessions/"]')
+    .locator('main a[href^="/plan/sessions/"]')
     .filter({ visible: true })
     .first();
   await todayLink.click();
