@@ -9,42 +9,42 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "27",
-      "hash": "4abec24a41f57e1a00838438bc1f3a38",
-      "remote_hash": "8ac00929c2804f0e131914dfa4b5275a",
-      "stamp": "27"
+      "version": "28",
+      "hash": "9a117945f0a295743187a6f02ffa9eaa",
+      "remote_hash": "304cf38d79a5e5fdef0af9b3b9b5fa58",
+      "stamp": "28"
     },
     "./agents/director.md": {
       "kind": "agent",
       "id": "agent_017vonN4KirZUgE4TdC7eept",
-      "version": "7",
-      "hash": "6ee9c06553622254b753354e11a46016",
-      "remote_hash": "509fa8571024879341c770e245cb5d0f",
-      "stamp": "7"
+      "version": "8",
+      "hash": "79e6fc1f8b74acc73e50e41912de5005",
+      "remote_hash": "e2be82271a4a8ed8b8ce9214bd1b2140",
+      "stamp": "8"
     },
     "./agents/medical.md": {
       "kind": "agent",
       "id": "agent_011dYKZ33Wq7xwdNR3SqpugL",
-      "version": "13",
-      "hash": "b8d1e8d3bdc41987a424a278123d69b7",
-      "remote_hash": "2cb986f922992a25a1ad74fdd1430ac5",
-      "stamp": "13"
+      "version": "14",
+      "hash": "102236424671caa24db56c9bf7c485d3",
+      "remote_hash": "73abb63c669bceea3cc30dc78354fbda",
+      "stamp": "14"
     },
     "./agents/nutritionist.md": {
       "kind": "agent",
       "id": "agent_01T4vwuYeP5ZjKoLPDdHC9z4",
-      "version": "6",
-      "hash": "135dbcc88c19a910c20da4e504d0825f",
-      "remote_hash": "f15497d359672a18c561f6ce81664bf2",
-      "stamp": "6"
+      "version": "7",
+      "hash": "bf7b80bfe174fbc28fe7a8d19fd070a3",
+      "remote_hash": "ba0222c90e9f7e561a0e9dc02b57107e",
+      "stamp": "7"
     },
     "./agents/strategist.md": {
       "kind": "agent",
       "id": "agent_015ajAPp18SxHnnA4QEcQ8st",
-      "version": "5",
-      "hash": "66315a0c67206be81d9e33740c52fe31",
-      "remote_hash": "2d71556e2b9c8a0f212a3075b90118b6",
-      "stamp": "5"
+      "version": "6",
+      "hash": "97513b1095f9eb9c271c4443b4ae1596",
+      "remote_hash": "b5f93074f3cb961a27af46a33b642ef5",
+      "stamp": "6"
     },
     "./environments/coaching.yaml": {
       "kind": "environment",
