@@ -81,6 +81,6 @@ describe("notify when ready offer", () => {
   it("explains that staff pushes are off instead of promising a notification", () => {
     const offer = notifyOffer({ devices: 2, staffEnabled: false });
     expect(offer).toBe("push-off");
-    expect(notifyCopy[offer]).toMatch(/coupées/);
+    expect(notifyCopy["push-off"]).toMatch(/coupées/);
   });
 });
