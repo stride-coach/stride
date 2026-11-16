@@ -602,7 +602,7 @@ export type Database = {
           id: string;
           size_bytes: number;
           storage_path: string;
-          summary: Json;
+          summary: NonNullable<Json>;
           user_id: string;
         };
         ComputedFields: never;
@@ -613,7 +613,7 @@ export type Database = {
           id?: string;
           size_bytes: number;
           storage_path: string;
-          summary: Json;
+          summary: NonNullable<Json>;
           user_id: string;
         };
         Update: {
@@ -623,7 +623,7 @@ export type Database = {
           id?: string;
           size_bytes?: number;
           storage_path?: string;
-          summary?: Json;
+          summary?: NonNullable<Json>;
           user_id?: string;
         };
         Relationships: [];
