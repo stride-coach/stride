@@ -1432,7 +1432,6 @@ test("the composer stops a reply and sends what was written meanwhile, across a 
   await composer.fill("Et ajoute une course");
   await composer.press("Enter");
   await expect(queuedNotice).toBeVisible();
-  await page.unrouteAll({ behavior: "ignoreErrors" });
   const resumed: unknown[] = [];
   await page.route("**/api/coach/turns", async (route) => {
     resumed.push(route.request().postDataJSON());
