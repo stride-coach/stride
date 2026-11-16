@@ -218,8 +218,6 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
       }
       case "read":
         if (!turnReads.includes(item.label)) turnReads.push(item.label);
-        if (current && !current.lookedAt.includes(item.label))
-          current.lookedAt.push(item.label);
         if (item.agent !== "coach") {
           const handoff = handoffOf(item.thread, item.agent, item.at);
           if (!handoff.reads.includes(item.label))

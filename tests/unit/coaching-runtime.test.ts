@@ -527,6 +527,29 @@ describe("coach turn stream", () => {
     );
   });
 
+  it("delivers at most ten corrections per message and keeps the rest pending", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    store.readPendingCorrections.mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: index + 1,
+        excerpt: `Message ${index + 1}`,
+        text: `Correction ${index + 1}`,
+      })),
+    );
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+
+    await collect(streamCoachTurn(contextFor(athleteA), request));
+
+    expect(store.markCorrectionsDelivered).toHaveBeenCalledWith(
+      expect.anything(),
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    );
+  });
+
   it("sends the message without corrections when they cannot be read", async () => {
     store.findOwnSession.mockResolvedValue(record());
     store.readPendingCorrections.mockRejectedValue(new Error("unavailable"));

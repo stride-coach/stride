@@ -25,13 +25,18 @@ type StaffEntry = Extract<ThreadEntry, { type: "staff" }>;
 
 function CorrectionForm({
   itemId,
-  onDone,
+  text,
+  onTextChange,
+  onSent,
+  onCancel,
 }: {
   itemId: string;
-  onDone: () => void;
+  text: string;
+  onTextChange: (text: string) => void;
+  onSent: () => void;
+  onCancel: () => void;
 }) {
   const fieldId = useId();
-  const [text, setText] = useState("");
   const [failed, setFailed] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -48,7 +53,7 @@ function CorrectionForm({
       toast.success("Correction envoyée. Le staff en tiendra compte.", {
         id: "coach-correction",
       });
-      onDone();
+      onSent();
     });
   }
 
@@ -68,7 +73,7 @@ function CorrectionForm({
         value={text}
         maxLength={correctionTextLimit}
         rows={3}
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => onTextChange(event.target.value)}
         aria-describedby={failed ? `${fieldId}-error` : undefined}
       />
       {failed && (
@@ -77,7 +82,7 @@ function CorrectionForm({
         </p>
       )}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={onDone}>
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Annuler
         </Button>
         <Button type="submit" disabled={pending || !text.trim()}>
@@ -95,10 +100,11 @@ function ActionsMenu({
   children,
 }: {
   entry: StaffEntry;
-  copyText: string;
-  itemId: string;
+  copyText: string | null;
+  itemId: string | null;
   children: React.ReactNode;
 }) {
+  const [draft, setDraft] = useState("");
   const root = useRef<HTMLDivElement>(null);
   const timer = useRef<number | null>(null);
   const [touchOpen, setTouchOpen] = useState(false);
@@ -121,6 +127,7 @@ function ActionsMenu({
   }
 
   async function copy() {
+    if (!copyText) return;
     try {
       await navigator.clipboard.writeText(copyText);
       toast.success("Message copié.", { id: "coach-copy" });
@@ -149,59 +156,69 @@ function ActionsMenu({
       onPointerMove={cancelPress}
     >
       {children}
-      <div
-        role="toolbar"
-        aria-label="Actions sur le message"
-        data-open={open}
-        className={cn(
-          "absolute -top-3.5 right-2.5 z-10 flex gap-0.5 rounded-lg border border-control-border bg-popover p-0.5 text-popover-foreground opacity-0 shadow-float transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100 motion-reduce:transition-none",
-        )}
-      >
-        <Button type="button" variant="ghost" size="sm" onClick={copy}>
-          Copier
-        </Button>
-        <Popover open={readOpen} onOpenChange={setReadOpen}>
-          <PopoverTrigger asChild>
-            <Button type="button" variant="ghost" size="sm">
-              Ce qui a été lu
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="gap-2 p-3">
-            {entry.lookedAt.length > 0 ? (
-              <>
-                <span className="text-label text-muted-foreground">
-                  Pour répondre, le staff a lu
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {entry.lookedAt.map((read) => (
-                    <Chip key={read}>{read}</Chip>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="text-secondary-foreground">
-                Le staff n’a rien consulté pour écrire ce message.
-              </p>
-            )}
-          </PopoverContent>
-        </Popover>
-        <Popover open={correctOpen} onOpenChange={setCorrectOpen}>
-          <PopoverTrigger asChild>
-            <Button type="button" variant="ghost" size="sm">
-              Ce n’est pas juste
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 p-0">
-            <CorrectionForm
-              itemId={itemId}
-              onDone={() => {
-                setCorrectOpen(false);
-                setTouchOpen(false);
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      {copyText && itemId && (
+        <div
+          role="toolbar"
+          aria-label="Actions sur le message"
+          data-open={open}
+          className={cn(
+            "pointer-events-none absolute -top-3.5 right-2.5 z-10 flex gap-0.5 rounded-lg border border-control-border bg-popover p-0.5 text-popover-foreground opacity-0 shadow-float transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 motion-reduce:transition-none",
+          )}
+        >
+          <Button type="button" variant="ghost" size="sm" onClick={copy}>
+            Copier
+          </Button>
+          <Popover open={readOpen} onOpenChange={setReadOpen}>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="ghost" size="sm">
+                Ce qui a été lu
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="gap-2 p-3">
+              {entry.lookedAt.length > 0 ? (
+                <>
+                  <span className="text-label text-muted-foreground">
+                    Pour répondre, le staff a lu
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {entry.lookedAt.map((read) => (
+                      <Chip key={read}>{read}</Chip>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-secondary-foreground">
+                  Le staff n’a rien consulté pour écrire ce message.
+                </p>
+              )}
+            </PopoverContent>
+          </Popover>
+          <Popover open={correctOpen} onOpenChange={setCorrectOpen}>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="ghost" size="sm">
+                Ce n’est pas juste
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              <CorrectionForm
+                itemId={itemId}
+                text={draft}
+                onTextChange={setDraft}
+                onSent={() => {
+                  setDraft("");
+                  setCorrectOpen(false);
+                  setTouchOpen(false);
+                }}
+                onCancel={() => {
+                  setDraft("");
+                  setCorrectOpen(false);
+                  setTouchOpen(false);
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
     </div>
   );
 }
@@ -213,11 +230,12 @@ export function MessageActions({
   entry: StaffEntry;
   children: React.ReactNode;
 }) {
-  const copyText = staffCopyText(entry);
-  const itemId = correctableItemId(entry);
-  if (!copyText || !itemId) return children;
   return (
-    <ActionsMenu entry={entry} copyText={copyText} itemId={itemId}>
+    <ActionsMenu
+      entry={entry}
+      copyText={staffCopyText(entry)}
+      itemId={correctableItemId(entry)}
+    >
       {children}
     </ActionsMenu>
   );

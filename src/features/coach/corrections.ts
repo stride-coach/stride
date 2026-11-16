@@ -3,7 +3,7 @@ import type { ThreadEntry } from "./thread";
 
 export const correctionTextLimit = 500;
 const excerptLimit = 160;
-const contextLimit = 10;
+const deliveryBatch = 10;
 
 export const correctionInputSchema = z.strictObject({
   itemId: z.string().regex(/^\d{1,18}$/),
@@ -21,13 +21,15 @@ export function excerptOf(text: string) {
     : `${flat.slice(0, excerptLimit - 1).trimEnd()}…`;
 }
 
+export function deliverableCorrections<T>(pending: readonly T[]) {
+  return pending.slice(0, deliveryBatch);
+}
+
 export function correctionContext(corrections: readonly PendingCorrection[]) {
   if (!corrections.length) return null;
-  const lines = corrections
-    .slice(-contextLimit)
-    .map(
-      (correction) => `- Sur « ${correction.excerpt} » : ${correction.text}`,
-    );
+  const lines = corrections.map(
+    (correction) => `- Sur « ${correction.excerpt} » : ${correction.text}`,
+  );
   return [
     "Corrections de l’athlète sur tes messages précédents. Tiens-en compte et ne les contredis pas :",
     ...lines,

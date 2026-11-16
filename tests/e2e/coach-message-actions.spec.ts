@@ -67,8 +67,9 @@ test("a staff message is copied, shows what was read and takes a correction", as
 
   const log = page.getByRole("log", { name: "Messages" });
   const message = log.getByText("Ta charge est stable cette semaine.");
-  await message.hover();
   const actions = page.getByRole("toolbar", { name: "Actions sur le message" });
+  await expect(actions).toHaveCSS("pointer-events", "none");
+  await message.hover();
   await expect(actions).toBeVisible();
 
   await actions.getByRole("button", { name: "Copier" }).click();
@@ -93,6 +94,11 @@ test("a staff message is copied, shows what was read and takes a correction", as
   const send = page.getByRole("button", { name: "Envoyer la correction" });
   await expect(send).toBeDisabled();
   await field.fill("J’ai eu mal au genou mardi.");
+  await page.keyboard.press("Escape");
+  await expect(field).toBeHidden();
+  await message.hover();
+  await actions.getByRole("button", { name: "Ce n’est pas juste" }).click();
+  await expect(field).toHaveValue("J’ai eu mal au genou mardi.");
   await send.click();
   await expect(
     page.getByText("Correction envoyée. Le staff en tiendra compte."),

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   correctionContext,
   correctionInputSchema,
+  deliverableCorrections,
   excerptOf,
   staffCopyText,
 } from "../../src/features/coach/corrections";
@@ -63,15 +64,31 @@ describe("correctionContext", () => {
     );
   });
 
-  it("keeps only the ten latest corrections", () => {
-    const many = Array.from({ length: 12 }, (_, index) => ({
+  it("tells the staff about every correction it is given", () => {
+    const many = Array.from({ length: 4 }, (_, index) => ({
       excerpt: `Message ${index}`,
       text: `Correction ${index}`,
     }));
-    const text = correctionContext(many) ?? "";
-    expect(text).not.toContain("Correction 1 ");
-    expect(text).toContain("Correction 11");
-    expect(text.match(/^- Sur/gm)).toHaveLength(10);
+    expect(correctionContext(many)?.match(/^- Sur/gm)).toHaveLength(4);
+  });
+});
+
+describe("deliverableCorrections", () => {
+  const many = Array.from({ length: 12 }, (_, index) => ({
+    id: index + 1,
+    excerpt: `Message ${index}`,
+    text: `Correction ${index}`,
+  }));
+
+  it("sends the ten oldest first so none is lost", () => {
+    const batch = deliverableCorrections(many);
+    expect(batch.map((correction) => correction.id)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    ]);
+  });
+
+  it("sends everything when there are few", () => {
+    expect(deliverableCorrections(many.slice(0, 3))).toHaveLength(3);
   });
 });
 
@@ -135,6 +152,21 @@ describe("what the staff read for a message", () => {
       "Plan",
       "Garmin · Sommeil",
     ]);
+  });
+
+  it("does not credit a message with reads made after it started", () => {
+    const entries = buildThread({
+      items: [
+        read("1", 0, "Plan"),
+        { kind: "coach", at: at(1), id: "2", text: "Premier." },
+        read("3", 2, "Garmin · Sommeil"),
+        { kind: "coach", at: at(3), id: "4", text: "Second." },
+      ],
+      live: false,
+      pendingToolUseId: null,
+    });
+    const staff = entries[0];
+    expect(staff.type === "staff" && staff.lookedAt).toEqual(["Plan"]);
   });
 
   it("starts over after the next athlete message", () => {

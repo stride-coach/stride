@@ -7,7 +7,10 @@ import {
   type ThreadItem,
   type TurnErrorCode,
 } from "@/features/coach/items";
-import { correctionContext } from "@/features/coach/corrections";
+import {
+  correctionContext,
+  deliverableCorrections,
+} from "@/features/coach/corrections";
 import { readLabel } from "@/features/coach/reads";
 import { answerRevisionText, revisableQuestion } from "@/features/coach/thread";
 import {
@@ -699,7 +702,8 @@ export async function* streamCoachTurn(
     request.input.kind === "message"
       ? await pendingCorrectionsOf(context, record)
       : [];
-  const corrections = correctionContext(pendingCorrections);
+  const deliveredCorrections = deliverableCorrections(pendingCorrections);
+  const corrections = correctionContext(deliveredCorrections);
 
   try {
     const stream = await client.beta.sessions.events.stream(
@@ -746,7 +750,7 @@ export async function* streamCoachTurn(
     });
     await markCorrectionsDelivered(
       context,
-      pendingCorrections.map((correction) => correction.id),
+      deliveredCorrections.map((correction) => correction.id),
     ).catch(() => undefined);
 
     loop: for await (const event of stream) {

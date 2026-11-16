@@ -184,7 +184,10 @@ describe("athlete profile", () => {
   it("keeps deterministic training habits available without an AI response", () => {
     const view = buildAthleteProfile(inputs());
     expect(view.habits.final).toBe(true);
-    expect(view.habits.items.map((item) => item.key)).toEqual(["volume", "mix"]);
+    expect(view.habits.items.map((item) => item.key)).toEqual([
+      "volume",
+      "mix",
+    ]);
     for (const item of view.habits.items) {
       expect(item.origin).toBe("facts");
       expect(item.source).toMatch(/Activités/);
