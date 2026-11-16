@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { useCoachRequestHref } from "@/features/coach/components/coach-context";
@@ -27,8 +27,16 @@ export function AskCoachButton({ fallback = false }: { fallback?: boolean }) {
   return <ContextualAskCoach />;
 }
 
+const subscribeNothing = () => () => {};
+
 function ContextualAskCoach() {
-  const href = useCoachRequestHref();
+  const contextualHref = useCoachRequestHref();
+  const hydrated = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+  const href = hydrated ? contextualHref : "/coach";
   const navigate = useDataActivityNavigation();
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
