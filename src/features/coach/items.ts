@@ -5,6 +5,14 @@ import { staffAgents } from "./staff";
 const agent = z.enum(staffAgents);
 export const itemTextLimit = 7000;
 
+export const turnErrorCodes = [
+  "timeout",
+  "budget_reached",
+  "failed",
+  "interrupted",
+] as const;
+export type TurnErrorCode = (typeof turnErrorCodes)[number];
+
 const text = z.string().max(itemTextLimit);
 
 export const proposalScopes = [
@@ -56,7 +64,7 @@ const bodies = {
     opinions: z.array(opinionSchema).catch([]),
   }),
   error: z.object({
-    code: z.enum(["timeout", "budget_reached", "failed"]),
+    code: z.enum(turnErrorCodes),
     text,
   }),
   topic_summary: z.object({

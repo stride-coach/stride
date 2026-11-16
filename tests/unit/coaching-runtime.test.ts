@@ -59,6 +59,7 @@ vi.mock("../../src/server/coaching/attachments", async (original) => ({
 
 import {
   assertTurnAllowed,
+  interruptCoachTurn,
   SessionAccessError,
   SessionStateError,
   streamCoachTurn,
@@ -768,6 +769,60 @@ describe("coach turn stream", () => {
       text: turnMessages.timeout,
     });
     expect(events.at(-1)).toMatchObject({ status: "timed_out" });
+  });
+
+  it("stops a turn the athlete interrupts without running what follows", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "agent.message", content: [{ type: "text", text: "Je" }] },
+        { type: "user.interrupt", id: "sevt_stop" },
+        {
+          type: "agent.custom_tool_use",
+          id: "sevt_tool",
+          name: "create_plan_proposal",
+          input: {},
+        },
+      ]),
+    );
+    const events = await collect(
+      streamCoachTurn(contextFor(athleteA), request),
+    );
+    expect(runCustomTool).not.toHaveBeenCalled();
+    expect(managed.send).toHaveBeenCalledWith("sesn_01A", {
+      events: [{ type: "user.interrupt" }],
+    });
+    expect(events).toContainEqual({
+      type: "error",
+      code: "interrupted",
+      text: turnMessages.interrupted,
+    });
+    expect(store.appendThreadItem).toHaveBeenCalledWith(
+      expect.anything(),
+      record().id,
+      expect.objectContaining({ kind: "error", code: "interrupted" }),
+    );
+    expect(events.at(-1)).toMatchObject({
+      status: "idle",
+      stopReason: "interrupted",
+    });
+  });
+
+  it("interrupts only a running turn of the athlete's own thread", async () => {
+    store.findOwnThread.mockResolvedValueOnce(null);
+    await expect(
+      interruptCoachTurn(contextFor(athleteB), record().id),
+    ).rejects.toBeInstanceOf(SessionAccessError);
+    store.findOwnThread.mockResolvedValueOnce(record({ status: "idle" }));
+    await expect(
+      interruptCoachTurn(contextFor(athleteA), record().id),
+    ).rejects.toMatchObject({ code: "no_running_turn" });
+    expect(managed.send).not.toHaveBeenCalled();
+    store.findOwnThread.mockResolvedValueOnce(record({ status: "running" }));
+    await interruptCoachTurn(contextFor(athleteA), record().id);
+    expect(managed.send).toHaveBeenCalledWith("sesn_01A", {
+      events: [{ type: "user.interrupt" }],
+    });
   });
 
   it("records while the Coach composes and clears it when the request ends", async () => {

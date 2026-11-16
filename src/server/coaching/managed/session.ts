@@ -2,7 +2,11 @@ import "server-only";
 import { z } from "zod";
 import { displayTimeZone } from "@/features/app-shell/shell";
 import type { AttachmentRef } from "@/features/coach/attachments";
-import { clampItem, type ThreadItem } from "@/features/coach/items";
+import {
+  clampItem,
+  type ThreadItem,
+  type TurnErrorCode,
+} from "@/features/coach/items";
 import { readLabel } from "@/features/coach/reads";
 import {
   mainSessionReusable,
@@ -76,6 +80,7 @@ export const turnMessages = {
   mainBudget:
     "Le Coach a atteint la limite de cette session. Ton prochain message repartira d’une nouvelle session, avec tes données.",
   failed: "Le coach a rencontré un problème. Réessaie dans quelques instants.",
+  interrupted: "Tu as arrêté la réponse. Rien n’a changé dans ton plan.",
 } as const;
 
 export type TurnInput =
@@ -122,7 +127,7 @@ export type TurnEvent =
   | { type: "question"; question: PendingQuestion }
   | {
       type: "error";
-      code: "timeout" | "budget_reached" | "failed";
+      code: TurnErrorCode;
       text: string;
     }
   | {
@@ -146,7 +151,8 @@ export class SessionStateError extends Error {
       | "session_closed"
       | "turn_in_progress"
       | "answer_required"
-      | "no_pending_question",
+      | "no_pending_question"
+      | "no_running_turn",
   ) {
     super(code);
   }
@@ -612,6 +618,7 @@ export async function* streamCoachTurn(
   let composingSince: string | null = null;
   let stopReason = "interrupted";
   let crashed = false;
+  let interrupted = false;
   let firstEventMs: number | null = null;
   const turnStarted = Date.now();
   const group =
@@ -656,6 +663,9 @@ export async function* streamCoachTurn(
     loop: for await (const event of stream) {
       firstEventMs ??= Date.now() - turnStarted;
       switch (event.type) {
+        case "user.interrupt":
+          interrupted = true;
+          break loop;
         case "agent.message": {
           const text = textOf(event.content);
           const thread = threadOf(event);
@@ -877,7 +887,7 @@ export async function* streamCoachTurn(
     clearTimeout(timeout);
   }
 
-  if (timedOut && !pendingQuestion)
+  if ((timedOut || interrupted) && !pendingQuestion)
     await client.beta.sessions.events
       .send(id, { events: [{ type: "user.interrupt" }] })
       .catch(() => undefined);
@@ -895,6 +905,14 @@ export async function* streamCoachTurn(
       options: pendingQuestion.options,
       askedFor: pendingQuestion.askedFor,
     });
+  } else if (interrupted) {
+    status = "idle";
+    stopReason = "interrupted";
+    failure = {
+      type: "error",
+      code: "interrupted",
+      text: turnMessages.interrupted,
+    };
   } else if (crashed) {
     status = "failed";
     stopReason = "failed";
@@ -947,4 +965,17 @@ export async function* streamCoachTurn(
     listCostCents,
     timings: { sessionMs, firstEventMs, turnMs: Date.now() - turnStarted },
   };
+}
+
+export async function interruptCoachTurn(
+  context: OnboardingContext,
+  threadId: string,
+) {
+  const record = await findOwnThread(context, threadId);
+  if (!record) throw new SessionAccessError();
+  if (record.status !== "running")
+    throw new SessionStateError("no_running_turn");
+  await managedClient().beta.sessions.events.send(record.managedSessionId, {
+    events: [{ type: "user.interrupt" }],
+  });
 }
