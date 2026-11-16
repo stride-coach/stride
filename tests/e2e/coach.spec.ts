@@ -223,7 +223,10 @@ test("a main-thread message asks Santé and stays in the main thread", async ({
         threadId: mainThread,
         consoleUrl: "https://console.test",
       },
-      item("athlete", { text: "Mon mollet est tendu", consult: "medical" }),
+      item("athlete", {
+        text: "Mon mollet est tendu @Santé",
+        consult: "medical",
+      }),
       item("coach", { text: "@Santé, tu peux regarder ton mollet ?" }),
       item("consult_request", {
         thread: "sthr_calf",
@@ -250,7 +253,14 @@ test("a main-thread message asks Santé and stays in the main thread", async ({
   });
   const composer = page.getByRole("textbox", { name: "Écrire au staff" });
   await composer.fill("Mon mollet est tendu");
-  await page.getByRole("button", { name: "Mentionner Santé" }).click();
+  await page
+    .getByRole("button", { name: "Mentionner un membre du staff" })
+    .click();
+  await page
+    .getByRole("listbox", { name: "Mentionner" })
+    .getByRole("option", { name: /Santé/ })
+    .click();
+  await expect(composer).toHaveValue("Mon mollet est tendu @Santé ");
   await page.getByRole("button", { name: "Envoyer" }).click();
 
   const log = page.getByRole("log", { name: "Messages" });
@@ -271,7 +281,7 @@ test("a main-thread message asks Santé and stays in the main thread", async ({
     mode: "conversation",
     input: {
       kind: "message",
-      text: "Mon mollet est tendu",
+      text: "Mon mollet est tendu @Santé",
       consult: "medical",
     },
   });
@@ -482,16 +492,17 @@ test("suggested replies send from the keyboard and hide while the staff works", 
   await composer.focus();
   await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab");
   const other = row.getByRole("button", { name: "Propose une autre option" });
   await expect(other).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(
     page.getByRole("status").filter({ hasText: "Le Coach réfléchit…" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Envoyer" })).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Arrêter le staff" }),
-  ).toHaveCount(0);
+    page.getByRole("button", { name: "Arrêter la réponse" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Envoyer" })).toHaveCount(0);
   await expect(row).toHaveCount(0);
   await expect(composer).toHaveValue("");
   expect(posted).toEqual({
@@ -724,7 +735,11 @@ test("mobile picks context from a bottom sheet at 390", async ({ page }) => {
   await page.goto("/coach");
   const trigger = page.getByRole("button", { name: addContext });
   const triggerBox = await trigger.boundingBox();
-  expect(Math.round(triggerBox!.height)).toBeGreaterThanOrEqual(40);
+  expect(Math.round(triggerBox!.height)).toBe(32);
+  const field = await page
+    .getByRole("textbox", { name: "Écrire au staff" })
+    .boundingBox();
+  expect(Math.round(field!.height)).toBeGreaterThanOrEqual(44);
   await trigger.focus();
   await page.keyboard.press("Enter");
   const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
@@ -1287,6 +1302,175 @@ test("mobile reaches the staff page from the topics sheet at 390", async ({
   await expect(page).toHaveURL("/coach", { timeout: 20_000 });
 });
 
+test("the composer stops a reply and sends what was written meanwhile, across a reload and offline", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/coach/${planThread}`);
+  const composer = page.getByRole("textbox", { name: "Écrire au staff" });
+  const send = page.getByRole("button", { name: "Envoyer" });
+  const stop = page.getByRole("button", { name: "Arrêter la réponse" });
+  const log = page.getByRole("log", { name: "Messages" });
+  const queuedNotice = page
+    .getByRole("status")
+    .filter({ hasText: "Ton message partira après la réponse du staff." });
+  await expect(send).toHaveAttribute("aria-disabled", "true");
+
+  const posted: { input: Record<string, unknown> }[] = [];
+  let interrupted: unknown = null;
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/coach/turns/interrupt", async (route) => {
+    interrupted = route.request().postDataJSON();
+    await route.fulfill({ status: 202, json: { status: "interrupting" } });
+  });
+  await page.route("**/api/coach/turns", async (route) => {
+    const body = route.request().postDataJSON();
+    posted.push(body);
+    if (posted.length === 1) {
+      await gate;
+      await stream([
+        {
+          type: "session",
+          sessionId: "sesn_01Plan",
+          threadId: planThread,
+          consoleUrl: "https://console.test",
+        },
+        item("athlete", {
+          text: "Allège ma semaine",
+          consult: null,
+          attachments: [],
+        }),
+        item("error", {
+          code: "interrupted",
+          text: "Tu as arrêté la réponse. Rien n’a changé dans ton plan.",
+        }),
+        { type: "done", status: "idle" },
+      ])(route);
+      return;
+    }
+    await stream([
+      item("athlete", {
+        text: body.input.text,
+        consult: "medical",
+        attachments: [],
+      }),
+      item("coach", { text: "Santé regarde ça avec toi." }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+
+  await composer.fill("Allège ma semaine");
+  await expect(send).not.toHaveAttribute("aria-disabled");
+  await composer.press("Enter");
+  await expect(stop).toBeVisible();
+  await expect(composer).toHaveAttribute(
+    "placeholder",
+    "Écris pendant que le staff répond…",
+  );
+
+  await composer.pressSequentially("Et demain ");
+  await composer.press("@");
+  const mentions = page.getByRole("listbox", { name: "Mentionner" });
+  await expect(mentions.getByRole("option")).toHaveText([
+    /^Coach/,
+    /^Santé/,
+    /^Directeur sportif/,
+    /^Stratège de course/,
+    /^Nutrition/,
+  ]);
+  await composer.press("ArrowDown");
+  await expect(mentions.getByRole("option", { name: /Santé/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await composer.press("Enter");
+  await expect(mentions).toBeHidden();
+  await composer.pressSequentially("ça passe ?");
+  await expect(composer).toHaveValue("Et demain @Santé ça passe ?");
+  await composer.press("Enter");
+  await expect(composer).toHaveValue("");
+  await expect(queuedNotice).toBeVisible();
+  expect(posted).toHaveLength(1);
+
+  await stop.click();
+  release();
+  await expect.poll(() => interrupted).toEqual({ threadId: planThread });
+  await expect(log.getByText("Santé regarde ça avec toi.")).toBeVisible();
+  expect(posted[1].input).toEqual({
+    kind: "message",
+    text: "Et demain @Santé ça passe ?",
+    consult: "medical",
+  });
+  await expect(queuedNotice).toHaveCount(0);
+  await expect(send).toBeVisible();
+
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await page.route("**/api/coach/turns", () => new Promise<void>(() => {}));
+  await composer.fill("Prolonge mon plan");
+  await composer.press("Enter");
+  await expect(stop).toBeVisible();
+  await coachTurn({
+    session: { status: "running", last_turn_at: at() },
+    items: [
+      {
+        kind: "athlete",
+        body: { text: "Prolonge mon plan", consult: null, attachments: [] },
+      },
+    ],
+  });
+  await composer.fill("Et ajoute une course");
+  await composer.press("Enter");
+  await expect(queuedNotice).toBeVisible();
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  const resumed: unknown[] = [];
+  await page.route("**/api/coach/turns", async (route) => {
+    resumed.push(route.request().postDataJSON());
+    await stream([
+      item("athlete", {
+        text: "Et ajoute une course",
+        consult: null,
+        attachments: [],
+      }),
+      item("coach", { text: "Je regarde ton calendrier." }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+  await page.reload();
+  await expect(queuedNotice).toBeVisible();
+  await expect(stop).toBeVisible();
+  expect(resumed).toHaveLength(0);
+  await coachTurn({ session: { status: "idle", composing_since: null } });
+  await expect(log.getByText("Je regarde ton calendrier.")).toBeVisible({
+    timeout: 15_000,
+  });
+  expect(resumed).toEqual([
+    {
+      target: { kind: "topic", threadId: planThread },
+      mode: "plan",
+      input: { kind: "message", text: "Et ajoute une course" },
+    },
+  ]);
+
+  await context.setOffline(true);
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Ton message partira au retour du réseau." }),
+  ).toContainText("Hors ligne");
+  await composer.fill("Merci");
+  await composer.press("Enter");
+  await expect(composer).toHaveValue("");
+  expect(resumed).toHaveLength(1);
+  await context.setOffline(false);
+  await expect.poll(() => resumed.length).toBe(2);
+  await resetCoach();
+});
+
 test("a refresh during a turn keeps the staff working and shows its result", async ({
   page,
 }) => {
@@ -1327,10 +1511,9 @@ test("a refresh during a turn keeps the staff working and shows its result", asy
   await expect(working).toContainText(
     "Tu peux quitter la page : le staff continue et sa réponse t’attendra ici.",
   );
-  await expect(page.getByRole("button", { name: "Envoyer" })).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Arrêter le staff" }),
-  ).toHaveCount(0);
+    page.getByRole("button", { name: "Arrêter la réponse" }),
+  ).toBeVisible();
 
   await coachTurn({
     session: { status: "idle", composing_since: null },
