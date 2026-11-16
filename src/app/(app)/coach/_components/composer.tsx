@@ -188,6 +188,7 @@ export function Composer({
   help,
   notice,
   restore,
+  className,
   onSend,
   onStop,
 }: {
@@ -203,6 +204,7 @@ export function Composer({
   help: boolean;
   notice: ComposerNotice | null;
   restore: ComposerRestore | null;
+  className?: string;
   onSend: (draft: ComposerDraft) => Promise<boolean>;
   onStop: () => void;
 }) {
@@ -310,7 +312,10 @@ export function Composer({
         event.preventDefault();
         void submit();
       }}
-      className="relative z-30 mx-auto flex w-full max-w-180 flex-col gap-2.5 px-3 pt-2 max-md:data-[keyboard=open]:pb-(--keyboard-inset) md:border-t md:border-border md:px-5 md:pt-3 md:pb-4"
+      className={cn(
+        "relative z-30 mx-auto flex w-full max-w-180 flex-col gap-2.5 px-3 pt-2 max-md:data-[keyboard=open]:pb-(--keyboard-inset) md:border-t md:border-border md:px-5 md:pt-3 md:pb-4",
+        className,
+      )}
     >
       <SuggestedReplies
         replies={replies}

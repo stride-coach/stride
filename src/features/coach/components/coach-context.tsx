@@ -36,11 +36,13 @@ export function CoachContextSource({ context }: { context: AttachmentRef }) {
   return null;
 }
 
-export function useCoachRequestHref() {
+export function useCoachContext() {
   const page = useContext(CoachPageContext)?.context ?? null;
   const pathname = usePathname();
   const search = useSearchParams();
-  return coachContextHref(
-    page ?? coachContextFromPath(pathname, search.toString()),
-  );
+  return page ?? coachContextFromPath(pathname, search.toString());
+}
+
+export function useCoachRequestHref() {
+  return coachContextHref(useCoachContext());
 }

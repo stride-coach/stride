@@ -1,22 +1,33 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { useCoachRequestHref } from "@/features/coach/components/coach-context";
+import { opensQuickAsk } from "@/features/coach/quick-ask";
 import {
   DataActivityLink as Link,
   useDataActivityNavigation,
 } from "@/features/data-activity/components/navigation";
 import { useModifierLabel } from "@/features/search/components/search-trigger";
+import { useRequestQuickAsk } from "./quick-ask";
 
-function AskCoachLink({ href }: { href: string }) {
+const shortcuts = "Meta+J Control+J";
+
+function Shortcut() {
   const modifier = useModifierLabel();
   return (
+    <Kbd className="whitespace-nowrap max-lg:hidden">{`${modifier}J`}</Kbd>
+  );
+}
+
+function AskCoachLink({ href }: { href: string }) {
+  return (
     <Button asChild size="sm" variant="outline">
-      <Link href={href} aria-keyshortcuts="Meta+J Control+J">
+      <Link href={href} aria-keyshortcuts={shortcuts}>
         Demander au coach
-        <Kbd className="whitespace-nowrap max-lg:hidden">{`${modifier}J`}</Kbd>
+        <Shortcut />
       </Link>
     </Button>
   );
@@ -38,6 +49,9 @@ function ContextualAskCoach() {
   );
   const href = hydrated ? contextualHref : "/coach";
   const navigate = useDataActivityNavigation();
+  const pathname = usePathname();
+  const request = useRequestQuickAsk();
+  const inPlace = request !== null && opensQuickAsk(pathname);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (
@@ -48,10 +62,24 @@ function ContextualAskCoach() {
       )
         return;
       event.preventDefault();
-      navigate(href);
+      if (inPlace) request();
+      else navigate(href);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [navigate, href]);
-  return <AskCoachLink href={href} />;
+  }, [navigate, href, inPlace, request]);
+  if (!inPlace) return <AskCoachLink href={href} />;
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      aria-keyshortcuts={shortcuts}
+      aria-haspopup="dialog"
+      onClick={request}
+    >
+      Demander au coach
+      <Shortcut />
+    </Button>
+  );
 }
