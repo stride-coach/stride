@@ -693,7 +693,7 @@ function ConversationPane({
       race={race}
       lead={lead}
       companions={topicCompanions(items)}
-      decisions={topicDecisions(items, proposalStatuses).length}
+      decisions={topicDecisions(items, proposalStatuses)}
       closed={conversation.closedAt !== null}
     />
   );

@@ -217,6 +217,29 @@ export function suiviParticipants(
   });
 }
 
+export function staffRepliedAt(
+  items: readonly ThreadItem[],
+  agent: StaffAgent,
+): string | null {
+  let latest: string | null = null;
+  for (const item of items) {
+    const speaker =
+      item.kind === "coach"
+        ? "coach"
+        : item.kind === "consult_reply" ||
+            item.kind === "staff_message" ||
+            item.kind === "blocks" ||
+            (item.kind === "proposal" && item.agent)
+          ? item.agent
+          : item.kind === "question"
+            ? item.askedFor
+            : null;
+    if (speaker === agent && (latest === null || item.at > latest))
+      latest = item.at;
+  }
+  return latest;
+}
+
 export function messagesLabel(count: number) {
   if (count === 0) return "";
   return count === 1 ? "1 message" : `${count} messages`;
@@ -416,4 +439,30 @@ export function staffReads(items: readonly ThreadItem[]) {
     if (item.kind === "read" && !labels.includes(item.label))
       labels.push(item.label);
   return labels;
+}
+
+export type StaffReadRow = {
+  key: string;
+  label: string;
+  value: string | null;
+  at: string;
+};
+
+export function staffReadRows(
+  items: readonly ThreadItem[],
+  timeZone: string,
+): StaffReadRow[] {
+  const rows: StaffReadRow[] = [];
+  for (const item of items) {
+    if (item.kind !== "read" || rows.some((row) => row.key === item.label))
+      continue;
+    const [label, ...rest] = item.label.split(" · ");
+    rows.push({
+      key: item.label,
+      label,
+      value: rest.length > 0 ? rest.join(" · ") : null,
+      at: timeLabel(item.at, timeZone),
+    });
+  }
+  return rows;
 }

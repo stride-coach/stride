@@ -1,12 +1,13 @@
 import { CheckIcon } from "lucide-react";
-import { Chip } from "@/components/stride/chip";
 import { cn } from "@/lib/utils";
 import {
   messagesLabel,
-  staffReads,
+  staffReadRows,
+  staffRepliedAt,
   suiviCard,
   suiviParticipants,
   suiviTimeline,
+  timeLabel,
   type ThreadStatus,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
@@ -47,7 +48,7 @@ export function SuiviPanel({
     proposalStatuses,
     timeZone,
   });
-  const reads = staffReads(items);
+  const reads = staffReadRows(items, timeZone);
   const participants = suiviParticipants(staff, items);
   return (
     <div className="flex flex-col">
@@ -74,13 +75,14 @@ export function SuiviPanel({
       </section>
       <section aria-labelledby="suivi-staff" className={panelSection}>
         <h2 id="suivi-staff" className={panelHeading}>
-          Participants
+          Ton staff
         </h2>
         <ul className="flex flex-col">
           {staffAgents.map((agent) => {
             const participant = participants.find(
               (item) => item.agent === agent,
             );
+            const repliedAt = staffRepliedAt(items, agent);
             return (
               <li
                 key={agent}
@@ -104,7 +106,11 @@ export function SuiviPanel({
                     {staff[agent].name}
                   </span>
                   <span className="text-label text-muted-foreground">
-                    {participant ? participant.role : "En veille"}
+                    {repliedAt
+                      ? `A répondu à ${timeLabel(repliedAt, timeZone)}`
+                      : participant
+                        ? participant.role
+                        : "En veille"}
                   </span>
                 </span>
                 {participant && (
@@ -207,11 +213,20 @@ export function SuiviPanel({
           Ce que le staff a lu
         </h2>
         {reads.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
+          <dl className="flex flex-col">
             {reads.map((read) => (
-              <Chip key={read}>{read}</Chip>
+              <div
+                key={read.key}
+                className="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-baseline gap-2 border-b border-border py-1.5 last:border-b-0"
+              >
+                <dt className="text-secondary-foreground">{read.label}</dt>
+                <dd className="truncate font-medium">{read.value ?? "Lu"}</dd>
+                <dd className="text-label text-muted-foreground tabular-nums">
+                  {read.at}
+                </dd>
+              </div>
             ))}
-          </div>
+          </dl>
         ) : (
           <span className="text-label text-muted-foreground">
             Aucune donnée lue pour l’instant.
