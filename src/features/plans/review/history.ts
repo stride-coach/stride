@@ -104,7 +104,7 @@ function extensionNote(proposal: ProposalRecord) {
   return `Fin du plan : ${formatPlainDay(extension.previousEndsOn)} → ${formatPlainDay(extension.endsOn)}, +${extension.weeks} semaine${extension.weeks > 1 ? "s" : ""}.`;
 }
 
-function version(proposal: ProposalRecord) {
+export function proposalVersion(proposal: ProposalRecord) {
   if (proposal.status === "applied" && proposal.appliedVersion)
     return proposal.baseVersion
       ? `v${proposal.baseVersion} → v${proposal.appliedVersion}`
@@ -147,6 +147,12 @@ function newPlanNote(proposal: ProposalRecord) {
   return `${weeks} semaines, ${sessions} séances${startsOn ? `, début le ${formatPlainDay(startsOn)}` : ""}.`;
 }
 
+export function proposalChange(proposal: ProposalRecord) {
+  return proposal.scope === "new_plan"
+    ? newPlanNote(proposal)
+    : extensionNote(proposal);
+}
+
 function note(proposal: ProposalRecord, timeZone: string) {
   const last = proposal.decisions.at(-1);
   switch (proposal.status) {
@@ -172,7 +178,7 @@ function note(proposal: ProposalRecord, timeZone: string) {
   }
 }
 
-function monthKey(iso: string, timeZone: string) {
+export function monthKey(iso: string, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
@@ -189,7 +195,7 @@ const monthYear = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "UTC",
 });
 
-function monthLabel(key: string) {
+export function monthLabel(key: string) {
   const text = monthYear.format(new Date(`${key}-01T00:00:00Z`));
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -222,7 +228,7 @@ export function buildPlanHistory(input: PlanHistoryInput): PlanHistory {
       title: proposal.title,
       status: proposalStatusDisplay(proposal.status),
       when: formatStamp(proposal.createdAt, input.timeZone),
-      version: version(proposal),
+      version: proposalVersion(proposal),
       origin: {
         line: originLine(proposal),
         staff: [coach, ...consultedStaff(proposal)],
