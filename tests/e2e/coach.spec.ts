@@ -85,12 +85,12 @@ test("the main thread, the topics list and a topic question at 1440", async ({
   );
   await coachLink.click();
   await expect(page).toHaveURL("/coach", { timeout: 20_000 });
-  await expect(
-    coachItem.getByRole("link", { name: "Conversation" }),
-  ).toHaveAttribute("aria-current", "page");
   const sections = page
     .getByRole("navigation", { name: "Sections du Coach" })
     .filter({ visible: true });
+  await expect(
+    sections.getByRole("link", { name: "Conversation" }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(sections.getByRole("link")).toHaveText([
     "Conversation",
     "Décisions",
