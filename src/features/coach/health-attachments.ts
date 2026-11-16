@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const healthTopicIds = [
-  "sleep",
   "hrv",
+  "sleep",
   "resting-heart-rate",
   "body-battery",
   "stress",
