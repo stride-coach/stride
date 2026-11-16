@@ -36,7 +36,7 @@ export type StaffBlock = { itemId?: string } & (
       status: ProposalCardStatus;
       card: ProposalCard | null;
     }
-  | { type: "error"; text: string }
+  | { type: "error"; text: string; interrupted: boolean }
 );
 
 export type ThreadEntry =
@@ -262,6 +262,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
           type: "error",
           itemId: item.id,
           text: item.text,
+          interrupted: item.code !== "budget_reached",
         });
         return;
       case "topic_summary":

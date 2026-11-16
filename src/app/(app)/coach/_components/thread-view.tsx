@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useId, useTransition } from "react";
-import { CheckIcon, RotateCcwIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ContextChipLink } from "@/components/stride/context-chip";
@@ -513,6 +513,32 @@ function StaffMessage({
           return (
             <ProposalWidget key={index} block={block} timeZone={timeZone} />
           );
+        if (block.interrupted)
+          return (
+            <div
+              key={index}
+              data-item-id={block.itemId}
+              role="group"
+              aria-label="Réponse interrompue"
+              className="flex max-w-150 flex-col items-start gap-2 rounded-lg border border-border bg-card px-3.5 py-3"
+            >
+              <Status level="watch">Réponse interrompue</Status>
+              <p className="text-secondary-foreground">
+                Je n’ai pas pu finir ma réponse. Rien n’a été modifié dans ton
+                plan.
+              </p>
+              {onRetry && index === entry.blocks.length - 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={onRetry}
+                >
+                  Réessayer
+                </Button>
+              )}
+            </div>
+          );
         return (
           <div
             key={index}
@@ -520,18 +546,6 @@ function StaffMessage({
             className="flex flex-col items-start gap-2"
           >
             <p className="text-body text-destructive">{block.text}</p>
-            {onRetry && index === entry.blocks.length - 1 && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={busy}
-                onClick={onRetry}
-              >
-                <RotateCcwIcon data-icon="inline-start" aria-hidden="true" />
-                Renvoyer le message
-              </Button>
-            )}
           </div>
         );
       })}

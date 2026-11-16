@@ -448,7 +448,18 @@ describe("thread view model", () => {
     ]);
     expect(entries[1]).toMatchObject({
       agent: "coach",
-      blocks: [{ type: "error", text: "Trop long" }],
+      blocks: [{ type: "error", text: "Trop long", interrupted: true }],
+    });
+  });
+
+  it("treats every turn failure but the cost limit as an interrupted reply", () => {
+    const blockOf = (code: "timeout" | "failed" | "budget_reached") =>
+      view([{ kind: "error", at: at(1), code, text: "Échec" }])[0];
+    expect(blockOf("failed")).toMatchObject({
+      blocks: [{ type: "error", interrupted: true }],
+    });
+    expect(blockOf("budget_reached")).toMatchObject({
+      blocks: [{ type: "error", interrupted: false }],
     });
   });
 });
