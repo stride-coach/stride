@@ -1,5 +1,3 @@
-export const composerMaxLines = 6;
-
 export type SendButtonState = "off" | "on" | "stop";
 
 export function sendButtonState({

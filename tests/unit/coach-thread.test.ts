@@ -331,7 +331,7 @@ describe("thread view model", () => {
     };
     expect(retryableMessage([...consultTurn.slice(0, 2), failed])).toEqual({
       text: "J’ai mal au genou",
-      consult: true,
+      consult: "medical",
       attachments: [],
     });
     expect(

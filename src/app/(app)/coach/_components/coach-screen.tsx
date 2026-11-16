@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -13,7 +14,6 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ListIcon,
-  PlusIcon,
   SearchIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,11 +23,6 @@ import { AppHeader } from "@/features/app-shell/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
 import {
   Popover,
   PopoverContent,
@@ -39,19 +34,13 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Toggle } from "@/components/ui/toggle";
-import { ContextChip } from "@/components/stride/context-chip";
-import { SuggestedReplies } from "@/components/stride/suggested-reply";
 import { localToday } from "@/features/app-shell/shell";
 import {
-  attachmentDate,
   attachmentRefs,
-  toggleAttachment,
   type AttachmentOption,
   type AttachmentOptions,
   type SentAttachment,
 } from "@/features/coach/attachments";
-import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
 import {
   closedStates,
   sameDay,
@@ -59,12 +48,22 @@ import {
   type SessionState,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
-import {
-  StaffAvatar,
-  StaffStack,
-} from "@/features/coach/components/staff-avatar";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
-import { refusalText, splitFrames, turnFailure } from "@/features/coach/stream";
+import {
+  enqueueMessage,
+  outboxNotice,
+  outboxStep,
+  removeMessage,
+  sendsNow,
+  type OutboxMessage,
+} from "@/features/coach/outbox";
+import {
+  interruptFailure,
+  refusalText,
+  splitFrames,
+  turnFailure,
+} from "@/features/coach/stream";
 import {
   currentResultIndex,
   filterResults,
@@ -89,8 +88,10 @@ import {
 import { markCoachThreadsRead } from "@/server/coaching/actions";
 import type { CoachMainData, CoachTopicData } from "@/server/coaching/threads";
 import { CoachHeaderNav } from "./coach-tabs";
+import { Composer, type ComposerDraft, type ComposerRestore } from "./composer";
+import { moveOutbox, useCoachOutbox, useOnline } from "./composer-hooks";
+import { EmptyConversation } from "./empty-conversation";
 import { SearchBar, SearchPanel, type CoachSearchState } from "./coach-search";
-import { ContextPicker } from "./context-picker";
 import { NewTopicDialog, type DraftTopic } from "./new-topic-dialog";
 import { SuiviPanel } from "./suivi-panel";
 import { TopicAside } from "./topic-aside";
@@ -254,216 +255,6 @@ function ClosedNotice({
   );
 }
 
-function Composer({
-  placeholder,
-  answering,
-  busy,
-  initialText,
-  initialAttachments,
-  replies,
-  options,
-  today,
-  onSend,
-}: {
-  placeholder: string;
-  answering: boolean;
-  busy: boolean;
-  initialText: string;
-  initialAttachments: AttachmentOption[];
-  replies: readonly string[];
-  options: AttachmentOptions;
-  today: string;
-  onSend: (
-    text: string,
-    consult: boolean,
-    attachments: SentAttachment[],
-  ) => Promise<boolean>;
-}) {
-  const staff = allStaff;
-  const [text, setText] = useState(initialText);
-  const [consult, setConsult] = useState(false);
-  const [attachments, setAttachments] =
-    useState<AttachmentOption[]>(initialAttachments);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const input = useRef<HTMLTextAreaElement>(null);
-  const contextTrigger = useRef<HTMLButtonElement>(null);
-
-  async function submit() {
-    const message = text.trim();
-    if (!message || busy) return;
-    const attached = answering ? [] : attachments;
-    setText("");
-    if (!answering) setAttachments([]);
-    const sent = await onSend(message, consult && !answering, attached);
-    if (sent) setConsult(false);
-    else {
-      setText(message);
-      if (!answering) setAttachments(attached);
-    }
-  }
-
-  async function reply(message: string) {
-    if (busy) return;
-    const sent = await onSend(message, false, []);
-    if (!sent) setText((current) => (current.trim() ? current : message));
-  }
-
-  function remove(option: AttachmentOption) {
-    setAttachments((current) => toggleAttachment(current, option));
-    input.current?.focus();
-  }
-
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        void submit();
-      }}
-      className="relative z-30 mx-auto flex w-full max-w-180 flex-col gap-2.5 px-3 pt-2 md:border-t md:border-border md:px-5 md:pt-3 md:pb-4"
-    >
-      <SuggestedReplies
-        replies={replies}
-        onSelect={(message) => void reply(message)}
-        className="max-sm:-mx-3 max-sm:px-3"
-      />
-      <InputGroup className="h-auto flex-wrap rounded-[14px] bg-card/92 p-1 backdrop-blur-[18px] has-[>[data-align=block-start]]:flex-row supports-[not(backdrop-filter:blur(1px))]:bg-card md:h-auto md:rounded-lg md:bg-card md:backdrop-blur-none">
-        {!answering && attachments.length > 0 && (
-          <InputGroupAddon
-            align="block-start"
-            className="cursor-default px-0.5 pt-0.5 pb-1"
-          >
-            <ul
-              aria-label="Contexte joint au message"
-              className="flex min-w-0 gap-1.5 max-md:overflow-x-auto md:flex-wrap"
-            >
-              {attachments.map((option) => (
-                <li
-                  key={`${option.kind}-${option.id}`}
-                  className="flex max-w-full shrink-0"
-                >
-                  <ContextChip
-                    icon={<AttachmentIcon kind={option.kind} />}
-                    label={option.title}
-                    meta={attachmentDate(option.date)}
-                    removeLabel={`Retirer ${option.title} du contexte`}
-                    onRemove={() => remove(option)}
-                    disabled={busy}
-                  />
-                </li>
-              ))}
-            </ul>
-          </InputGroupAddon>
-        )}
-        {!answering && (
-          <InputGroupAddon align="inline-start" className="self-end pl-0">
-            <Button
-              ref={contextTrigger}
-              type="button"
-              variant="ghost"
-              aria-label="Ajouter du contexte : séance, activité ou course"
-              aria-haspopup="dialog"
-              aria-expanded={pickerOpen}
-              disabled={busy}
-              onClick={() => setPickerOpen(true)}
-              className="size-control-touch p-0 text-secondary-foreground md:h-control md:w-auto md:px-2 md:font-normal"
-            >
-              <PlusIcon aria-hidden="true" />
-              <span aria-hidden="true" className="max-md:hidden">
-                Contexte
-              </span>
-            </Button>
-          </InputGroupAddon>
-        )}
-        <InputGroupTextarea
-          ref={input}
-          id="coach-composer"
-          aria-label={answering ? "Ta réponse au staff" : "Écrire au staff"}
-          placeholder={placeholder}
-          rows={1}
-          value={text}
-          maxLength={2000}
-          onChange={(event) => setText(event.target.value)}
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              !event.shiftKey &&
-              !event.nativeEvent.isComposing
-            ) {
-              event.preventDefault();
-              void submit();
-            }
-          }}
-          className="max-h-40 min-h-10 min-w-0 flex-1 basis-0 py-2.5"
-        />
-        <InputGroupAddon align="inline-end" className="gap-1.5 self-end pr-0">
-          {!answering && (
-            <Toggle
-              variant="choice"
-              pressed={consult}
-              onPressedChange={setConsult}
-              aria-label={`Mentionner ${staff.medical.name}`}
-              disabled={busy}
-              className="min-h-control-touch gap-1.5 rounded-md border-transparent bg-transparent pr-2 pl-1 font-normal text-secondary-foreground data-[state=on]:border-transparent data-[state=on]:bg-accent data-[state=on]:font-medium data-[state=on]:text-primary md:min-h-control"
-            >
-              <StaffStack agents={["medical"]} size={22} />@{staff.medical.name}
-            </Toggle>
-          )}
-          <Button
-            type="submit"
-            disabled={busy || !text.trim()}
-            className="min-h-control-touch md:min-h-control"
-          >
-            Envoyer
-          </Button>
-        </InputGroupAddon>
-      </InputGroup>
-      {!answering && (
-        <ContextPicker
-          open={pickerOpen}
-          onOpenChange={setPickerOpen}
-          options={options}
-          selected={attachments}
-          today={today}
-          returnFocus={contextTrigger}
-          onToggle={(option) =>
-            setAttachments((current) => toggleAttachment(current, option))
-          }
-        />
-      )}
-      <p className="text-label text-muted-foreground max-sm:hidden">
-        Le Coach lit chaque message et passe la main au bon spécialiste, deux au
-        plus par demande. Les questions d’un spécialiste lui reviennent
-        directement. Rien ne change sans ton accord.
-      </p>
-    </form>
-  );
-}
-
-function EmptyConversation({ conversation }: { conversation: Conversation }) {
-  const staff = allStaff;
-  const topic = conversation.target.kind !== "main";
-  const plan = conversation.mode === "plan";
-  return (
-    <div className="mx-auto flex w-full max-w-180 flex-col gap-3 px-4 pt-8 md:px-5 md:pt-12">
-      <StaffAvatar agent="coach" size={48} />
-      <h2 className="text-verdict font-semibold">
-        {topic
-          ? conversation.title
-          : plan
-            ? `Demande ton plan ${staff.coach.to}`
-            : "Écris à ton staff"}
-      </h2>
-      <p className="max-w-140 text-body-lg text-secondary-foreground">
-        {topic
-          ? "Écris ta première question. Le staff garde le fil de ce sujet jusqu’à ce que tu le closes."
-          : plan
-            ? `${staff.coach.subject} construit ton plan à partir de tes objectifs, de tes disponibilités et de ton historique, puis te le propose. Rien n’est enregistré sans ton accord.`
-            : `Pose ta question sur ton entraînement, ta récupération ou une douleur. ${staff.coach.subject} te répond ou passe la main ${staff.medical.to}, qui te parle directement quand c’est utile.`}
-      </p>
-    </div>
-  );
-}
-
 function ConversationPane({
   conversation,
   draftText,
@@ -525,8 +316,18 @@ function ConversationPane({
     attachments: SentAttachment[];
   } | null>(null);
   const [asideOpen, setAsideOpen] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [restore, setRestore] = useState<ComposerRestore | null>(null);
   const logEnd = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  const turnThread = useRef<string | null>(null);
+  const stopRequested = useRef(false);
+  const online = useOnline();
+  const outboxKey =
+    conversation.target.kind === "main"
+      ? "main"
+      : (threadId ?? conversation.key);
+  const [outbox, updateOutbox] = useCoachOutbox(outboxKey);
 
   const items = useMemo(
     () => [...live.base, ...live.items],
@@ -608,14 +409,54 @@ function ConversationPane({
     return () => window.clearInterval(poll);
   }, [resumed, router]);
 
-  async function send(
-    text: string,
-    consult: boolean,
-    attachments: SentAttachment[] = [],
-  ) {
+  async function interrupt(thread: string) {
+    const response = await fetch("/api/coach/turns/interrupt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ threadId: thread }),
+    }).catch(() => null);
+    if (response && (response.ok || response.status === 409)) return;
+    toast.error(interruptFailure, { id: "coach-stop" });
+    setStopping(false);
+  }
+
+  function stop() {
+    if (stopping) return;
+    setStopping(true);
+    if (!busy && threadId) {
+      void interrupt(threadId);
+      return;
+    }
+    if (turnThread.current) void interrupt(turnThread.current);
+    else stopRequested.current = true;
+  }
+
+  function queue(draft: ComposerDraft, first = false) {
+    const message: OutboxMessage = { id: crypto.randomUUID(), ...draft };
+    let added = false;
+    updateOutbox((current) => {
+      const next = first
+        ? [message, ...current]
+        : enqueueMessage(current, message);
+      added = next !== current;
+      return next;
+    });
+    return added;
+  }
+
+  async function submit(draft: ComposerDraft) {
+    if (pendingQuestion === null && !sendsNow({ online, working }))
+      return queue(draft);
+    return send(draft);
+  }
+
+  async function send({ text, consult, attachments }: ComposerDraft) {
     if (working) return false;
     const answering = pendingQuestion;
     setComposingSince(null);
+    setStopping(false);
+    stopRequested.current = false;
+    turnThread.current = null;
     setBusy(true);
     setSending({
       text,
@@ -632,6 +473,7 @@ function ConversationPane({
     let turnError: string | null = null;
     let errorShown = false;
     let finished = false;
+    let queued = false;
     const target: Target =
       conversation.target.kind === "new_topic" && threadId
         ? { kind: "topic", threadId }
@@ -648,7 +490,7 @@ function ConversationPane({
             : {
                 kind: "message",
                 text,
-                ...(consult ? { consult: "medical" } : {}),
+                ...(consult ? { consult } : {}),
                 ...(attachments.length
                   ? { attachments: attachmentRefs(attachments) }
                   : {}),
@@ -681,6 +523,13 @@ function ConversationPane({
             if (event.type === "session") {
               started = true;
               currentThread = event.threadId;
+              turnThread.current = event.threadId;
+              if (stopRequested.current) {
+                stopRequested.current = false;
+                void interrupt(event.threadId);
+              }
+              if (conversation.target.kind === "new_topic")
+                moveOutbox(conversation.key, event.threadId);
               setThreadId(event.threadId);
               setState("running");
               setLastTurnAt(new Date().toISOString());
@@ -707,14 +556,18 @@ function ConversationPane({
         }
       }
     } catch {
-      if (!started) toast.error(turnFailure, { id: "coach-turn" });
+      if (!started && !answering && !navigator.onLine)
+        queued = queue({ text, consult, attachments }, true);
+      else if (!started) toast.error(turnFailure, { id: "coach-turn" });
     } finally {
       if (turnError && !errorShown)
         toast.error(turnError, { id: "coach-turn" });
       if (finished) setComposingSince(null);
       setSending(null);
       setBusy(false);
+      turnThread.current = null;
     }
+    if (queued) return true;
     if (sent && currentThread) {
       void markCoachThreadsRead({ threadIds: [currentThread] });
       const opened = currentThread;
@@ -735,7 +588,64 @@ function ConversationPane({
     : null;
   const placeholder = answeringAgent
     ? `Ta réponse ${staff[answeringAgent].to}…`
-    : "Écris au staff…";
+    : working
+      ? "Écris pendant que le staff répond…"
+      : "Écris au staff…";
+
+  const step = closed
+    ? ({ kind: "idle" } as const)
+    : outboxStep(outbox, {
+        online,
+        working,
+        sending: busy,
+        questionPending: pendingQuestion !== null,
+      });
+  const head = step.kind === "send" || step.kind === "restore" ? step : null;
+  const flushing = useRef<string | null>(null);
+  const flush = useEffectEvent(() => {
+    if (!head || flushing.current === head.message.id) return;
+    const { message } = head;
+    flushing.current = message.id;
+    updateOutbox((current) => removeMessage(current, message.id));
+    const back = {
+      key: message.id,
+      text: message.text,
+      attachments: message.attachments,
+    };
+    if (head.kind === "restore") {
+      setRestore(back);
+      return;
+    }
+    void send(message).then((sent) => {
+      if (!sent) setRestore(back);
+    });
+  });
+  const headId = head?.message.id ?? null;
+  const headKind = head?.kind ?? null;
+  useEffect(() => {
+    if (!headId || !headKind) return;
+    const timer = window.setTimeout(flush, 0);
+    return () => window.clearTimeout(timer);
+  }, [headId, headKind]);
+
+  const queuedNotice = outboxNotice(outbox.length, online);
+  const notice = queuedNotice && {
+    ...queuedNotice,
+    ...(outbox.length > 0
+      ? {
+          onCancel: () => {
+            const last = outbox.at(-1);
+            if (!last) return;
+            updateOutbox((current) => removeMessage(current, last.id));
+            setRestore({
+              key: last.id,
+              text: last.text,
+              attachments: last.attachments,
+            });
+          },
+        }
+      : {}),
+  };
   const empty = items.length === 0 && !sending;
   const replies =
     !main && items.length === 0
@@ -810,7 +720,7 @@ function ConversationPane({
       <div className="flex min-h-0 flex-1">
         <section
           aria-label={main ? "Fil principal" : (conversation.title ?? "Sujet")}
-          className="flex min-h-0 min-w-0 flex-1 flex-col max-md:pb-[calc(var(--spacing-tab-bar-top)+10px)]"
+          className="flex min-h-0 min-w-0 flex-1 flex-col max-md:pb-[calc(var(--spacing-tab-bar-top)+10px)] max-md:has-[[data-keyboard=open]]:pb-0"
         >
           {searchBar}
           {!main && (
@@ -836,7 +746,14 @@ function ConversationPane({
             className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain"
           >
             {empty ? (
-              <EmptyConversation conversation={conversation} />
+              <EmptyConversation
+                kind={main ? "main" : "topic"}
+                title={conversation.title}
+                plan={mode === "plan"}
+                onStart={(text) =>
+                  void submit({ text, consult: null, attachments: [] })
+                }
+              />
             ) : (
               <ThreadLog
                 entries={entries}
@@ -845,13 +762,10 @@ function ConversationPane({
                 timeZone={timeZone}
                 now={now}
                 busy={working}
-                onAnswer={(answer) => void send(answer, false)}
-                onRetry={
-                  retry
-                    ? () =>
-                        void send(retry.text, retry.consult, retry.attachments)
-                    : undefined
+                onAnswer={(answer) =>
+                  void send({ text: answer, consult: null, attachments: [] })
                 }
+                onRetry={retry ? () => void send(retry) : undefined}
                 onOther={() =>
                   document.getElementById("coach-composer")?.focus()
                 }
@@ -868,13 +782,18 @@ function ConversationPane({
             <Composer
               placeholder={placeholder}
               answering={pendingQuestion !== null}
-              busy={working}
+              working={working}
+              stopping={stopping}
               initialText={draftText}
               initialAttachments={initialAttachments}
               replies={replies}
               options={attachmentOptions}
               today={localToday(now)}
-              onSend={send}
+              help={empty}
+              notice={notice}
+              restore={restore}
+              onSend={submit}
+              onStop={stop}
             />
           )}
         </section>
