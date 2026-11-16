@@ -44,7 +44,7 @@ const requestSchema = z
         attachments: coachAttachmentsSchema.optional(),
       }),
       z.strictObject({
-        kind: z.literal("answer"),
+        kind: z.enum(["answer", "revision"]),
         toolUseId: z.string().min(1).max(64),
         text: z.string().trim().min(1).max(2000),
       }),

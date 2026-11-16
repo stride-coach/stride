@@ -77,7 +77,11 @@ import {
   type SearchScope,
 } from "@/features/coach/search";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
-import { buildThread, retryableMessage } from "@/features/coach/thread";
+import {
+  buildThread,
+  retryableMessage,
+  revisableQuestion,
+} from "@/features/coach/thread";
 import {
   topicCompanions,
   topicDecisions,
@@ -381,6 +385,10 @@ function ConversationPane({
     working || closed || pendingQuestion !== null
       ? null
       : retryableMessage(items);
+  const revisableId =
+    working || closed || pendingQuestion !== null
+      ? null
+      : revisableQuestion(items);
 
   const readIds = conversation.readIds;
   useEffect(() => {
@@ -457,7 +465,10 @@ function ConversationPane({
     return send(draft);
   }
 
-  async function send({ text, consult, attachments }: ComposerDraft) {
+  async function send(
+    { text, consult, attachments }: ComposerDraft,
+    revising: string | null = null,
+  ) {
     if (working) return false;
     const answering = pendingQuestion;
     setComposingSince(null);
@@ -492,16 +503,18 @@ function ConversationPane({
         body: JSON.stringify({
           target,
           mode,
-          input: answering
-            ? { kind: "answer", toolUseId: answering, text }
-            : {
-                kind: "message",
-                text,
-                ...(consult ? { consult } : {}),
-                ...(attachments.length
-                  ? { attachments: attachmentRefs(attachments) }
-                  : {}),
-              },
+          input: revising
+            ? { kind: "revision", toolUseId: revising, text }
+            : answering
+              ? { kind: "answer", toolUseId: answering, text }
+              : {
+                  kind: "message",
+                  text,
+                  ...(consult ? { consult } : {}),
+                  ...(attachments.length
+                    ? { attachments: attachmentRefs(attachments) }
+                    : {}),
+                },
         }),
       });
       if (!response.ok) {
@@ -775,6 +788,13 @@ function ConversationPane({
                 onRetry={retry ? () => void send(retry) : undefined}
                 onOther={() =>
                   document.getElementById("coach-composer")?.focus()
+                }
+                revisableId={revisableId}
+                onRevise={(toolUseId, answer) =>
+                  void send(
+                    { text: answer, consult: null, attachments: [] },
+                    toolUseId,
+                  )
                 }
               />
             )}

@@ -313,6 +313,41 @@ export function retryableMessage(
   return null;
 }
 
+const concludingKinds: readonly ThreadItem["kind"][] = [
+  "proposal",
+  "topic_summary",
+];
+
+export function revisableQuestion(items: readonly ThreadItem[]) {
+  const index = items.findLastIndex((item) => item.kind === "question");
+  const question = items[index];
+  if (question?.kind !== "question") return null;
+  const later = items.slice(index + 1);
+  if (
+    !later.some(
+      (item) => item.kind === "answer" && item.toolUseId === question.toolUseId,
+    ) ||
+    later.some((item) => concludingKinds.includes(item.kind))
+  )
+    return null;
+  return question.toolUseId;
+}
+
+export function answerRevisionText(
+  items: readonly ThreadItem[],
+  toolUseId: string,
+  text: string,
+) {
+  const question = items.find(
+    (item) => item.kind === "question" && item.toolUseId === toolUseId,
+  );
+  const previous = items.findLast(
+    (item) => item.kind === "answer" && item.toolUseId === toolUseId,
+  );
+  if (question?.kind !== "question" || previous?.kind !== "answer") return null;
+  return `L’athlète change sa réponse à la question « ${question.question} ». Sa nouvelle réponse, « ${text} », remplace la précédente, « ${previous.text} ». Reprends ton avis avec cette réponse.`;
+}
+
 export function typingLabel(member: StaffMember, read: string | null) {
   return read
     ? `${member.subject} lit ${read.toLowerCase()}…`

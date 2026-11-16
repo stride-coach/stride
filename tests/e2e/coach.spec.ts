@@ -147,7 +147,7 @@ test("the main thread, the topics list and a topic question at 1440", async ({
     "Aucune gêne",
     "Gêne légère, qui passe",
     "Douleur qui m’oblige à ralentir",
-    "Autre…",
+    "Autre réponse",
   ])
     await expect(
       question.getByRole("button", { name: option, exact: true }),

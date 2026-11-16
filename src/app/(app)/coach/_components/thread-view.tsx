@@ -111,12 +111,14 @@ function QuestionCard({
   timeZone,
   onAnswer,
   onOther,
+  onRevise,
   disabled,
 }: {
   block: Extract<StaffBlock, { type: "question" }>;
   timeZone: string;
   onAnswer: (text: string) => void;
   onOther: () => void;
+  onRevise?: (text: string) => void;
   disabled: boolean;
 }) {
   const staff = allStaff;
@@ -131,13 +133,12 @@ function QuestionCard({
       title={questionAttribution(staff[block.askedFor])}
       verdict={
         pending ? (
-          <Status level="watch">À répondre</Status>
+          <Status level="watch">Attend ta réponse</Status>
         ) : block.state === "answered" ? (
-          <span className="inline-flex items-center gap-1.5 text-label font-normal text-muted-foreground">
-            <CheckIcon aria-hidden="true" className="size-3 text-primary" />
+          <Status level="ok">
             Répondue
             {block.answeredAt && ` · ${timeLabel(block.answeredAt, timeZone)}`}
-          </span>
+          </Status>
         ) : block.state === "closed" ? (
           <span className="text-label font-normal text-muted-foreground">
             Restée sans réponse
@@ -154,14 +155,17 @@ function QuestionCard({
           <div className="flex flex-wrap gap-1.5">
             {block.options.map((option) => {
               const chosen = block.answer === option;
+              const open = pending || (onRevise !== undefined && !chosen);
               return (
                 <Button
                   key={option}
                   type="button"
                   variant="outline"
                   aria-pressed={chosen}
-                  disabled={!pending || disabled}
-                  onClick={() => onAnswer(option)}
+                  disabled={!open || disabled}
+                  onClick={() =>
+                    pending ? onAnswer(option) : onRevise?.(option)
+                  }
                   className={cn(
                     "h-auto min-h-control-auto py-1.5 text-left font-normal whitespace-normal text-secondary-foreground",
                     chosen &&
@@ -183,7 +187,7 @@ function QuestionCard({
                 onClick={onOther}
                 className="font-normal text-secondary-foreground"
               >
-                Autre…
+                Autre réponse
               </Button>
             )}
           </div>
@@ -469,6 +473,8 @@ function StaffMessage({
   onAnswer,
   onOther,
   onRetry,
+  revisableId,
+  onRevise,
   busy,
 }: {
   entry: Extract<ThreadEntry, { type: "staff" }>;
@@ -476,6 +482,8 @@ function StaffMessage({
   onAnswer: (text: string) => void;
   onOther: () => void;
   onRetry?: () => void;
+  revisableId: string | null;
+  onRevise?: (toolUseId: string, text: string) => void;
   busy: boolean;
 }) {
   return (
@@ -493,6 +501,11 @@ function StaffMessage({
               timeZone={timeZone}
               onAnswer={onAnswer}
               onOther={onOther}
+              onRevise={
+                onRevise && block.toolUseId === revisableId
+                  ? (text) => onRevise(block.toolUseId, text)
+                  : undefined
+              }
               disabled={busy}
             />
           );
@@ -662,9 +675,13 @@ export function ThreadLog({
   onAnswer,
   onOther,
   onRetry,
+  revisableId = null,
+  onRevise,
   search = null,
 }: {
   entries: ThreadEntry[];
+  revisableId?: string | null;
+  onRevise?: (toolUseId: string, text: string) => void;
   search?: ThreadSearch;
   pending: { text: string; attachments: SentAttachment[] } | null;
   timeZone: string;
@@ -713,6 +730,8 @@ export function ThreadLog({
                       ? onRetry
                       : undefined
                   }
+                  revisableId={revisableId}
+                  onRevise={onRevise}
                   busy={busy}
                 />
               )}
