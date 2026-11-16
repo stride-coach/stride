@@ -81,6 +81,7 @@ export type QuickAskExchange = {
   pendingQuestion: string | null;
   composingSince: string | null;
   finished: boolean;
+  seen: boolean;
 };
 
 export const emptyExchange: QuickAskExchange = {
@@ -90,6 +91,7 @@ export const emptyExchange: QuickAskExchange = {
   pendingQuestion: null,
   composingSince: null,
   finished: false,
+  seen: false,
 };
 
 export function hasExchange(exchange: QuickAskExchange) {
@@ -100,7 +102,13 @@ export function beginExchange(
   exchange: QuickAskExchange,
   pending: NonNullable<QuickAskExchange["pending"]>,
 ): QuickAskExchange {
-  return { ...exchange, pending, composingSince: null, finished: false };
+  return {
+    ...exchange,
+    pending,
+    composingSince: null,
+    finished: false,
+    seen: false,
+  };
 }
 
 export function endSend(exchange: QuickAskExchange): QuickAskExchange {
@@ -142,9 +150,23 @@ export function applyStreamEvent(
   }
 }
 
+export function quickAskItems(items: readonly ThreadItem[]) {
+  return items.filter(
+    (item) => item.kind !== "proposal" && item.kind !== "topic_summary",
+  );
+}
+
+export function markSeen(exchange: QuickAskExchange): QuickAskExchange {
+  return exchange.finished && !exchange.seen
+    ? { ...exchange, seen: true }
+    : exchange;
+}
+
 export function reopenedExchange(
   exchange: QuickAskExchange,
   working: boolean,
 ): QuickAskExchange {
-  return working ? exchange : emptyExchange;
+  return working || (hasExchange(exchange) && !exchange.seen)
+    ? exchange
+    : emptyExchange;
 }

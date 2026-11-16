@@ -5,7 +5,9 @@ import {
   emptyExchange,
   endSend,
   hasExchange,
+  markSeen,
   opensQuickAsk,
+  quickAskItems,
   quickAskHeading,
   quickAskNote,
   quickAskScreen,
@@ -126,6 +128,20 @@ describe("quick ask exchange", () => {
       item: item("coach", "En cours"),
     });
     expect(reopenedExchange(running, true)).toBe(running);
-    expect(reopenedExchange(running, false)).toBe(emptyExchange);
+    const finished = applyStreamEvent(running, {
+      type: "done",
+      status: "idle",
+    });
+    expect(reopenedExchange(finished, false)).toBe(finished);
+    expect(reopenedExchange(markSeen(finished), false)).toBe(emptyExchange);
+  });
+
+  it("leaves proposals and topic summaries to the Coach screen", () => {
+    const proposal = {
+      kind: "proposal",
+      at: "2026-11-16T08:00:00.000Z",
+    } as unknown as ThreadItem;
+    const kept = item("coach", "Oui.");
+    expect(quickAskItems([kept, proposal])).toEqual([kept]);
   });
 });
