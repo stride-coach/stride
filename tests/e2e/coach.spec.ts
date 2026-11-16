@@ -1538,59 +1538,209 @@ test("a refresh during a turn keeps the staff working and shows its result", asy
   await resetCoach();
 });
 
-test("the top bar asks the coach about the session on screen with ⌘J", async ({
+const askStaff = "Demander au staff";
+
+async function pressAsk(page: Page) {
+  await expect(async () => {
+    await page.keyboard.press("ControlOrMeta+j");
+    await expect(page.getByRole("dialog", { name: askStaff })).toBeVisible({
+      timeout: 1_500,
+    });
+  }).toPass({ timeout: 15_000 });
+}
+
+test("⌘J opens the quick ask over Aujourd’hui and a session with its context", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signInAs(page, "plan@example.com");
   await page.goto("/today");
-  const ask = page.getByRole("link", { name: /^Demander au coach/ });
-  await expect(ask).toHaveAttribute("href", /^\/coach\?session=s-[a-z0-9-]+$/);
-  const href = (await ask.getAttribute("href")) ?? "";
-  const sessionKey = new URLSearchParams(href.split("?")[1]).get("session");
+  const ask = page.getByRole("button", { name: /^Demander au coach/ });
   await expect(ask).toHaveAttribute("aria-keyshortcuts", "Meta+J Control+J");
 
-  await page.keyboard.press("ControlOrMeta+j");
-  await expect(page).toHaveURL(href, { timeout: 20_000 });
+  const quick = page.getByRole("dialog", { name: askStaff });
+  await pressAsk(page);
+  await expect(quick.getByText("depuis Aujourd’hui")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+    quick.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
   ).toBeVisible();
-
-  await page.goto(`/plan/sessions/${sessionKey}`);
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("ControlOrMeta+j");
-  await expect(page).toHaveURL(`/coach?session=${sessionKey}`, {
-    timeout: 20_000,
+  await expect
+    .poll(async () => Math.round((await quick.boundingBox())?.width ?? 0))
+    .toBe(620);
+  const suggestions = quick.getByRole("region", {
+    name: "Questions fréquentes",
   });
+  await expect(
+    suggestions.getByText("Souvent demandé sur cette séance"),
+  ).toBeVisible();
+  await expect(suggestions.getByRole("button")).toHaveCount(3);
+  await page.keyboard.press("Escape");
+  await expect(quick).toBeHidden();
+
+  await ask.click();
+  await expect(quick).toBeVisible();
+  await quick.getByRole("button", { name: /^Retirer .+ du contexte$/ }).click();
+  await expect(
+    quick.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+  ).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
   await page.goto("/plan");
-  await expect(ask).toHaveAttribute("href", "/coach");
+  await pressAsk(page);
+  await expect(quick.getByText("depuis Plan")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(quick).toBeHidden();
 
   await page.keyboard.press("Shift+?");
   const help = page.getByRole("dialog", { name: "Raccourcis clavier" });
   await expect(help.getByText("Demander au coach")).toBeVisible();
 });
 
-test("the top bar asks the coach about the race or the activity on screen", async ({
+test("the quick ask attaches the race or the activity on screen", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signInAs(page, "athlete@example.com");
   const race = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
   await page.goto(`/races/${race}`);
-  const ask = page.getByRole("link", { name: /^Demander au coach/ });
-  await expect(ask).toHaveAttribute("href", `/coach?race=${race}`);
-  await page.keyboard.press("ControlOrMeta+j");
-  await expect(page).toHaveURL(`/coach?race=${race}`, { timeout: 20_000 });
+  const quick = page.getByRole("dialog", { name: askStaff });
+  await pressAsk(page);
+  await expect(quick.getByText("depuis Courses")).toBeVisible();
+  await expect(
+    quick.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+  ).toBeVisible();
+  await expect(
+    quick.getByText("Souvent demandé sur cette course"),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
 
   const activity = "aaaaaaaa-aaaa-4aaa-8aaa-000000000004";
   await page.goto(`/activities/${activity}`);
-  await expect(ask).toHaveAttribute("href", `/coach?activity=${activity}`);
-  await ask.click();
-  await expect(page).toHaveURL(`/coach?activity=${activity}`, {
-    timeout: 20_000,
-  });
+  await page.getByRole("button", { name: /^Demander au coach/ }).click();
+  await expect(quick).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+    quick.getByRole("button", { name: /^Retirer .+ du contexte$/ }),
+  ).toBeVisible();
+  await expect(
+    quick.getByText("Souvent demandé sur cette activité"),
+  ).toBeVisible();
+});
+
+test("a quick ask is answered in the dialog and continues in the Coach", async ({
+  page,
+}) => {
+  await resetCoach();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/activities/${coachActivity}`);
+  let posted: unknown = null;
+  const question = "Ai-je couru trop vite ?";
+  const answer = "Non, ton allure est restée régulière.";
+  await page.route("**/api/coach/turns", async (route) => {
+    posted = route.request().postDataJSON();
+    await stream([
+      { type: "session", sessionId: "sesn_01Fil", threadId: mainThread },
+      item("athlete", { text: question, consult: null, attachments: [] }),
+      item("consult_request", {
+        thread: "sthr_pace",
+        agent: "medical",
+        text: "Was the pace too fast?",
+      }),
+      item("read", {
+        thread: "sthr_pace",
+        agent: "medical",
+        tool: "get_activity",
+        label: "Sortie longue vallonnée",
+      }),
+      item("consult_reply", {
+        thread: "sthr_pace",
+        agent: "medical",
+        text: answer,
+      }),
+      item("consult_end", { thread: "sthr_pace", agent: "medical" }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+  const quick = page.getByRole("dialog", { name: askStaff });
+  await pressAsk(page);
+  await expect(quick.getByText("depuis Activités")).toBeVisible();
+  await quick.getByRole("button", { name: question }).click();
+
+  const log = quick.getByRole("log", { name: "Messages" });
+  await expect(log.getByText(answer)).toBeVisible();
+  await expect(log.getByText("A lu")).toBeVisible();
+  await expect(log.getByText("Sortie longue vallonnée")).toBeVisible();
+  await expect(
+    quick.getByText("Gardé dans le fil principal.", { exact: true }),
+  ).toBeVisible();
+  expect(posted).toMatchObject({
+    target: { kind: "main" },
+    mode: "conversation",
+    input: {
+      kind: "message",
+      text: question,
+      attachments: [{ kind: "activity", id: coachActivity }],
+    },
+  });
+  await quick.getByRole("textbox", { name: "Écrire au staff" }).fill("Merci");
+  await expect(quick.getByRole("button", { name: "Envoyer" })).toBeEnabled();
+
+  await page.unroute("**/api/coach/turns");
+  await coachTurn({
+    threadId: mainThread,
+    session: { status: "idle", composing_since: null },
+    items: [
+      {
+        kind: "athlete",
+        body: { text: question, consult: null, attachments: [] },
+      },
+      { kind: "coach", body: { text: answer } },
+    ],
+  });
+  await quick.getByRole("link", { name: "Continuer dans le Coach" }).click();
+  await expect(page).toHaveURL("/coach", { timeout: 20_000 });
+  await expect(quick).toBeHidden();
+  const thread = page.getByRole("log", { name: "Messages" });
+  await expect(thread.getByText(question)).toBeVisible();
+  await expect(thread.getByText(answer)).toBeVisible();
+  await resetCoach();
+});
+
+test("closing the quick ask during a reply keeps the reply", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/activities/${coachActivity}`);
+  const question = "Peux-tu vérifier ma récupération ?";
+  const answer = "Récupération correcte, enchaîne doucement.";
+  let release: () => void = () => undefined;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/coach/turns", async (route) => {
+    await released;
+    await stream([
+      { type: "session", sessionId: "sesn_01Fil", threadId: mainThread },
+      item("athlete", { text: question, consult: null, attachments: [] }),
+      item("coach", { text: answer }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+  const quick = page.getByRole("dialog", { name: askStaff });
+  await pressAsk(page);
+  const composer = quick.getByRole("textbox", { name: "Écrire au staff" });
+  await composer.fill(question);
+  await composer.press("Enter");
+  await expect(quick.getByRole("log").getByText(question)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(quick).toBeHidden();
+
+  release();
+  await pressAsk(page);
+  await expect(quick.getByRole("log").getByText(answer)).toBeVisible();
+  await expect(
+    quick.getByText("Gardé dans le fil principal.", { exact: true }),
   ).toBeVisible();
 });
 
