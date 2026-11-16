@@ -132,7 +132,10 @@ export type ProgramDaySession = {
   title: string;
   summary: string | null;
   duration: string | null;
+  durationSeconds: number | null;
   distance: string | null;
+  distanceMeters: number | null;
+  distanceEstimated: boolean;
   elevation: string | null;
   blocks: SessionBlock[];
   state: DayState;
@@ -486,7 +489,11 @@ export function buildProgram(
       summary:
         [durationLabel, distanceLabel].filter(Boolean).join(" · ") || null,
       duration: durationLabel,
+      durationSeconds:
+        session.kind === "race" ? null : session.targets.durationSeconds,
       distance: distanceLabel,
+      distanceMeters: distance?.meters ?? null,
+      distanceEstimated: distance?.estimated ?? false,
       elevation:
         session.targets.elevationGainMeters !== null &&
         session.targets.elevationGainMeters > 0
@@ -644,7 +651,10 @@ export function buildProgram(
           title: familyLabels.rest,
           summary: null,
           duration: null,
+          durationSeconds: null,
           distance: null,
+          distanceMeters: null,
+          distanceEstimated: false,
           elevation: null,
           blocks: [],
           state: isPast ? "done" : null,

@@ -74,17 +74,9 @@ test("today weighs the session against the form and asks one question at a time"
     await expect(form.getByText(/^Compatible avec .+ \?$/)).toBeVisible();
   }
 
-  const week = page.getByRole("region", {
-    name: /^Cette semaine · S\d+ \/ \d+$/,
-  });
+  const week = page.getByRole("region", { name: /^Semaine \d+$/ });
   await expect(week.getByRole("listitem")).toHaveCount(7);
   await expect(week.locator('[aria-current="date"]')).toHaveCount(1);
-  await expect(
-    week.locator('[data-slot="session-row"][data-state="today"]'),
-  ).toHaveCount(1);
-  await expect(
-    week.getByRole("progressbar", { name: "Volume de la semaine réalisé" }),
-  ).toBeVisible();
 
   const goal = page.getByRole("region", { name: "Objectif" });
   await expect(
@@ -151,7 +143,7 @@ test("today explains the missing plan and keeps Garmin data", async ({
     session.getByRole("link", { name: "Ajouter une course" }),
   ).toHaveAttribute("href", "/races/new");
   await expect(
-    page.getByRole("region", { name: /^Cette semaine/ }),
+    page.getByRole("region", { name: /^(Cette semaine|Semaine \d+)/ }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Ton corps ce matin" }),
@@ -185,6 +177,13 @@ test("today stacks the day in reading order on mobile", async ({ page }) => {
   ).then((values) => values.filter((y) => y >= 0));
   expect(order.length).toBeGreaterThanOrEqual(4);
   expect([...order].sort((a, b) => a - b)).toEqual(order);
+  const week = page.getByRole("region", { name: /^Cette semaine/ });
+  await expect(
+    week.locator('[data-slot="session-row"][data-state="today"]'),
+  ).toHaveCount(1);
+  await expect(page.getByRole("region", { name: /^Semaine \d+$/ })).toHaveCount(
+    0,
+  );
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -192,59 +191,37 @@ test("today stacks the day in reading order on mobile", async ({ page }) => {
   ).toBe(true);
 });
 
-test("today switches between the day and the week from the URL", async ({
+test("today leads with the week and keeps today's session below it", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signIn(page, "plan@example.com");
-  await page.goto("/today");
-  const views = page
-    .getByRole("navigation", { name: "Vue" })
-    .filter({ visible: true });
-  await expect(views.getByRole("link", { name: "Jour" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  await views.getByRole("link", { name: "Semaine" }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/today\?view=week$/);
+  await page.goto("/today?view=week&week=2026-01-05");
+  await expect(page.getByRole("navigation", { name: "Vue" })).toHaveCount(0);
   const week = page.getByRole("region", { name: /^Semaine \d+$/ });
+  const session = page.getByRole("region", { name: "Séance du jour" });
   await expect(week).toBeVisible();
-  await expect(week.getByRole("listitem")).toHaveCount(7);
+  await expect(session).toBeVisible();
+  const [weekBox, sessionBox] = await Promise.all([
+    week.boundingBox(),
+    session.boundingBox(),
+  ]);
+  expect(weekBox?.y ?? 0).toBeLessThan(sessionBox?.y ?? 0);
+  await expect(week.locator('[aria-current="date"]')).toHaveCount(1);
   await expect(
-    page.getByRole("region", { name: "Séance du jour" }),
+    week.getByRole("link", { name: "Voir le plan →" }),
+  ).toHaveAttribute("href", /^\/plan\?week=\d{4}-\d{2}-\d{2}$/);
+  await expect(
+    page.getByRole("link", { name: /^Semaine (précédente|suivante)$/ }),
   ).toHaveCount(0);
-  const title = await week.getByRole("heading", { level: 2 }).textContent();
-
-  await page.reload();
-  await expect(views.getByRole("link", { name: "Semaine" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  await expect(week.getByRole("heading", { level: 2 })).toHaveText(title ?? "");
-
-  const next = week.getByRole("link", { name: "Semaine suivante" });
-  if (await next.count()) {
-    await next.click();
-    await expect(page).toHaveURL(/\/today\?view=week&week=\d{4}-\d{2}-\d{2}$/);
-    await expect(week.getByRole("heading", { level: 2 })).not.toHaveText(
-      title ?? "",
-    );
-    await week.getByRole("link", { name: "Semaine précédente" }).click();
-    await expect(week.getByRole("heading", { level: 2 })).toHaveText(
-      title ?? "",
-    );
-  }
-
-  await views.getByRole("link", { name: "Jour" }).click();
-  await expect(page).toHaveURL(/\/today$/);
   await expect(
-    page.getByRole("region", { name: "Séance du jour" }),
-  ).toBeVisible();
+    page.getByRole("region", { name: /^Cette semaine/ }),
+  ).toHaveCount(0);
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await views.getByRole("link", { name: "Semaine" }).click();
-  await expect(week).toBeVisible();
+  const plan = week.getByRole("link", { name: "Voir le plan →" });
+  await plan.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(":focus")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,

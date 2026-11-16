@@ -247,32 +247,12 @@ describe("today view", () => {
     ]);
   });
 
-  it("opens the requested week with its neighbours and summary", () => {
-    const week = todayWeek(input().program, "2026-10-26");
-    expect(week).toMatchObject({
-      number: 3,
-      weekStart: "2026-10-26",
-      previous: "2026-10-19",
-      next: "2026-11-02",
-      current: false,
-      detail: "semaine du 26 oct.",
-      href: "/plan?week=2026-10-26",
-    });
-    expect(week?.range).toEqual(expect.any(String));
-    expect(week?.planned.duration).toEqual(expect.any(String));
-    expect(week?.days).toHaveLength(7);
-  });
-
-  it("falls back to the current week and stops at the plan edges", () => {
-    const { program } = input();
-    expect(todayWeek(program, null)).toMatchObject({
+  it("shows the current week only", () => {
+    expect(todayWeek(input().program)).toMatchObject({
       weekStart: "2026-10-19",
-      current: true,
+      href: "/plan?week=2026-10-19",
     });
-    expect(todayWeek(program, "2031-01-06")?.weekStart).toBe("2026-10-19");
-    expect(todayWeek(program, "2026-10-12")?.previous).toBeNull();
-    expect(todayWeek(program, "2026-11-02")?.next).toBeNull();
-    expect(todayWeek(null, null)).toBeNull();
+    expect(todayWeek(null)).toBeNull();
   });
 
   it("summarizes the current week day by day", () => {
@@ -595,7 +575,22 @@ describe("today double day", () => {
       label:
         "jeu. 22 oct. · 2 séances : Renforcement fait, puis Footing facile · aujourd’hui · 1 sur 2 faites",
     });
-    expect(week?.days[1]).toMatchObject({ families: ["easy"], doneCount: 0 });
+    expect(week?.days[1]).toMatchObject({
+      families: ["easy"],
+      doneCount: 0,
+      sessions: [],
+    });
+  });
+
+  it("lists each session of a double day and sums its targets", () => {
+    const { week } = buildToday(doubleInput(true));
+    const day = week?.days[3];
+    expect(day?.sessions.map((session) => session.title)).toEqual([
+      "Renforcement",
+      "Footing facile",
+    ]);
+    expect(day?.sessions[1]?.intensity).toMatchObject({ label: "Facile" });
+    expect(day?.duration).toBe("1h");
   });
 
   it("keeps a single session day as before", () => {

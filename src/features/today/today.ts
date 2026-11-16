@@ -93,6 +93,12 @@ export type TodayForm = {
   indicators: FormIndicator[];
 };
 
+export type TodayWeekSession = {
+  key: string;
+  title: string;
+  intensity: TodayIntensity | null;
+};
+
 export type TodayWeekDay = {
   date: string;
   dayLabel: string;
@@ -106,6 +112,7 @@ export type TodayWeekDay = {
   family: SessionFamily;
   families: SessionFamily[];
   title: string;
+  sessions: TodayWeekSession[];
   state: DayState;
   doneCount: number;
   isToday: boolean;
@@ -124,22 +131,12 @@ export function shortDayLabel(date: string) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-const weekStartFormat = new Intl.DateTimeFormat("fr-FR", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
-
 export type TodayWeek = {
   weekStart: string;
-  detail: string;
   number: number;
   total: number;
   blockName: string;
   range: string;
-  current: boolean;
-  previous: string | null;
-  next: string | null;
   note: string | null;
   split: { easyPct: number; met: boolean } | null;
   days: TodayWeekDay[];
@@ -473,16 +470,16 @@ function form(model: RecoveryModel): TodayForm {
   };
 }
 
-export function todayWeek(
-  program: ProgramOverview | null,
-  weekStart: string | null,
-): TodayWeek | null {
-  if (!program) return null;
-  const current =
-    program.weeks.find((item) => item.weekStart === weekStart) ??
-    currentWeek(program);
-  if (!current) return null;
-  const index = program.weeks.indexOf(current);
+function sum(values: (number | null)[]) {
+  const known = values.filter((value) => value !== null);
+  return known.length > 0
+    ? known.reduce((total, value) => total + value)
+    : null;
+}
+
+export function todayWeek(program: ProgramOverview | null): TodayWeek | null {
+  const current = currentWeek(program);
+  if (!program || !current) return null;
   const split = weekSplit(current);
   const distance = (meters: number | null, estimated: boolean) =>
     meters === null
@@ -497,14 +494,10 @@ export function todayWeek(
   };
   return {
     weekStart: current.weekStart,
-    detail: `semaine du ${weekStartFormat.format(new Date(`${current.weekStart}T00:00:00Z`))}`,
     number: current.number,
     total: program.weeks.length,
     blockName: current.blockName,
     range: current.range,
-    current: current.weekKey === program.currentWeekKey,
-    previous: program.weeks[index - 1]?.weekStart ?? null,
-    next: program.weeks[index + 1]?.weekStart ?? null,
     note: current.note,
     split: split ? { easyPct: split.easyPct, met: split.met } : null,
     days: current.days.map((day, index) => {
@@ -522,12 +515,23 @@ export function todayWeek(
             )
             .join(", puis ")}`
         : null;
+      const seconds = sum(day.sessions.map((item) => item.durationSeconds));
+      const meters = sum(day.sessions.map((item) => item.distanceMeters));
       return {
         date: day.date,
         dayLabel: shortDayLabel(day.date),
         letter: weekdayLetters[index] ?? day.weekday.charAt(0).toUpperCase(),
-        duration: multiple ? null : day.duration,
-        distance: multiple ? null : day.distance,
+        duration: multiple
+          ? seconds !== null
+            ? formatDuration(seconds)
+            : null
+          : day.duration,
+        distance: multiple
+          ? distance(
+              meters,
+              day.sessions.some((item) => item.distanceEstimated),
+            )
+          : day.distance,
         elevation: multiple ? null : day.elevation,
         intensity: dayIntensity(day.family, day.blocks),
         compliance: multiple ? null : day.compliancePct,
@@ -537,6 +541,13 @@ export function todayWeek(
           ? day.sessions.map((item) => item.family)
           : [day.family],
         title: day.title,
+        sessions: multiple
+          ? day.sessions.map((item) => ({
+              key: item.sessionKey,
+              title: item.title,
+              intensity: dayIntensity(item.family, item.blocks),
+            }))
+          : [],
         state,
         doneCount,
         isToday: day.isToday,
@@ -766,7 +777,7 @@ export function buildToday(input: TodayInput): TodayView {
         }),
     form: day,
     queue: queue(input),
-    week: todayWeek(input.program, null),
+    week: todayWeek(input.program),
     goal: goal(input),
   };
 }

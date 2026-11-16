@@ -1,11 +1,6 @@
+import { Fragment } from "react";
 import { CountUp } from "@/components/stride/count-up";
-import {
-  CheckIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MessageCircleIcon,
-} from "lucide-react";
-import { todayHref } from "../view-mode";
+import { CheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
@@ -517,6 +512,12 @@ export function WeekSection({ week }: { week: TodayWeek }) {
           Plan
         </Link>
       </div>
+      {week.note && (
+        <p className="flex items-start gap-2.5 border-b border-border px-4 py-3 text-secondary-foreground md:px-5">
+          <StaffAvatar agent="coach" size={22} decorative />
+          {week.note}
+        </p>
+      )}
       <WeekRows days={week.days} />
     </section>
   );
@@ -549,7 +550,7 @@ function WeekRows({ days }: { days: TodayWeekDay[] }) {
 
 function WeekCards({ days }: { days: TodayWeekDay[] }) {
   return (
-    <ol className="grid grid-cols-7 gap-2 px-5 py-4 max-lg:hidden">
+    <ol className="grid grid-cols-7 gap-2 px-5 py-4">
       {days.map((day) => {
         const state = rowState(day);
         const compliance = rowCompliance(day);
@@ -573,14 +574,23 @@ function WeekCards({ days }: { days: TodayWeekDay[] }) {
                 </span>
               )}
             </span>
-            <span className="line-clamp-2 font-medium">{rowTitle(day)}</span>
-            {day.intensity && (
-              <span>
-                <Chip intensity={day.intensity.level ?? undefined}>
-                  {day.intensity.label}
-                </Chip>
-              </span>
-            )}
+            {(day.sessions.length > 0
+              ? day.sessions
+              : [{ key: day.date, title: day.title, intensity: day.intensity }]
+            ).map((session) => (
+              <Fragment key={session.key}>
+                <span className="line-clamp-2 font-medium">
+                  {session.title}
+                </span>
+                {session.intensity && (
+                  <span>
+                    <Chip intensity={session.intensity.level ?? undefined}>
+                      {session.intensity.label}
+                    </Chip>
+                  </span>
+                )}
+              </Fragment>
+            ))}
             <span className="mt-auto text-label text-muted-foreground tabular-nums">
               <MissingValue value={metrics} />
             </span>
@@ -614,36 +624,6 @@ function WeekCards({ days }: { days: TodayWeekDay[] }) {
   );
 }
 
-function WeekStep({
-  week,
-  direction,
-}: {
-  week: string | null;
-  direction: "previous" | "next";
-}) {
-  const label =
-    direction === "previous" ? "Semaine précédente" : "Semaine suivante";
-  const icon =
-    direction === "previous" ? (
-      <ChevronLeftIcon aria-hidden="true" />
-    ) : (
-      <ChevronRightIcon aria-hidden="true" />
-    );
-  if (!week)
-    return (
-      <Button variant="outline" size="icon" aria-label={label} disabled>
-        {icon}
-      </Button>
-    );
-  return (
-    <Button asChild variant="outline" size="icon">
-      <Link href={todayHref("week", week)} aria-label={label} scroll={false}>
-        {icon}
-      </Link>
-    </Button>
-  );
-}
-
 export function WeekPlanSection({ week }: { week: TodayWeek }) {
   const metrics = [
     { key: "duration", value: week.planned.duration, note: "durée" },
@@ -674,10 +654,12 @@ export function WeekPlanSection({ week }: { week: TodayWeek }) {
           <span className="min-w-0 flex-1 truncate text-muted-foreground tabular-nums">
             {week.range} · {week.blockName}
           </span>
-          <span className="flex shrink-0 gap-1">
-            <WeekStep week={week.previous} direction="previous" />
-            <WeekStep week={week.next} direction="next" />
-          </span>
+          <Link
+            href={week.href}
+            className="shrink-0 rounded-md font-medium text-secondary-foreground hover:text-foreground"
+          >
+            Voir le plan →
+          </Link>
         </div>
         <dl className="flex flex-wrap items-baseline gap-x-4.5 gap-y-2.5">
           {metrics.map((metric) => (
@@ -724,10 +706,19 @@ export function WeekPlanSection({ week }: { week: TodayWeek }) {
         )}
       </div>
       <WeekCards days={week.days} />
-      <div className="lg:hidden">
-        <WeekRows days={week.days} />
-      </div>
     </section>
+  );
+}
+
+export function SessionStrip({ date, count }: { date: string; count: number }) {
+  return (
+    <p
+      aria-hidden="true"
+      className="flex min-h-8 items-center gap-2 border-y border-border bg-muted px-4 py-1.5 text-label font-medium text-secondary-foreground md:px-5"
+    >
+      {count > 1 ? "Séances du jour" : "Séance du jour"}
+      <span className="text-muted-foreground">{date}</span>
+    </p>
   );
 }
 
