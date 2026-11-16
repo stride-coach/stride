@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useLayoutEffect, useRef, useState } from "react";
-import { ArrowUpIcon, PlusIcon } from "lucide-react";
+import { ArrowUpIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 import { Kbd } from "@/components/ui/kbd";
@@ -39,7 +39,7 @@ import {
 } from "@/features/coach/mentions";
 import { staff } from "@/features/coach/staff";
 import type { SpecialistAgent, StaffAgent } from "@/features/coach/staff";
-import { ContextPicker } from "./context-picker";
+import { ContextAdd } from "./context-menu";
 import { useKeyboardInset } from "./composer-hooks";
 
 export type ComposerDraft = {
@@ -211,7 +211,6 @@ export function Composer({
   const [text, setText] = useState(initialText);
   const [attachments, setAttachments] =
     useState<AttachmentOption[]>(initialAttachments);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [layout, setLayout] = useState(inlineLayout);
   const [caret, setCaret] = useState(initialText.length);
   const [focused, setFocused] = useState(false);
@@ -219,7 +218,6 @@ export function Composer({
   const [active, setActive] = useState({ key: "", index: 0 });
   const [restored, setRestored] = useState<string | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
-  const contextTrigger = useRef<HTMLButtonElement>(null);
   const nextCaret = useRef<number | null>(null);
   const listId = useId();
   const keyboard = useKeyboardInset();
@@ -361,24 +359,13 @@ export function Composer({
                 stacked ? "order-2 pb-1.5" : "order-1",
               )}
             >
-              <Button
-                ref={contextTrigger}
-                type="button"
-                variant="ghost"
-                aria-label="Ajouter du contexte : séance, activité ou course"
-                aria-haspopup="dialog"
-                aria-expanded={pickerOpen}
-                onClick={() => setPickerOpen(true)}
-                className={cn(
-                  controlSize,
-                  "p-0 text-secondary-foreground md:w-auto md:px-2.5 md:font-medium",
-                )}
-              >
-                <PlusIcon aria-hidden="true" strokeWidth={1.6} />
-                <span aria-hidden="true" className="max-md:hidden">
-                  Contexte
-                </span>
-              </Button>
+              <ContextAdd
+                options={options}
+                selected={attachments}
+                today={today}
+                controlSize={controlSize}
+                onChange={setAttachments}
+              />
               <Button
                 type="button"
                 variant="ghost"
@@ -495,19 +482,6 @@ export function Composer({
             </Button>
           )}
         </p>
-      )}
-      {!answering && (
-        <ContextPicker
-          open={pickerOpen}
-          onOpenChange={setPickerOpen}
-          options={options}
-          selected={attachments}
-          today={today}
-          returnFocus={contextTrigger}
-          onToggle={(option) =>
-            setAttachments((current) => toggleAttachment(current, option))
-          }
-        />
       )}
       {help && (
         <p className="text-label text-muted-foreground">

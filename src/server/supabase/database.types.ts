@@ -594,6 +594,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      coach_attachment_files: {
+        Row: {
+          content_type: string;
+          created_at: string;
+          file_name: string;
+          id: string;
+          size_bytes: number;
+          storage_path: string;
+          summary: NonNullable<Json>;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          content_type: string;
+          created_at?: string;
+          file_name: string;
+          id?: string;
+          size_bytes: number;
+          storage_path: string;
+          summary: NonNullable<Json>;
+          user_id: string;
+        };
+        Update: {
+          content_type?: string;
+          created_at?: string;
+          file_name?: string;
+          id?: string;
+          size_bytes?: number;
+          storage_path?: string;
+          summary?: NonNullable<Json>;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       coach_sessions: {
         Row: {
           budget_cents: number;

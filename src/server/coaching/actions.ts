@@ -5,6 +5,7 @@ import { z } from "zod";
 import { clampItem } from "@/features/coach/items";
 import {
   mainThreadTitle,
+  topicClosingSentence,
   topicDecisions,
   topicLead,
   topicMessageCount,
@@ -182,6 +183,15 @@ export async function closeCoachTopic(
       return { status: "closed" };
     try {
       const main = await mainSessionFor(context);
+      await appendThreadItem(
+        context,
+        main.id,
+        clampItem({
+          kind: "coach",
+          at: closedAt,
+          text: topicClosingSentence(title),
+        }),
+      );
       await appendThreadItem(
         context,
         main.id,

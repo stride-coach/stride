@@ -1,7 +1,6 @@
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { attachmentDate } from "@/features/coach/attachments";
 import { staff, type StaffAgent } from "@/features/coach/staff";
-import { decisionsLabel } from "@/features/coach/topics";
 
 const section =
   "flex flex-col gap-2.5 border-b border-border py-4.5 first:pt-0 last:border-b-0";
@@ -39,7 +38,7 @@ export function TopicAside({
   race: { id: string; title: string; date: string | null } | null;
   lead: StaffAgent;
   companions: readonly StaffAgent[];
-  decisions: number;
+  decisions: readonly { proposalId: string; title: string }[];
   closed: boolean;
 }) {
   return (
@@ -67,7 +66,18 @@ export function TopicAside({
               value={companions.map((agent) => staff[agent].name).join(", ")}
             />
           )}
-          <Fact label="Décisions" value={decisionsLabel(decisions)} />
+          <Fact
+            label="Décisions"
+            value={decisions.length === 0 ? "Aucune" : decisions.length}
+            detail={decisions[0]?.title ?? null}
+          />
+          {decisions.slice(1).map((decision) => (
+            <Fact
+              key={decision.proposalId}
+              label="Décision"
+              value={decision.title}
+            />
+          ))}
         </dl>
       </section>
       <section aria-labelledby="topic-close" className={section}>
@@ -77,7 +87,7 @@ export function TopicAside({
         <p className="text-secondary-foreground">
           {closed
             ? "Son résumé et ses décisions sont dans le fil principal. Le sujet reste lisible ici."
-            : "Le staff en garde un résumé dans le fil principal, avec les décisions prises. Le sujet reste lisible."}
+            : "Le staff en garde un résumé dans le fil principal, avec les décisions prises. Le sujet reste lisible et se retrouve par la recherche."}
         </p>
       </section>
       <section aria-labelledby="topic-rest" className={section}>

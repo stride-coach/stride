@@ -100,6 +100,10 @@ export function topicDecisions(
   return decisions;
 }
 
+export function topicClosingSentence(title: string) {
+  return `Je clos le sujet sur « ${title} » : voici ce qu’on en retient.`;
+}
+
 export function decisionsLabel(count: number) {
   if (count === 0) return "Aucune décision";
   return count === 1 ? "1 décision" : `${count} décisions`;

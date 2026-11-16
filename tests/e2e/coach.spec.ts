@@ -11,7 +11,8 @@ const newThread = "c0c0c0c0-0000-4000-8000-0000000000aa";
 const newPlanProposal = "eeeeeeee-eeee-4eee-8eee-900000000001";
 const coachActivity = "aaaaaaaa-aaaa-4aaa-8aaa-000000009101";
 const coachRace = "c0ace000-0000-4000-8000-000000000001";
-const addContext = "Ajouter du contexte : séance, activité ou course";
+const addContext =
+  "Ajouter du contexte : séance, activité, course, donnée de santé ou fichier";
 
 test.describe.configure({ mode: "serial" });
 
@@ -301,7 +302,22 @@ test("a new topic keeps its messages apart and closes into a summary card", asyn
     dialog.getByRole("textbox", { name: "De quoi veux-tu parler ?" }),
   ).toHaveValue("Préparer une course");
   await dialog.getByRole("radio", { name: "Course · Trail des Lacs" }).click();
+  await dialog.getByRole("button", { name: addContext }).click();
+  await page.getByRole("menuitem", { name: /Une donnée de santé/ }).click();
+  const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
+  await picker.getByRole("button", { name: /VFC/ }).click();
+  await picker.getByRole("button", { name: "Terminé" }).click();
+  await expect(
+    dialog
+      .getByRole("list", { name: "Contexte joint au sujet" })
+      .getByRole("listitem"),
+  ).toHaveCount(1);
   await dialog.getByRole("button", { name: "Ouvrir le sujet" }).click();
+  await expect(
+    page
+      .getByRole("list", { name: "Contexte joint au message" })
+      .getByRole("listitem"),
+  ).toHaveCount(1);
   await expect(
     page.getByRole("heading", { level: 1, name: "Préparer une course" }),
   ).toBeVisible();
@@ -376,6 +392,13 @@ test("a new topic keeps its messages apart and closes into a summary card", asyn
   await composer.fill("Quelle allure viser ?");
   await composer.press("Enter");
   await expect(page).toHaveURL(`/coach/${newThread}`, { timeout: 20_000 });
+  expect(
+    (posted as { input: { attachments: unknown } }).input.attachments,
+  ).toEqual([{ kind: "health", id: "hrv" }]);
+  posted = {
+    ...(posted as object),
+    input: { kind: "message", text: "Quelle allure viser ?" },
+  };
   expect(posted).toEqual({
     target: {
       kind: "new_topic",
@@ -408,6 +431,11 @@ test("a new topic keeps its messages apart and closes into a summary card", asyn
   });
   await expect(card).toContainText("Aucune décision");
   await expect(card).toContainText("3 messages");
+  await expect(
+    log.getByText("Je clos le sujet sur « Préparer une course » :", {
+      exact: false,
+    }),
+  ).toBeVisible();
   await expect(
     card.getByRole("link", { name: "Relire le sujet" }),
   ).toHaveAttribute("href", `/coach/${newThread}`);
@@ -578,8 +606,17 @@ test("context chips are picked with the keyboard, survive a failed send and reac
   await signIn(page);
   await page.goto("/coach");
   const trigger = page.getByRole("button", { name: addContext });
-  await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+  await expect(trigger).toHaveAttribute("aria-haspopup", "menu");
   await trigger.click();
+  const menu = page.getByRole("menu", { name: "Ajouter du contexte" });
+  await expect(menu.getByRole("menuitem")).toHaveText([
+    /Une séance/,
+    /Une activité/,
+    /Une course.*Trail des Lacs/,
+    /Une donnée de santé.*VFC/,
+    /Une photo ou un fichier.*GPX, capture/,
+  ]);
+  await menu.getByRole("menuitem", { name: /Une séance/ }).click();
   const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
   await expect(picker).toBeVisible();
   await expect
@@ -621,7 +658,11 @@ test("context chips are picked with the keyboard, survive a failed send and reac
   await expect(trigger).toBeFocused();
 
   await trigger.click();
-  await picker.getByRole("tab", { name: "Activités" }).click();
+  await menu.getByRole("menuitem", { name: /Une activité/ }).click();
+  await expect(picker.getByRole("tab", { name: "Activités" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   const activity = picker.getByRole("button", {
     name: /Sortie longue vallonnée/,
   });
@@ -718,6 +759,99 @@ test("context chips are picked with the keyboard, survive a failed send and reac
   await expect(sent).toContainText("27/06/2027");
 });
 
+test("health data and a file are attached from the menu and sent to the staff", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto("/coach");
+  await page.getByRole("button", { name: addContext }).click();
+  await page.getByRole("menuitem", { name: /Une donnée de santé/ }).click();
+  const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
+  const hrv = picker.getByRole("button", { name: /VFC/ });
+  await expect(hrv).toContainText("54 ms");
+  await hrv.click();
+  await picker.getByRole("tab", { name: "Fichier" }).click();
+  const upload = picker.getByLabel("Fichier à joindre");
+  await upload.setInputFiles({
+    name: "notes.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("pas une trace"),
+  });
+  await expect(picker.getByRole("alert")).toHaveText(
+    "Choisis une trace GPX ou une image JPEG, PNG ou WebP.",
+  );
+  await upload.setInputFiles({
+    name: "sortie.gpx",
+    mimeType: "application/gpx+xml",
+    buffer: Buffer.from(
+      '<?xml version="1.0"?><gpx version="1.1"><trk><trkseg>' +
+        '<trkpt lat="45.000" lon="6.000"><ele>1000</ele></trkpt>' +
+        '<trkpt lat="45.002" lon="6.000"><ele>1030</ele></trkpt>' +
+        '<trkpt lat="45.004" lon="6.000"><ele>1060</ele></trkpt>' +
+        "</trkseg></trk></gpx>",
+    ),
+  });
+  await expect(picker.getByRole("status")).toHaveText(
+    "2 éléments joints sur 3",
+  );
+  await expect(
+    picker.getByRole("button", { name: /sortie\.gpx/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await picker.getByRole("button", { name: "Terminé" }).click();
+  const chips = page.getByRole("list", { name: "Contexte joint au message" });
+  await expect(chips.getByRole("listitem")).toHaveCount(2);
+
+  let posted: {
+    input: { attachments: { kind: string; id: string }[] };
+  } | null = null;
+  await page.route("**/api/coach/turns", async (route) => {
+    posted = route.request().postDataJSON();
+    await stream([
+      {
+        type: "session",
+        sessionId: "sesn_01Sante",
+        threadId: mainThread,
+        consoleUrl: "https://console.test",
+      },
+      item("athlete", {
+        text: "Regarde ça",
+        consult: null,
+        attachments: [
+          { kind: "health", id: "hrv", title: "VFC", date: "2026-11-16" },
+          {
+            kind: "file",
+            id: posted?.input.attachments[1]?.id,
+            title: "sortie.gpx",
+            date: "2026-11-16",
+          },
+        ],
+      }),
+      item("coach", { text: "Je regarde ta VFC et ta trace." }),
+      { type: "done", status: "idle" },
+    ])(route);
+  });
+  const composer = page.getByRole("textbox", { name: "Écrire au staff" });
+  await composer.fill("Regarde ça");
+  await composer.press("Enter");
+  const sent = page
+    .getByRole("log", { name: "Messages" })
+    .getByRole("list", { name: "Contexte joint" });
+  await expect(sent.getByRole("link", { name: /VFC/ })).toHaveAttribute(
+    "href",
+    "/health/recovery",
+  );
+  await expect(
+    sent.getByRole("listitem").filter({ hasText: "sortie.gpx" }),
+  ).toBeVisible();
+  expect(posted!.input.attachments.map((item) => item.kind)).toEqual([
+    "health",
+    "file",
+  ]);
+  expect(posted!.input.attachments[0].id).toBe("hrv");
+  await expect(chips).toBeHidden();
+});
+
 test("a stored message keeps its chips and answer mode hides the context control", async ({
   page,
 }) => {
@@ -749,6 +883,7 @@ test("mobile picks context from a bottom sheet at 390", async ({ page }) => {
   expect(Math.round(field!.height)).toBeGreaterThanOrEqual(44);
   await trigger.focus();
   await page.keyboard.press("Enter");
+  await page.getByRole("menuitem", { name: /Une course/ }).click();
   const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
   await expect(picker).toBeVisible();
   await expect

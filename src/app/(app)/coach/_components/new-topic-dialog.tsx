@@ -13,13 +13,22 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { AttachmentOption } from "@/features/coach/attachments";
+import { ContextChip } from "@/components/stride/context-chip";
+import {
+  attachmentDate,
+  toggleAttachment,
+  type AttachmentOption,
+  type AttachmentOptions,
+} from "@/features/coach/attachments";
+import { AttachmentIcon } from "@/features/coach/components/attachment-icon";
+import { ContextAdd } from "./context-menu";
 import { topicThemes, topicTitleSchema } from "@/features/coach/topics";
 
 export type DraftTopic = {
   title: string;
   raceId: string | null;
   raceTitle: string | null;
+  attachments: AttachmentOption[];
 };
 
 const chip =
@@ -29,15 +38,20 @@ export function NewTopicDialog({
   open,
   onOpenChange,
   races,
+  options,
+  today,
   onOpenTopic,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   races: readonly AttachmentOption[];
+  options: AttachmentOptions;
+  today: string;
   onOpenTopic: (topic: DraftTopic) => void;
 }) {
   const [title, setTitle] = useState("");
   const [raceId, setRaceId] = useState("");
+  const [attachments, setAttachments] = useState<AttachmentOption[]>([]);
   const [invalid, setInvalid] = useState(false);
   const fieldId = useId();
   const errorId = useId();
@@ -46,6 +60,7 @@ export function NewTopicDialog({
     if (!next) {
       setTitle("");
       setRaceId("");
+      setAttachments([]);
       setInvalid(false);
     }
     onOpenChange(next);
@@ -62,6 +77,7 @@ export function NewTopicDialog({
       title: parsed.data,
       raceId: race?.id ?? null,
       raceTitle: race?.title ?? null,
+      attachments,
     });
     change(false);
   }
@@ -126,11 +142,25 @@ export function NewTopicDialog({
                 ))}
               </div>
             </div>
-            {races.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <span id={`${fieldId}-race`} className="text-label font-medium">
-                  Lier à
-                </span>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {races.length > 0 && (
+                  <span
+                    id={`${fieldId}-race`}
+                    className="text-label font-medium"
+                  >
+                    Lier à
+                  </span>
+                )}
+                <ContextAdd
+                  options={options}
+                  selected={attachments}
+                  today={today}
+                  controlSize="size-8 md:size-7"
+                  onChange={setAttachments}
+                />
+              </div>
+              {races.length > 0 && (
                 <ToggleGroup
                   type="single"
                   variant="choice"
@@ -149,8 +179,33 @@ export function NewTopicDialog({
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-              </div>
-            )}
+              )}
+              {attachments.length > 0 && (
+                <ul
+                  aria-label="Contexte joint au sujet"
+                  className="flex flex-wrap gap-1.5"
+                >
+                  {attachments.map((option) => (
+                    <li
+                      key={`${option.kind}-${option.id}`}
+                      className="flex max-w-full"
+                    >
+                      <ContextChip
+                        icon={<AttachmentIcon kind={option.kind} />}
+                        label={option.title}
+                        meta={attachmentDate(option.date)}
+                        removeLabel={`Retirer ${option.title} du contexte`}
+                        onRemove={() =>
+                          setAttachments((current) =>
+                            toggleAttachment(current, option),
+                          )
+                        }
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <p className="text-label text-muted-foreground">
               Pour une question du jour, écris plutôt dans le fil principal :
               pas besoin de sujet.

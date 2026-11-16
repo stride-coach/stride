@@ -1,7 +1,15 @@
 import { sessionPanelHref } from "@/features/plans/view/session-href";
 import { z } from "zod";
+import { recoveryPath } from "@/features/progress/health";
+import { healthTopicSchema } from "./health-attachments";
 
-export const attachmentKinds = ["session", "activity", "race"] as const;
+export const attachmentKinds = [
+  "session",
+  "activity",
+  "race",
+  "health",
+  "file",
+] as const;
 export type AttachmentKind = (typeof attachmentKinds)[number];
 
 export const maxAttachments = 3;
@@ -13,6 +21,8 @@ export const coachAttachmentSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({ kind: z.literal("activity"), id: z.uuid() }),
   z.strictObject({ kind: z.literal("race"), id: z.uuid() }),
+  z.strictObject({ kind: z.literal("health"), id: healthTopicSchema }),
+  z.strictObject({ kind: z.literal("file"), id: z.uuid() }),
 ]);
 
 export const coachAttachmentsSchema = z
@@ -20,6 +30,8 @@ export const coachAttachmentsSchema = z
   .max(maxAttachments);
 
 export type AttachmentRef = z.output<typeof coachAttachmentSchema>;
+
+export type AttachmentKey = { kind: AttachmentKind; id: string };
 
 export const sentAttachmentSchema = z.object({
   kind: z.enum(attachmentKinds),
@@ -33,9 +45,18 @@ export type SentAttachment = z.output<typeof sentAttachmentSchema>;
 export type AttachmentOption = SentAttachment & {
   distanceKm: number | null;
   elevationGainM: number | null;
+  detail?: string | null;
 };
 
-export type AttachmentOptions = Record<AttachmentKind, AttachmentOption[]>;
+export type AttachmentOptions = Record<
+  "session" | "activity" | "race",
+  AttachmentOption[]
+> &
+  Partial<Record<"health" | "file", AttachmentOption[]>>;
+
+export function optionsOf(options: AttachmentOptions, kind: AttachmentKind) {
+  return options[kind] ?? [];
+}
 
 export type AttachmentGroup = { label: string; options: AttachmentOption[] };
 
@@ -43,12 +64,32 @@ export const attachmentTabLabels: Record<AttachmentKind, string> = {
   session: "Séances",
   activity: "Activités",
   race: "Courses",
+  health: "Santé",
+  file: "Fichier",
 };
 
 export const attachmentEmptyLabels: Record<AttachmentKind, string> = {
   session: "Aucune séance prévue autour d’aujourd’hui dans ton plan actif.",
   activity: "Aucune activité importée pour l’instant.",
   race: "Aucune course enregistrée pour l’instant.",
+  health: "Aucune donnée de santé importée pour l’instant.",
+  file: "Aucun fichier joint pour l’instant.",
+};
+
+export const attachmentMenuLabels: Record<AttachmentKind, string> = {
+  session: "Une séance",
+  activity: "Une activité",
+  race: "Une course",
+  health: "Une donnée de santé",
+  file: "Une photo ou un fichier",
+};
+
+export const attachmentMenuHints: Record<AttachmentKind, string> = {
+  session: "Séances du plan",
+  activity: "Activités importées",
+  race: "Tes courses",
+  health: "VFC, sommeil…",
+  file: "GPX, capture",
 };
 
 const dayMs = 86_400_000;
@@ -72,11 +113,11 @@ const meters = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 const utc = (iso: string) => new Date(`${iso}T00:00:00Z`);
 
-export function sameAttachment(left: AttachmentRef, right: AttachmentRef) {
+export function sameAttachment(left: AttachmentKey, right: AttachmentKey) {
   return left.kind === right.kind && left.id === right.id;
 }
 
-export function dedupeAttachments<Item extends AttachmentRef>(
+export function dedupeAttachments<Item extends AttachmentKey>(
   items: readonly Item[],
 ): Item[] {
   return items.filter(
@@ -85,7 +126,7 @@ export function dedupeAttachments<Item extends AttachmentRef>(
   );
 }
 
-export function toggleAttachment<Item extends AttachmentRef>(
+export function toggleAttachment<Item extends AttachmentKey>(
   items: readonly Item[],
   item: Item,
 ): Item[] {
@@ -95,11 +136,13 @@ export function toggleAttachment<Item extends AttachmentRef>(
   return dedupeAttachments([...items, item]);
 }
 
-export function attachmentRefs(items: readonly AttachmentRef[]) {
+export function attachmentRefs(items: readonly AttachmentKey[]) {
   return dedupeAttachments(items).map(({ kind, id }) => ({ kind, id }));
 }
 
-export function attachmentHref(item: AttachmentRef) {
+export function attachmentHref(item: AttachmentKey) {
+  if (item.kind === "file") return null;
+  if (item.kind === "health") return recoveryPath;
   if (item.kind === "session") return sessionPanelHref(item.id);
   const id = encodeURIComponent(item.id);
   if (item.kind === "activity") return `/activities/${id}`;
@@ -130,7 +173,9 @@ export function attachmentMeta(option: AttachmentOption, today: string) {
   const parts = [option.date ? weekdayDate.format(utc(option.date)) : null];
   if (option.kind === "session") {
     if (option.date && option.date >= today) parts.push("prévue");
-  } else
+  } else if (option.kind === "health" || option.kind === "file")
+    parts.push(option.detail ?? null);
+  else
     parts.push(distance(option.distanceKm), elevation(option.elevationGainM));
   return parts.filter((part) => part !== null).join(" · ");
 }
@@ -181,4 +226,18 @@ export function attachmentCountLabel(count: number) {
   return count === 1
     ? `1 élément joint sur ${maxAttachments}`
     : `${count} éléments joints sur ${maxAttachments}`;
+}
+
+export function attachmentSuggestion(
+  kind: AttachmentKind,
+  options: readonly AttachmentOption[],
+  today: string,
+) {
+  const [first] = attachmentGroups(kind, options, today).flatMap(
+    (group) => group.options,
+  );
+  if (!first) return attachmentMenuHints[kind];
+  if (kind === "health" || kind === "file")
+    return [first.title, first.detail].filter(Boolean).join(" · ");
+  return first.title;
 }

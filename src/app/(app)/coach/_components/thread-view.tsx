@@ -4,7 +4,10 @@ import { createContext, useContext, useId, useTransition } from "react";
 import { CheckIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ContextChipLink } from "@/components/stride/context-chip";
+import {
+  ContextChipLink,
+  ContextChipStatic,
+} from "@/components/stride/context-chip";
 import { Chip } from "@/components/stride/chip";
 import { SessionShape } from "@/components/stride/session-shape";
 import { Status } from "@/components/stride/status";
@@ -752,19 +755,26 @@ function SentChips({ attachments }: { attachments: SentAttachment[] }) {
       aria-label="Contexte joint"
       className="mt-2.5 flex flex-wrap gap-1.5 whitespace-normal"
     >
-      {attachments.map((attachment) => (
-        <li
-          key={`${attachment.kind}-${attachment.id}`}
-          className="flex max-w-full"
-        >
-          <ContextChipLink
-            href={attachmentHref(attachment)}
-            icon={<AttachmentIcon kind={attachment.kind} />}
-            label={attachment.title}
-            meta={attachmentDate(attachment.date)}
-          />
-        </li>
-      ))}
+      {attachments.map((attachment) => {
+        const href = attachmentHref(attachment);
+        const chip = {
+          icon: <AttachmentIcon kind={attachment.kind} />,
+          label: attachment.title,
+          meta: attachmentDate(attachment.date),
+        };
+        return (
+          <li
+            key={`${attachment.kind}-${attachment.id}`}
+            className="flex max-w-full"
+          >
+            {href ? (
+              <ContextChipLink href={href} {...chip} />
+            ) : (
+              <ContextChipStatic {...chip} />
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
