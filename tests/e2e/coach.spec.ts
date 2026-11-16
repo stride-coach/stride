@@ -1551,109 +1551,6 @@ async function pressAsk(page: Page) {
 }
 
 test("⌘J opens the quick ask over Aujourd’hui and a session with its context", async ({
-
-test("a long write shows its step and lets the athlete ask to be notified", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await signIn(page);
-  await page.goto(`/coach/${planThread}`);
-  await page.route("**/api/coach/turns", () => new Promise<void>(() => {}));
-  const request = "Réécris mes semaines jusqu’à l’EcoTrail 120K.";
-  const composer = page.getByRole("textbox", { name: "Écrire au staff" });
-  await composer.fill(request);
-  await composer.press("Enter");
-  await expect(
-    page.getByRole("status").filter({ hasText: "Le Coach réfléchit…" }),
-  ).toBeVisible();
-
-  await coachTurn({
-    session: {
-      status: "running",
-      last_turn_at: at(),
-      composing_since: new Date(Date.now() - 3 * 60_000 - 5_000).toISOString(),
-      writing_step: null,
-      notify_when_ready: false,
-    },
-    items: [
-      {
-        kind: "athlete",
-        body: { text: request, consult: null, attachments: [] },
-      },
-    ],
-  });
-  await page.unrouteAll({ behavior: "ignoreErrors" });
-  await page.reload();
-
-  const working = page
-    .getByRole("status")
-    .filter({ hasText: "Le Coach rédige sa réponse…" });
-  await expect(working).toContainText("depuis 3 min");
-  await expect(working).not.toContainText("Étape");
-  await expect(working).toContainText(
-    "Active les notifications dans les réglages",
-  );
-  await expect(
-    working.getByRole("button", { name: "Me prévenir quand c’est prêt" }),
-  ).toHaveCount(0);
-
-  await fetch(`http://127.0.0.1:${authPort}/__test__/push-device`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ enabled: true }),
-  });
-  await coachTurn({
-    session: {
-      writing_step: {
-        step: 2,
-        total: 4,
-        label: "semaines de récupération",
-      },
-    },
-  });
-  await page.reload();
-  await expect(working).toContainText(
-    "Étape 2 sur 4 : semaines de récupération.",
-  );
-  const notify = working.getByRole("button", {
-    name: "Me prévenir quand c’est prêt",
-  });
-  await expect(notify).toHaveAttribute("aria-pressed", "false");
-  await notify.click();
-  const notified = working.getByRole("button", {
-    name: "Je te préviens quand c’est prêt",
-  });
-  await expect(notified).toHaveAttribute("aria-pressed", "true");
-  await page.reload();
-  await expect(
-    working.getByRole("button", { name: "Je te préviens quand c’est prêt" }),
-  ).toBeVisible();
-  await working
-    .getByRole("button", { name: "Je te préviens quand c’est prêt" })
-    .click();
-  await expect(
-    working.getByRole("button", { name: "Me prévenir quand c’est prêt" }),
-  ).toHaveAttribute("aria-pressed", "false");
-
-  await coachTurn({
-    session: { status: "idle", composing_since: null, writing_step: null },
-    items: [{ kind: "coach", body: { text: "Tes semaines sont réécrites." } }],
-  });
-  await expect(
-    page
-      .getByRole("log", { name: "Messages" })
-      .getByText("Tes semaines sont réécrites."),
-  ).toBeVisible({ timeout: 15_000 });
-  await expect(working).toHaveCount(0);
-  await fetch(`http://127.0.0.1:${authPort}/__test__/push-device`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ enabled: false }),
-  });
-  await resetCoach();
-});
-
-test("the top bar asks the coach about the session on screen with ⌘J", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -2038,5 +1935,106 @@ test("the data card and the choices fit a phone at 390", async ({ page }) => {
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(390);
   await page.screenshot({ path: "test-results/coach-blocks-mobile.png" });
+  await resetCoach();
+});
+
+test("a long write shows its step and lets the athlete ask to be notified", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto(`/coach/${planThread}`);
+  await page.route("**/api/coach/turns", () => new Promise<void>(() => {}));
+  const request = "Réécris mes semaines jusqu’à l’EcoTrail 120K.";
+  const composer = page.getByRole("textbox", { name: "Écrire au staff" });
+  await composer.fill(request);
+  await composer.press("Enter");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Le Coach réfléchit…" }),
+  ).toBeVisible();
+
+  await coachTurn({
+    session: {
+      status: "running",
+      last_turn_at: at(),
+      composing_since: new Date(Date.now() - 3 * 60_000 - 5_000).toISOString(),
+      writing_step: null,
+      notify_when_ready: false,
+    },
+    items: [
+      {
+        kind: "athlete",
+        body: { text: request, consult: null, attachments: [] },
+      },
+    ],
+  });
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await page.reload();
+
+  const working = page
+    .getByRole("status")
+    .filter({ hasText: "Le Coach rédige sa réponse…" });
+  await expect(working).toContainText("depuis 3 min");
+  await expect(working).not.toContainText("Étape");
+  await expect(working).toContainText(
+    "Active les notifications dans les réglages",
+  );
+  await expect(
+    working.getByRole("button", { name: "Me prévenir quand c’est prêt" }),
+  ).toHaveCount(0);
+
+  await fetch(`http://127.0.0.1:${authPort}/__test__/push-device`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled: true }),
+  });
+  await coachTurn({
+    session: {
+      writing_step: {
+        step: 2,
+        total: 4,
+        label: "semaines de récupération",
+      },
+    },
+  });
+  await page.reload();
+  await expect(working).toContainText(
+    "Étape 2 sur 4 : semaines de récupération.",
+  );
+  const notify = working.getByRole("button", {
+    name: "Me prévenir quand c’est prêt",
+  });
+  await expect(notify).toHaveAttribute("aria-pressed", "false");
+  await notify.click();
+  const notified = working.getByRole("button", {
+    name: "Je te préviens quand c’est prêt",
+  });
+  await expect(notified).toHaveAttribute("aria-pressed", "true");
+  await page.reload();
+  await expect(
+    working.getByRole("button", { name: "Je te préviens quand c’est prêt" }),
+  ).toBeVisible();
+  await working
+    .getByRole("button", { name: "Je te préviens quand c’est prêt" })
+    .click();
+  await expect(
+    working.getByRole("button", { name: "Me prévenir quand c’est prêt" }),
+  ).toHaveAttribute("aria-pressed", "false");
+
+  await coachTurn({
+    session: { status: "idle", composing_since: null, writing_step: null },
+    items: [{ kind: "coach", body: { text: "Tes semaines sont réécrites." } }],
+  });
+  await expect(
+    page
+      .getByRole("log", { name: "Messages" })
+      .getByText("Tes semaines sont réécrites."),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(working).toHaveCount(0);
+  await fetch(`http://127.0.0.1:${authPort}/__test__/push-device`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled: false }),
+  });
   await resetCoach();
 });

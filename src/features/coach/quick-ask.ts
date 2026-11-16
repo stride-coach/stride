@@ -145,6 +145,7 @@ export function applyStreamEvent(
         pendingQuestion:
           event.status === "awaiting_athlete" ? exchange.pendingQuestion : null,
       };
+    case "step":
     case "error":
       return exchange;
   }
