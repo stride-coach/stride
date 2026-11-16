@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ThreadItem } from "../../src/features/coach/items";
+import { buildThread } from "../../src/features/coach/thread";
 import {
   newMessagesLabel,
   olderCursor,
   prependOlder,
+  syncOlder,
   unreadBoundary,
+  unreadEntryIndex,
   type ReadMarker,
 } from "../../src/features/coach/long-thread";
 
@@ -132,5 +135,84 @@ describe("newMessagesLabel", () => {
   it("pluralises in French", () => {
     expect(newMessagesLabel(1)).toBe("1 nouveau message");
     expect(newMessagesLabel(2)).toBe("2 nouveaux messages");
+  });
+});
+
+describe("syncOlder", () => {
+  const at = "2026-11-10T08:00:00Z";
+  const page = (...ids: number[]) =>
+    ids.map((id) => item(String(id), "coach", at));
+  const ids = (items: ThreadItem[]) => items.map((entry) => entry.id);
+
+  it("returns the same state while the first page is unchanged", () => {
+    const base = page(41, 42);
+    const state = { base, items: [], hasMore: true };
+    expect(syncOlder(state, base, true)).toBe(state);
+  });
+
+  it("keeps the items a shifting first page drops, so the thread has no gap", () => {
+    const state = {
+      base: page(41, 42, 43),
+      items: page(30, 31),
+      hasMore: true,
+    };
+    const next = syncOlder(state, page(43, 44, 45), false);
+    expect(ids(next.items)).toEqual(["30", "31", "41", "42"]);
+    expect(next.hasMore).toBe(true);
+  });
+
+  it("keeps the dropped items even when no older page was loaded", () => {
+    const state = { base: page(41, 42, 43), items: [], hasMore: true };
+    const next = syncOlder(state, page(42, 43, 44), false);
+    expect(ids(next.items)).toEqual(["41"]);
+    expect(next.hasMore).toBe(true);
+  });
+
+  it("resets to the server answer when the new page starts earlier", () => {
+    const state = { base: page(41, 42), items: page(30), hasMore: true };
+    const next = syncOlder(state, page(10, 11), false);
+    expect(next.items).toEqual([]);
+    expect(next.hasMore).toBe(false);
+  });
+
+  it("resets when the new page does not overlap the previous one", () => {
+    const state = { base: page(41, 42), items: [], hasMore: true };
+    const next = syncOlder(state, page(300, 301), true);
+    expect(next.items).toEqual([]);
+    expect(next.hasMore).toBe(true);
+  });
+});
+
+describe("unreadEntryIndex", () => {
+  const items = [
+    item("10", "athlete", "2026-11-10T08:00:00Z"),
+    item("11", "coach", "2026-11-10T08:01:00Z"),
+    item("12", "athlete", "2026-11-10T08:02:00Z"),
+    item("13", "coach", "2026-11-10T08:03:00Z"),
+  ];
+  const entries = buildThread({
+    items,
+    live: false,
+    pendingToolUseId: null,
+  });
+
+  it("finds the entry holding the first unread item", () => {
+    expect(unreadEntryIndex(entries, "13")).toBe(3);
+  });
+
+  it("finds a staff entry that groups several items", () => {
+    const grouped = buildThread({
+      items: [
+        item("20", "coach", "2026-11-10T08:00:00Z"),
+        item("21", "coach", "2026-11-10T08:01:00Z"),
+      ],
+      live: false,
+      pendingToolUseId: null,
+    });
+    expect(unreadEntryIndex(grouped, "21")).toBe(0);
+  });
+
+  it("returns -1 when no entry holds an item that new", () => {
+    expect(unreadEntryIndex(entries, "99")).toBe(-1);
   });
 });

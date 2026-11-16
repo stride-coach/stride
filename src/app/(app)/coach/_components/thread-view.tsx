@@ -19,6 +19,7 @@ import {
   type SentAttachment,
 } from "@/features/coach/attachments";
 import { longWriteNote, workingLabel } from "@/features/coach/activity";
+import { newMessagesLabel } from "@/features/coach/long-thread";
 import { notifyCopy, type NotifyOffer } from "@/features/coach/notify";
 import { stepLine, type StepReport } from "@/features/coach/steps";
 import {
@@ -876,7 +877,11 @@ export function ThreadLog({
   revisableId = null,
   onRevise,
   search = null,
+  older = null,
+  unread = null,
 }: {
+  older?: { loading: boolean; onLoad: () => void } | null;
+  unread?: { entryIndex: number; count: number } | null;
   entries: ThreadEntry[];
   failed?: readonly FailedMessage[];
   onRetryFailed?: (message: FailedMessage) => void;
@@ -899,12 +904,40 @@ export function ThreadLog({
         aria-label="Messages"
         className="mx-auto flex w-full max-w-180 flex-col gap-5.5 px-4 pt-4.5 pb-6 md:px-5"
       >
+        {older && (
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={older.loading}
+              onClick={older.onLoad}
+            >
+              Charger les messages précédents
+            </Button>
+          </div>
+        )}
         {entries.map((entry, index) => {
           const previous = entries[index - 1];
           const separator =
             !previous || !sameDay(previous.at, entry.at, timeZone);
           return (
             <div key={entry.key} className="flex flex-col gap-5.5">
+              {unread?.entryIndex === index && (
+                <div
+                  id="coach-unread"
+                  className="flex scroll-mt-4 items-center gap-3 text-label font-medium text-primary"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-px flex-1 bg-primary/50"
+                  />
+                  {newMessagesLabel(unread.count)}
+                  <span
+                    aria-hidden="true"
+                    className="h-px flex-1 bg-primary/50"
+                  />
+                </div>
+              )}
               {separator && (
                 <div className="flex items-center gap-3" aria-hidden="true">
                   <span className="h-px flex-1 bg-border" />

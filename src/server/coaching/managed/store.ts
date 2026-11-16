@@ -40,8 +40,8 @@ const rowSchema = z
     read_at: z.string().nullable(),
     read_through_item_id: z
       .union([z.number(), z.string()])
-      .nullable()
-      .transform((value) => (value === null ? null : String(value))),
+      .nullish()
+      .transform((value) => (value == null ? null : String(value))),
     composing_since: z.string().nullable(),
     writing_step: z.unknown().transform(parseStoredStep),
     notify_when_ready: z.boolean().default(false),
