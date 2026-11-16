@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(15);
 
 insert into auth.users (id, aud, role, email) values
   ('c9000000-0000-4000-8000-0000000000c9', 'authenticated', 'authenticated', 'facts-a@example.com'),
@@ -60,6 +60,31 @@ select isnt(
   (select updated_at from public.athlete_facts where category = 'habit'),
   (select created_at from public.athlete_facts where category = 'habit'),
   'a correction moves the update date'
+);
+
+reset role;
+set local session_replication_role = replica;
+update public.athlete_facts set updated_at = created_at - interval '2 days' where category = 'habit';
+set local session_replication_role = origin;
+select pg_temp.act_as('c9000000-0000-4000-8000-0000000000c9');
+update public.athlete_facts set text = 'Sortie longue le samedi' where category = 'habit';
+select is(
+  (select updated_at = created_at - interval '2 days' from public.athlete_facts where category = 'habit'),
+  true, 'saving a fact without a change keeps its update date'
+);
+
+reset role;
+insert into public.athlete_facts (user_id, category, text)
+select 'c9000000-0000-4000-8000-0000000000c9', 'goal', 'Objectif ' || n from generate_series(1, 98) as n;
+select pg_temp.act_as('c9000000-0000-4000-8000-0000000000c9');
+select throws_ok(
+  $$insert into public.athlete_facts (user_id, category, text)
+    values ('c9000000-0000-4000-8000-0000000000c9', 'goal', 'Un de trop')$$,
+  '23514', 'athlete_facts_limit', 'an athlete cannot keep more than 100 facts'
+);
+select is(
+  (select count(*)::int from public.athlete_facts), 100,
+  'the hundred facts are kept'
 );
 
 select pg_temp.act_as('d9000000-0000-4000-8000-0000000000d9');

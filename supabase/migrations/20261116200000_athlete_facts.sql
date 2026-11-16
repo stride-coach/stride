@@ -19,13 +19,35 @@ language plpgsql
 set search_path = ''
 as $$
 begin
-  new.updated_at := now();
+  if (new.category, new.text, new.starts_on, new.ends_on)
+    is distinct from (old.category, old.text, old.starts_on, old.ends_on) then
+    new.updated_at := now();
+  else
+    new.updated_at := old.updated_at;
+  end if;
   return new;
 end;
 $$;
 
 create trigger athlete_facts_touch before update on public.athlete_facts
   for each row execute function private.touch_athlete_fact();
+
+create function private.limit_athlete_facts()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended(new.user_id::text, 428));
+  if (select count(*) from public.athlete_facts where user_id = new.user_id) >= 100 then
+    raise exception 'athlete_facts_limit' using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger athlete_facts_limit before insert on public.athlete_facts
+  for each row execute function private.limit_athlete_facts();
 
 alter table public.athlete_facts enable row level security;
 

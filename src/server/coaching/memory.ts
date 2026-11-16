@@ -46,16 +46,10 @@ export const readFacts = cache(
   },
 );
 
-export async function countFacts(context: OnboardingContext) {
-  const { count, error } = await context.client
-    .from("athlete_facts")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", context.userId);
-  if (error) throw new Error("Unable to count the athlete facts");
-  return count ?? 0;
-}
-
-export async function insertFact(context: OnboardingContext, input: FactInput) {
+export async function insertFact(
+  context: OnboardingContext,
+  input: FactInput,
+): Promise<"saved" | "limit"> {
   const { error } = await context.client.from("athlete_facts").insert({
     user_id: context.userId,
     category: input.category,
@@ -63,7 +57,9 @@ export async function insertFact(context: OnboardingContext, input: FactInput) {
     starts_on: input.startsOn,
     ends_on: input.endsOn,
   });
+  if (error?.message.includes("athlete_facts_limit")) return "limit";
   if (error) throw new Error("Unable to record the athlete fact");
+  return "saved";
 }
 
 export async function updateFact(

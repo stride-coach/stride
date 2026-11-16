@@ -221,15 +221,29 @@ describe("knownFactsForStaff", () => {
         }),
       ),
     ];
-    const texts = knownFactsForStaff(facts, "2026-10-15").map(
+    const texts = knownFactsForStaff(facts, "2026-10-15", zone).map(
       (entry) => entry.text,
     );
     expect(texts).toHaveLength(40);
     expect(texts).not.toContain("Déplacement terminé");
   });
 
+  it("dates a fact in the athlete's time zone, not in UTC", () => {
+    const late = fact({
+      createdAt: "2026-11-16T23:30:00Z",
+      updatedAt: "2026-11-16T23:30:00Z",
+    });
+    expect(knownFactsForStaff([late], "2026-11-17", zone)[0].saidOn).toBe(
+      "2026-11-17",
+    );
+    expect(
+      memoryExport([late], new Date("2026-11-17T10:00:00Z"), zone).facts[0]
+        .saidOn,
+    ).toBe("2026-11-17");
+  });
+
   it("gives the staff the wording and the date it was said", () => {
-    expect(knownFactsForStaff([fact()], "2026-10-15")).toEqual([
+    expect(knownFactsForStaff([fact()], "2026-10-15", zone)).toEqual([
       {
         category: "habit",
         text: "Sortie longue le dimanche",
@@ -241,7 +255,11 @@ describe("knownFactsForStaff", () => {
 
 describe("memoryExport", () => {
   it("exports the facts with their dates", () => {
-    const exported = memoryExport([fact()], new Date("2026-10-15T10:00:00Z"));
+    const exported = memoryExport(
+      [fact()],
+      new Date("2026-10-15T10:00:00Z"),
+      zone,
+    );
     expect(exported).toEqual({
       exportedAt: "2026-10-15T10:00:00.000Z",
       facts: [

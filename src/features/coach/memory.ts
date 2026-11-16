@@ -149,9 +149,19 @@ export type StaffFact = {
   saidOn: string;
 };
 
+function dayIn(iso: string, timeZone: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone,
+  }).format(new Date(iso));
+}
+
 export function knownFactsForStaff(
   facts: readonly Fact[],
   today: string,
+  timeZone: string,
 ): StaffFact[] {
   return facts
     .filter((fact) => fact.endsOn === null || fact.endsOn >= today)
@@ -162,11 +172,15 @@ export function knownFactsForStaff(
       text: fact.text,
       ...(fact.startsOn ? { startsOn: fact.startsOn } : {}),
       ...(fact.endsOn ? { endsOn: fact.endsOn } : {}),
-      saidOn: fact.createdAt.slice(0, 10),
+      saidOn: dayIn(fact.createdAt, timeZone),
     }));
 }
 
-export function memoryExport(facts: readonly Fact[], now: Date) {
+export function memoryExport(
+  facts: readonly Fact[],
+  now: Date,
+  timeZone: string,
+) {
   return {
     exportedAt: now.toISOString(),
     facts: facts.map((fact) => ({
@@ -174,7 +188,7 @@ export function memoryExport(facts: readonly Fact[], now: Date) {
       text: fact.text,
       startsOn: fact.startsOn,
       endsOn: fact.endsOn,
-      saidOn: fact.createdAt.slice(0, 10),
+      saidOn: dayIn(fact.createdAt, timeZone),
     })),
   };
 }

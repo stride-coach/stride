@@ -2,19 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import {
-  factCorrectionSchema,
-  factInputSchema,
-  factLimit,
-} from "@/features/coach/memory";
+import { factCorrectionSchema, factInputSchema } from "@/features/coach/memory";
 import { getOnboardingContext } from "@/server/onboarding/context";
-import {
-  countFacts,
-  deleteAllFacts,
-  deleteFact,
-  insertFact,
-  updateFact,
-} from "./memory";
+import { deleteAllFacts, deleteFact, insertFact, updateFact } from "./memory";
 
 export type FactActionResult =
   | { ok: true }
@@ -33,9 +23,8 @@ export async function addFact(input: unknown): Promise<FactActionResult> {
   const context = await getOnboardingContext({ writable: true });
   if (!context) return { ok: false, reason: "failed" };
   try {
-    if ((await countFacts(context)) >= factLimit)
+    if ((await insertFact(context, parsed.data)) === "limit")
       return { ok: false, reason: "limit" };
-    await insertFact(context, parsed.data);
   } catch {
     return { ok: false, reason: "failed" };
   }
