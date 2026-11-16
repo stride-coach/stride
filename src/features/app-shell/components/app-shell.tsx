@@ -35,8 +35,6 @@ import {
 } from "@/features/app-shell/shell";
 import { AppMobileTabBar } from "./app-mobile-tab-bar";
 import { CoachNavItem } from "./coach-nav";
-import { PlanSidebarGroup, PlanSidebarGroupLoading } from "./plan-nav";
-import { ProgressSidebarGroup } from "@/features/progress/components/progress-nav";
 import { ShellNavItem } from "./shell-nav-item";
 import { TopBar } from "./top-bar";
 import { QuickAsk, QuickAskProvider } from "./quick-ask";
@@ -77,11 +75,6 @@ async function CheckinEntry({ navigation }: Navigation) {
 async function CoachNav({ navigation }: Navigation) {
   const { coachAttention } = await navigation;
   return <CoachNavItem attention={coachAttention} />;
-}
-
-async function PlanNav({ navigation }: Navigation) {
-  const { planNav, planHistoryCount } = await navigation;
-  return <PlanSidebarGroup nav={planNav} historyCount={planHistoryCount} />;
 }
 
 async function MobileTabBar({ navigation }: Navigation) {
@@ -179,10 +172,6 @@ export function AppShell({
                           </Suspense>
                         </SidebarMenu>
                       </SidebarGroup>
-                      <Suspense fallback={<PlanSidebarGroupLoading />}>
-                        <PlanNav navigation={navigation} />
-                      </Suspense>
-                      <ProgressSidebarGroup />
                     </SidebarContent>
                     <SidebarFooter>
                       <Suspense fallback={null}>

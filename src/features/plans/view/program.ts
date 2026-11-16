@@ -173,7 +173,6 @@ export type ProgramWeek = {
   label: string;
   labelTone: LabelTone;
   isDefaultLabel: boolean;
-  sidebarLabel: string;
   isLight: boolean;
   families: SessionFamily[];
   totals: ProgramTotals;
@@ -693,10 +692,6 @@ export function buildProgram(
           : "muted"
         : labelTones[week.weekType],
       isDefaultLabel: !raceName && week.weekType === "build",
-      sidebarLabel:
-        week.weekType === "build" || week.weekType === "race"
-          ? ""
-          : weekTypeLabels[week.weekType].toLowerCase(),
       isLight: week.weekType === "recovery" || week.weekType === "taper",
       families,
       totals,
@@ -1216,47 +1211,4 @@ export function chartDescription(weeks: ProgramWeek[]) {
   const durations = weeks.map((week) => week.easySeconds + week.qualitySeconds);
   const light = weeks.filter((week) => week.isLight).length;
   return `Volume hebdomadaire prévu sur ${plural(weeks.length, "semaine", "semaines")}, de ${formatDuration(Math.min(...durations))} à ${formatDuration(Math.max(...durations))}${light > 0 ? `, dont ${plural(light, "semaine allégée", "semaines allégées")}` : ""}`;
-}
-
-export type ProgramNavWeek = {
-  weekStart: string;
-  label: string;
-  duration: string;
-  status: WeekStatus;
-  proposed: boolean;
-};
-
-export type ProgramNavBlock = {
-  blockKey: string;
-  name: string;
-  months: string;
-  status: WeekStatus;
-  weeks: ProgramNavWeek[];
-};
-
-export type ProgramNav = { weekCount: number; blocks: ProgramNavBlock[] };
-
-export function programNavigation(program: ProgramOverview): ProgramNav {
-  return {
-    weekCount: program.weeks.length,
-    blocks: program.blocks.map((block) => ({
-      blockKey: block.blockKey,
-      name: block.name,
-      months: block.months,
-      status: block.current
-        ? "current"
-        : block.weeks.every((week) => week.status === "past")
-          ? "past"
-          : "future",
-      weeks: block.weeks.map((week) => ({
-        weekStart: week.weekStart,
-        label: [`Semaine ${week.numberInBlock}`, week.sidebarLabel]
-          .filter(Boolean)
-          .join(" · "),
-        duration: formatDuration(week.totals.durationSeconds),
-        status: week.status,
-        proposed: week.proposed,
-      })),
-    })),
-  };
 }
