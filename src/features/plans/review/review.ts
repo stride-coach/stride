@@ -187,7 +187,7 @@ const supportLabels: Partial<Record<SessionFamily, string>> = {
   cross: "sport croisé",
 };
 
-function sessionMeta(session: SessionContent) {
+export function sessionMeta(session: SessionContent) {
   if (!isRunning(session)) return "jour sans course";
   const placed = { ...session, sessionKey: "", scheduledOn: "" };
   const support = supportLabels[sessionFamilyOf(placed)];

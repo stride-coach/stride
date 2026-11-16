@@ -126,7 +126,8 @@ stateDiagram-v2
   reverted --> [*]
 ```
 
-- **Undo**: "Annuler" on an applied change creates an inverse proposal that the athlete confirms in one action; it produces a new version, never edits the old one. Undo is unavailable once an affected session is completed or past.
+- **Undo**: "Annuler" on an applied session change, in the Coach thread, calls `revert_plan_proposal`. It restores the rows the proposal replaced as a new version, marks the proposal `reverted` and records a `reverted` decision; it never edits the old version. Undo is unavailable once the plan has moved to another version or an affected session is past or matched to an activity.
+- **Expiry in the thread**: a ready session proposal shows as expired once its session day has passed, without a write; accepting it would fail on the frozen session anyway.
 - **Stale**: the athlete sees "Le plan a changé depuis cette proposition" and can request a fresh one.
 - **Expiry**: the ledger shows the deadline ("à décider avant 17:00") from `expires_at`.
 - **Automatic minor changes**: not in V1 (D3). If the product owner revisits this later, they reuse this lifecycle with an `approval_mode = automatic`, a declared bound (for example ±10 minutes on an easy run), and an undo window ([risks and decisions](risks-and-decisions.md)).

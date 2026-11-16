@@ -1,4 +1,5 @@
 import type { SentAttachment } from "./attachments";
+import type { ProposalCard } from "./proposal-card";
 import type {
   ItemOf,
   ProposalOpinion,
@@ -33,8 +34,9 @@ export type StaffBlock = { itemId?: string } & (
       summary: string | null;
       opinions: ProposalOpinion[];
       status: ProposalCardStatus;
+      card: ProposalCard | null;
     }
-  | { type: "error"; text: string }
+  | { type: "error"; text: string; interrupted: boolean }
 );
 
 export type ThreadEntry =
@@ -75,6 +77,7 @@ export type ThreadInput = {
   live: boolean;
   pendingToolUseId: string | null;
   proposalStatuses?: Readonly<Record<string, string>>;
+  proposalCards?: Readonly<Record<string, ProposalCard>>;
 };
 
 export function proposalCardStatus(status: string | undefined) {
@@ -251,6 +254,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
           summary: item.summary,
           opinions: item.opinions,
           status: proposalCardStatus(input.proposalStatuses?.[item.proposalId]),
+          card: input.proposalCards?.[item.proposalId] ?? null,
         });
         return;
       case "error":
@@ -258,6 +262,7 @@ export function buildThread(input: ThreadInput): ThreadEntry[] {
           type: "error",
           itemId: item.id,
           text: item.text,
+          interrupted: item.code !== "budget_reached",
         });
         return;
       case "topic_summary":
@@ -307,6 +312,41 @@ export function retryableMessage(
       };
   }
   return null;
+}
+
+const concludingKinds: readonly ThreadItem["kind"][] = [
+  "proposal",
+  "topic_summary",
+];
+
+export function revisableQuestion(items: readonly ThreadItem[]) {
+  const index = items.findLastIndex((item) => item.kind === "question");
+  const question = items[index];
+  if (question?.kind !== "question") return null;
+  const later = items.slice(index + 1);
+  if (
+    !later.some(
+      (item) => item.kind === "answer" && item.toolUseId === question.toolUseId,
+    ) ||
+    later.some((item) => concludingKinds.includes(item.kind))
+  )
+    return null;
+  return question.toolUseId;
+}
+
+export function answerRevisionText(
+  items: readonly ThreadItem[],
+  toolUseId: string,
+  text: string,
+) {
+  const question = items.find(
+    (item) => item.kind === "question" && item.toolUseId === toolUseId,
+  );
+  const previous = items.findLast(
+    (item) => item.kind === "answer" && item.toolUseId === toolUseId,
+  );
+  if (question?.kind !== "question" || previous?.kind !== "answer") return null;
+  return `L’athlète change sa réponse à la question « ${question.question} ». Sa nouvelle réponse, « ${text} », remplace la précédente, « ${previous.text} ». Reprends ton avis avec cette réponse.`;
 }
 
 export function typingLabel(member: StaffMember, read: string | null) {

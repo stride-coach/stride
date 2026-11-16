@@ -8,6 +8,7 @@ import {
   type TurnErrorCode,
 } from "@/features/coach/items";
 import { readLabel } from "@/features/coach/reads";
+import { answerRevisionText, revisableQuestion } from "@/features/coach/thread";
 import {
   mainSessionReusable,
   mainThreadTitle,
@@ -45,6 +46,7 @@ import {
   findLatestMainSession,
   findOwnSession,
   findOwnThread,
+  readThreadItems,
   recordComposing,
   recordSession,
   updateSession,
@@ -90,7 +92,8 @@ export type TurnInput =
       consult?: SpecialistAgent;
       attachments?: AttachmentRef[];
     }
-  | { kind: "answer"; toolUseId: string; text: string };
+  | { kind: "answer"; toolUseId: string; text: string }
+  | { kind: "revision"; toolUseId: string; text: string };
 
 export type TurnTarget =
   | { kind: "main" }
@@ -152,7 +155,8 @@ export class SessionStateError extends Error {
       | "turn_in_progress"
       | "answer_required"
       | "no_pending_question"
-      | "no_running_turn",
+      | "no_running_turn"
+      | "answer_locked",
   ) {
     super(code);
   }
@@ -189,7 +193,7 @@ export function assertTurnAllowed(
     nowMs - Date.parse(record.lastTurnAt) < turnTimeoutMs
   )
     throw new SessionStateError("turn_in_progress");
-  if (input.kind === "message" && record.status === "awaiting_athlete")
+  if (input.kind !== "answer" && record.status === "awaiting_athlete")
     throw new SessionStateError("answer_required");
   if (
     input.kind === "answer" &&
@@ -511,6 +515,20 @@ function threadOf(event: object) {
   return typeof thread === "string" ? thread : null;
 }
 
+async function revisionText(
+  context: OnboardingContext,
+  threadId: string,
+  input: { toolUseId: string; text: string },
+) {
+  const items = await readThreadItems(context, threadId);
+  const text =
+    revisableQuestion(items) === input.toolUseId
+      ? answerRevisionText(items, input.toolUseId, input.text)
+      : null;
+  if (!text) throw new SessionStateError("answer_locked");
+  return text;
+}
+
 export async function* streamCoachTurn(
   context: OnboardingContext,
   request: TurnRequest,
@@ -532,6 +550,10 @@ export async function* streamCoachTurn(
     vaultId,
     started,
   );
+  const revision =
+    request.input.kind === "revision"
+      ? await revisionText(context, record.id, request.input)
+      : null;
   const id = record.managedSessionId;
   const sessionMs = Date.now() - started;
   await updateSession(context, id, {
@@ -586,6 +608,7 @@ export async function* streamCoachTurn(
           text: request.input.text,
         },
   );
+  const input = request.input;
 
   const controller = new AbortController();
   let timedOut = false;
@@ -632,31 +655,36 @@ export async function* streamCoachTurn(
     );
     await client.beta.sessions.events.send(id, {
       events: [
-        request.input.kind === "message"
+        input.kind === "message"
           ? {
               type: "user.message",
               content: [
                 ...(topic ? [{ type: "text" as const, text: topic }] : []),
-                { type: "text", text: request.input.text },
+                { type: "text", text: input.text },
                 ...(attachmentContext
                   ? [{ type: "text" as const, text: attachmentContext }]
                   : []),
                 ...(group ? [{ type: "text" as const, text: group }] : []),
-                ...(request.input.consult
+                ...(input.consult
                   ? [
                       {
                         type: "text" as const,
-                        text: consultInstruction[request.input.consult],
+                        text: consultInstruction[input.consult],
                       },
                     ]
                   : []),
               ],
             }
-          : {
-              type: "user.custom_tool_result",
-              custom_tool_use_id: request.input.toolUseId,
-              content: [{ type: "text", text: request.input.text }],
-            },
+          : input.kind === "revision"
+            ? {
+                type: "user.message",
+                content: [{ type: "text", text: revision ?? input.text }],
+              }
+            : {
+                type: "user.custom_tool_result",
+                custom_tool_use_id: input.toolUseId,
+                content: [{ type: "text", text: input.text }],
+              },
       ],
     });
 

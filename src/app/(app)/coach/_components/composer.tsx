@@ -274,7 +274,7 @@ export function Composer({
     setCaret(0);
     setDismissed(null);
     if (!answering) setAttachments([]);
-    const sent = await onSend({
+    await onSend({
       text: message,
       consult: answering ? null : consultOf(message),
       attachments: attached.map(({ kind, id, title, date }) => ({
@@ -284,19 +284,14 @@ export function Composer({
         date,
       })),
     });
-    if (!sent) {
-      setText((current) => (current.trim() ? current : message));
-      if (!answering) setAttachments(attached);
-    }
   }
 
   async function reply(message: string) {
-    const sent = await onSend({
+    await onSend({
       text: message,
       consult: null,
       attachments: [],
     });
-    if (!sent) setText((current) => (current.trim() ? current : message));
   }
 
   function remove(option: AttachmentOption) {

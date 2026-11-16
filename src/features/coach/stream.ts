@@ -67,6 +67,8 @@ export const turnRefusals: Record<string, string> = {
   turn_in_progress: "Le staff travaille déjà sur ta demande.",
   answer_required: "Réponds d’abord à la question du staff.",
   no_pending_question: "Cette question n’attend plus de réponse.",
+  answer_locked:
+    "Le staff a déjà conclu : ta réponse ne peut plus être changée.",
 };
 
 export const interruptFailure =

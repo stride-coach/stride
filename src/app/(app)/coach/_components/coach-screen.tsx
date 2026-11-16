@@ -48,6 +48,7 @@ import {
   type SessionState,
 } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
+import type { ProposalCard } from "@/features/coach/proposal-card";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { staff as allStaff } from "@/features/coach/staff";
 import {
@@ -76,7 +77,11 @@ import {
   type SearchScope,
 } from "@/features/coach/search";
 import { suggestedReplies } from "@/features/coach/suggested-replies";
-import { buildThread, retryableMessage } from "@/features/coach/thread";
+import {
+  buildThread,
+  retryableMessage,
+  revisableQuestion,
+} from "@/features/coach/thread";
 import {
   topicCompanions,
   topicDecisions,
@@ -97,7 +102,12 @@ import { SuiviPanel } from "./suivi-panel";
 import { TopicAside } from "./topic-aside";
 import { CloseTopicDialog, TopicActions } from "./topic-actions";
 import { TopicList } from "./topic-list";
-import { StaffWorking, ThreadLog, type ThreadSearch } from "./thread-view";
+import {
+  StaffWorking,
+  ThreadLog,
+  type FailedMessage,
+  type ThreadSearch,
+} from "./thread-view";
 
 type Target =
   | { kind: "main" }
@@ -120,6 +130,7 @@ type Conversation = {
   readIds: string[];
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
+  proposalCards: Record<string, ProposalCard>;
 };
 
 export type CoachView =
@@ -133,6 +144,7 @@ type Live = {
 
 const noItems: ThreadItem[] = [];
 const noStatuses: Record<string, string> = {};
+const noCards: Record<string, ProposalCard> = {};
 
 function mergeLive(live: Live, base: ThreadItem[]): Live {
   if (live.base === base) return live;
@@ -171,6 +183,7 @@ function conversationOf(
       readIds: [],
       items: noItems,
       proposalStatuses: noStatuses,
+      proposalCards: noCards,
     };
   if (view.kind === "topic")
     return {
@@ -189,6 +202,7 @@ function conversationOf(
       readIds: view.data.unread ? [view.data.id] : [],
       items: view.data.items,
       proposalStatuses: view.data.proposalStatuses,
+      proposalCards: view.data.proposalCards,
     };
   return {
     key: "main",
@@ -206,6 +220,7 @@ function conversationOf(
     readIds: view.data.unreadIds,
     items: view.data.items,
     proposalStatuses: view.data.proposalStatuses,
+    proposalCards: view.data.proposalCards,
   };
 }
 
@@ -315,6 +330,7 @@ function ConversationPane({
     text: string;
     attachments: SentAttachment[];
   } | null>(null);
+  const [failed, setFailed] = useState<FailedMessage[]>([]);
   const [asideOpen, setAsideOpen] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [restore, setRestore] = useState<ComposerRestore | null>(null);
@@ -334,7 +350,7 @@ function ConversationPane({
     [live.base, live.items],
   );
   const main = conversation.target.kind === "main";
-  const { mode, proposalStatuses } = conversation;
+  const { mode, proposalStatuses, proposalCards } = conversation;
   const status =
     state === null
       ? null
@@ -363,8 +379,9 @@ function ConversationPane({
         live: working,
         pendingToolUseId: pendingQuestion,
         proposalStatuses,
+        proposalCards,
       }),
-    [items, working, pendingQuestion, proposalStatuses],
+    [items, working, pendingQuestion, proposalStatuses, proposalCards],
   );
   const closed =
     !main &&
@@ -374,6 +391,10 @@ function ConversationPane({
     working || closed || pendingQuestion !== null
       ? null
       : retryableMessage(items);
+  const revisableId =
+    working || closed || pendingQuestion !== null
+      ? null
+      : revisableQuestion(items);
 
   const readIds = conversation.readIds;
   useEffect(() => {
@@ -450,23 +471,36 @@ function ConversationPane({
     return send(draft);
   }
 
-  async function send({ text, consult, attachments }: ComposerDraft) {
+  async function send(
+    { text, consult, attachments }: ComposerDraft,
+    revising: string | null = null,
+  ) {
     if (working) return false;
     const answering = pendingQuestion;
+    const shown = attachments.map(({ kind, id, title, date }) => ({
+      kind,
+      id,
+      title,
+      date,
+    }));
+    const fail = (reason: string) =>
+      setFailed((current) => [
+        ...current,
+        {
+          key: crypto.randomUUID(),
+          text,
+          consult,
+          attachments: shown,
+          revising,
+          reason: reason === turnFailure ? null : reason,
+        },
+      ]);
     setComposingSince(null);
     setStopping(false);
     stopRequested.current = false;
     turnThread.current = null;
     setBusy(true);
-    setSending({
-      text,
-      attachments: attachments.map(({ kind, id, title, date }) => ({
-        kind,
-        id,
-        title,
-        date,
-      })),
-    });
+    setSending({ text, attachments: shown });
     let sent = false;
     let started = false;
     let currentThread = threadId;
@@ -485,27 +519,28 @@ function ConversationPane({
         body: JSON.stringify({
           target,
           mode,
-          input: answering
-            ? { kind: "answer", toolUseId: answering, text }
-            : {
-                kind: "message",
-                text,
-                ...(consult ? { consult } : {}),
-                ...(attachments.length
-                  ? { attachments: attachmentRefs(attachments) }
-                  : {}),
-              },
+          input: revising
+            ? { kind: "revision", toolUseId: revising, text }
+            : answering
+              ? { kind: "answer", toolUseId: answering, text }
+              : {
+                  kind: "message",
+                  text,
+                  ...(consult ? { consult } : {}),
+                  ...(attachments.length
+                    ? { attachments: attachmentRefs(attachments) }
+                    : {}),
+                },
         }),
       });
       if (!response.ok) {
         const data: unknown = await response.json().catch(() => null);
-        toast.error(
+        fail(
           refusalText(
             data && typeof data === "object" && "code" in data
               ? data.code
               : null,
           ),
-          { id: "coach-turn" },
         );
         setSending(null);
       } else {
@@ -558,7 +593,7 @@ function ConversationPane({
     } catch {
       if (!started && !answering && !navigator.onLine)
         queued = queue({ text, consult, attachments }, true);
-      else if (!started) toast.error(turnFailure, { id: "coach-turn" });
+      else if (!started) fail(turnFailure);
     } finally {
       if (turnError && !errorShown)
         toast.error(turnError, { id: "coach-turn" });
@@ -616,9 +651,7 @@ function ConversationPane({
       setRestore(back);
       return;
     }
-    void send(message).then((sent) => {
-      if (!sent) setRestore(back);
-    });
+    void send(message);
   });
   const headId = head?.message.id ?? null;
   const headKind = head?.kind ?? null;
@@ -646,7 +679,7 @@ function ConversationPane({
         }
       : {}),
   };
-  const empty = items.length === 0 && !sending;
+  const empty = items.length === 0 && !sending && failed.length === 0;
   const replies =
     !main && items.length === 0
       ? []
@@ -768,6 +801,32 @@ function ConversationPane({
                 onRetry={retry ? () => void send(retry) : undefined}
                 onOther={() =>
                   document.getElementById("coach-composer")?.focus()
+                }
+                failed={failed}
+                onRetryFailed={(message) => {
+                  setFailed((current) =>
+                    current.filter((item) => item.key !== message.key),
+                  );
+                  void send(
+                    {
+                      text: message.text,
+                      consult: message.consult,
+                      attachments: message.attachments,
+                    },
+                    message.revising,
+                  );
+                }}
+                onDeleteFailed={(message) =>
+                  setFailed((current) =>
+                    current.filter((item) => item.key !== message.key),
+                  )
+                }
+                revisableId={revisableId}
+                onRevise={(toolUseId, answer) =>
+                  void send(
+                    { text: answer, consult: null, attachments: [] },
+                    toolUseId,
+                  )
                 }
               />
             )}
