@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import type { Fact } from "../../src/features/coach/memory";
 import type { StoredPlan } from "../../src/server/plans/stored";
 import type { OnboardingContext } from "../../src/server/onboarding/context";
 import {
@@ -1358,8 +1359,9 @@ describe("condition reports", () => {
 describe("read_athlete_context", () => {
   const packetBeforeBytes = 7_212;
 
-  function packet() {
+  function packet(facts: Fact[] = []) {
     return buildAthleteContext({
+      facts,
       today: fixtureToday,
       planning: planningInputFixture(),
       profile: profileFixture(),
@@ -1373,6 +1375,28 @@ describe("read_athlete_context", () => {
       predictionRows: predictionFixture,
     });
   }
+
+  it("carries what the athlete said, with its date, and omits the key when there is nothing", () => {
+    expect(packet()).not.toHaveProperty("knownFacts");
+    const known = packet([
+      {
+        id: "f1",
+        category: "body",
+        text: "Tendon d’Achille gauche sensible",
+        startsOn: null,
+        endsOn: null,
+        createdAt: "2026-09-28T08:00:00Z",
+        updatedAt: "2026-09-28T08:00:00Z",
+      },
+    ]).knownFacts;
+    expect(known).toEqual([
+      {
+        category: "body",
+        text: "Tendon d’Achille gauche sensible",
+        saidOn: "2026-09-28",
+      },
+    ]);
+  });
 
   it("stays under the packet budget recorded against the previous packet", () => {
     const bytes = Buffer.byteLength(JSON.stringify(packet()));

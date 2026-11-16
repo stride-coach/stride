@@ -94,6 +94,7 @@ test("the main thread, the topics list and a topic question at 1440", async ({
   await expect(sections.getByRole("link")).toHaveText([
     "Conversation",
     "Décisions",
+    "Ce que je sais de toi",
     "Le staff",
   ]);
   const thread = page.getByRole("region", { name: "Fil principal" });

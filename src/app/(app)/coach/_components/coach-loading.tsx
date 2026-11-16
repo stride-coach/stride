@@ -198,3 +198,28 @@ export function DecisionsLoading() {
     </LoadingScope>
   );
 }
+
+export function MemoryLoading() {
+  return (
+    <LoadingScope
+      label="Chargement de ce que le staff sait de toi"
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <AppHeader
+        title="Coach"
+        back={{ href: "/coach", label: "Retour au fil principal" }}
+        breadcrumb={<CoachHeaderNav />}
+      />
+      <CoachTabs className="border-b border-border px-4 py-2.5" />
+      <div
+        aria-hidden="true"
+        className="flex min-h-0 flex-1 flex-col gap-2 px-4 py-4.5 md:px-5"
+      >
+        <Skeleton className="h-3 w-24" />
+        {Array.from({ length: 6 }, (_, index) => (
+          <Skeleton key={index} className="h-11 w-full" />
+        ))}
+      </div>
+    </LoadingScope>
+  );
+}
