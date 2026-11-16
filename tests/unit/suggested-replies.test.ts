@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ThreadItem } from "../../src/features/coach/items";
 import {
+  starterPrompts,
   suggestedReplies,
   suggestedReplyLength,
   suggestedReplyLimit,
@@ -107,16 +108,19 @@ describe("suggestedReplies", () => {
     ).toEqual([]);
   });
 
-  it("offers openers in a new conversation", () => {
-    expect(suggestedReplies({ ...staffReplied, items: [] })).toEqual(
-      suggestedReplySets.start,
-    );
-  });
-
-  it("stays out of a plan request draft", () => {
+  it("leaves a new conversation to the starter cards", () => {
+    expect(suggestedReplies({ ...staffReplied, items: [] })).toEqual([]);
     expect(
       suggestedReplies({ ...staffReplied, mode: "plan", items: [] }),
     ).toEqual([]);
+  });
+
+  it("offers four starters with a title and a subtitle", () => {
+    expect(starterPrompts).toHaveLength(4);
+    for (const starter of starterPrompts) {
+      expect(starter.title.length).toBeGreaterThan(0);
+      expect(starter.subtitle.length).toBeGreaterThan(0);
+    }
   });
 
   it("waits for the staff after an athlete message", () => {
