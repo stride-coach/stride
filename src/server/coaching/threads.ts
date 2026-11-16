@@ -2,6 +2,12 @@ import "server-only";
 import { displayTimeZone } from "@/features/app-shell/shell";
 import { isUnread } from "@/features/coach/conversations";
 import type { ThreadItem } from "@/features/coach/items";
+import {
+  threadPageSize,
+  unreadBoundary,
+  type ReadMarker,
+  type UnreadBoundary,
+} from "@/features/coach/long-thread";
 import type { ProposalCard } from "@/features/coach/proposal-card";
 import { notifyOffer, type NotifyOffer } from "@/features/coach/notify";
 import type { StepReport } from "@/features/coach/steps";
@@ -21,6 +27,7 @@ import {
   findItemInSessions,
   findLatestMainSession,
   findOwnThread,
+  hasItemsBefore,
   listMainSessions,
   listOwnTopics,
   readItemsAround,
@@ -48,6 +55,8 @@ export type CoachMainData = {
   proposalStatuses: Record<string, string>;
   proposalCards: Record<string, ProposalCard>;
   anchorId: string | null;
+  hasMore: boolean;
+  unread: UnreadBoundary | null;
 };
 
 export type CoachTopicData = {
@@ -65,13 +74,13 @@ export type CoachTopicData = {
   notifyOffer: NotifyOffer;
   createdAt: string;
   unread: boolean;
+  unreadBoundary: UnreadBoundary | null;
+  hasMore: boolean;
   items: ThreadItem[];
   proposalStatuses: Record<string, string>;
   proposalCards: Record<string, ProposalCard>;
   anchorId: string | null;
 };
-
-const threadWindow = 500;
 
 async function readNotifyOffer(context: OnboardingContext) {
   const settings = await readPushSettings(context).catch(() => null);
@@ -86,7 +95,7 @@ async function readAnchoredItems(
   ids: ItemScope,
   anchor: ThreadAnchor | null,
 ) {
-  const rows = await readSessionsItems(context, ids, threadWindow);
+  const rows = await readSessionsItems(context, ids, threadPageSize);
   if (!anchor) return { rows, anchorId: null };
   const target =
     anchor.kind === "item"
@@ -101,6 +110,13 @@ async function readAnchoredItems(
   if (!anchorId || rows.some((row) => row.item.id === anchorId))
     return { rows, anchorId };
   return { rows: await readItemsAround(context, ids, anchorId), anchorId };
+}
+
+function markerOf(session: CoachSessionRecord): ReadMarker {
+  return {
+    readThroughId: session.readThroughItemId,
+    readAt: session.readAt,
+  };
 }
 
 function cardsOf(context: OnboardingContext, items: readonly ThreadItem[]) {
@@ -135,7 +151,10 @@ export async function loadMainThread(
         readThreadProposalStatuses(context, ids),
       ]);
   const items = rows.map((row) => row.item);
-  const proposalCards = await cardsOf(context, items);
+  const [proposalCards, hasMore] = await Promise.all([
+    cardsOf(context, items),
+    hasItemsBefore(context, anchor ? "main" : ids, items[0]?.id),
+  ]);
   const latest = sessions[0] ?? null;
   const live =
     latest && mainSessionReusable(latest, now, coachTimeZone) ? latest : null;
@@ -156,6 +175,12 @@ export async function loadMainThread(
     proposalStatuses: mergedStatuses(statuses),
     proposalCards,
     anchorId,
+    hasMore,
+    unread: unreadBoundary(
+      rows,
+      new Map(sessions.map((session) => [session.id, markerOf(session)])),
+      hasMore,
+    ),
   };
 }
 
@@ -217,7 +242,10 @@ export async function loadTopic(
   ]);
   const items = rows.map((row) => row.item);
   if (thread.title === null && items.length === 0) return null;
-  const proposalCards = await cardsOf(context, items);
+  const [proposalCards, hasMore] = await Promise.all([
+    cardsOf(context, items),
+    hasItemsBefore(context, [thread.id], items[0]?.id),
+  ]);
   return {
     kind: "topic",
     topic: {
@@ -235,10 +263,62 @@ export async function loadTopic(
       notifyOffer: await readNotifyOffer(context),
       createdAt: thread.createdAt,
       unread: isUnread(thread.lastActivityAt, thread.readAt),
+      unreadBoundary: unreadBoundary(
+        rows,
+        new Map([[thread.id, markerOf(thread)]]),
+        hasMore,
+      ),
+      hasMore,
       items,
       proposalStatuses: proposals.get(thread.id) ?? {},
       proposalCards,
       anchorId,
     },
+  };
+}
+
+export type OlderTarget =
+  { kind: "main" } | { kind: "topic"; threadId: string };
+
+export type OlderPage = {
+  items: ThreadItem[];
+  hasMore: boolean;
+  proposalStatuses: Record<string, string>;
+  proposalCards: Record<string, ProposalCard>;
+};
+
+export async function loadOlderItems(
+  context: OnboardingContext,
+  target: OlderTarget,
+  before: string,
+): Promise<OlderPage | null> {
+  let scope: ItemScope;
+  if (target.kind === "main") {
+    scope = (await listMainSessions(context)).map((session) => session.id);
+  } else {
+    const thread = await findOwnThread(context, target.threadId);
+    if (!thread || thread.kind === "main") return null;
+    scope = [thread.id];
+  }
+  const rows = await readSessionsItems(
+    context,
+    scope,
+    threadPageSize,
+    undefined,
+    before,
+  );
+  const items = rows.map((row) => row.item);
+  const [hasMore, statuses, proposalCards] = await Promise.all([
+    hasItemsBefore(context, scope, items[0]?.id),
+    readThreadProposalStatuses(context, [
+      ...new Set(rows.map((row) => row.threadId)),
+    ]),
+    cardsOf(context, items),
+  ]);
+  return {
+    items,
+    hasMore,
+    proposalStatuses: mergedStatuses(statuses),
+    proposalCards,
   };
 }
