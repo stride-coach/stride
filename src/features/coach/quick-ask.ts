@@ -23,6 +23,16 @@ const suggestions: Record<
     "Quelle allure viser au départ ?",
     "Que dois-je ajuster d’ici la course ?",
   ],
+  health: [
+    "Que disent mes données de santé ?",
+    "Suis-je assez récupéré ?",
+    "Dois-je alléger ma semaine ?",
+  ],
+  file: [
+    "Que retiens-tu de ce fichier ?",
+    "Qu’est-ce que ça change pour mon plan ?",
+    "Y a-t-il quelque chose d’anormal ?",
+  ],
   none: [
     "Que faire aujourd’hui ?",
     "Comment va ma forme en ce moment ?",
@@ -34,6 +44,8 @@ const headings: Record<AttachmentKind | "none", string> = {
   session: "Souvent demandé sur cette séance",
   activity: "Souvent demandé sur cette activité",
   race: "Souvent demandé sur cette course",
+  health: "Souvent demandé sur ces données de santé",
+  file: "Souvent demandé sur ce fichier",
   none: "Souvent demandé",
 };
 
@@ -41,6 +53,8 @@ const attachedNotes: Record<AttachmentKind, string> = {
   session: "La séance affichée est jointe d’office.",
   activity: "L’activité affichée est jointe d’office.",
   race: "La course affichée est jointe d’office.",
+  health: "Les données de santé affichées sont jointes d’office.",
+  file: "Le fichier affiché est joint d’office.",
 };
 
 export function quickAskSuggestions(kind: QuickAskContextKind) {
