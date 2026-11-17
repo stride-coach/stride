@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.5.0](https://github.com/stride-coach/stride/compare/v2.4.0...v2.5.0) (2026-11-17)
+
+
+### Features
+
+* **coach:** add Ce que je sais de toi with add, correct, forget and clear all ([#638](https://github.com/stride-coach/stride/issues/638)) ([1278773](https://github.com/stride-coach/stride/commit/12787731436b84c8c3c725cc83048a6c0ebe9a06))
+* **coach:** ask the staff in place from any screen with ⌘J ([#630](https://github.com/stride-coach/stride/issues/630)) ([d99b9c4](https://github.com/stride-coach/stride/commit/d99b9c44a514a58c3fe2b2317d8dee6bc9eafe72))
+* **coach:** composer rules, stop, queued sends and empty conversation ([#626](https://github.com/stride-coach/stride/issues/626)) ([362b7a4](https://github.com/stride-coach/stride/commit/362b7a475c6b6184fbbe61805bfac72bd35ec1be))
+* **coach:** context menu with health data and files, topic and aside details ([#633](https://github.com/stride-coach/stride/issues/633)) ([52e97b3](https://github.com/stride-coach/stride/commit/52e97b3dca842ab3657e6401b81ddb48d1371278))
+* **coach:** copy, read and correct a staff message from the thread ([#637](https://github.com/stride-coach/stride/issues/637)) ([53c7d04](https://github.com/stride-coach/stride/commit/53c7d0439bda07f80bf256ba0ad498f86deeea44))
+* **coach:** decide proposals, revise answers and keep failed messages in the thread ([#627](https://github.com/stride-coach/stride/issues/627)) ([9bb25d3](https://github.com/stride-coach/stride/commit/9bb25d390ef3bc78ca2e3f417ddb3fc4d35566f1))
+* **coach:** decisions log tab with detail sheet and 30-day counts ([#631](https://github.com/stride-coach/stride/issues/631)) ([85c0c61](https://github.com/stride-coach/stride/commit/85c0c61295c2b4812a8472cd59b1cf87a574ad08))
+* **coach:** load older messages, mark unread and return to the bottom of the thread ([#636](https://github.com/stride-coach/stride/issues/636)) ([61f2d8a](https://github.com/stride-coach/stride/commit/61f2d8a5f593a6343a35e931891b696f68bc8beb))
+* **coach:** rich staff replies with data cards, choices, links and proposed replies ([#629](https://github.com/stride-coach/stride/issues/629)) ([568cc08](https://github.com/stride-coach/stride/commit/568cc088075796068537e048cb14631beed3bf88))
+* **coach:** show the write step and notify when a long reply is ready ([#632](https://github.com/stride-coach/stride/issues/632)) ([7ae3603](https://github.com/stride-coach/stride/commit/7ae3603614095d8bab85382e52fccd6c6ca6177e))
+* **coach:** show the write step and notify when a long reply is ready ([#632](https://github.com/stride-coach/stride/issues/632)) ([e4c748e](https://github.com/stride-coach/stride/commit/e4c748e76be6c28b462d327947bbe86f0a8b6fa7))
+* **plans:** distinguish heavy and running-specific strength sessions ([#639](https://github.com/stride-coach/stride/issues/639)) ([cc02ecd](https://github.com/stride-coach/stride/commit/cc02ecde2fd798884cc13d98d0d75a85edbe4ffc))
+* **today:** lead with the week and keep today's session below it ([#628](https://github.com/stride-coach/stride/issues/628)) ([ea7e4fc](https://github.com/stride-coach/stride/commit/ea7e4fc5d3d6e6f0a211b812f75fc86df24b1ca6))
+
+
+### Bug Fixes
+
+* **ci:** repair the specs left stale on main by [#628](https://github.com/stride-coach/stride/issues/628) and [#629](https://github.com/stride-coach/stride/issues/629) ([#634](https://github.com/stride-coach/stride/issues/634)) ([1937834](https://github.com/stride-coach/stride/commit/193783421d8d2be5e4e5f4c9642119cb2a7f764f))
+* **settings:** allow running on all seven days of the week ([#616](https://github.com/stride-coach/stride/issues/616)) ([abc80ea](https://github.com/stride-coach/stride/commit/abc80ea586207abcf568e7301cf215ac33448fb2))
+
 ## [2.4.0](https://github.com/stride-coach/stride/compare/v2.3.0...v2.4.0) (2026-11-15)
 
 
