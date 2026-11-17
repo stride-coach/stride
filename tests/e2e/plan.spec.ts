@@ -162,7 +162,7 @@ test("an athlete reviews the plan history", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signInAs(page, "plan-history@example.com");
   await page.goto("/plan");
-  await page.getByRole("link", { name: "Historique 7 propositions" }).click();
+  await page.getByRole("link", { name: "Historique", exact: true }).click();
   await expect(page).toHaveURL("/plan/history", { timeout: 20_000 });
   const applied = page.getByRole("article", { name: "Repos avancé à mardi" });
   await expect(applied.getByText("Appliquée", { exact: true })).toBeVisible();
