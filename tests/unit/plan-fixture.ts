@@ -84,7 +84,7 @@ export const thresholdSession = (): SessionContent => ({
 });
 
 export const supportSession = (
-  kind: "mobility" | "strength",
+  kind: "mobility" | "strength" | "strength_heavy" | "strength_specific",
   minutes: number,
   cue: string | null = null,
 ): SessionContent => ({

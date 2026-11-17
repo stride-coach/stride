@@ -6,6 +6,8 @@ export type SessionDistance = { meters: number; estimated: boolean };
 const runningSports = new Set<PlanSession["sport"]>(["run", "trail"]);
 const nonRunningKinds = new Set<PlanSession["kind"]>([
   "strength",
+  "strength_heavy",
+  "strength_specific",
   "mobility",
   "cross",
   "rest",
@@ -17,6 +19,8 @@ export function isRunningSession(session: PlanSession) {
 
 const intensityFreeKinds = new Set<PlanSession["kind"]>([
   "strength",
+  "strength_heavy",
+  "strength_specific",
   "mobility",
 ]);
 

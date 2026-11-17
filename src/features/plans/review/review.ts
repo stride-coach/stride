@@ -183,6 +183,8 @@ function isRunning(session: Pick<SessionContent, "sport" | "kind">) {
 
 const supportLabels: Partial<Record<SessionFamily, string>> = {
   strength: "renforcement",
+  strength_heavy: "renforcement lourd",
+  strength_specific: "renforcement spécifique",
   mobility: "mobilité",
   cross: "sport croisé",
 };

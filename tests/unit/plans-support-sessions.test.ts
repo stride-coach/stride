@@ -6,7 +6,8 @@ import {
   sessionStatuses,
 } from "@/features/plans/matching/adherence";
 import type { PlanState } from "@/features/plans/model/plan";
-import { buildProgram } from "@/features/plans/view/program";
+import { dayIntensity } from "@/features/plans/view/intensity";
+import { buildProgram, familyLabels } from "@/features/plans/view/program";
 import {
   buildSessionPanel,
   type PanelMatch,
@@ -79,6 +80,53 @@ describe("non-running sessions", () => {
       blocks: [],
     });
     expect(past.days[1].blocks.length).toBeGreaterThan(0);
+  });
+
+  it("distinguishes heavy and running-specific strength from the generic one", () => {
+    const base = planState();
+    const sessions = [
+      ["strength", "2026-11-02"],
+      ["strength_heavy", "2026-11-03"],
+      ["strength_specific", "2026-11-04"],
+    ] as const;
+    const state: PlanState = {
+      ...base,
+      sessions: [
+        ...base.sessions,
+        ...sessions.map(([kind, date], index) => ({
+          ...supportSession(kind, 40),
+          sessionKey: `s-${date}-${index + 1}`,
+          scheduledOn: date,
+        })),
+      ],
+    };
+    const { weeks } = buildProgram({
+      state,
+      today,
+      summary: null,
+      matches: [],
+      proposalKeys: [],
+      races: [],
+    });
+    const families = weeks
+      .flatMap((week) => week.days)
+      .map((day) => day.family)
+      .filter((family) => family.startsWith("strength"));
+    expect(families).toEqual([
+      "strength",
+      "strength_heavy",
+      "strength_specific",
+    ]);
+    expect(
+      families.map((family) => [
+        familyLabels[family],
+        dayIntensity(family, [])?.label,
+      ]),
+    ).toEqual([
+      ["Renfo", "Renfo"],
+      ["Force", "Force"],
+      ["Renfo spé", "Renfo spé"],
+    ]);
   });
 
   it("keeps unmatched mobility out of adherence but counts it once matched", () => {

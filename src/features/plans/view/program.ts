@@ -56,6 +56,8 @@ export type SessionFamily =
   | "fartlek"
   | "race_specific"
   | "strength"
+  | "strength_heavy"
+  | "strength_specific"
   | "mobility"
   | "cross"
   | "race"
@@ -73,6 +75,8 @@ export const familyLabels: Record<SessionFamily, string> = {
   fartlek: "Fartlek",
   race_specific: "Spécifique course",
   strength: "Renfo",
+  strength_heavy: "Force",
+  strength_specific: "Renfo spé",
   mobility: "Mobilité",
   cross: "Sport croisé",
   race: "Course",
@@ -83,6 +87,8 @@ export function sessionFamilyOf(session: PlanSession): SessionFamily {
   if (session.kind === "race") return "race";
   if (session.kind === "rest" || session.sport === "rest") return "rest";
   if (session.kind === "mobility") return "mobility";
+  if (session.kind === "strength_heavy") return "strength_heavy";
+  if (session.kind === "strength_specific") return "strength_specific";
   if (session.kind === "strength" || session.sport === "strength")
     return "strength";
   if (session.kind === "cross" || session.sport === "cross") return "cross";

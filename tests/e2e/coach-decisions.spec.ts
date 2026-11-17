@@ -7,16 +7,13 @@ test("the decisions log opens a decision, steps through the month and returns to
   await page.setViewportSize({ width: 1440, height: 1000 });
   await signInAs(page, "coach-decisions@example.com");
   await page.goto("/coach");
-  const sidebar = page.locator("li", {
-    has: page.getByRole("link", { name: "Coach", exact: true }),
-  });
-  await sidebar.getByRole("link", { name: "Décisions" }).click();
+  const sections = page
+    .getByRole("navigation", { name: "Sections du Coach" })
+    .filter({ visible: true });
+  await sections.getByRole("link", { name: "Décisions" }).click();
   await expect(page).toHaveURL("/coach/decisions", { timeout: 20_000 });
   await expect(
-    page
-      .getByRole("navigation", { name: "Sections du Coach" })
-      .filter({ visible: true })
-      .getByRole("link", { name: "Décisions" }),
+    sections.getByRole("link", { name: "Décisions" }),
   ).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByRole("complementary", { name: "Résumé des décisions" }),
