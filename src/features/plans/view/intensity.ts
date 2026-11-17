@@ -13,6 +13,8 @@ export const intensityLabels: Record<Zone, string> = {
 
 const unrankedFamilies: Partial<Record<SessionFamily, string>> = {
   strength: "Renfo",
+  strength_heavy: "Force",
+  strength_specific: "Renfo spé",
   mobility: "Mobilité",
   cross: "Sport croisé",
   race: "Course",

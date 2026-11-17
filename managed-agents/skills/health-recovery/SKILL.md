@@ -11,4 +11,4 @@ description: Health and recovery. Pain and illness reports, stop and referral ru
 - Leave at least 48 hours between two hard sessions; never schedule quality the day after the long run or the day before it.
 - After a race or a peak week, plan easy days before the next quality.
 - Novices and athletes returning from a break need more recovery: one quality session a week at most, run-walk if continuous running is not yet easy.
-- Strength and mobility twice a week reduce injury risk; keep them on easy days or after easy runs.
+- Strength and mobility twice a week reduce injury risk. Running-specific strength (`strength_specific`) and mobility fit easy days or follow easy runs; heavy strength (`strength_heavy`) belongs on a hard day, not before the long run.

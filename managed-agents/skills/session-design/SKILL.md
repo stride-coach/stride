@@ -13,4 +13,8 @@ description: Session design and training paces. Intensity zones from threshold p
 - Without a threshold calibration, use RPE (easy 3-4, threshold 6-7, interval 8) and conservative pace ranges from recent results.
 - Novices: easy runs by time with RPE, strides for speed, run-walk when needed.
 - Keep sessions within the athlete's available days and keep each weekday's total within the maximum weekday duration; put the long run on the day with the most time.
+- Strength has two kinds, and a plan with strength carries both over a block:
+  - `strength_heavy` (shown « Force »): heavy lower-body work such as squats, deadlifts and heavy lunges, 3-5 sets of 3-6 reps with full rests, 40-60 minutes. It is fatiguing, so place it on a hard day or with a quality session, never the day before the long run or a key session, and never within the last 10 days before an A race.
+  - `strength_specific` (shown « Renfo spé »): running-specific strength, 20-40 minutes of plyometrics, core, single-leg work, calves and feet, and on trail eccentric work for descents. It is light and can go on an easy day, after an easy run, or the day before a key session.
+  - Give each strength session a concrete exercise list in the steps or cues, with sets, reps and rests, not a generic « renfo ».
 - Strength and running on the same day are two sessions, strength first and the run after it, never one session mixing both.

@@ -39,6 +39,8 @@ export const sessionKinds = [
   "race_specific",
   "race",
   "strength",
+  "strength_heavy",
+  "strength_specific",
   "mobility",
   "cross",
   "rest",

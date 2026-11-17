@@ -22,8 +22,8 @@ Call `submit_plan` with `{"plan": <plan>}` where `<plan>` is one JSON object:
     "notes": string | null (French, max 280 chars),
     "sessions": [{
       "date": "YYYY-MM-DD",
-      "sport": "run" | "trail" | "strength" | "cross",
-      "kind": "easy" | "long" | "recovery" | "tempo" | "threshold" | "intervals" | "hills" | "fartlek" | "race_specific" | "race" | "strength" | "mobility" | "cross",
+      "sport": "run" | "trail" | "strength" | "cross" (use "strength" for `strength_heavy`, `strength_specific` and `mobility`),
+      "kind": "easy" | "long" | "recovery" | "tempo" | "threshold" | "intervals" | "hills" | "fartlek" | "race_specific" | "race" | "strength_heavy" | "strength_specific" | "mobility" | "cross",
       "title": string (French, max 80 chars),
       "purpose": string (French, max 280 chars),
       "key": boolean (true for the week's key sessions),
@@ -41,12 +41,13 @@ Call `submit_plan` with `{"plan": <plan>}` where `<plan>` is one JSON object:
 Rules:
 
 - Every session has at least one work step, and every work step has a target other than `"none"`. The session duration is the sum of its steps.
-- Every `run` and `trail` session has `km`, including quality sessions: estimate it from the steps' durations and paces (use the easy pace for warm-up, recoveries and cool-down). Leave `km` null only for `strength`, `cross` and `mobility`.
+- Every `run` and `trail` session has `km`, including quality sessions: estimate it from the steps' durations and paces (use the easy pace for warm-up, recoveries and cool-down). Leave `km` null only for strength, `cross` and `mobility` sessions.
 - A session of kind `race` has work steps only, covering the race itself: no `warmup` or `cooldown` step, and `km` is the race distance.
+- Never write the generic kind `strength`: it only exists on older plans and stays readable. Choose `strength_heavy` or `strength_specific`.
 - Do not list rest days. The objective race is a session of kind `race` on the race date.
 - Every week from `startsOn` to `endsOn` is fully detailed.
 - Schedule sessions only on the athlete's available weekdays, keep the total of each weekday's sessions within the maximum weekday duration, respect the weekly maximum, and schedule nothing during unavailable periods.
-- Two activities on one day are two sessions on the same date, never one merged session: strength is its own `strength` session and a run after it is a separate `run` or `trail` session. In `create_plan_proposal`, add the second one with `add_session`.
+- Two activities on one day are two sessions on the same date, never one merged session: strength is its own `strength_heavy` or `strength_specific` session and a run after it is a separate `run` or `trail` session. In `create_plan_proposal`, add the second one with `add_session`.
 - Races the plan does not target but that fall inside it get a role in `raceRoles` and a session of kind `race` on their date.
 
 ## Extending the active plan with `extend_plan`
