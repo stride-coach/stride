@@ -18,6 +18,7 @@ const production = process.env.PLAYWRIGHT_PRODUCTION === "true";
 const specFiles = (names: string[]) => names.map((name) => `${name}.spec.ts`);
 const developmentSpecs = specFiles(lanes.development);
 const courseSpecs = specFiles(lanes.course);
+const coachSpecs = specFiles(lanes.coach);
 const quarantineFilter =
   process.env.PLAYWRIGHT_QUARANTINE === "true"
     ? { grep: /@quarantine/ }
@@ -44,7 +45,12 @@ export default defineConfig({
     {
       name: "chromium",
       ...quarantineFilter,
-      testIgnore: ["onboarding.spec.ts", ...courseSpecs, ...developmentSpecs],
+      testIgnore: [
+        "onboarding.spec.ts",
+        ...courseSpecs,
+        ...coachSpecs,
+        ...developmentSpecs,
+      ],
       use: { ...devices["Desktop Chrome"] },
     },
     {
@@ -52,6 +58,13 @@ export default defineConfig({
       ...quarantineFilter,
       testMatch: developmentSpecs,
       workers: 2,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "chromium-coach",
+      ...quarantineFilter,
+      testMatch: coachSpecs,
+      workers: 1,
       use: { ...devices["Desktop Chrome"] },
     },
     {

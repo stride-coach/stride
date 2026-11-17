@@ -1,6 +1,12 @@
 {
   "development": ["design-system", "dev-origin", "data-activity"],
   "course": ["races-course"],
+  "coach": [
+    "coach",
+    "coach-long-thread",
+    "coach-memory",
+    "coach-message-actions"
+  ],
   "database": ["onboarding"],
   "smoke": ["auth", "today"],
   "areas": {

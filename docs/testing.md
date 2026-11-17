@@ -30,7 +30,7 @@ These rules come from the browser failures measured in #515.
 
 ### Quarantine
 
-A browser test that fails on `main` without a related change can be quarantined with `test("…", { tag: "@quarantine" }, …)`. Every project of the main Playwright config skips tagged tests unless `PLAYWRIGHT_QUARANTINE=true`, which runs only them. On `main` pushes, the non-blocking `browser-quarantine` job runs the quarantined `chromium` and `chromium-race-course` tests on a production build and publishes their browser report, so they keep running without turning `main` red.
+A browser test that fails on `main` without a related change can be quarantined with `test("…", { tag: "@quarantine" }, …)`. Every project of the main Playwright config skips tagged tests unless `PLAYWRIGHT_QUARANTINE=true`, which runs only them. On `main` pushes, the non-blocking `browser-quarantine` job runs the quarantined `chromium`, `chromium-coach` and `chromium-race-course` tests on a production build and publishes their browser report, so they keep running without turning `main` red.
 
 - Quarantine a test only with its failure rate from the browser reports, and list it in the tracking issue (#515).
 - Remove the tag in the pull request that fixes the cause.
@@ -56,9 +56,9 @@ PLAYWRIGHT_REUSE_APP=true npx playwright test tests/e2e/<area>.spec.ts --project
 
 The browser suite never calls the live Open-Meteo API. Playwright sets `OPEN_METEO_URL` to the auth fixture (`/open-meteo`), whose `tests/fixtures/open-meteo.mjs` answers the forecast, archive and time-zone requests with deterministic weather: about 6 to 14 °C, dry, 14 km/h wind. The variable is unset outside tests, so production keeps the public hosts. Next caches these fetches in `.next-e2e/cache/fetch-cache`, so clear that folder after changing the fixture weather.
 
-`npm run test:e2e` still starts the development server locally. The `chromium` project covers ordinary application journeys; `chromium-development` covers the design-system gallery, the remote development origin and the data-activity journeys; `chromium-race-course` runs its serial fixture mutations after `chromium` by default. The serial settings suite remains intact when sharding.
+`npm run test:e2e` still starts the development server locally. The `chromium` project covers ordinary application journeys; `chromium-development` covers the design-system gallery, the remote development origin and the data-activity journeys; `chromium-coach` runs the coach specs that share one athlete, on a single worker; `chromium-race-course` runs its serial fixture mutations after `chromium` by default. The serial settings suite remains intact when sharding.
 
-CI selects projects explicitly with `--no-deps`, so each runner has its own auth and Garmin fixtures and the course fixture cannot affect another project. For the full suite, the main project is split across two runners, and the course and development projects each use one runner; smaller selections use one runner per project. Spec membership of the development and course lanes, and the spec areas used for pull-request selection, live in `tests/e2e/lanes.json`, which both the Playwright config and CI scope read.
+CI selects projects explicitly with `--no-deps`, so each runner has its own auth and Garmin fixtures and the course fixture cannot affect another project. For the full suite, the main project is split across two runners, and the coach, course and development projects each use one runner; smaller selections use one runner per project. Spec membership of the development, coach and course lanes, and the spec areas used for pull-request selection, live in `tests/e2e/lanes.json`, which both the Playwright config and CI scope read.
 
 Journeys sign in with `signInAs` from `tests/e2e/support/session.ts`. The first journey for each athlete in a worker uses the sign-in form; later journeys in that worker reuse its Supabase session cookies and open `/today`. Fixture sessions are static and logout does not revoke them, so reuse cannot leak a signed-out state. Keep the form in journeys whose subject is authentication.
 

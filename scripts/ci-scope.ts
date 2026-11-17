@@ -37,6 +37,7 @@ export function changedPathsBetween(
 export type Lanes = {
   development: string[];
   course: string[];
+  coach: string[];
   database: string[];
   smoke: string[];
   areas: Record<string, string[]>;
@@ -192,8 +193,12 @@ export function browserMatrix(
     lanes.development.includes(spec),
   );
   const course = selected.filter((spec) => lanes.course.includes(spec));
+  const coach = selected.filter((spec) => lanes.coach.includes(spec));
   const main = selected.filter(
-    (spec) => !development.includes(spec) && !course.includes(spec),
+    (spec) =>
+      !development.includes(spec) &&
+      !course.includes(spec) &&
+      !coach.includes(spec),
   );
   const shards = scope === "all" || main.length > 8 ? 2 : 1;
   return [
@@ -214,6 +219,17 @@ export function browserMatrix(
             shard: "1/1",
             production: "true" as const,
             specs: files(course),
+          },
+        ]
+      : []),
+    ...(coach.length
+      ? [
+          {
+            lane: "coach",
+            project: "chromium-coach",
+            shard: "1/1",
+            production: "true" as const,
+            specs: files(coach),
           },
         ]
       : []),
