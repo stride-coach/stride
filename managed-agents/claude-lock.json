@@ -9,42 +9,42 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "28",
-      "hash": "9a117945f0a295743187a6f02ffa9eaa",
-      "remote_hash": "304cf38d79a5e5fdef0af9b3b9b5fa58",
-      "stamp": "28"
+      "version": "29",
+      "hash": "32c093ff5ac578b0166fab1a8f026843",
+      "remote_hash": "fa270fce8778e09788acab11e17fc24e",
+      "stamp": "29"
     },
     "./agents/director.md": {
       "kind": "agent",
       "id": "agent_017vonN4KirZUgE4TdC7eept",
-      "version": "8",
-      "hash": "79e6fc1f8b74acc73e50e41912de5005",
-      "remote_hash": "e2be82271a4a8ed8b8ce9214bd1b2140",
-      "stamp": "8"
+      "version": "9",
+      "hash": "2421930927cba9f1a9f01b6e370500e5",
+      "remote_hash": "23487fb8f8fd913519ddb6c9ae8e3c0c",
+      "stamp": "9"
     },
     "./agents/medical.md": {
       "kind": "agent",
       "id": "agent_011dYKZ33Wq7xwdNR3SqpugL",
-      "version": "14",
-      "hash": "102236424671caa24db56c9bf7c485d3",
-      "remote_hash": "73abb63c669bceea3cc30dc78354fbda",
-      "stamp": "14"
+      "version": "15",
+      "hash": "4113b94e2d6fc94dfc2a199c89bf9c4d",
+      "remote_hash": "9a67195067e147883a792d7337511d87",
+      "stamp": "15"
     },
     "./agents/nutritionist.md": {
       "kind": "agent",
       "id": "agent_01T4vwuYeP5ZjKoLPDdHC9z4",
-      "version": "7",
-      "hash": "bf7b80bfe174fbc28fe7a8d19fd070a3",
-      "remote_hash": "ba0222c90e9f7e561a0e9dc02b57107e",
-      "stamp": "7"
+      "version": "8",
+      "hash": "80cd07d811d851a287c36784f88f3365",
+      "remote_hash": "2cb9b1cb0d65dc56c66829cb0f5a6ef6",
+      "stamp": "8"
     },
     "./agents/strategist.md": {
       "kind": "agent",
       "id": "agent_015ajAPp18SxHnnA4QEcQ8st",
-      "version": "6",
-      "hash": "97513b1095f9eb9c271c4443b4ae1596",
-      "remote_hash": "b5f93074f3cb961a27af46a33b642ef5",
-      "stamp": "6"
+      "version": "7",
+      "hash": "a8aba4b82836ab476b670025a5c58c04",
+      "remote_hash": "834604732da02ea71f804ac73a0d7a30",
+      "stamp": "7"
     },
     "./environments/coaching.yaml": {
       "kind": "environment",
@@ -91,23 +91,20 @@
     "./skills/health-recovery": {
       "kind": "skill",
       "id": "skill_01McDG7svjNWDicbWjdxAV1f",
-      "version": "skver_01Pao6UPF8eYgRgsA6qCLp4H",
-      "hash": "faf3012c818394b9f8376c4bbd16d07f",
-      "stamp": "skver_01Pao6UPF8eYgRgsA6qCLp4H"
+      "version": "skver_01XwkHyxFwcuBhrwsNwB8vt4",
+      "hash": "905dc6cd239198230eece6ade92d8bd7"
     },
     "./skills/plan-format": {
       "kind": "skill",
       "id": "skill_012bHRN9qv9aAfHU1DJVygLt",
-      "version": "skver_01UMG8HLdNCiASd3tEHeHaD5",
-      "hash": "f402195f58bb9ef3d928415bd629d57f",
-      "stamp": "skver_01UMG8HLdNCiASd3tEHeHaD5"
+      "version": "skver_015ubYKpya4mouy7hR8sEFzj",
+      "hash": "39f9ffac0e3a9ba586cf6e70add92bee"
     },
     "./skills/plan-periodization": {
       "kind": "skill",
       "id": "skill_01DHHZifHU7Eq6byKet5Xfoc",
-      "version": "skver_01UK6kJMASJRzyNfxUWpSNq3",
-      "hash": "6802807fdf67258058c20ffe2d142916",
-      "stamp": "skver_01UK6kJMASJRzyNfxUWpSNq3"
+      "version": "skver_01Hm8KEWPdx6cGLwWYDtrtLM",
+      "hash": "9358b6cb7f5c45e88cbe4bbd9b84fe9c"
     },
     "./skills/race-specificity": {
       "kind": "skill",
@@ -133,9 +130,8 @@
     "./skills/session-design": {
       "kind": "skill",
       "id": "skill_01AroJ3qNVuGNpe3nfH26hf8",
-      "version": "skver_012rWCWw8xFLdYckwTuVE6Wm",
-      "hash": "b5f6412fc309551a0a5561c6c4fa2d0e",
-      "stamp": "skver_012rWCWw8xFLdYckwTuVE6Wm"
+      "version": "skver_01SbxGkNRnF9sAvVxutyGUFj",
+      "hash": "641f40e2cb3699bc8d646cb3a1c240c2"
     },
     "./skills/status-reports": {
       "kind": "skill",
