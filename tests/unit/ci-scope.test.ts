@@ -16,6 +16,7 @@ import {
 const lanes: Lanes = {
   development: ["design-system", "data-activity"],
   course: ["races-course"],
+  coach: ["coach"],
   database: ["onboarding"],
   smoke: ["auth"],
   areas: {
@@ -225,10 +226,16 @@ describe("CI scope", () => {
   });
 
   it("splits selected specs into their Playwright lanes", () => {
-    const available = ["auth", "races", "races-course", "design-system"];
+    const available = [
+      "auth",
+      "coach",
+      "races",
+      "races-course",
+      "design-system",
+    ];
     expect(
       browserMatrix(
-        ["auth", "races-course", "design-system"],
+        ["auth", "coach", "races-course", "design-system"],
         lanes,
         available,
       ),
@@ -248,6 +255,13 @@ describe("CI scope", () => {
         specs: "tests/e2e/races-course.spec.ts",
       },
       {
+        lane: "coach",
+        project: "chromium-coach",
+        shard: "1/1",
+        production: "true",
+        specs: "tests/e2e/coach.spec.ts",
+      },
+      {
         lane: "development",
         project: "chromium-development",
         shard: "1/1",
@@ -262,6 +276,7 @@ describe("CI scope", () => {
     expect(
       browserMatrix("all", lanes, [
         "auth",
+        "coach",
         "races-course",
         "data-activity",
       ]).map(({ lane, shard, specs }) => [lane, shard, specs]),
@@ -269,6 +284,7 @@ describe("CI scope", () => {
       ["main-1", "1/2", ""],
       ["main-2", "2/2", ""],
       ["course", "1/1", ""],
+      ["coach", "1/1", ""],
       ["development", "1/1", ""],
     ]);
   });

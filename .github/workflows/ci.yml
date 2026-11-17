@@ -112,7 +112,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run test:e2e -- --project=chromium --project=chromium-race-course --no-deps --pass-with-no-tests
+      - run: npm run test:e2e -- --project=chromium --project=chromium-coach --project=chromium-race-course --no-deps --pass-with-no-tests
         env:
           PLAYWRIGHT_PRODUCTION: "true"
           PLAYWRIGHT_QUARANTINE: "true"
