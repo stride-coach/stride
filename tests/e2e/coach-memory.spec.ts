@@ -3,6 +3,8 @@ import { signInAs } from "./support/session";
 
 const authPort = Number(process.env.PLAYWRIGHT_AUTH_PORT ?? 3200);
 
+test.describe.configure({ mode: "serial" });
+
 test.beforeEach(async () => {
   await fetch(`http://127.0.0.1:${authPort}/__test__/coach`, {
     method: "DELETE",
