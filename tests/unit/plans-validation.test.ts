@@ -150,10 +150,24 @@ describe("report", () => {
     const value = input(state([run("s1", "2026-10-15", 40)]));
     const report = validatePlan(value);
     expect(validationReportSchema.safeParse(report).success).toBe(true);
-    expect(report.results.map((result) => result.ruleId)).toHaveLength(21);
+    expect(report.results.map((result) => result.ruleId)).toHaveLength(22);
     expect(validatePlan(value)).toEqual(report);
     expect(report.valid).toBe(true);
-    expect(report.thresholdsVersion).toBe("2026-10-18");
+    expect(report.thresholdsVersion).toBe("2026-11-18");
+  });
+
+  it("still parses a report stored before a rule was added", () => {
+    const report = validatePlan(input(state([run("s1", "2026-10-15", 40)])));
+    const legacy = {
+      ...report,
+      thresholdsVersion: "2026-10-18",
+      results: report.results.filter((result) => result.ruleId !== "P9"),
+    };
+    expect(legacy.results).toHaveLength(21);
+    expect(validationReportSchema.safeParse(legacy).success).toBe(true);
+    expect(
+      validationReportSchema.safeParse({ ...report, results: [] }).success,
+    ).toBe(false);
   });
 
   it("never passes a rule silently when its data is missing", () => {
@@ -745,6 +759,79 @@ describe("races", () => {
     expect(rule(input(state([run("s", "2026-10-15", 30)])), "P7").outcome).toBe(
       "skipped",
     );
+  });
+});
+
+describe("heavy strength placement", () => {
+  const heavy = (
+    key: string,
+    date: string,
+    kind: PlanSession["kind"] = "strength_heavy",
+  ) => run(key, date, 50, { sport: "strength", kind });
+  const aRace = (date: string, priority: "A" | "B" = "A") => ({
+    races: [{ id: "race-a", date, priority, distanceKm: 21.1 }],
+  });
+  const p9 = (sessions: PlanSession[], patch: Partial<ValidationInput> = {}) =>
+    rule(input(state(sessions), patch), "P9");
+
+  it("flags heavy strength the day before the long run", () => {
+    expect(
+      p9([
+        heavy("h", "2026-10-20"),
+        run("l", "2026-10-21", 120, { kind: "long" }),
+      ]),
+    ).toMatchObject({ outcome: "fail", severity: "warn", keys: ["h"] });
+  });
+
+  it("flags heavy strength two days before a quality session", () => {
+    expect(
+      p9([
+        heavy("h", "2026-10-20"),
+        run("q", "2026-10-22", 50, { kind: "threshold", hardMinutes: 10 }),
+      ]),
+    ).toMatchObject({ outcome: "fail", keys: ["h"] });
+  });
+
+  it("accepts heavy strength on the key day, after it or three days before", () => {
+    const long = run("l", "2026-10-21", 120, { kind: "long" });
+    expect(p9([heavy("h", "2026-10-21"), long]).outcome).toBe("pass");
+    expect(p9([heavy("h", "2026-10-22"), long]).outcome).toBe("pass");
+    expect(p9([heavy("h", "2026-10-18"), long]).outcome).toBe("pass");
+  });
+
+  it("flags heavy strength within 10 days before an A race only", () => {
+    const race = run("race", "2026-12-20", 240, { kind: "race" });
+    expect(
+      p9([heavy("h", "2026-12-10"), race], aRace("2026-12-20")),
+    ).toMatchObject({ outcome: "fail", keys: ["h"] });
+    expect(
+      p9([heavy("h", "2026-12-09"), race], aRace("2026-12-20")).outcome,
+    ).toBe("pass");
+    expect(
+      p9([heavy("h", "2026-12-15"), race], aRace("2026-12-20", "B")).outcome,
+    ).toBe("pass");
+  });
+
+  it("ignores heavy sessions already in the past", () => {
+    expect(
+      p9([
+        heavy("h", "2026-10-13"),
+        run("l", "2026-10-14", 120, { kind: "long" }),
+      ]).outcome,
+    ).toBe("skipped");
+  });
+
+  it("leaves generic strength sessions out of the rule", () => {
+    const sessions = [
+      heavy("g", "2026-10-20", "strength"),
+      heavy("s", "2026-10-20", "strength_specific"),
+      run("l", "2026-10-21", 120, { kind: "long" }),
+    ];
+    expect(p9(sessions)).toMatchObject({
+      outcome: "skipped",
+      skipReason: "no_heavy_strength",
+    });
+    expect(validatePlan(input(state(sessions))).valid).toBe(true);
   });
 });
 

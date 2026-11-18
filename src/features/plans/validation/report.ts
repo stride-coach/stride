@@ -21,6 +21,7 @@ export const ruleIds = [
   "P6",
   "P7",
   "P8",
+  "P9",
   "D1",
 ] as const;
 export type RuleId = (typeof ruleIds)[number];
@@ -82,6 +83,7 @@ export const ruleCatalogue: Record<RuleId, RuleMeta> = {
     grade: "contested",
     citation: "Impellizzeri et al., IJSPP 2020",
   },
+  P9: { severity: "warn", grade: "convention", citation: null },
   D1: { severity: "info", grade: "convention", citation: null },
 };
 
@@ -102,7 +104,7 @@ export const ruleResultSchema = z.strictObject({
 export const validationReportSchema = z.strictObject({
   thresholdsVersion: z.string(),
   valid: z.boolean(),
-  results: z.array(ruleResultSchema).length(ruleIds.length),
+  results: z.array(ruleResultSchema).min(1).max(ruleIds.length),
 });
 
 export type RuleResult = z.infer<typeof ruleResultSchema>;

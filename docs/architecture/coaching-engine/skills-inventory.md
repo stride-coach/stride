@@ -86,7 +86,7 @@ The reference's coaching substance is mostly in `agents/*.md`. Each section land
 
 | Reference agent and section                                            | Stride destination                                                                                                  |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Coach, guardrails mandate                                              | Validator rules E1–E2, P1–P8 and the `plan-periodization` skill                                                     |
+| Coach, guardrails mandate                                              | Validator rules E1–E2, P1–P9 and the `plan-periodization` skill                                                     |
 | Coach, planning and execution; objective management                    | `plan-format`, `plan-periodization`, `race-specificity` and `session-design` skills; proposal lifecycle (ADR 0008)  |
 | Coach, morning health check (HRV, resting HR, readiness)               | `garmin-data-access` (read together) and `health-recovery`; validator H3                                            |
 | Coach, injury-risk flag                                                | `health-recovery` and the Medical agent; validator H1–H2                                                            |

@@ -393,6 +393,36 @@ function raceRules(input: ValidationInput): Rules {
   };
 }
 
+function heavyStrengthRules(input: ValidationInput): Rules {
+  const heavy = input.candidate.sessions.filter(
+    (session) =>
+      session.kind === "strength_heavy" && session.scheduledOn >= input.today,
+  );
+  if (heavy.length === 0)
+    return { P9: { outcome: "skipped", reason: "no_heavy_strength" } };
+  const keySessions = futureRuns(input).filter(
+    (session) => session.kind === "long" || isQuality(session),
+  );
+  const aRaces = input.races.filter((race) => race.priority === "A");
+  const keys = heavy.filter(
+    (session) =>
+      keySessions.some((key) => {
+        const days = daysBetween(session.scheduledOn, key.scheduledOn);
+        return days >= 1 && days <= thresholds.heavyStrengthKeySessionDays;
+      }) ||
+      aRaces.some((race) => {
+        const days = daysBetween(session.scheduledOn, race.date);
+        return days >= 0 && days <= thresholds.heavyStrengthRaceDays;
+      }),
+  );
+  return {
+    P9:
+      keys.length > 0
+        ? { outcome: "fail", keys: keys.map((session) => session.sessionKey) }
+        : { outcome: "pass" },
+  };
+}
+
 function longestPlanned(sessions: PlanSession[]) {
   const distances = sessions
     .map(sessionDistance)
@@ -500,6 +530,7 @@ export function evaluateLoadRules(input: ValidationInput): Rules {
       : { outcome: "skipped", reason: "road_plan" },
     ...weekRules(input, ultra),
     ...raceRules(input),
+    ...heavyStrengthRules(input),
     ...informationRules(input),
   };
 }
