@@ -155,6 +155,7 @@ const ruleTexts: Partial<Record<RuleId, string>> = {
   P5: "l’intensité élevée dépasse 25 % du temps de la semaine",
   P6: "l’affûtage avant ta course principale ne réduit pas assez le volume",
   P7: "une séance de qualité tombe juste avant ta course principale",
+  P9: "une séance de force lourde tombe dans les 2 jours avant une sortie longue ou une séance de qualité, ou dans les 10 jours avant une course A",
 };
 
 const statusDisplay: Record<

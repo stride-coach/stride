@@ -1,4 +1,4 @@
-export const thresholdsVersion = "2026-10-18";
+export const thresholdsVersion = "2026-11-18";
 
 export const thresholds = {
   spikeStrongRatio: 1.3,
@@ -34,4 +34,6 @@ export const thresholds = {
   painStopHorizonDays: 7,
   painCautionHorizonDays: 3,
   durationTolerance: 0.1,
+  heavyStrengthKeySessionDays: 2,
+  heavyStrengthRaceDays: 10,
 } as const;
