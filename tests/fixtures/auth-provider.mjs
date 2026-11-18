@@ -2350,6 +2350,14 @@ function selectRows(table, params) {
           ownerId !== `eq.${planUser.id}` ||
           Date.parse(row.started_at) < planDoneStart,
     );
+  if (table === "athlete_facts")
+    for (const key of ["id", "origin"]) {
+      const filter = params.get(key);
+      if (filter?.startsWith("eq."))
+        rows = rows.filter((row) => row[key] === filter.slice(3));
+    }
+  if (table === "athlete_facts" && params.get("confirmed_at") === "is.null")
+    rows = rows.filter((row) => !row.confirmed_at);
   for (const [key, filter] of params) {
     if (filter.startsWith("gte."))
       rows = rows.filter((row) => row[key] >= filter.slice(4));
@@ -2927,6 +2935,22 @@ createServer(async (request, response) => {
         user_id: coachUser.id,
         endpoint: "https://fcm.googleapis.com/fcm/send/e2e-coach",
       });
+    return send(200, { ok: true });
+  }
+  if (url.pathname === "/__test__/coach-fact" && request.method === "POST") {
+    const now = new Date().toISOString();
+    tables.athlete_facts.push({
+      id: randomUUID(),
+      user_id: coachUser.id,
+      starts_on: null,
+      ends_on: null,
+      origin: "said",
+      basis: null,
+      confirmed_at: null,
+      created_at: now,
+      updated_at: now,
+      ...body,
+    });
     return send(200, { ok: true });
   }
   if (url.pathname === "/__test__/coach-session" && request.method === "POST") {
@@ -4086,6 +4110,9 @@ createServer(async (request, response) => {
           id: randomUUID(),
           starts_on: null,
           ends_on: null,
+          origin: "said",
+          basis: null,
+          confirmed_at: null,
           created_at: now,
           updated_at: now,
           ...body,

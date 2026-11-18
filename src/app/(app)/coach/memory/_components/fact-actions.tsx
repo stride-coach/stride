@@ -27,6 +27,7 @@ import {
   factActionMessage,
   factCategories,
   factCategoryChoices,
+  factStatus,
   factTextLimit,
   type Fact,
   type FactCategory,
@@ -34,6 +35,7 @@ import {
 import {
   addFact,
   clearFacts,
+  confirmFact,
   correctFact,
   forgetFact,
   type FactActionResult,
@@ -220,9 +222,35 @@ export function FactRowActions({ fact }: { fact: Fact }) {
     });
   }
 
+  function confirm() {
+    startTransition(async () => {
+      const result: FactActionResult = await confirmFact({ id: fact.id }).catch(
+        (): FactActionResult => ({ ok: false, reason: "failed" }),
+      );
+      if (result.ok)
+        toast.success("Information confirmée. Le staff peut s’y fier.", {
+          id: "coach-memory",
+        });
+      else
+        toast.error(factActionMessage(result.reason), { id: "coach-memory" });
+    });
+  }
+
   return (
     <>
       <span className="flex items-center gap-1">
+        {factStatus(fact) === "observed" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-secondary-foreground"
+            aria-label={`Confirmer : ${fact.text}`}
+            disabled={pending}
+            onClick={confirm}
+          >
+            Confirmer
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"
@@ -249,12 +277,15 @@ export function FactRowActions({ fact }: { fact: Fact }) {
 }
 
 export function ClearAllButton({
-  count,
+  said,
+  observed,
   categories,
 }: {
-  count: number;
+  said: number;
+  observed: number;
   categories: readonly FactCategory[];
 }) {
+  const count = said + observed;
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -288,12 +319,20 @@ export function ClearAllButton({
             {clearAllLine(count, categories)} Tes activités, ton plan et tes
             conversations ne sont pas touchés.
           </AlertDialogDescription>
-          <p className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5">
-            <span className="text-secondary-foreground">
-              Ce que tu lui as dit
-            </span>
-            <span className="font-medium tabular-nums">{count}</span>
-          </p>
+          {[
+            { label: "Ce que tu lui as dit", value: said },
+            { label: "Ce qu’il a observé", value: observed },
+          ]
+            .filter((line) => line.value > 0)
+            .map((line) => (
+              <p
+                key={line.label}
+                className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5"
+              >
+                <span className="text-secondary-foreground">{line.label}</span>
+                <span className="font-medium tabular-nums">{line.value}</span>
+              </p>
+            ))}
           <p className="text-secondary-foreground">
             Il repartira de tes données, et te reposera sans doute quelques
             questions. Cette action ne s’annule pas.

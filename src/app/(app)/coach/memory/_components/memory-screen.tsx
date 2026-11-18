@@ -2,6 +2,7 @@ import { AppHeader } from "@/features/app-shell/components/app-header";
 import { Chip } from "@/components/stride/chip";
 import { Button } from "@/components/ui/button";
 import {
+  factOriginCounts,
   factPeriod,
   factProvenance,
   type Fact,
@@ -28,7 +29,10 @@ function FactRow({ fact, timeZone }: { fact: Fact; timeZone: string }) {
   );
 }
 
-function About({ count, groups }: { count: number; groups: FactGroup[] }) {
+function About({ groups }: { groups: FactGroup[] }) {
+  const { said, observed } = factOriginCounts(
+    groups.flatMap((group) => group.facts),
+  );
   return (
     <>
       <section
@@ -60,6 +64,11 @@ function About({ count, groups }: { count: number; groups: FactGroup[] }) {
         <p className="text-label leading-normal text-muted-foreground">
           Une information que tu as ajoutée ou corrigée toi-même.
         </p>
+        <Chip>Observé</Chip>
+        <p className="text-label leading-normal text-muted-foreground">
+          Déduit de tes données. Confirme ou corrige : tant que tu ne l’as pas
+          fait, le staff le traite comme une hypothèse.
+        </p>
       </section>
       <div className="flex items-center gap-2 px-4.5 py-3.5">
         <Button asChild variant="outline">
@@ -68,7 +77,8 @@ function About({ count, groups }: { count: number; groups: FactGroup[] }) {
           </a>
         </Button>
         <ClearAllButton
-          count={count}
+          said={said}
+          observed={observed}
           categories={groups.map((group) => group.category)}
         />
       </div>
@@ -137,14 +147,14 @@ export function MemoryScreen({
             </>
           )}
           <div className="border-t border-border md:hidden">
-            <About count={count} groups={groups} />
+            <About groups={groups} />
           </div>
         </main>
         <aside
           aria-label="À propos de ces informations"
           className="flex w-panel shrink-0 flex-col border-l border-border max-md:hidden"
         >
-          <About count={count} groups={groups} />
+          <About groups={groups} />
         </aside>
       </div>
     </>
