@@ -134,6 +134,26 @@ describe("record_athlete_fact", () => {
     expect(calls).toHaveLength(1);
   });
 
+  it("turns an unconfirmed observation into what the athlete said", async () => {
+    const { calls, context } = clientWith([
+      { data: [row()], error: null },
+      { data: row({ origin: "said", basis: null }), error: null },
+    ]);
+    const outcome = await runCustomTool(context, "record_athlete_fact", {
+      category: "habit",
+      text: "Tu cours avant 7:30 en semaine",
+      source: "said",
+    });
+    expect(outcome).toMatchObject({
+      ok: true,
+      content: { created: false, fact: { id: factId, status: "said" } },
+    });
+    expect(calls[1].steps[0]).toEqual([
+      "update",
+      { origin: "said", basis: null, confirmed_at: null },
+    ]);
+  });
+
   it("refuses an observation without a basis and a statement with one", async () => {
     const { calls, context } = clientWith([]);
     expect(

@@ -73,7 +73,20 @@ export async function recordStaffFact(
       fact.category === input.category &&
       normalized(fact.text) === normalized(input.text),
   );
-  if (existing) return { outcome: "existing", fact: existing };
+  if (existing) {
+    if (input.source === "said" && existing.origin === "observed") {
+      const { data, error } = await context.client
+        .from("athlete_facts")
+        .update({ origin: "said", basis: null, confirmed_at: null })
+        .eq("user_id", context.userId)
+        .eq("id", existing.id)
+        .select(columns)
+        .single();
+      if (error) throw new Error("Unable to record the athlete fact");
+      return { outcome: "existing", fact: toFact(rowSchema.parse(data)) };
+    }
+    return { outcome: "existing", fact: existing };
+  }
   const { data, error } = await context.client
     .from("athlete_facts")
     .insert({
