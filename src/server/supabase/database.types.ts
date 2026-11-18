@@ -167,10 +167,13 @@ export type Database = {
       };
       athlete_facts: {
         Row: {
+          basis: string | null;
           category: string;
+          confirmed_at: string | null;
           created_at: string;
           ends_on: string | null;
           id: string;
+          origin: string;
           starts_on: string | null;
           text: string;
           updated_at: string;
@@ -178,20 +181,26 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          basis?: string | null;
           category: string;
+          confirmed_at?: string | null;
           created_at?: string;
           ends_on?: string | null;
           id?: string;
+          origin?: string;
           starts_on?: string | null;
           text: string;
           updated_at?: string;
           user_id: string;
         };
         Update: {
+          basis?: string | null;
           category?: string;
+          confirmed_at?: string | null;
           created_at?: string;
           ends_on?: string | null;
           id?: string;
+          origin?: string;
           starts_on?: string | null;
           text?: string;
           updated_at?: string;
