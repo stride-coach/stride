@@ -695,6 +695,51 @@ describe("create_plan_proposal", () => {
     );
   });
 
+  it("passes who led the proposal and who initiated it, and leaves them out otherwise", async () => {
+    const run = async (extra: object) => {
+      const { client } = fakeClient(
+        {},
+        { data: { id: proposalId, status: "ready" }, error: null },
+      );
+      const outcome = await runCustomTool(
+        contextWith(client),
+        "create_plan_proposal",
+        {
+          ...proposal,
+          ...extra,
+          operations: [
+            {
+              op: "move_session",
+              sessionKey: "s-2026-10-20-1",
+              toDate: "2026-10-21",
+            },
+          ],
+        },
+      );
+      return { outcome, client };
+    };
+    const given = await run({ led_by: "medical", initiated_by: "athlete" });
+    expect(given.client.rpc).toHaveBeenCalledWith(
+      "submit_plan_proposal",
+      expect.objectContaining({
+        p_led_by: "medical",
+        p_initiated_by: "athlete",
+      }),
+    );
+    const omitted = await run({});
+    expect(omitted.outcome).toMatchObject({ ok: true });
+    expect(omitted.client.rpc).toHaveBeenCalledWith(
+      "submit_plan_proposal",
+      expect.objectContaining({
+        p_led_by: undefined,
+        p_initiated_by: undefined,
+      }),
+    );
+    const unknown = await run({ led_by: "wizard" });
+    expect(unknown.outcome).toMatchObject({ ok: false });
+    expect(unknown.client.rpc).not.toHaveBeenCalled();
+  });
+
   it("links the proposal to the coach session that submitted it", async () => {
     const { client } = fakeClient(
       {},

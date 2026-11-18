@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { staffAgents } from "@/features/coach/staff";
 import { proposalStatuses } from "@/features/plans/review/proposal";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { defineTool } from "./define";
@@ -40,7 +41,7 @@ const historyEntrySchema = z.strictObject({
 export type HistoryEntry = z.infer<typeof historyEntrySchema>;
 
 export const proposalColumns =
-  "id, title, summary, rationale, scope, origin, status, operations, base_version, applied_version, created_at, updated_at, validation, specialist_opinions";
+  "id, title, summary, rationale, scope, origin, status, operations, base_version, applied_version, created_at, updated_at, validation, specialist_opinions, led_by, initiated_by";
 
 export const proposalRowSchema = z.object({
   id: z.uuid(),
@@ -57,6 +58,8 @@ export const proposalRowSchema = z.object({
   updated_at: z.string(),
   validation: z.unknown().nullable(),
   specialist_opinions: z.array(opinionSchema).catch([]),
+  led_by: z.enum(staffAgents).nullable().catch(null),
+  initiated_by: z.enum(["athlete", "staff"]).nullable().catch(null),
 });
 
 export const decisionRowSchema = z.object({

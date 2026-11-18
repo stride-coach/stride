@@ -391,3 +391,73 @@ describe("decision outcomes", () => {
     ).toBeNull();
   });
 });
+
+describe("authorship", () => {
+  const accepted = {
+    status: "applied" as const,
+    decisions: [athlete("accepted", "2026-10-04T09:30:00Z")],
+  };
+  const entry = (fields: Partial<ProposalRecord>) =>
+    buildCoachDecisions({
+      proposals: [proposal("1", "2026-10-04T08:00:00Z", fields)],
+      timeZone: "Europe/Paris",
+      now,
+    }).months[0].entries[0];
+
+  it("shows the role that led the proposal, Coach when nobody declared one", () => {
+    expect(entry({ ledBy: "medical" })).toMatchObject({
+      role: "Santé",
+      agent: "medical",
+    });
+    expect(entry({ ledBy: null })).toMatchObject({
+      role: "Coach",
+      agent: "coach",
+    });
+    expect(entry({})).toMatchObject({ role: "Coach", agent: "coach" });
+  });
+
+  it("keeps the Coach as the author of the proposal even when a specialist led it", () => {
+    expect(
+      entry({
+        ledBy: "nutritionist",
+        specialistOpinions: [
+          { specialist: "nutritionist", verdict: "ok", summary: "ok" },
+        ],
+      }).proposedBy,
+    ).toBe("Coach, avec l’avis de Nutrition");
+  });
+
+  it("reads À ta demande only for an accepted proposal the athlete asked for", () => {
+    const asked = entry({ ...accepted, initiatedBy: "athlete" });
+    expect(asked.response).toEqual({
+      kind: "accepted",
+      label: "À ta demande",
+    });
+    expect(asked.answer).toBe("Acceptée à 11:30");
+    expect(entry({ ...accepted, initiatedBy: "staff" }).response.label).toBe(
+      "Acceptée",
+    );
+    expect(entry({ ...accepted }).response.label).toBe("Acceptée");
+    expect(entry({ initiatedBy: "athlete" }).response).toEqual({
+      kind: "pending",
+      label: "En attente",
+    });
+    expect(
+      entry({ status: "rejected", initiatedBy: "athlete" }).response.label,
+    ).toBe("Refusée");
+  });
+
+  it("counts an asked proposal among the accepted ones", () => {
+    const view = buildCoachDecisions({
+      proposals: [
+        proposal("1", "2026-10-04T08:00:00Z", {
+          ...accepted,
+          initiatedBy: "athlete",
+        }),
+      ],
+      timeZone: "Europe/Paris",
+      now,
+    });
+    expect(view.summary.accepted).toBe(1);
+  });
+});
