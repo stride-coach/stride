@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(8);
+select plan(12);
 
 insert into auth.users (id, aud, role, email) values
   ('a3000000-0000-4000-8000-0000000000a3', 'authenticated', 'authenticated', 'authorship@example.com');
@@ -47,7 +47,30 @@ select is(
 );
 select is(
   (select count(*)::integer from public.plan_proposals where status = 'superseded'),
-  0, 'authorship does not change which proposals are superseded'
+  0, 'proposals on different targets do not supersede each other'
+);
+select is(
+  (select led_by from pg_temp.submit(array['s-2'], 'director', 'staff')),
+  'director', 'a new proposal on the same targets keeps its own leading role'
+);
+select is(
+  (select count(*)::integer from public.plan_proposals
+    where status = 'superseded' and led_by = 'medical' and initiated_by = 'athlete'),
+  1, 'the replaced proposal keeps its authorship'
+);
+select lives_ok(
+  $$select public.submit_plan_proposal(
+    p_scope => 'session', p_origin => 'recovery', p_title => 'Titre', p_summary => 'Résumé',
+    p_rationale => 'Raison', p_operations => '[{"op": "skip_session", "sessionKey": "s-9"}]',
+    p_preview => '{"plan": null}', p_plan_id => '30000000-0000-4000-8000-0000000000a3',
+    p_base_version => 3, p_target_keys => array['s-9']
+  )$$,
+  'the released app still submits without the two new parameters'
+);
+select is(
+  (select (led_by is null and initiated_by is null) from public.plan_proposals
+    where target_keys = array['s-9']),
+  true, 'and stores no authorship'
 );
 select throws_ok(
   $$select pg_temp.submit(array['s-3'], 'wizard', null)$$,

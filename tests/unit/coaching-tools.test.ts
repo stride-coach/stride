@@ -728,13 +728,9 @@ describe("create_plan_proposal", () => {
     );
     const omitted = await run({});
     expect(omitted.outcome).toMatchObject({ ok: true });
-    expect(omitted.client.rpc).toHaveBeenCalledWith(
-      "submit_plan_proposal",
-      expect.objectContaining({
-        p_led_by: undefined,
-        p_initiated_by: undefined,
-      }),
-    );
+    const sent = omitted.client.rpc.mock.calls[0][1];
+    expect(JSON.stringify(sent)).not.toContain("p_led_by");
+    expect(JSON.stringify(sent)).not.toContain("p_initiated_by");
     const unknown = await run({ led_by: "wizard" });
     expect(unknown.outcome).toMatchObject({ ok: false });
     expect(unknown.client.rpc).not.toHaveBeenCalled();

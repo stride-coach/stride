@@ -447,17 +447,22 @@ describe("authorship", () => {
     ).toBe("Refusée");
   });
 
-  it("counts an asked proposal among the accepted ones", () => {
+  it("counts an asked proposal among the accepted ones, and only once it is accepted", () => {
     const view = buildCoachDecisions({
       proposals: [
         proposal("1", "2026-10-04T08:00:00Z", {
           ...accepted,
           initiatedBy: "athlete",
         }),
+        proposal("2", "2026-10-05T08:00:00Z", { initiatedBy: "athlete" }),
+        proposal("3", "2026-10-06T08:00:00Z", {
+          status: "rejected",
+          initiatedBy: "athlete",
+        }),
       ],
       timeZone: "Europe/Paris",
       now,
     });
-    expect(view.summary.accepted).toBe(1);
+    expect(view.summary).toMatchObject({ accepted: 1, rejected: 1 });
   });
 });
