@@ -173,6 +173,8 @@ async function readProposalRecords(
       updatedAt: row.updated_at,
       specialistOpinions: row.specialist_opinions,
       coachSessionId: row.coach_session_id,
+      ledBy: row.led_by,
+      initiatedBy: row.initiated_by,
       successorStatus: row.superseded_by
         ? (successors.get(row.superseded_by) ?? null)
         : null,

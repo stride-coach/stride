@@ -1064,6 +1064,8 @@ export type Database = {
           evidence: NonNullable<Json>;
           expires_at: string | null;
           id: string;
+          initiated_by: string | null;
+          led_by: string | null;
           operations: NonNullable<Json>;
           origin: string;
           plan_id: string | null;
@@ -1093,6 +1095,8 @@ export type Database = {
           evidence?: NonNullable<Json>;
           expires_at?: string | null;
           id?: string;
+          initiated_by?: string | null;
+          led_by?: string | null;
           operations: NonNullable<Json>;
           origin: string;
           plan_id?: string | null;
@@ -1121,6 +1125,8 @@ export type Database = {
           evidence?: NonNullable<Json>;
           expires_at?: string | null;
           id?: string;
+          initiated_by?: string | null;
+          led_by?: string | null;
           operations?: NonNullable<Json>;
           origin?: string;
           plan_id?: string | null;
@@ -3081,6 +3087,8 @@ export type Database = {
           evidence: NonNullable<Json>;
           expires_at: string | null;
           id: string;
+          initiated_by: string | null;
+          led_by: string | null;
           operations: NonNullable<Json>;
           origin: string;
           plan_id: string | null;
@@ -3338,6 +3346,8 @@ export type Database = {
           evidence: NonNullable<Json>;
           expires_at: string | null;
           id: string;
+          initiated_by: string | null;
+          led_by: string | null;
           operations: NonNullable<Json>;
           origin: string;
           plan_id: string | null;
@@ -3496,6 +3506,8 @@ export type Database = {
           evidence: NonNullable<Json>;
           expires_at: string | null;
           id: string;
+          initiated_by: string | null;
+          led_by: string | null;
           operations: NonNullable<Json>;
           origin: string;
           plan_id: string | null;
@@ -3525,6 +3537,8 @@ export type Database = {
         Args: {
           p_base_version?: number;
           p_coach_session_id?: string;
+          p_initiated_by?: string;
+          p_led_by?: string;
           p_operations: Json;
           p_origin: string;
           p_plan_id?: string;
@@ -3546,6 +3560,8 @@ export type Database = {
           evidence: NonNullable<Json>;
           expires_at: string | null;
           id: string;
+          initiated_by: string | null;
+          led_by: string | null;
           operations: NonNullable<Json>;
           origin: string;
           plan_id: string | null;

@@ -145,7 +145,13 @@ export function decisionResponse(proposal: ProposalRecord): DecisionResponse {
             : proposal.status === "applied" || proposal.status === "accepted"
               ? "accepted"
               : "unanswered";
-  return { kind, label: responseLabels[kind] };
+  return {
+    kind,
+    label:
+      kind === "accepted" && proposal.initiatedBy === "athlete"
+        ? "À ta demande"
+        : responseLabels[kind],
+  };
 }
 
 export function decisionOutcome(proposal: ProposalRecord) {
@@ -187,13 +193,14 @@ function answerLine(
 ) {
   if (response.kind === "pending") return "En attente de ta réponse";
   if (!answeredAt) return "Pas de réponse de ta part";
+  const label = responseLabels[response.kind];
   const sameDay =
     formatStampDay(answeredAt, timeZone) ===
     formatStampDay(createdAt, timeZone);
   const time = formatStampTime(answeredAt, timeZone);
   return sameDay
-    ? `${response.label} à ${time}`
-    : `${response.label} le ${formatStampDay(answeredAt, timeZone)} à ${time}`;
+    ? `${label} à ${time}`
+    : `${label} le ${formatStampDay(answeredAt, timeZone)} à ${time}`;
 }
 
 function sessionKeyOf(proposal: ProposalRecord) {
@@ -317,8 +324,8 @@ function planRow(
       id: proposal.id,
       title: proposal.title,
       day: dayLabel(proposal.createdAt, timeZone),
-      role: coach.name,
-      agent: "coach",
+      role: staffMember(proposal.ledBy ?? "coach").name,
+      agent: proposal.ledBy ?? "coach",
       reason,
       response,
       answer: answerLine(

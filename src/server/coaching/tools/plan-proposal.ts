@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { specialistAgents } from "@/features/coach/staff";
+import { specialistAgents, staffAgents } from "@/features/coach/staff";
 import { localToday } from "@/features/plans/constraints";
 import { raceStepsMessage } from "@/features/plans/compact/compact";
 import { raceRoles } from "@/features/plans/model/plan";
@@ -149,6 +149,18 @@ export const createPlanProposalTool = defineTool({
       .array(opinionSchema)
       .max(4)
       .describe("Specialist opinions this proposal relies on."),
+    led_by: z
+      .enum(staffAgents)
+      .optional()
+      .describe(
+        "Staff role whose expertise drove this proposal: coach unless a specialist's opinion is the main reason for it.",
+      ),
+    initiated_by: z
+      .enum(["athlete", "staff"])
+      .optional()
+      .describe(
+        "athlete when the athlete asked for this change in the conversation, staff when the staff proposes it on its own.",
+      ),
   }),
   output: z.strictObject({
     proposalId: z.uuid(),
@@ -229,6 +241,8 @@ export const createPlanProposalTool = defineTool({
       p_plan_id: stored.planId,
       p_base_version: stored.activeVersion,
       p_specialist_opinions: proposal.specialist_opinions,
+      p_led_by: proposal.led_by,
+      p_initiated_by: proposal.initiated_by,
       p_target_keys: targetKeys(
         operations.data,
         result.changeset.sessions.added

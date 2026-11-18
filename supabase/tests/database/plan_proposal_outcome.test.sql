@@ -173,10 +173,10 @@ reset role;
 
 select ok(
   has_function_privilege('authenticated',
-    'public.submit_plan_proposal(text, text, text, text, text, jsonb, jsonb, uuid, integer, jsonb, text[], uuid)',
+    'public.submit_plan_proposal(text, text, text, text, text, jsonb, jsonb, uuid, integer, jsonb, text[], uuid, text, text)',
     'execute')
     and not has_function_privilege('anon',
-      'public.submit_plan_proposal(text, text, text, text, text, jsonb, jsonb, uuid, integer, jsonb, text[], uuid)',
+      'public.submit_plan_proposal(text, text, text, text, text, jsonb, jsonb, uuid, integer, jsonb, text[], uuid, text, text)',
       'execute'),
   'athletes submit proposals with an optional coach session'
 );
