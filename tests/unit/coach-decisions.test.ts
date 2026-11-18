@@ -307,6 +307,7 @@ describe("decision outcomes", () => {
   const view = buildCoachDecisions({
     proposals: [
       proposal("followed", "2026-09-29T05:20:00Z", {
+        planId: "plan-active",
         origin: "recovery",
         status: "applied",
         decisions: [athlete("accepted", "2026-09-29T06:00:00Z")],
@@ -321,7 +322,7 @@ describe("decision outcomes", () => {
         decisions: [athlete("accepted", "2026-10-02T06:00:00Z")],
       }),
     ],
-    signals: { wellness, matches },
+    signals: { planId: "plan-active", wellness, matches },
     timeZone: "Europe/Paris",
     now,
   });
@@ -332,9 +333,25 @@ describe("decision outcomes", () => {
 
   it("says what the session and the metric did, from stored data only", () => {
     expect(outcome("followed")).toBe(
-      "Séance conforme à 94 % · VFC revenue dans ta plage le lendemain",
+      "Séance conforme à 94\u00a0% · VFC revenue dans ta plage le lendemain",
     );
     expect(outcome("refused")).toBe("VFC revenue dans ta plage après 2 jours");
+  });
+
+  it("ignores the matches of another plan than the one the proposal changed", () => {
+    const other = buildCoachDecisions({
+      proposals: [
+        proposal("old", "2026-09-29T05:20:00Z", {
+          planId: "plan-replaced",
+          status: "applied",
+          operations: [{ op: "skip_session", sessionKey: "s-2026-10-01-1" }],
+        }),
+      ],
+      signals: { planId: "plan-active", wellness: [], matches },
+      timeZone: "Europe/Paris",
+      now,
+    });
+    expect(other.months[0].entries[0].outcome).not.toContain("conforme");
   });
 
   it("falls back on the status sentence without any stored signal", () => {
@@ -344,8 +361,20 @@ describe("decision outcomes", () => {
   it("summarizes how fast the metric came back by response", () => {
     expect(view.recovery).toEqual({
       groups: [
-        { kind: "accepted", label: "Suivie", cases: 1, days: "1 jour" },
-        { kind: "rejected", label: "Refusée", cases: 1, days: "2 jours" },
+        {
+          kind: "accepted",
+          label: "Suivie",
+          cases: 1,
+          away: 0,
+          days: "1 jour",
+        },
+        {
+          kind: "rejected",
+          label: "Refusée",
+          cases: 1,
+          away: 0,
+          days: "2 jours",
+        },
       ],
       caution:
         "Deux cas seulement : une tendance à surveiller, pas une preuve.",

@@ -118,9 +118,12 @@ function SummaryPanel({ view }: { view: DecisionsView }) {
               >
                 <dt className="text-secondary-foreground">{group.label}</dt>
                 <dd className="flex items-baseline gap-2">
-                  <span className="font-medium tabular-nums">{group.days}</span>
+                  <span className="font-medium tabular-nums">
+                    {group.days ?? "Pas revenue"}
+                  </span>
                   <span className="text-label text-muted-foreground tabular-nums">
                     {group.cases} cas
+                    {group.away > 0 && `, dont ${group.away} sans retour`}
                   </span>
                 </dd>
               </div>

@@ -79,6 +79,7 @@ export async function readDecisionSignals(
     input.planId ? readSessionMatches(context, input.planId) : [],
   ]);
   return {
+    planId: input.planId,
     wellness,
     matches: matches.map((match) => ({
       sessionKey: match.sessionKey,

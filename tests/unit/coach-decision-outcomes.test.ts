@@ -87,6 +87,44 @@ describe("recovery outcome", () => {
     });
   });
 
+  it("counts an HRV above the range as back, and a resting rate down to its upper bound", () => {
+    expect(
+      recoveryOutcome(
+        days("2026-09-01", [...alerted, { hrv: 75 }]),
+        "2026-09-29",
+        "2026-10-10",
+      ),
+    ).toMatchObject({ state: "back", days: 1 });
+    const resting = [...baseline, { hrv: 60, restingHeartRate: 58 }];
+    expect(
+      recoveryOutcome(
+        days("2026-09-01", [...resting, { restingHeartRate: 52 }]),
+        "2026-09-29",
+        "2026-10-10",
+      ),
+    ).toEqual({ metric: "restingHeartRate", state: "back", days: 1 });
+  });
+
+  it("never reports a metric as out of range without a stored reading", () => {
+    expect(
+      recoveryOutcome(days("2026-09-01", alerted), "2026-09-29", "2026-10-20"),
+    ).toBeNull();
+  });
+
+  it("uses the 28 days before the alert day, the 29th day and the alert day excluded", () => {
+    const series = days("2026-08-31", [{ hrv: 10 }, ...baseline, { hrv: 47 }]);
+    expect(recoveryAlert(series, "2026-09-29")?.range).toEqual({
+      low: 58,
+      high: 62,
+    });
+    const first = days("2026-09-01", [...baseline, { hrv: 47 }]);
+    first[0].hrv = 10;
+    expect(recoveryAlert(first, "2026-09-29")?.range).not.toEqual({
+      low: 58,
+      high: 62,
+    });
+  });
+
   it("says nothing while the horizon is still open or without an alert", () => {
     const series = days("2026-09-01", [...alerted, { hrv: 45 }]);
     expect(recoveryOutcome(series, "2026-09-29", "2026-10-02")).toBeNull();
@@ -121,12 +159,43 @@ describe("recovery summary", () => {
       ]),
     ).toEqual({
       groups: [
-        { kind: "accepted", label: "Suivie", cases: 3, days: "1,3 jour" },
-        { kind: "rejected", label: "Refusée", cases: 1, days: "3 jours" },
+        {
+          kind: "accepted",
+          label: "Suivie",
+          cases: 3,
+          away: 0,
+          days: "1,3 jour",
+        },
+        {
+          kind: "rejected",
+          label: "Refusée",
+          cases: 1,
+          away: 0,
+          days: "3 jours",
+        },
       ],
       caution:
         "Quatre cas seulement : une tendance à surveiller, pas une preuve.",
     });
+  });
+
+  it("keeps the cases that never came back instead of dropping them", () => {
+    expect(
+      recoverySummary([
+        { response: "accepted", days: 2 },
+        { response: "rejected", days: null },
+        { response: "rejected", days: null },
+      ])?.groups,
+    ).toEqual([
+      {
+        kind: "accepted",
+        label: "Suivie",
+        cases: 1,
+        away: 0,
+        days: "2 jours",
+      },
+      { kind: "rejected", label: "Refusée", cases: 2, away: 2, days: null },
+    ]);
   });
 
   it("is empty without a single case and drops the caution from ten cases", () => {

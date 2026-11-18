@@ -78,24 +78,56 @@ const recordRowSchema = proposalRowSchema.extend({
 const successorSchema = z.object({
   id: z.uuid(),
   status: z.enum(proposalStatuses),
+  superseded_by: z.uuid().nullable().catch(null),
 });
+
+const successorDepth = 5;
 
 async function readSuccessorStatuses(
   context: PlanContext,
-  ids: string[],
+  firstIds: string[],
 ): Promise<Map<string, ProposalStatus>> {
-  if (ids.length === 0) return new Map();
-  const { data, error } = await context.client
-    .from("plan_proposals")
-    .select("id, status")
-    .eq("user_id", context.userId)
-    .in("id", ids);
-  if (error) throw new Error("Unable to read the plan proposals");
+  const known = new Map<string, z.infer<typeof successorSchema>>();
+  let pending = [...new Set(firstIds)];
+  for (
+    let depth = 0;
+    depth < successorDepth && pending.length > 0;
+    depth += 1
+  ) {
+    const { data, error } = await context.client
+      .from("plan_proposals")
+      .select("id, status, superseded_by")
+      .eq("user_id", context.userId)
+      .in("id", pending);
+    if (error) throw new Error("Unable to read the plan proposals");
+    const rows = z.array(successorSchema).parse(data ?? []);
+    for (const row of rows) known.set(row.id, row);
+    pending = [
+      ...new Set(
+        rows.flatMap((row) =>
+          row.status === "superseded" &&
+          row.superseded_by &&
+          !known.has(row.superseded_by)
+            ? [row.superseded_by]
+            : [],
+        ),
+      ),
+    ];
+  }
+  const finalStatus = (id: string): ProposalStatus | null => {
+    let current = known.get(id);
+    for (let hop = 0; current && hop < successorDepth; hop += 1) {
+      if (current.status !== "superseded" || !current.superseded_by)
+        return current.status;
+      current = known.get(current.superseded_by);
+    }
+    return current?.status ?? null;
+  };
   return new Map(
-    z
-      .array(successorSchema)
-      .parse(data ?? [])
-      .map((row) => [row.id, row.status]),
+    firstIds.flatMap((id) => {
+      const status = finalStatus(id);
+      return status ? [[id, status] as const] : [];
+    }),
   );
 }
 
@@ -127,6 +159,7 @@ async function readProposalRecords(
     planId: row.plan_id,
     record: {
       id: row.id,
+      planId: row.plan_id,
       title: row.title,
       summary: row.summary,
       rationale: row.rationale,

@@ -15,6 +15,7 @@ import {
 } from "@/features/plans/review/proposal";
 import { sessionPanelHref } from "@/features/plans/view/session-href";
 import {
+  conformityLabel,
   recoveryLine,
   recoveryOutcome,
   recoverySummary,
@@ -91,6 +92,7 @@ export type RaceDecisionRecord = {
 };
 
 export type DecisionSignals = {
+  planId: string | null;
   wellness: WellnessDay[];
   matches: OutcomeMatch[];
 };
@@ -244,7 +246,7 @@ type Row = {
   id: string;
   createdAt: string;
   entry: DecisionEntry;
-  recovery: { response: "accepted" | "rejected"; days: number } | null;
+  recovery: RecoveryCase | null;
 };
 
 function planOutcome(
@@ -258,9 +260,14 @@ function planOutcome(
   const lines: string[] = [];
   let recovery: Row["recovery"] = null;
   if (response.kind !== "pending" && signals) {
-    if (proposal.status === "applied" && sessionKey) {
+    if (
+      proposal.status === "applied" &&
+      sessionKey &&
+      signals.planId !== null &&
+      proposal.planId === signals.planId
+    ) {
       const conformity = sessionConformity(signals.matches, sessionKey);
-      if (conformity !== null) lines.push(`Séance conforme à ${conformity} %`);
+      if (conformity !== null) lines.push(conformityLabel(conformity));
     }
     if (proposal.origin === "recovery") {
       const outcome = recoveryOutcome(
@@ -270,11 +277,11 @@ function planOutcome(
       );
       if (outcome) {
         lines.push(recoveryLine(outcome));
-        if (
-          outcome.state === "back" &&
-          (response.kind === "accepted" || response.kind === "rejected")
-        )
-          recovery = { response: response.kind, days: outcome.days };
+        if (response.kind === "accepted" || response.kind === "rejected")
+          recovery = {
+            response: response.kind,
+            days: outcome.state === "back" ? outcome.days : null,
+          };
       }
     }
   }

@@ -91,7 +91,9 @@ export function recoveryOutcome(
     .sort((first, second) => first.day.localeCompare(second.day));
   const back = later.find((item) => {
     const value = item[alert.metric]!;
-    return value >= alert.range.low && value <= alert.range.high;
+    return alert.metric === "hrv"
+      ? value >= alert.range.low
+      : value <= alert.range.high;
   });
   if (back)
     return {
@@ -99,7 +101,7 @@ export function recoveryOutcome(
       state: "back",
       days: daysBetween(day, back.day),
     };
-  return daysBetween(day, today) >= recoveryHorizonDays
+  return later.length > 0 && daysBetween(day, today) >= recoveryHorizonDays
     ? { metric: alert.metric, state: "away" }
     : null;
 }
@@ -113,19 +115,29 @@ export function recoveryLine(outcome: RecoveryOutcome) {
     : `${label} revenue dans ta plage après ${outcome.days} jours`;
 }
 
-export type RecoveryCase = { response: "accepted" | "rejected"; days: number };
+export type RecoveryCase = {
+  response: "accepted" | "rejected";
+  days: number | null;
+};
 
 export type RecoveryGroup = {
   kind: "accepted" | "rejected";
   label: string;
   cases: number;
-  days: string;
+  away: number;
+  days: string | null;
 };
 
 export type RecoverySummary = {
   groups: RecoveryGroup[];
   caution: string | null;
 };
+
+const percentFormat = new Intl.NumberFormat("fr-FR", { style: "percent" });
+
+export function conformityLabel(percent: number) {
+  return `Séance conforme à ${percentFormat.format(percent / 100)}`;
+}
 
 const daysFormat = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
@@ -156,8 +168,19 @@ export function recoverySummary(cases: RecoveryCase[]): RecoverySummary | null {
   ).flatMap(([kind, label]) => {
     const own = cases.filter((item) => item.response === kind);
     if (own.length === 0) return [];
-    const mean = own.reduce((sum, item) => sum + item.days, 0) / own.length;
-    return [{ kind, label, cases: own.length, days: daysLabel(mean) }];
+    const back = own.flatMap((item) => (item.days === null ? [] : [item.days]));
+    const mean = back.length
+      ? back.reduce((sum, value) => sum + value, 0) / back.length
+      : null;
+    return [
+      {
+        kind,
+        label,
+        cases: own.length,
+        away: own.length - back.length,
+        days: mean === null ? null : daysLabel(mean),
+      },
+    ];
   });
   return {
     groups,
