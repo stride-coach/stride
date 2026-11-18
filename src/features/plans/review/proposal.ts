@@ -47,6 +47,7 @@ export type ProposalRecord = {
   updatedAt: string;
   specialistOpinions: SpecialistOpinion[];
   coachSessionId: string | null;
+  successorStatus?: ProposalStatus | null;
   decisions: ProposalDecision[];
 };
 

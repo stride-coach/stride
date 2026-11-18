@@ -4,20 +4,33 @@ import {
   proposalChange,
   proposalVersion,
 } from "@/features/plans/review/history";
+import { localToday } from "@/features/plans/constraints";
 import {
   coach,
   consultedStaff,
   formatStampDay,
   formatStampTime,
+  staffMember,
   type ProposalRecord,
 } from "@/features/plans/review/proposal";
 import { sessionPanelHref } from "@/features/plans/view/session-href";
+import {
+  recoveryLine,
+  recoveryOutcome,
+  recoverySummary,
+  sessionConformity,
+  type OutcomeMatch,
+  type RecoveryCase,
+  type RecoverySummary,
+  type WellnessDay,
+} from "./decision-outcomes";
 import { coachRequestHref } from "./request";
+import type { StaffAgent } from "./staff";
 
 export const decisionWindowDays = 30;
 
 export type DecisionResponseKind =
-  "pending" | "accepted" | "rejected" | "unanswered";
+  "pending" | "accepted" | "modified" | "rejected" | "unanswered";
 
 export type DecisionResponse = {
   kind: DecisionResponseKind;
@@ -29,6 +42,7 @@ export type DecisionEntry = {
   title: string;
   day: string;
   role: string;
+  agent: StaffAgent;
   reason: string | null;
   response: DecisionResponse;
   answer: string;
@@ -53,17 +67,38 @@ export type DecisionMonth = {
 export type DecisionSummary = {
   proposals: number;
   accepted: number;
+  modified: number;
   rejected: number;
 };
 
 export type DecisionsView = {
   months: DecisionMonth[];
   summary: DecisionSummary;
+  recovery: RecoverySummary | null;
   empty: boolean;
+};
+
+export type RaceDecisionRecord = {
+  id: string;
+  raceId: string;
+  kind: "strategy" | "nutrition";
+  title: string;
+  summary: string | null;
+  status: "ready" | "accepted" | "rejected" | "superseded" | "stale";
+  createdAt: string;
+  decidedAt: string | null;
+  coachSessionId: string | null;
+};
+
+export type DecisionSignals = {
+  wellness: WellnessDay[];
+  matches: OutcomeMatch[];
 };
 
 export type DecisionsInput = {
   proposals: ProposalRecord[];
+  raceProposals?: RaceDecisionRecord[];
+  signals?: DecisionSignals;
   timeZone: string;
   now: Date;
 };
@@ -80,6 +115,7 @@ export type SelectedDecision = {
 const responseLabels: Record<DecisionResponseKind, string> = {
   pending: "En attente",
   accepted: "Acceptée",
+  modified: "Modifiée",
   rejected: "Refusée",
   unanswered: "Sans réponse",
 };
@@ -99,15 +135,20 @@ export function decisionResponse(proposal: ProposalRecord): DecisionResponse {
       ? "accepted"
       : given === "rejected" || proposal.status === "rejected"
         ? "rejected"
-        : proposal.status === "ready"
-          ? "pending"
-          : proposal.status === "applied" || proposal.status === "accepted"
-            ? "accepted"
-            : "unanswered";
+        : proposal.status === "superseded" &&
+            proposal.successorStatus === "applied"
+          ? "modified"
+          : proposal.status === "ready"
+            ? "pending"
+            : proposal.status === "applied" || proposal.status === "accepted"
+              ? "accepted"
+              : "unanswered";
   return { kind, label: responseLabels[kind] };
 }
 
 export function decisionOutcome(proposal: ProposalRecord) {
+  if (decisionResponse(proposal).kind === "modified")
+    return "Modifiée ensuite : la version retenue a été appliquée";
   switch (proposal.status) {
     case "ready":
       return "Tu peux encore répondre";
@@ -136,18 +177,21 @@ export function decisionOutcome(proposal: ProposalRecord) {
   }
 }
 
-function answerLine(proposal: ProposalRecord, timeZone: string) {
-  const response = decisionResponse(proposal);
-  const given = athleteDecision(proposal);
+function answerLine(
+  response: DecisionResponse,
+  answeredAt: string | null,
+  createdAt: string,
+  timeZone: string,
+) {
   if (response.kind === "pending") return "En attente de ta réponse";
-  if (!given) return "Pas de réponse de ta part";
+  if (!answeredAt) return "Pas de réponse de ta part";
   const sameDay =
-    formatStampDay(given.createdAt, timeZone) ===
-    formatStampDay(proposal.createdAt, timeZone);
-  const time = formatStampTime(given.createdAt, timeZone);
+    formatStampDay(answeredAt, timeZone) ===
+    formatStampDay(createdAt, timeZone);
+  const time = formatStampTime(answeredAt, timeZone);
   return sameDay
     ? `${response.label} à ${time}`
-    : `${response.label} le ${formatStampDay(given.createdAt, timeZone)} à ${time}`;
+    : `${response.label} le ${formatStampDay(answeredAt, timeZone)} à ${time}`;
 }
 
 function sessionKeyOf(proposal: ProposalRecord) {
@@ -192,34 +236,172 @@ function proposedBy(proposal: ProposalRecord) {
     : coach.name;
 }
 
-function entryOf(proposal: ProposalRecord, timeZone: string): DecisionEntry {
+function dayOf(iso: string, timeZone: string) {
+  return localToday(timeZone, new Date(iso));
+}
+
+type Row = {
+  id: string;
+  createdAt: string;
+  entry: DecisionEntry;
+  recovery: { response: "accepted" | "rejected"; days: number } | null;
+};
+
+function planOutcome(
+  proposal: ProposalRecord,
+  response: DecisionResponse,
+  sessionKey: string | null,
+  signals: DecisionSignals | undefined,
+  timeZone: string,
+  now: Date,
+) {
+  const lines: string[] = [];
+  let recovery: Row["recovery"] = null;
+  if (response.kind !== "pending" && signals) {
+    if (proposal.status === "applied" && sessionKey) {
+      const conformity = sessionConformity(signals.matches, sessionKey);
+      if (conformity !== null) lines.push(`Séance conforme à ${conformity} %`);
+    }
+    if (proposal.origin === "recovery") {
+      const outcome = recoveryOutcome(
+        signals.wellness,
+        dayOf(proposal.createdAt, timeZone),
+        localToday(timeZone, now),
+      );
+      if (outcome) {
+        lines.push(recoveryLine(outcome));
+        if (
+          outcome.state === "back" &&
+          (response.kind === "accepted" || response.kind === "rejected")
+        )
+          recovery = { response: response.kind, days: outcome.days };
+      }
+    }
+  }
+  return {
+    outcome: lines.length ? lines.join(" · ") : decisionOutcome(proposal),
+    recovery,
+  };
+}
+
+function planRow(
+  proposal: ProposalRecord,
+  signals: DecisionSignals | undefined,
+  timeZone: string,
+  now: Date,
+): Row {
   const sessionKey = sessionKeyOf(proposal);
   const reason = proposal.summary ?? proposal.rationale;
   const paragraph = proposal.rationale ?? proposal.summary;
+  const response = decisionResponse(proposal);
+  const { outcome, recovery } = planOutcome(
+    proposal,
+    response,
+    sessionKey,
+    signals,
+    timeZone,
+    now,
+  );
   return {
     id: proposal.id,
-    title: proposal.title,
-    day: dayLabel(proposal.createdAt, timeZone),
-    role: "Coach",
-    reason,
-    response: decisionResponse(proposal),
-    answer: answerLine(proposal, timeZone),
-    outcome: decisionOutcome(proposal),
-    proposedBy: proposedBy(proposal),
-    proposedAt: stamp(proposal.createdAt, timeZone),
-    paragraph,
-    change:
-      proposalChange(proposal) ??
-      (proposal.rationale ? proposal.summary : null),
-    version: proposalVersion(proposal),
-    exchangeHref: proposal.coachSessionId
-      ? `/coach/${proposal.coachSessionId}`
-      : null,
-    sessionHref: sessionKey ? sessionPanelHref(sessionKey) : null,
-    discussHref: coachRequestHref(
-      `Je voudrais en reparler : « ${proposal.title} ».`,
-      sessionKey,
-    ),
+    createdAt: proposal.createdAt,
+    recovery,
+    entry: {
+      id: proposal.id,
+      title: proposal.title,
+      day: dayLabel(proposal.createdAt, timeZone),
+      role: coach.name,
+      agent: "coach",
+      reason,
+      response,
+      answer: answerLine(
+        response,
+        athleteDecision(proposal)?.createdAt ?? null,
+        proposal.createdAt,
+        timeZone,
+      ),
+      outcome,
+      proposedBy: proposedBy(proposal),
+      proposedAt: stamp(proposal.createdAt, timeZone),
+      paragraph,
+      change:
+        proposalChange(proposal) ??
+        (proposal.rationale ? proposal.summary : null),
+      version: proposalVersion(proposal),
+      exchangeHref: proposal.coachSessionId
+        ? `/coach/${proposal.coachSessionId}`
+        : null,
+      sessionHref: sessionKey ? sessionPanelHref(sessionKey) : null,
+      discussHref: coachRequestHref(
+        `Je voudrais en reparler : « ${proposal.title} ».`,
+        sessionKey,
+      ),
+    },
+  };
+}
+
+const raceResponses: Record<
+  RaceDecisionRecord["status"],
+  DecisionResponseKind
+> = {
+  ready: "pending",
+  accepted: "accepted",
+  rejected: "rejected",
+  superseded: "unanswered",
+  stale: "unanswered",
+};
+
+const raceOutcomes: Record<RaceDecisionRecord["status"], string> = {
+  ready: "Tu peux encore répondre",
+  accepted: "Appliquée à ta course",
+  rejected: "Rien n’a changé dans ta course",
+  superseded: "Remplacée par une proposition plus récente",
+  stale: "La course avait changé : rien n’a été appliqué",
+};
+
+const raceAgents: Record<RaceDecisionRecord["kind"], StaffAgent> = {
+  strategy: "strategist",
+  nutrition: "nutritionist",
+};
+
+function raceRow(record: RaceDecisionRecord, timeZone: string): Row {
+  const member = staffMember(raceAgents[record.kind]);
+  const kind = raceResponses[record.status];
+  const response = { kind, label: responseLabels[kind] };
+  return {
+    id: record.id,
+    createdAt: record.createdAt,
+    recovery: null,
+    entry: {
+      id: record.id,
+      title: record.title,
+      day: dayLabel(record.createdAt, timeZone),
+      role: member.name,
+      agent: raceAgents[record.kind],
+      reason: record.summary,
+      response,
+      answer: answerLine(
+        response,
+        kind === "accepted" || kind === "rejected" ? record.decidedAt : null,
+        record.createdAt,
+        timeZone,
+      ),
+      outcome: raceOutcomes[record.status],
+      proposedBy: member.name,
+      proposedAt: stamp(record.createdAt, timeZone),
+      paragraph: record.summary,
+      change: null,
+      version: null,
+      exchangeHref: record.coachSessionId
+        ? `/coach/${record.coachSessionId}`
+        : null,
+      sessionHref: null,
+      discussHref: coachRequestHref(
+        `Je voudrais en reparler : « ${record.title} ».`,
+        null,
+        record.raceId,
+      ),
+    },
   };
 }
 
@@ -228,39 +410,50 @@ export function monthCountLabel(count: number) {
 }
 
 export function buildCoachDecisions(input: DecisionsInput): DecisionsView {
-  const proposals = input.proposals
-    .filter((proposal) => proposal.status !== "draft")
-    .sort(
-      (first, second) =>
-        second.createdAt.localeCompare(first.createdAt) ||
-        second.id.localeCompare(first.id),
-    );
+  const rows = [
+    ...input.proposals
+      .filter((proposal) => proposal.status !== "draft")
+      .map((proposal) =>
+        planRow(proposal, input.signals, input.timeZone, input.now),
+      ),
+    ...(input.raceProposals ?? []).map((record) =>
+      raceRow(record, input.timeZone),
+    ),
+  ].sort(
+    (first, second) =>
+      second.createdAt.localeCompare(first.createdAt) ||
+      second.id.localeCompare(first.id),
+  );
   const months: DecisionMonth[] = [];
-  for (const proposal of proposals) {
-    const key = monthKey(proposal.createdAt, input.timeZone);
+  for (const row of rows) {
+    const key = monthKey(row.createdAt, input.timeZone);
     let month = months.at(-1);
     if (!month || month.key !== key) {
       month = { key, label: monthLabel(key), count: 0, entries: [] };
       months.push(month);
     }
-    month.entries.push(entryOf(proposal, input.timeZone));
+    month.entries.push(row.entry);
     month.count += 1;
   }
   const since = input.now.getTime() - decisionWindowDays * 86_400_000;
-  const recent = proposals.filter(
-    (proposal) => new Date(proposal.createdAt).getTime() >= since,
+  const recent = rows.filter(
+    (row) => new Date(row.createdAt).getTime() >= since,
   );
   const answered = (kind: DecisionResponseKind) =>
-    recent.filter((proposal) => decisionResponse(proposal).kind === kind)
-      .length;
+    recent.filter((row) => row.entry.response.kind === kind).length;
+  const cases: RecoveryCase[] = rows.flatMap((row) =>
+    row.recovery ? [row.recovery] : [],
+  );
   return {
     months,
     summary: {
       proposals: recent.length,
       accepted: answered("accepted"),
+      modified: answered("modified"),
       rejected: answered("rejected"),
     },
-    empty: proposals.length === 0,
+    recovery: recoverySummary(cases),
+    empty: rows.length === 0,
   };
 }
 

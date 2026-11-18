@@ -11,7 +11,11 @@ import {
   type HistoryFilter,
   type PlanHistory,
 } from "@/features/plans/review/history";
-import type { ProposalRecord } from "@/features/plans/review/proposal";
+import {
+  proposalStatuses,
+  type ProposalRecord,
+  type ProposalStatus,
+} from "@/features/plans/review/proposal";
 import {
   buildProposalReview,
   type ProposalReview,
@@ -22,6 +26,8 @@ import {
   readDecisions,
 } from "@/server/coaching/tools/plan-history";
 import type { OnboardingContext } from "@/server/onboarding/context";
+import { readRaceDecisionRecords } from "@/server/races/proposals";
+import { readDecisionSignals } from "./decision-signals";
 import { loadPlanningInput } from "./draft";
 import { readSessionMatches } from "./matches";
 import { readPlanRaces } from "./overview";
@@ -66,7 +72,32 @@ export async function readReadyProposals(
 const recordRowSchema = proposalRowSchema.extend({
   plan_id: z.uuid().nullable().catch(null),
   coach_session_id: z.uuid().nullable().catch(null),
+  superseded_by: z.uuid().nullable().catch(null),
 });
+
+const successorSchema = z.object({
+  id: z.uuid(),
+  status: z.enum(proposalStatuses),
+});
+
+async function readSuccessorStatuses(
+  context: PlanContext,
+  ids: string[],
+): Promise<Map<string, ProposalStatus>> {
+  if (ids.length === 0) return new Map();
+  const { data, error } = await context.client
+    .from("plan_proposals")
+    .select("id, status")
+    .eq("user_id", context.userId)
+    .in("id", ids);
+  if (error) throw new Error("Unable to read the plan proposals");
+  return new Map(
+    z
+      .array(successorSchema)
+      .parse(data ?? [])
+      .map((row) => [row.id, row.status]),
+  );
+}
 
 async function readProposalRecords(
   context: PlanContext,
@@ -74,7 +105,7 @@ async function readProposalRecords(
 ): Promise<{ record: ProposalRecord; planId: string | null }[]> {
   let query = context.client
     .from("plan_proposals")
-    .select(`${proposalColumns}, plan_id, coach_session_id`)
+    .select(`${proposalColumns}, plan_id, coach_session_id, superseded_by`)
     .eq("user_id", context.userId);
   if (proposalId) query = query.eq("id", proposalId);
   const { data, error } = await query
@@ -82,10 +113,16 @@ async function readProposalRecords(
     .limit(200);
   if (error) throw new Error("Unable to read the plan proposals");
   const rows = z.array(recordRowSchema).parse(data ?? []);
-  const decisions = await readDecisions(
-    context,
-    rows.map((row) => row.id),
-  );
+  const [decisions, successors] = await Promise.all([
+    readDecisions(
+      context,
+      rows.map((row) => row.id),
+    ),
+    readSuccessorStatuses(
+      context,
+      rows.flatMap((row) => (row.superseded_by ? [row.superseded_by] : [])),
+    ),
+  ]);
   return rows.map((row) => ({
     planId: row.plan_id,
     record: {
@@ -103,6 +140,9 @@ async function readProposalRecords(
       updatedAt: row.updated_at,
       specialistOpinions: row.specialist_opinions,
       coachSessionId: row.coach_session_id,
+      successorStatus: row.superseded_by
+        ? (successors.get(row.superseded_by) ?? null)
+        : null,
       decisions: decisions
         .filter((decision) => decision.proposal_id === row.id)
         .sort((first, second) =>
@@ -222,14 +262,25 @@ export async function readPlanHistory(
 
 export const readCoachDecisions = cache(
   async (context: OnboardingContext): Promise<DecisionsView> => {
-    const [records, active] = await Promise.all([
+    const [records, active, raceProposals] = await Promise.all([
       readProposalRecords(context),
       readActivePlan(context),
+      readRaceDecisionRecords(context),
     ]);
+    const proposals = records.map((item) => item.record);
+    const timeZone = active?.state.plan.timeZone ?? "Europe/Paris";
+    const now = new Date();
     return buildCoachDecisions({
-      proposals: records.map((item) => item.record),
-      timeZone: active?.state.plan.timeZone ?? "Europe/Paris",
-      now: new Date(),
+      proposals,
+      raceProposals,
+      signals: await readDecisionSignals(context, {
+        proposals,
+        planId: active?.planId ?? null,
+        timeZone,
+        now,
+      }),
+      timeZone,
+      now,
     });
   },
 );
