@@ -180,6 +180,14 @@ describe("tool registry", () => {
       "update_condition_report",
     ]);
     expect(agentTools.coach).not.toContain("record_condition_report");
+    expect(agentTools.coach).toContain("record_athlete_fact");
+    for (const agent of [
+      "medical",
+      "director",
+      "strategist",
+      "nutritionist",
+    ] as const)
+      expect(agentTools[agent]).not.toContain("record_athlete_fact");
   });
 
   it("offers the blocks tool to every agent and rejects unsafe or empty blocks", async () => {
@@ -1376,7 +1384,7 @@ describe("read_athlete_context", () => {
     });
   }
 
-  it("carries what the athlete said, with its date, and omits the key when there is nothing", () => {
+  it("carries what Stride keeps, with its status and date, and omits the key when there is nothing", () => {
     expect(packet()).not.toHaveProperty("knownFacts");
     const known = packet([
       {
@@ -1385,6 +1393,9 @@ describe("read_athlete_context", () => {
         text: "Tendon d’Achille gauche sensible",
         startsOn: null,
         endsOn: null,
+        origin: "observed",
+        basis: "6 semaines de données",
+        confirmedAt: null,
         createdAt: "2026-09-28T08:00:00Z",
         updatedAt: "2026-09-28T08:00:00Z",
       },
@@ -1393,6 +1404,7 @@ describe("read_athlete_context", () => {
       {
         category: "body",
         text: "Tendon d’Achille gauche sensible",
+        status: "observed",
         saidOn: "2026-09-28",
       },
     ]);

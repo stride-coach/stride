@@ -4,6 +4,7 @@ import { readActivePlanTool } from "./active-plan";
 import { askAthleteTool } from "./ask-athlete";
 import { attachBlocksTool } from "./attach-blocks";
 import { readAthleteContextTool } from "./athlete-context";
+import { recordAthleteFactTool } from "./athlete-facts";
 import {
   recordConditionReportTool,
   updateConditionReportTool,
@@ -49,6 +50,7 @@ export const coachingTools = [
   rewritePlanRangeTool,
   recordConditionReportTool,
   updateConditionReportTool,
+  recordAthleteFactTool,
   readSeasonCalendarTool,
   readRaceStrategyTool,
   proposeRaceStrategyTool,
@@ -75,6 +77,7 @@ export const agentTools = {
     "extend_plan",
     "rewrite_plan_range",
     "read_gear",
+    "record_athlete_fact",
   ],
   medical: [
     "read_athlete_context",

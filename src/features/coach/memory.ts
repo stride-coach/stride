@@ -59,15 +59,57 @@ export const factCorrectionSchema = z
 
 export type FactInput = z.output<typeof factInputSchema>;
 
+export const factOrigins = ["said", "observed"] as const;
+export type FactOrigin = (typeof factOrigins)[number];
+export const factBasisLimit = 60;
+
+export const staffFactSchema = z
+  .strictObject({
+    ...factShape,
+    source: z.enum(factOrigins),
+    basis: z
+      .string()
+      .trim()
+      .min(1)
+      .max(factBasisLimit)
+      .nullable()
+      .default(null),
+  })
+  .refine(datesOnlyWhenUpcoming, {
+    message: "Seule une information à venir porte des dates.",
+  })
+  .refine(periodInOrder, { message: "La fin ne peut pas précéder le début." })
+  .refine((fact) => (fact.source === "observed") === (fact.basis !== null), {
+    message: "Seule une observation porte une base, et elle en a toujours une.",
+    path: ["basis"],
+  });
+
+export type StaffFactInput = z.output<typeof staffFactSchema>;
+
 export type Fact = {
   id: string;
   category: FactCategory;
   text: string;
   startsOn: string | null;
   endsOn: string | null;
+  origin: FactOrigin;
+  basis: string | null;
+  confirmedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
+
+export type FactStatus = "said" | "observed" | "confirmed";
+
+export function factStatus(fact: Fact): FactStatus {
+  if (fact.origin === "said") return "said";
+  return fact.confirmedAt ? "confirmed" : "observed";
+}
+
+export function factOriginCounts(facts: readonly Fact[]) {
+  const observed = facts.filter((fact) => fact.origin === "observed").length;
+  return { said: facts.length - observed, observed };
+}
 
 export type FactGroup = {
   category: FactCategory;
@@ -84,6 +126,10 @@ const shortDate = (timeZone: string) =>
 
 export function factProvenance(fact: Fact, timeZone: string) {
   const format = shortDate(timeZone);
+  if (fact.origin === "observed")
+    return fact.confirmedAt
+      ? `Confirmé · ${format.format(new Date(fact.confirmedAt))}`
+      : `Observé · ${fact.basis}`;
   const said = format.format(new Date(fact.createdAt));
   const corrected = Date.parse(fact.updatedAt) > Date.parse(fact.createdAt);
   return corrected
@@ -146,6 +192,7 @@ export type StaffFact = {
   text: string;
   startsOn?: string;
   endsOn?: string;
+  status: FactStatus;
   saidOn: string;
 };
 
@@ -172,6 +219,7 @@ export function knownFactsForStaff(
       text: fact.text,
       ...(fact.startsOn ? { startsOn: fact.startsOn } : {}),
       ...(fact.endsOn ? { endsOn: fact.endsOn } : {}),
+      status: factStatus(fact),
       saidOn: dayIn(fact.createdAt, timeZone),
     }));
 }
@@ -188,6 +236,9 @@ export function memoryExport(
       text: fact.text,
       startsOn: fact.startsOn,
       endsOn: fact.endsOn,
+      origin: fact.origin,
+      basis: fact.basis,
+      confirmedOn: fact.confirmedAt ? dayIn(fact.confirmedAt, timeZone) : null,
       saidOn: dayIn(fact.createdAt, timeZone),
     })),
   };

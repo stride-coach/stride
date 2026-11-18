@@ -337,6 +337,12 @@ function inputFor(name: string) {
       redFlag: false,
     },
     update_condition_report: { id: a.conditionId, severity: 1 },
+    record_athlete_fact: {
+      category: "habit",
+      text: "Tu cours avant 7:30 en semaine",
+      source: "observed",
+      basis: "5 semaines de données",
+    },
     read_season_calendar: { candidates: [] },
     read_race_strategy: { raceId: a.raceId },
     propose_race_strategy: {
