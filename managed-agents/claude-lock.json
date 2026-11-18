@@ -9,10 +9,10 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "31",
-      "hash": "0efa9f3cb8ad799c6a1bcb992ca92964",
-      "remote_hash": "31abeb370bbaa7e65f22457d27c3af91",
-      "stamp": "31"
+      "version": "32",
+      "hash": "4b6996927ae7cd9f08d9bee4e67b58ad",
+      "remote_hash": "da2f7e9e7a0ccf9056a105fa39202fbb",
+      "stamp": "32"
     },
     "./agents/director.md": {
       "kind": "agent",
