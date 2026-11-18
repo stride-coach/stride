@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   clearAllLine,
   factCorrectionSchema,
+  factOriginCounts,
+  factStatus,
+  staffFactSchema,
   factInputSchema,
   factPeriod,
   factProvenance,
@@ -20,6 +23,9 @@ function fact(overrides: Partial<Fact> = {}): Fact {
     text: "Sortie longue le dimanche",
     startsOn: null,
     endsOn: null,
+    origin: "said",
+    basis: null,
+    confirmedAt: null,
     createdAt: "2026-09-28T08:00:00Z",
     updatedAt: "2026-09-28T08:00:00Z",
     ...overrides,
@@ -129,6 +135,119 @@ describe("factProvenance", () => {
     expect(
       factProvenance(fact({ updatedAt: "2026-10-02T09:00:00Z" }), zone),
     ).toBe("Tu l’as dit · corrigé le 2 oct.");
+  });
+});
+
+const observed = (overrides: Partial<Fact> = {}) =>
+  fact({
+    origin: "observed",
+    basis: "6 semaines de données",
+    text: "Tu récupères moins bien après deux nuits de moins de 6 h",
+    category: "body",
+    ...overrides,
+  });
+
+describe("observed facts", () => {
+  it("tells said, observed and confirmed apart", () => {
+    expect(factStatus(fact())).toBe("said");
+    expect(factStatus(observed())).toBe("observed");
+    expect(factStatus(observed({ confirmedAt: "2026-10-03T09:00:00Z" }))).toBe(
+      "confirmed",
+    );
+  });
+
+  it("states the basis of an observed fact, then the day it was confirmed", () => {
+    expect(factProvenance(observed(), zone)).toBe(
+      "Observé · 6 semaines de données",
+    );
+    expect(
+      factProvenance(observed({ confirmedAt: "2026-10-03T09:00:00Z" }), zone),
+    ).toBe("Confirmé · 3 oct.");
+  });
+
+  it("counts what the athlete said apart from what the staff observed", () => {
+    expect(
+      factOriginCounts([fact(), fact({ id: "f2" }), observed({ id: "o1" })]),
+    ).toEqual({ said: 2, observed: 1 });
+    expect(factOriginCounts([])).toEqual({ said: 0, observed: 0 });
+  });
+
+  it("tells the staff whether a fact is still a hypothesis", () => {
+    const statuses = knownFactsForStaff(
+      [
+        fact({ updatedAt: "2026-09-01T08:00:00Z" }),
+        observed({ id: "o1", updatedAt: "2026-09-02T08:00:00Z" }),
+        observed({
+          id: "o2",
+          updatedAt: "2026-09-03T08:00:00Z",
+          confirmedAt: "2026-10-03T09:00:00Z",
+        }),
+      ],
+      "2026-10-15",
+      zone,
+    ).map((entry) => entry.status);
+    expect(statuses).toEqual(["confirmed", "observed", "said"]);
+  });
+
+  it("exports the origin, the basis and the confirmation day", () => {
+    const [entry] = memoryExport(
+      [observed({ confirmedAt: "2026-10-03T22:30:00Z" })],
+      new Date("2026-10-15T10:00:00Z"),
+      zone,
+    ).facts;
+    expect(entry).toMatchObject({
+      origin: "observed",
+      basis: "6 semaines de données",
+      confirmedOn: "2026-10-04",
+    });
+  });
+});
+
+describe("staffFactSchema", () => {
+  const base = { category: "habit", text: "Tu cours avant 7:30" };
+
+  it("takes what the athlete said without a basis", () => {
+    expect(staffFactSchema.parse({ ...base, source: "said" })).toMatchObject({
+      source: "said",
+      basis: null,
+    });
+  });
+
+  it("requires a short basis for an observation", () => {
+    expect(
+      staffFactSchema.safeParse({ ...base, source: "observed" }).success,
+    ).toBe(false);
+    expect(
+      staffFactSchema.safeParse({
+        ...base,
+        source: "observed",
+        basis: "5 semaines de données",
+      }).success,
+    ).toBe(true);
+    expect(
+      staffFactSchema.safeParse({
+        ...base,
+        source: "observed",
+        basis: "x".repeat(61),
+      }).success,
+    ).toBe(false);
+  });
+
+  it("refuses a basis on something the athlete said and keeps the fact rules", () => {
+    expect(
+      staffFactSchema.safeParse({
+        ...base,
+        source: "said",
+        basis: "6 semaines de données",
+      }).success,
+    ).toBe(false);
+    expect(
+      staffFactSchema.safeParse({
+        ...base,
+        source: "said",
+        startsOn: "2026-10-20",
+      }).success,
+    ).toBe(false);
   });
 });
 
@@ -247,6 +366,7 @@ describe("knownFactsForStaff", () => {
       {
         category: "habit",
         text: "Sortie longue le dimanche",
+        status: "said",
         saidOn: "2026-09-28",
       },
     ]);
@@ -268,6 +388,9 @@ describe("memoryExport", () => {
           text: "Sortie longue le dimanche",
           startsOn: null,
           endsOn: null,
+          origin: "said",
+          basis: null,
+          confirmedOn: null,
           saidOn: "2026-09-28",
         },
       ],

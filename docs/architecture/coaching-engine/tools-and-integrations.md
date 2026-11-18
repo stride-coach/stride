@@ -78,6 +78,7 @@ The Managed Agents runtime uses a first slice of this contract in `src/server/co
 | `ask_athlete`             | propose | plan             | Coach          |
 | `record_condition_report` | record  | health           | Medical        |
 | `update_condition_report` | record  | health           | Medical        |
+| `record_athlete_fact`     | record  | health           | Coach          |
 
 `ask_athlete` has no server handler: the session validates its input through the registry and pauses the turn until the athlete answers.
 

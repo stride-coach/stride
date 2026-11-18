@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { factCorrectionSchema, factInputSchema } from "@/features/coach/memory";
 import { getOnboardingContext } from "@/server/onboarding/context";
-import { deleteAllFacts, deleteFact, insertFact, updateFact } from "./memory";
+import {
+  confirmFact as confirmStoredFact,
+  deleteAllFacts,
+  deleteFact,
+  insertFact,
+  updateFact,
+} from "./memory";
 
 export type FactActionResult =
   | { ok: true }
@@ -39,6 +45,20 @@ export async function correctFact(input: unknown): Promise<FactActionResult> {
   const { id, ...fact } = parsed.data;
   try {
     if (!(await updateFact(context, id, fact)))
+      return { ok: false, reason: "missing" };
+  } catch {
+    return { ok: false, reason: "failed" };
+  }
+  return done();
+}
+
+export async function confirmFact(input: unknown): Promise<FactActionResult> {
+  const parsed = forgetSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, reason: "invalid" };
+  const context = await getOnboardingContext({ writable: true });
+  if (!context) return { ok: false, reason: "failed" };
+  try {
+    if (!(await confirmStoredFact(context, parsed.data.id)))
       return { ok: false, reason: "missing" };
   } catch {
     return { ok: false, reason: "failed" };
