@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { z } from "zod";
+import type { RaceDecisionRecord } from "@/features/coach/decisions";
 import { productName } from "@/features/fueling/products";
 import { emptyNutritionPlan } from "@/features/fueling/race-plan";
 import {
@@ -10,7 +11,9 @@ import {
 import {
   emptyStrategy,
   raceProposalColumns,
+  raceProposalKinds,
   raceProposalRowSchema,
+  raceProposalStatuses,
   type RaceProposal,
 } from "@/features/races/proposals";
 import type { ScenarioKey } from "@/features/races/workspace";
@@ -35,6 +38,46 @@ export const readReadyRaceProposals = cache(
       .order("created_at", { ascending: false });
     if (error) throw new Error("Unable to read the race proposals");
     return parseRows(data ?? []);
+  },
+);
+
+const raceDecisionRowSchema = z.object({
+  id: z.uuid(),
+  race_id: z.uuid(),
+  kind: z.enum(raceProposalKinds),
+  title: z.string(),
+  summary: z.string().nullable().catch(null),
+  status: z.enum(raceProposalStatuses),
+  created_at: z.string(),
+  decided_at: z.string().nullable().catch(null),
+  coach_session_id: z.uuid().nullable().catch(null),
+});
+
+export const readRaceDecisionRecords = cache(
+  async (context: OnboardingContext): Promise<RaceDecisionRecord[]> => {
+    const { data, error } = await context.client
+      .from("race_proposals")
+      .select(
+        "id, race_id, kind, title, summary, status, created_at, decided_at, coach_session_id",
+      )
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error("Unable to read the race proposals");
+    return z
+      .array(raceDecisionRowSchema)
+      .parse(data ?? [])
+      .map((row) => ({
+        id: row.id,
+        raceId: row.race_id,
+        kind: row.kind,
+        title: row.title,
+        summary: row.summary,
+        status: row.status,
+        createdAt: row.created_at,
+        decidedAt: row.decided_at,
+        coachSessionId: row.coach_session_id,
+      }));
   },
 );
 

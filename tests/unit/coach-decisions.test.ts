@@ -123,7 +123,12 @@ describe("decisions view", () => {
   });
 
   it("counts the last 30 days from the response", () => {
-    expect(view.summary).toEqual({ proposals: 4, accepted: 2, rejected: 1 });
+    expect(view.summary).toEqual({
+      proposals: 4,
+      accepted: 2,
+      modified: 0,
+      rejected: 1,
+    });
   });
 
   it("formats the answer time in the athlete's zone", () => {
@@ -160,5 +165,229 @@ describe("decisions view", () => {
     expect(linked.sessionHref).toBe("/plan/sessions/w1-d2");
     expect(view.months[0].entries[0].exchangeHref).toBeNull();
     expect(view.months[0].entries[0].sessionHref).toBeNull();
+  });
+});
+
+describe("modified proposals", () => {
+  const build = (successorStatus: ProposalRecord["status"]) =>
+    buildCoachDecisions({
+      proposals: [
+        proposal("1", "2026-10-07T08:00:00Z", {
+          status: "superseded",
+          successorStatus,
+        }),
+      ],
+      timeZone: "Europe/Paris",
+      now,
+    });
+
+  it("reads Modifiée when the proposal that replaced it was applied", () => {
+    const view = build("applied");
+    expect(view.months[0].entries[0].response).toEqual({
+      kind: "modified",
+      label: "Modifiée",
+    });
+    expect(view.months[0].entries[0].outcome).toBe(
+      "Modifiée ensuite : la version retenue a été appliquée",
+    );
+    expect(view.summary).toMatchObject({ modified: 1, accepted: 0 });
+  });
+
+  it("keeps a replaced proposal unanswered when its successor was not applied", () => {
+    expect(build("rejected").months[0].entries[0].response.kind).toBe(
+      "unanswered",
+    );
+  });
+});
+
+describe("race proposals", () => {
+  const race = (
+    id: string,
+    kind: "strategy" | "nutrition",
+    status: "ready" | "accepted" | "rejected" | "superseded" | "stale",
+    fields = {},
+  ) => ({
+    id,
+    raceId: "r0r0r0r0-0000-4000-8000-000000000001",
+    kind,
+    title: `Course ${id}`,
+    summary: "Tu commences à 50 g, on monte par paliers",
+    status,
+    createdAt: "2026-10-05T08:00:00Z",
+    decidedAt: null,
+    coachSessionId: null,
+    ...fields,
+  });
+
+  const view = buildCoachDecisions({
+    proposals: [proposal("p", "2026-10-07T08:00:00Z")],
+    raceProposals: [
+      race("n", "nutrition", "accepted", { decidedAt: "2026-10-05T09:15:00Z" }),
+      race("s", "strategy", "rejected", {
+        createdAt: "2026-10-01T08:00:00Z",
+        decidedAt: "2026-10-03T10:00:00Z",
+      }),
+    ],
+    timeZone: "Europe/Paris",
+    now,
+  });
+
+  it("sits among the plan proposals by date, with the role its kind stores", () => {
+    const entries = view.months[0].entries;
+    expect(entries.map((entry) => entry.id)).toEqual(["p", "n", "s"]);
+    expect(entries[1]).toMatchObject({
+      role: "Nutrition",
+      agent: "nutritionist",
+      response: { kind: "accepted", label: "Acceptée" },
+      answer: "Acceptée à 11:15",
+      outcome: "Appliquée à ta course",
+      proposedBy: "Nutrition",
+      reason: "Tu commences à 50 g, on monte par paliers",
+      sessionHref: null,
+    });
+    expect(entries[2]).toMatchObject({
+      role: "Stratège de course",
+      agent: "strategist",
+      answer: "Refusée le 03/10/2026 à 12:00",
+      outcome: "Rien n’a changé dans ta course",
+    });
+    expect(entries[0].agent).toBe("coach");
+  });
+
+  it("counts toward the summary and links the discussion to the race", () => {
+    expect(view.summary).toMatchObject({
+      proposals: 3,
+      accepted: 1,
+      rejected: 1,
+    });
+    expect(view.months[0].entries[1].discussHref).toContain(
+      "race=r0r0r0r0-0000-4000-8000-000000000001",
+    );
+  });
+
+  it("never invents a response for replaced or outdated proposals", () => {
+    const stale = buildCoachDecisions({
+      proposals: [],
+      raceProposals: [
+        race("a", "strategy", "superseded"),
+        race("b", "strategy", "stale"),
+      ],
+      timeZone: "Europe/Paris",
+      now,
+    });
+    expect(stale.months[0].entries.map((entry) => entry.response.kind)).toEqual(
+      ["unanswered", "unanswered"],
+    );
+  });
+});
+
+describe("decision outcomes", () => {
+  const baseline = Array.from({ length: 28 }, (_, index) => ({
+    day: new Date(Date.parse("2026-09-01T00:00:00Z") + index * 86_400_000)
+      .toISOString()
+      .slice(0, 10),
+    hrv: index % 2 === 0 ? 58 : 62,
+    restingHeartRate: null,
+  }));
+  const wellness = [
+    ...baseline,
+    { day: "2026-09-29", hrv: 47, restingHeartRate: null },
+    { day: "2026-09-30", hrv: 60, restingHeartRate: null },
+    { day: "2026-10-04", hrv: 45, restingHeartRate: null },
+    { day: "2026-10-05", hrv: 44, restingHeartRate: null },
+    { day: "2026-10-06", hrv: 59, restingHeartRate: null },
+  ];
+  const matches = [
+    {
+      sessionKey: "s-2026-10-01-1",
+      status: "completed",
+      compliance: { duration: 0.96, distance: 0.92, intensity: null },
+    },
+  ];
+  const view = buildCoachDecisions({
+    proposals: [
+      proposal("followed", "2026-09-29T05:20:00Z", {
+        planId: "plan-active",
+        origin: "recovery",
+        status: "applied",
+        decisions: [athlete("accepted", "2026-09-29T06:00:00Z")],
+        operations: [{ op: "skip_session", sessionKey: "s-2026-10-01-1" }],
+      }),
+      proposal("refused", "2026-10-04T05:20:00Z", {
+        origin: "recovery",
+        status: "rejected",
+      }),
+      proposal("plain", "2026-10-02T05:20:00Z", {
+        status: "applied",
+        decisions: [athlete("accepted", "2026-10-02T06:00:00Z")],
+      }),
+    ],
+    signals: { planId: "plan-active", wellness, matches },
+    timeZone: "Europe/Paris",
+    now,
+  });
+  const outcome = (id: string) =>
+    view.months
+      .flatMap((month) => month.entries)
+      .find((entry) => entry.id === id)?.outcome;
+
+  it("says what the session and the metric did, from stored data only", () => {
+    expect(outcome("followed")).toBe(
+      "Séance conforme à 94\u00a0% · VFC revenue dans ta plage le lendemain",
+    );
+    expect(outcome("refused")).toBe("VFC revenue dans ta plage après 2 jours");
+  });
+
+  it("ignores the matches of another plan than the one the proposal changed", () => {
+    const other = buildCoachDecisions({
+      proposals: [
+        proposal("old", "2026-09-29T05:20:00Z", {
+          planId: "plan-replaced",
+          status: "applied",
+          operations: [{ op: "skip_session", sessionKey: "s-2026-10-01-1" }],
+        }),
+      ],
+      signals: { planId: "plan-active", wellness: [], matches },
+      timeZone: "Europe/Paris",
+      now,
+    });
+    expect(other.months[0].entries[0].outcome).not.toContain("conforme");
+  });
+
+  it("falls back on the status sentence without any stored signal", () => {
+    expect(outcome("plain")).toBe("Appliquée à ton plan (Sur v2)");
+  });
+
+  it("summarizes how fast the metric came back by response", () => {
+    expect(view.recovery).toEqual({
+      groups: [
+        {
+          kind: "accepted",
+          label: "Suivie",
+          cases: 1,
+          away: 0,
+          days: "1 jour",
+        },
+        {
+          kind: "rejected",
+          label: "Refusée",
+          cases: 1,
+          away: 0,
+          days: "2 jours",
+        },
+      ],
+      caution:
+        "Deux cas seulement : une tendance à surveiller, pas une preuve.",
+    });
+  });
+
+  it("has no range summary without signals", () => {
+    expect(
+      buildCoachDecisions({
+        proposals: [proposal("x", "2026-10-07T08:00:00Z")],
+        timeZone: "Europe/Paris",
+        now,
+      }).recovery,
+    ).toBeNull();
   });
 });

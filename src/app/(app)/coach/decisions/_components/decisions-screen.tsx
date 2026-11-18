@@ -29,7 +29,7 @@ function DecisionRow({ entry }: { entry: DecisionEntry }) {
           {entry.day}
         </span>
         <span className="max-md:row-span-3 max-md:pt-0.5">
-          <StaffAvatar agent="coach" size={22} decorative />
+          <StaffAvatar agent={entry.agent} size={22} decorative />
         </span>
         <span className="flex min-w-0 items-baseline gap-2 md:hidden">
           <span className="text-label text-muted-foreground">
@@ -69,6 +69,7 @@ function SummaryPanel({ view }: { view: DecisionsView }) {
   const rows = [
     ["Propositions", view.summary.proposals],
     ["Acceptées", view.summary.accepted],
+    ["Modifiées", view.summary.modified],
     ["Refusées", view.summary.rejected],
   ] as const;
   return (
@@ -98,6 +99,43 @@ function SummaryPanel({ view }: { view: DecisionsView }) {
           ))}
         </dl>
       </section>
+      {view.recovery && (
+        <section
+          aria-labelledby="decisions-recovery"
+          className="flex flex-col gap-2 border-b border-border px-4.5 py-3.5"
+        >
+          <h2
+            id="decisions-recovery"
+            className="text-label font-medium text-muted-foreground"
+          >
+            Retour dans ta plage après une alerte
+          </h2>
+          <dl className="flex flex-col">
+            {view.recovery.groups.map((group) => (
+              <div
+                key={group.kind}
+                className="flex items-baseline justify-between gap-3 py-1.5"
+              >
+                <dt className="text-secondary-foreground">{group.label}</dt>
+                <dd className="flex items-baseline gap-2">
+                  <span className="font-medium tabular-nums">
+                    {group.days ?? "Pas revenue"}
+                  </span>
+                  <span className="text-label text-muted-foreground tabular-nums">
+                    {group.cases} cas
+                    {group.away > 0 && `, dont ${group.away} sans retour`}
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {view.recovery.caution && (
+            <p className="text-label leading-normal text-muted-foreground">
+              {view.recovery.caution}
+            </p>
+          )}
+        </section>
+      )}
       <p className="px-4.5 py-3.5 text-label leading-normal text-muted-foreground">
         Chaque proposition du staff est gardée ici, avec ta réponse. Refuser ne
         change rien à la suite : le staff s’adapte à ce que tu as fait.
