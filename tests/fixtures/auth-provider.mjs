@@ -2301,6 +2301,7 @@ tables.notifications = [
   }),
 ];
 const notificationSnapshot = structuredClone(tables.notifications);
+const shoeSnapshot = structuredClone(tables.athlete_shoes);
 let pendingGarminImport = false;
 function matchesNotification(row, params) {
   for (const key of ["read_at", "resolved_at"])
@@ -2899,6 +2900,13 @@ createServer(async (request, response) => {
     tables.athlete_unavailability = tables.athlete_unavailability.filter(
       (row) => row.user_id !== user.id,
     );
+    return send(200, { reset: true });
+  }
+  if (
+    url.pathname === "/__test__/athlete-shoes" &&
+    request.method === "DELETE"
+  ) {
+    tables.athlete_shoes = structuredClone(shoeSnapshot);
     return send(200, { reset: true });
   }
   if (
@@ -4702,6 +4710,37 @@ createServer(async (request, response) => {
       if (!item) return send(200, []);
       Object.assign(item, body, { revision: item.revision + 1 });
       return send(200, [{ id: item.id }]);
+    }
+    if (url.pathname === "/rest/v1/athlete_shoes") {
+      if (request.method === "POST") {
+        const now = new Date().toISOString();
+        const shoe = {
+          id: randomUUID(),
+          description: null,
+          suggested_fields: [],
+          size_eu: null,
+          retired_on: null,
+          revision: 1,
+          created_at: now,
+          updated_at: now,
+          ...(Array.isArray(body) ? body[0] : body),
+        };
+        tables.athlete_shoes.push(shoe);
+        return send(
+          201,
+          request.headers.accept?.includes("vnd.pgrst.object")
+            ? { id: shoe.id }
+            : [{ id: shoe.id }],
+        );
+      }
+      if (request.method === "PATCH") {
+        const shoe = tables.athlete_shoes.find(
+          (row) => url.searchParams.get("id") === `eq.${row.id}`,
+        );
+        if (!shoe) return send(200, []);
+        Object.assign(shoe, body, { updated_at: new Date().toISOString() });
+        return send(200, []);
+      }
     }
     if (url.pathname === "/rest/v1/plan_session_shoe_choices") {
       const key = url.searchParams.get("session_key")?.slice(3);
