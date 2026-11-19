@@ -109,19 +109,22 @@ export function TodayLoading() {
                   <Skeleton className="h-3 w-1/2" />
                 </div>
               </div>
-              <ul aria-hidden="true">
+              <ol
+                aria-hidden="true"
+                className="flex gap-2 overflow-hidden border-b border-border px-4 py-4 md:px-5"
+              >
                 {Array.from({ length: 7 }, (_, index) => (
                   <li
                     key={index}
-                    className="flex min-h-row-touch items-center gap-3 border-b border-border px-4 sm:min-h-row md:px-5"
+                    className="flex min-h-44 w-34 shrink-0 flex-col gap-2 rounded-lg border border-border bg-card p-3"
                   >
-                    <Skeleton className="size-3.5 rounded-full" />
-                    <Skeleton className="h-3 w-10" />
-                    <Skeleton className="h-3 w-1/3" />
-                    <Skeleton className="ml-auto h-3 w-12" />
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-3.5 w-4/5" />
+                    <Skeleton className="h-5 w-14" />
+                    <Skeleton className="mt-auto h-3 w-2/3" />
                   </li>
                 ))}
-              </ul>
+              </ol>
             </section>
           </div>
           <aside className="flex flex-col gap-3 px-4 py-4.5 md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border">

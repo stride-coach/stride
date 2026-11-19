@@ -189,3 +189,25 @@ test("an athlete reviews the plan history", async ({ page }) => {
   ).toBeVisible();
   await expect(applied).toHaveCount(0);
 });
+
+test("an athlete scrolls the week cards and opens a session on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signInAs(page, "plan@example.com");
+  await page.goto("/plan");
+  const week = page.getByRole("list", { name: "Séances de la semaine" });
+  await expect(week.getByRole("listitem")).toHaveCount(7);
+  const today = week.locator('[aria-current="date"]');
+  await expect(today).toHaveCount(1);
+  const box = await today.boundingBox();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await week.getByRole("link").filter({ hasText: /Seuil/ }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
+});

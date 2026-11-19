@@ -3,11 +3,7 @@ import { CheckIcon, CircleCheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
-import {
-  SessionList,
-  SessionRow,
-  type SessionRowState,
-} from "@/components/stride/session-row";
+import { type SessionRowState } from "@/components/stride/session-row";
 import { SessionShape } from "@/components/stride/session-shape";
 import { Status, type StatusLevel } from "@/components/stride/status";
 import { Widget } from "@/components/stride/widget";
@@ -472,11 +468,6 @@ function rowState(day: TodayWeekDay): SessionRowState {
   return "upcoming";
 }
 
-function rowTitle(day: TodayWeekDay) {
-  const count = day.families.length;
-  return count > 1 ? `${day.title} + ${count - 1}` : day.title;
-}
-
 function rowCompliance(day: TodayWeekDay) {
   const count = day.families.length;
   if (count > 1) return `${day.doneCount}/${count}`;
@@ -523,33 +514,12 @@ export function WeekSection({ week }: { week: TodayWeek }) {
           {week.note}
         </p>
       )}
-      <WeekRows days={week.days} />
+      <WeekDayCards
+        label="Séances de la semaine"
+        days={week.days.map(weekCardDay)}
+        className="border-b border-border"
+      />
     </section>
-  );
-}
-
-function WeekRows({ days }: { days: TodayWeekDay[] }) {
-  return (
-    <SessionList className="rounded-none border-0">
-      {days.map((day) => (
-        <SessionRow
-          key={day.date}
-          state={rowState(day)}
-          past={day.isPast && !day.isToday}
-          current={day.isToday ? "date" : undefined}
-          day={day.dayLabel}
-          title={rowTitle(day)}
-          intensity={day.intensity}
-          duration={day.family === "rest" ? undefined : day.duration}
-          distance={day.family === "rest" ? undefined : day.distance}
-          elevation={day.elevation}
-          compliance={rowCompliance(day)}
-          href={day.href ?? undefined}
-          label={day.label}
-          className="sm:px-2"
-        />
-      ))}
-    </SessionList>
   );
 }
 

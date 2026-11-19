@@ -7,6 +7,7 @@ import {
   type SessionRowState,
 } from "@/components/stride/session-row";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
+import { WeekStrip } from "@/components/stride/week-strip";
 import { cn } from "@/lib/utils";
 
 export type WeekCardLink = {
@@ -140,9 +141,13 @@ export function WeekDayCards({
   className?: string;
 }) {
   return (
-    <ol
-      aria-label={label}
-      className={cn("grid grid-cols-7 gap-2 px-5 py-4", className)}
+    <WeekStrip
+      key={days[0]?.date}
+      label={label}
+      className={cn(
+        "flex snap-x snap-mandatory [scrollbar-width:none] gap-2 overflow-x-auto px-4 py-4 md:px-5 lg:grid lg:grid-cols-7 lg:overflow-visible",
+        className,
+      )}
     >
       {days.map((day) => {
         const card = cn(
@@ -153,7 +158,9 @@ export function WeekDayCards({
         return (
           <li
             key={day.date}
+            data-today={day.isToday}
             aria-current={day.isToday && !day.link ? "date" : undefined}
+            className="w-34 shrink-0 snap-start scroll-ml-4 md:scroll-ml-5 lg:w-auto lg:shrink"
           >
             {day.link ? (
               <CardLink link={day.link} current={day.isToday} className={card}>
@@ -167,6 +174,6 @@ export function WeekDayCards({
           </li>
         );
       })}
-    </ol>
+    </WeekStrip>
   );
 }
