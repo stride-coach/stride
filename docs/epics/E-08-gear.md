@@ -9,6 +9,7 @@ Let athletes manage their running shoes in Stride: exact mileage per pair, a spe
 - Shoes imported from Garmin or added in Stride by name: type, terrain, lifespan and a one-sentence description suggested by Stride, then reviewed by the athlete.
 - Mileage per pair: starting km kept in Stride plus the distance Garmin counts.
 - Wear shown as km used, km left and a replacement date projected from recent weekly volume. Garmin sends the wear alert.
+- Replacing a worn pair with a fresh one: a new pair at 0 km prefilled from the old one, which is retired with its history and can be put back in service.
 - A recommended pair for every planned session, with an athlete override per session, on the plan session, Today and the Matériel page.
 - An activity check after each sync: a missing pair is filled with the recommended one, a different pair asks the athlete which one was worn. Corrections are written back to Garmin.
 - Coach and Course Strategist read access to pairs and recommendations, and the race gear checklist linked to real pairs.
@@ -22,6 +23,7 @@ See [ADR 0013](../adr/0013-garmin-counted-shoe-mileage.md).
 - Stride creates pairs in Garmin and writes activity-to-pair corrections back to Garmin through garmin_mcp. Corrections made in Stride are never overwritten by a later sync.
 - From the pair's name, Claude suggests its type, terrain and a one-sentence description, or says it does not know the model. No external site is read, technical specs are not stored, and pairs are private to each athlete.
 - Recommendations are computed on read by deterministic domain rules: terrain, distance and D+, session kind, wear, rotation and pairs reserved for a race. The Coach phrases the reason; it never picks a pair outside these rules.
+- A pair's counter is never reset. A new physical pair is a new Stride and Garmin pair, so Garmin's count, wear alert and activity history stay true to each pair.
 - Strava is not integrated. Athletes may type their Strava totals as starting km.
 - Nothing about shoes is sent to the watch. Treadmill kilometres count.
 
