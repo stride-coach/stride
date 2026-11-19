@@ -49,12 +49,12 @@ function MonthLink({
 }) {
   if (!month)
     return (
-      <Button variant="outline" size="icon" aria-label={label} disabled>
+      <Button variant="outline" size="icon-sm" aria-label={label} disabled>
         {children}
       </Button>
     );
   return (
-    <Button asChild variant="outline" size="icon">
+    <Button asChild variant="outline" size="icon-sm">
       <Link href={monthHref(month)} aria-label={label}>
         {children}
       </Link>
@@ -258,7 +258,7 @@ export default async function PlanCalendarPage({
               <MonthLink month={calendar.previous} label="Mois précédent">
                 <ChevronLeftIcon aria-hidden="true" />
               </MonthLink>
-              <Button asChild variant="outline" size="md">
+              <Button asChild variant="outline" size="sm">
                 <Link
                   href={monthHref(null)}
                   aria-current={calendar.isCurrent ? "date" : undefined}

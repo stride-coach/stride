@@ -197,17 +197,17 @@ function DesktopGrid({ calendar }: { calendar: CalendarMonth }) {
                     tabIndex={-1}
                     className="flex min-w-0 flex-col gap-0.5 rounded-md hover:bg-muted data-panel-source:bg-muted"
                   >
-                    <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="flex min-w-0 items-start gap-1.5">
                       <span
                         aria-hidden="true"
                         className={cn(
-                          "size-1.75 shrink-0 rounded-mark",
+                          "mt-1.25 size-1.75 shrink-0 rounded-mark",
                           dotClass(session),
                         )}
                       />
                       <span
                         className={cn(
-                          "truncate text-body font-medium",
+                          "line-clamp-2 min-w-0 text-body font-medium break-words",
                           isDone(session) && "text-secondary-foreground",
                         )}
                       >
