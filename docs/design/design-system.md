@@ -6,7 +6,7 @@ Six rules drive every screen:
 
 1. A verdict before a number: each block opens on a word or sentence of verdict, then shows the value that justifies it.
 2. Always relative to the athlete: a health metric shows "ta plage" (the habitual range) and today's point.
-3. Colour only says a state. `primary` is "in your range" or the action, `warning` is "to watch", `destructive` is an alert, and `intensity-1` to `intensity-5` is how hard a session is. Everything else is grey.
+3. Colour only says a state. `primary` is "in your range" or the action, `warning` is "to watch", `destructive` is an alert, `intensity-1` to `intensity-5` is how hard a session is, and `race` marks race time in a volume chart. Everything else is grey.
 4. Lists for what is browsed, banded cards for what must be understood.
 5. One body size: 13px everywhere, hierarchy through weight and grey.
 6. The relief is the only decoration, in the app frame, never behind data.
@@ -15,26 +15,27 @@ Six rules drive every screen:
 
 Values live once in `src/app/globals.css`: `:root` holds the dark theme, `:root[data-theme="light"]` the light theme, and `@theme inline` exposes them as utilities. Token names follow shadcn.
 
-| Token                  | Dark      | Light     | Use                                                                                   |
-| ---------------------- | --------- | --------- | ------------------------------------------------------------------------------------- |
-| `shell`                | `#070809` | `#EFEFEC` | App frame behind the top bar and sidebar (`--sidebar`); carries the relief            |
-| `background`           | `#0C0D0F` | `#FAFAF9` | Content panel and pages                                                               |
-| `card`                 | `#121316` | `#FFFFFF` | Inner card, fields, outline buttons, menus (`--popover`)                              |
-| `muted`                | `#18191D` | `#F2F2F0` | Card banner, section banner, hovered or selected row, active tab (`--secondary`)      |
-| `border`               | `#1E2025` | `#E6E6E2` | Hairline between zones, list rows, card outline                                       |
-| `control-border`       | `#2B2D34` | `#D4D4CF` | Discreet outline of outline buttons, chips and tracks; never the only edge of a field |
-| `input`                | `#666A74` | `#82858D` | Field and checkbox outline, at least 3:1                                              |
-| `foreground`           | `#EDEEF0` | `#17181A` | Main text, numbers, and the "what you did" series of a chart                          |
-| `secondary-foreground` | `#B3B6BD` | `#44464C` | Supporting prose, coach sentence, row labels                                          |
-| `muted-foreground`     | `#868A94` | `#666970` | Units, dates, legends, axis text                                                      |
-| `primary`              | `#6E9BFF` | `#2456E6` | Action, link, focus ring (`--ring`), "dans ta plage", easy effort                     |
-| `primary-foreground`   | `#06102A` | `#FFFFFF` | Text and icons on `primary`                                                           |
-| `accent`               | `#131D36` | `#E4EBFD` | Brand tint: range band, "Proposition" chip, planned zone of a chart                   |
-| `warning`              | `#E5B45A` | `#8F5C06` | "À surveiller", today's session; always with a word                                   |
-| `destructive`          | `#F0806A` | `#B3321B` | Alert, error, destructive action; always with a word                                  |
-| `intensity-1` … `-5`   | see CSS   | see CSS   | Session intensity (Récup to Fractionné) and heart-rate zones Z1 to Z5; fills only     |
-| `data-1` … `-3`        | see CSS   | see CSS   | Secondary chart series without state or intensity, most discreet to strongest         |
-| `relief`, `-strong`    | see CSS   | see CSS   | Contour lines of the frame; decorative                                                |
+| Token                  | Dark      | Light     | Use                                                                                                              |
+| ---------------------- | --------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
+| `shell`                | `#070809` | `#EFEFEC` | App frame behind the top bar and sidebar (`--sidebar`); carries the relief                                       |
+| `background`           | `#0C0D0F` | `#FAFAF9` | Content panel and pages                                                                                          |
+| `card`                 | `#121316` | `#FFFFFF` | Inner card, fields, outline buttons, menus (`--popover`)                                                         |
+| `muted`                | `#18191D` | `#F2F2F0` | Card banner, section banner, hovered or selected row, active tab (`--secondary`)                                 |
+| `border`               | `#1E2025` | `#E6E6E2` | Hairline between zones, list rows, card outline                                                                  |
+| `control-border`       | `#2B2D34` | `#D4D4CF` | Discreet outline of outline buttons, chips and tracks; never the only edge of a field                            |
+| `input`                | `#666A74` | `#82858D` | Field and checkbox outline, at least 3:1                                                                         |
+| `foreground`           | `#EDEEF0` | `#17181A` | Main text, numbers, and the "what you did" series of a chart                                                     |
+| `secondary-foreground` | `#B3B6BD` | `#44464C` | Supporting prose, coach sentence, row labels                                                                     |
+| `muted-foreground`     | `#868A94` | `#666970` | Units, dates, legends, axis text                                                                                 |
+| `primary`              | `#6E9BFF` | `#2456E6` | Action, link, focus ring (`--ring`), "dans ta plage", easy effort                                                |
+| `primary-foreground`   | `#06102A` | `#FFFFFF` | Text and icons on `primary`                                                                                      |
+| `accent`               | `#131D36` | `#E4EBFD` | Brand tint: range band, "Proposition" chip, planned zone of a chart                                              |
+| `warning`              | `#E5B45A` | `#8F5C06` | "À surveiller", today's session; always with a word                                                              |
+| `destructive`          | `#F0806A` | `#B3321B` | Alert, error, destructive action; always with a word                                                             |
+| `race`                 | `#F59E4B` | `#C25B0A` | Race time in a volume chart (the Course segment of the program bars) and the primary race mark there; fills only |
+| `intensity-1` … `-5`   | see CSS   | see CSS   | Session intensity (Récup to Fractionné) and heart-rate zones Z1 to Z5; fills only                                |
+| `data-1` … `-3`        | see CSS   | see CSS   | Secondary chart series without state or intensity, most discreet to strongest                                    |
+| `relief`, `-strong`    | see CSS   | see CSS   | Contour lines of the frame; decorative                                                                           |
 
 - Every text token keeps 4.5:1 and `input`, the focus ring and chart marks keep 3:1 on `shell`, `background`, `card` and `muted`, in both themes.
 - A state never relies on colour alone: a dot or a tint always comes with its word.
@@ -42,6 +43,7 @@ Values live once in `src/app/globals.css`: `:root` holds the dark theme, `:root[
 - No tinted surface or outline for a state: a banner stays on `card` with a `border` hairline and the status word carries the colour.
 - Data has no source colour. Garmin is named, never coloured, and staff roles have no colour.
 - Never use an intensity colour outside a session or a heart-rate zone, and never as text.
+- `race` is a fill for race time in volume charts only: never as text, a state, or a button.
 - Supporting text is `text-secondary-foreground`; `muted` is a surface and never a text colour. `secondary-foreground` is therefore not shadcn's "text on `bg-secondary`": on a registry component that pairs the two, use `text-foreground`. Registry `bg-accent` hover states become `bg-muted`.
 
 ### Themes

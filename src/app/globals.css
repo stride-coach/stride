@@ -24,6 +24,7 @@
   --intensity-3: #8f7bff;
   --intensity-4: #c06cf0;
   --intensity-5: #ff6fb5;
+  --race: #f59e4b;
   --data-1: #666a74;
   --data-2: #8d919b;
   --data-3: #bfc2c9;
@@ -81,6 +82,7 @@
   --intensity-3: #5b45d9;
   --intensity-4: #9a2fd0;
   --intensity-5: #d6247e;
+  --race: #c25b0a;
   --data-1: #82858d;
   --data-2: #5f6269;
   --data-3: #3b3d42;
@@ -111,6 +113,7 @@
   --color-intensity-3: var(--intensity-3);
   --color-intensity-4: var(--intensity-4);
   --color-intensity-5: var(--intensity-5);
+  --color-race: var(--race);
   --color-data-1: var(--data-1);
   --color-data-2: var(--data-2);
   --color-data-3: var(--data-3);
@@ -339,6 +342,7 @@
     --intensity-3: #5b45d9;
     --intensity-4: #9a2fd0;
     --intensity-5: #d6247e;
+    --race: #c25b0a;
     --data-1: #82858d;
     --data-2: #5f6269;
     --data-3: #3b3d42;

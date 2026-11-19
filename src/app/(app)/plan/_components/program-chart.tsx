@@ -34,7 +34,7 @@ function RaceMark({
       className={cn(
         "grid size-4 place-items-center rounded-sm text-micro leading-none font-bold tabular-nums",
         primary
-          ? "bg-primary text-primary-foreground"
+          ? "bg-race text-primary-foreground"
           : "border border-muted-foreground text-secondary-foreground",
         className,
       )}
@@ -109,7 +109,7 @@ function Bar({
         style={{ height: `${(week.easySeconds / maximum) * 100}%` }}
       />
       <span
-        className={cn("bg-secondary-foreground", muted && "opacity-45")}
+        className={cn("bg-race", muted && "opacity-45")}
         style={{ height: `${(raceSeconds(week) / maximum) * 100}%` }}
       />
     </button>
@@ -183,7 +183,7 @@ export function ProgramChart({
             <span className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
-                className="size-2 rounded-mark bg-secondary-foreground"
+                className="size-2 rounded-mark bg-race"
               />
               Course
             </span>

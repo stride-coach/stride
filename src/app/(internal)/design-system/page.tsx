@@ -93,6 +93,7 @@ const states = [
   ["Dans ta plage", "bg-primary", "primary"],
   ["À surveiller", "bg-warning", "warning"],
   ["Alerte", "bg-destructive", "destructive"],
+  ["Course", "bg-race", "race"],
   ["Série 1", "bg-data-1", "data-1"],
   ["Série 2", "bg-data-2", "data-2"],
   ["Série 3", "bg-data-3", "data-3"],
