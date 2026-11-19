@@ -30,6 +30,13 @@ description: Season calendar for a running athlete. Race roles, recovery and tap
 - A new main objective after a previous one needs the previous recovery plus enough preparation weeks for the step up. When those weeks are short, say so and name what the previous season must already carry (volume, long-run duration, D+) for the new objective to stay realistic; the coach builds it into that season.
 - Respect the athlete's declared unavailability.
 
+## Severity
+
+Each conflict returned by `read_season_calendar` has a `severity`:
+
+- `tight` (« serré »): the gap is short by at most `tightToleranceDays` (3 days) of a provisional rule. Say it is tight with the numbers (« 48 jours pour 49 »), as a margin to watch. Never use it as a reason to downgrade or move a race on its own.
+- `conflict`: the shortfall is larger, or a race sits inside the main objective's taper (always a conflict, whatever the margin). Apply the rules below.
+
 ## Conflicts
 
 A conflict is never hidden. Show it and propose the nearest alternative: another date, a shorter format of the same event, or downgrading the race to Plaisir. Health beats ambition: an open pain report or a Medical limit always wins over the calendar.
