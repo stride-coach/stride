@@ -90,7 +90,9 @@ function fakeClient(
       );
       return builder;
     },
-    rpc: vi.fn(async () => rpc),
+    rpc: vi.fn<(name: string, params?: unknown) => Promise<Result>>(
+      async () => rpc,
+    ),
   };
   return { calls, client };
 }
