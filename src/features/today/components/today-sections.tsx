@@ -1,15 +1,11 @@
-import { Fragment } from "react";
 import { CountUp } from "@/components/stride/count-up";
 import { CheckIcon, CircleCheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
 import {
-  MissingValue,
   SessionList,
   SessionRow,
-  SessionStateMark,
-  sessionStateLabels,
   type SessionRowState,
 } from "@/components/stride/session-row";
 import { SessionShape } from "@/components/stride/session-shape";
@@ -19,6 +15,10 @@ import { LoadTrendWidget } from "@/features/progress/components/load-trend-widge
 import type { LoadTrend } from "@/features/progress/load-trend";
 import { coachRequestHref } from "@/features/coach/request";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
+import {
+  WeekDayCards,
+  type WeekCardDay,
+} from "@/components/stride/week-day-cards";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SyncNowButton } from "@/features/data-activity/components/sync-request";
 import { TodayDecisions } from "./today-decisions";
@@ -553,80 +553,26 @@ function WeekRows({ days }: { days: TodayWeekDay[] }) {
   );
 }
 
-function WeekCards({ days }: { days: TodayWeekDay[] }) {
-  return (
-    <ol className="grid grid-cols-7 gap-2 px-5 py-4">
-      {days.map((day) => {
-        const state = rowState(day);
-        const compliance = rowCompliance(day);
-        const metrics =
-          day.family === "rest"
-            ? undefined
-            : [day.duration, day.distance, day.elevation]
-                .filter(Boolean)
-                .join(" · ") || undefined;
-        const content = (
-          <>
-            <span className="flex items-center gap-1 text-label whitespace-nowrap">
-              <SessionStateMark state={state} />
-              <span className="text-muted-foreground tabular-nums">
-                {day.dayLabel}
-              </span>
-              <span className="sr-only">{sessionStateLabels[state]}</span>
-              {compliance && (
-                <span className="ml-auto font-medium text-primary tabular-nums">
-                  {compliance}
-                </span>
-              )}
-            </span>
-            {(day.sessions.length > 0
-              ? day.sessions
-              : [{ key: day.date, title: day.title, intensity: day.intensity }]
-            ).map((session) => (
-              <Fragment key={session.key}>
-                <span className="line-clamp-2 font-medium">
-                  {session.title}
-                </span>
-                {session.intensity && (
-                  <span>
-                    <Chip intensity={session.intensity.level ?? undefined}>
-                      {session.intensity.label}
-                    </Chip>
-                  </span>
-                )}
-              </Fragment>
-            ))}
-            <span className="mt-auto text-label text-muted-foreground tabular-nums">
-              <MissingValue value={metrics} />
-            </span>
-          </>
-        );
-        const card = cn(
-          "flex h-full min-h-44 flex-col gap-2 rounded-lg border bg-card p-3",
-          day.isToday ? "border-foreground" : "border-border",
-          day.isPast && !day.isToday && "opacity-55",
-        );
-        return (
-          <li key={day.date} aria-current={day.isToday ? "date" : undefined}>
-            {day.href ? (
-              <Link
-                href={day.href}
-                aria-label={day.label}
-                className={cn(
-                  card,
-                  "transition-colors duration-150 ease-stride hover:bg-muted",
-                )}
-              >
-                {content}
-              </Link>
-            ) : (
-              <div className={card}>{content}</div>
-            )}
-          </li>
-        );
-      })}
-    </ol>
-  );
+function weekCardDay(day: TodayWeekDay): WeekCardDay {
+  return {
+    date: day.date,
+    dayLabel: day.dayLabel,
+    state: rowState(day),
+    isToday: day.isToday,
+    isPast: day.isPast,
+    compliance: rowCompliance(day),
+    metrics:
+      day.family === "rest"
+        ? undefined
+        : [day.duration, day.distance, day.elevation]
+            .filter(Boolean)
+            .join(" · ") || undefined,
+    link: day.href ? { href: day.href, label: day.label } : undefined,
+    sessions:
+      day.sessions.length > 0
+        ? day.sessions
+        : [{ key: day.date, title: day.title, intensity: day.intensity }],
+  };
 }
 
 export function WeekPlanSection({ week }: { week: TodayWeek }) {
@@ -710,7 +656,7 @@ export function WeekPlanSection({ week }: { week: TodayWeek }) {
           </p>
         )}
       </div>
-      <WeekCards days={week.days} />
+      <WeekDayCards days={week.days.map(weekCardDay)} />
     </section>
   );
 }
