@@ -4,7 +4,9 @@ import {
   type ActivityFilter,
   type ActivityListView,
 } from "@/features/activities/activities";
+import type { ActivityRail } from "@/server/activities/rail";
 import { ActivityListPane } from "./activity-list-pane";
+import { ActivityRailAside } from "./activity-rail";
 import { ActivityToolbar } from "./activity-frame";
 
 export function ActivitiesView({
@@ -13,7 +15,9 @@ export function ActivitiesView({
   limit,
   search,
   today,
+  rail,
 }: {
+  rail: ActivityRail | null;
   list: ActivityListView;
   filter: ActivityFilter;
   limit: number;
@@ -21,14 +25,17 @@ export function ActivitiesView({
   today: string;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <ActivityListPane
-        {...list}
-        filter={filter}
-        limit={limit}
-        search={search}
-        today={today}
-      />
+    <div className="flex min-h-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <ActivityListPane
+          {...list}
+          filter={filter}
+          limit={limit}
+          search={search}
+          today={today}
+        />
+      </div>
+      {rail && <ActivityRailAside rail={rail} />}
     </div>
   );
 }
