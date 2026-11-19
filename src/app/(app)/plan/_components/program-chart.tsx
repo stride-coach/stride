@@ -44,14 +44,16 @@ function Bar({
   week,
   maximum,
   selected,
+  past,
   onSelect,
 }: {
+  past: boolean;
   week: ProgramWeek;
   maximum: number;
   selected: boolean;
   onSelect: () => void;
 }) {
-  const muted = week.isLight || week.status === "past";
+  const muted = week.isLight || (!past && week.status === "past");
   const distance =
     week.totals.distanceMeters !== null
       ? formatInteger(week.totals.distanceMeters / 1000)
@@ -73,7 +75,7 @@ function Bar({
       className={cn(
         "relative flex h-24 min-w-0 flex-col justify-end rounded-xs outline-offset-3 transition-opacity duration-150 ease-stride hover:opacity-100 sm:h-37.5",
         selected && "outline-1 outline-foreground",
-        week.status === "past" && !selected && "opacity-55",
+        !past && week.status === "past" && !selected && "opacity-55",
       )}
     >
       {week.race && (
@@ -101,9 +103,11 @@ function Bar({
 export function ProgramChart({
   weeks,
   bands,
+  past = false,
   selected,
   onSelect,
 }: {
+  past?: boolean;
   weeks: ProgramWeek[];
   bands: ProgramBand[];
   selected: string | null;
@@ -126,7 +130,10 @@ export function ProgramChart({
           {weeks.length > 1 ? `${weeks.length} semaines` : "1 semaine"}
         </h2>
         {range && (
-          <span className="text-muted-foreground tabular-nums">{range}</span>
+          <span className="text-muted-foreground tabular-nums">
+            {range}
+            {past && " · ce que tu as couru"}
+          </span>
         )}
         <span className="ml-auto flex gap-3.5 text-label text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -196,6 +203,7 @@ export function ProgramChart({
                 key={week.weekKey}
                 week={week}
                 maximum={maximum}
+                past={past}
                 selected={week.weekKey === selected}
                 onSelect={() => onSelect(week.weekKey)}
               />

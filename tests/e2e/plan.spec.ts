@@ -114,7 +114,9 @@ test("an athlete reads past seasons without changing them", async ({
     page.getByRole("heading", { level: 1, name: "Trail d’automne 25K" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Saison terminée · lecture seule", { exact: true }),
+    page
+      .getByText("Saison terminée · lecture seule", { exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Aujourd’hui" })).toHaveCount(
     0,

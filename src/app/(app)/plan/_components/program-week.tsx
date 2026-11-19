@@ -474,7 +474,50 @@ function kilometers(meters: number, estimated: boolean) {
   return `${estimated ? "≈ " : ""}${formatInteger(meters / 1000)} km`;
 }
 
+function pastMetrics(week: ProgramWeek) {
+  const { done } = week;
+  const sessions = week.days.flatMap((day) => day.sessions);
+  const finished = sessions.filter(
+    (session) => session.state === "done" || session.state === "partial",
+  ).length;
+  return [
+    {
+      key: "duration",
+      value: formatDuration(done.durationSeconds),
+      note: "courues",
+    },
+    ...(done.distanceMeters !== null
+      ? [
+          {
+            key: "distance",
+            value: kilometers(done.distanceMeters, done.distanceEstimated),
+            note: "distance",
+          },
+        ]
+      : []),
+    ...(done.elevationMeters !== null && done.elevationMeters > 0
+      ? [
+          {
+            key: "elevation",
+            value: formatElevation(done.elevationMeters),
+            note: "dénivelé",
+          },
+        ]
+      : []),
+    ...(sessions.length > 0
+      ? [
+          {
+            key: "sessions",
+            value: `${finished} / ${sessions.length}`,
+            note: "séances faites",
+          },
+        ]
+      : []),
+  ];
+}
+
 function weekMetrics(week: ProgramWeek) {
+  if (week.status === "past") return pastMetrics(week);
   const { totals, done } = week;
   const started = week.status !== "future";
   return [
@@ -579,7 +622,7 @@ export function ProgramWeekPanel({
             ))}
             {split && <WeekSplitCell split={split} />}
           </dl>
-          {week.status !== "future" && (
+          {week.status === "current" && (
             <span
               aria-hidden="true"
               className="h-1 overflow-hidden rounded-mark bg-border"

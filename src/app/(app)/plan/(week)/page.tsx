@@ -204,28 +204,34 @@ export default async function PlanPage({
     today: overview.today,
     paces,
   });
+  const status = (
+    <>
+      {program.status === "past" && (
+        <Chip>
+          <LockIcon aria-hidden="true" className="size-3" />
+          Saison terminée · lecture seule
+        </Chip>
+      )}
+      {current && current.id !== program.id && (
+        <CurrentSeasonLink href={current.href} />
+      )}
+    </>
+  );
   const toolbar =
     program.status === "past" || (current && current.id !== program.id);
   return (
     <PlanFrame
       className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
       actions={
-        <div className="max-md:hidden">
+        <div className="flex items-center gap-1.5 max-md:hidden">
+          {status}
           <CopyProgramButton text={copyText} />
         </div>
       }
     >
       {toolbar && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
-          {program.status === "past" && (
-            <Chip>
-              <LockIcon aria-hidden="true" className="size-3" />
-              Saison terminée · lecture seule
-            </Chip>
-          )}
-          {current && current.id !== program.id && (
-            <CurrentSeasonLink href={current.href} />
-          )}
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:hidden">
+          {status}
         </div>
       )}
       <ProgramExplorer
@@ -271,24 +277,35 @@ function ArchivedSeasonPage({
   sheet: Awaited<ReturnType<typeof loadSessionSheet>>;
   text: string;
 }) {
+  const status = (
+    <>
+      <Chip>
+        <LockIcon aria-hidden="true" className="size-3" />
+        {replaced
+          ? "Plan remplacé · lecture seule"
+          : "Saison terminée · lecture seule"}
+      </Chip>
+      {current && <CurrentSeasonLink href={current.href} />}
+    </>
+  );
   return (
-    <PlanFrame className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
-        <Chip>
-          <LockIcon aria-hidden="true" className="size-3" />
-          {replaced
-            ? "Plan remplacé · lecture seule"
-            : "Saison terminée · lecture seule"}
-        </Chip>
-        <div className="ml-auto flex min-w-0 flex-wrap justify-end gap-1.5">
-          {current && <CurrentSeasonLink href={current.href} />}
+    <PlanFrame
+      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
+      actions={
+        <div className="flex items-center gap-1.5 max-md:hidden">
+          {status}
           <CopyProgramButton text={text} />
         </div>
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:hidden">
+        {status}
       </div>
       <ProgramExplorer
         key={program.id}
         program={program}
         initialWeekKey={initialWeekKey}
+        mobileAction={<CopyProgramButton text={text} />}
       />
       {sheet && (
         <SessionSheet

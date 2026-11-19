@@ -7,8 +7,30 @@ import type {
   SeasonProgram,
 } from "@/features/plans/view/program";
 
-export function ProgramHeader({ program }: { program: SeasonProgram }) {
+export function ProgramHeader({
+  program,
+  compact = false,
+}: {
+  program: SeasonProgram;
+  compact?: boolean;
+}) {
   const { position } = program;
+  if (compact)
+    return (
+      <section className="flex flex-col gap-1.5">
+        <p className="font-semibold">{program.title}</p>
+        <dl className="flex flex-wrap gap-x-4 gap-y-0.5 tabular-nums">
+          {program.kpis.map((kpi) => (
+            <div key={kpi.key} className="flex items-baseline gap-1.5">
+              <dd className="font-semibold">{kpi.value}</dd>
+              <dt className="text-label text-muted-foreground">
+                {kpi.detail ?? kpi.label}
+              </dt>
+            </div>
+          ))}
+        </dl>
+      </section>
+    );
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
