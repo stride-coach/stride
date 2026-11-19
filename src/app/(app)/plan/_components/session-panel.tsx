@@ -16,10 +16,8 @@ import { WatchStatusBlock } from "@/features/garmin/components/watch-status";
 import { SessionShoesBlock } from "@/features/gear/components/session-shoes";
 import { DebriefFeeling } from "@/features/activities/components/feeling-prompt";
 import {
-  DebriefCoach,
   DebriefNote,
   DebriefSteps,
-  DebriefVerdict,
 } from "@/features/activities/components/session-debrief";
 import {
   panelStatusLabel,
@@ -66,6 +64,9 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
       })),
   );
   const terrain = panel.stats.find((stat) => stat.key === "terrain");
+  const debrief = panel.completion?.debrief ?? null;
+  const pct = panel.completion?.pct ?? null;
+  const note = debrief ? debrief.verdict.body : panel.purpose;
   return (
     <div className="flex items-start gap-3">
       <div className="flex min-w-0 flex-col gap-2.5">
@@ -81,11 +82,16 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
             </Chip>
           )}
           {terrain && <Chip>{terrain.value}</Chip>}
+          {debrief && (
+            <Status level={debrief.verdict.tone === "warning" ? "watch" : "ok"}>
+              {pct !== null ? `Conforme · ${pct} %` : debrief.verdict.title}
+            </Status>
+          )}
         </div>
-        {panel.purpose && (
+        {note && (
           <p className="flex items-start gap-2.5 text-body leading-normal text-secondary-foreground">
             <StaffAvatar agent="coach" size={22} decorative />
-            {panel.purpose}
+            {note}
           </p>
         )}
       </div>
@@ -319,6 +325,25 @@ function SurgeIdeas({ items }: { items: string[] }) {
   );
 }
 
+function CompletionFigures({ completion }: { completion: PanelCompletion }) {
+  const rows = completion.rows.filter((row) => row.actual !== "–");
+  if (rows.length === 0) return null;
+  return (
+    <dl className="grid grid-cols-2 gap-x-3 gap-y-4 border-y border-border py-4 sm:grid-cols-4">
+      {rows.slice(0, 4).map((row) => (
+        <div key={row.key} className="flex min-w-0 flex-col gap-0.75">
+          <dt className="order-2">
+            <Dk>{row.label}</Dk>
+          </dt>
+          <dd className="order-1 truncate text-title leading-none font-semibold tabular-nums">
+            {row.actual}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function Completion({
   completion,
   readOnly,
@@ -392,14 +417,10 @@ function Completion({
     <>
       {debrief ? (
         <>
-          <DebriefVerdict
-            debrief={debrief}
-            pct={completion.pct}
-            detail={[completion.detail, debrief.alignment]
-              .filter(Boolean)
-              .join(" · ")}
-          />
-          {!debrief.feeling && feeling}
+          <CompletionFigures completion={completion} />
+          <p className="text-label text-muted-foreground">
+            {[completion.detail, debrief.alignment].filter(Boolean).join(" · ")}
+          </p>
           {debrief.note && <DebriefNote>{debrief.note}</DebriefNote>}
           {debrief.aligned && <DebriefSteps steps={debrief.steps} />}
         </>
@@ -511,20 +532,7 @@ function Completion({
           </ul>
         </section>
       )}
-      {debrief?.feeling && feeling}
-      {debrief && !readOnly && <DebriefCoach href={debrief.coachHref} />}
-      {completion.activities.length === 0 && (
-        <Button
-          asChild
-          variant="outline"
-          size="md"
-          className="min-h-9.5 self-start rounded-md text-body"
-        >
-          <Link href={`/activities/${completion.activityId}`}>
-            Voir l’activité Garmin
-          </Link>
-        </Button>
-      )}
+      {feeling}
     </>
   );
 }
