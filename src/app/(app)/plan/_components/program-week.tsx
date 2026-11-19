@@ -8,7 +8,13 @@ import {
   type SessionRowState,
 } from "@/components/stride/session-row";
 import { Status } from "@/components/stride/status";
-import { StrideMark } from "@/components/stride/stride-mark";
+import {
+  WeekDayCards,
+  type WeekCardDay,
+  type WeekCardLink,
+} from "@/components/stride/week-day-cards";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
+import { dayCardMetrics } from "@/features/plans/view/day-card";
 import { dayIntensity } from "@/features/plans/view/intensity";
 import { cn } from "@/lib/utils";
 import {
@@ -75,6 +81,85 @@ function WatchTag({ tag }: { tag: WatchDayTag | undefined }) {
 
 type SessionHref = (sessionKey: string) => string;
 type WatchTags = Record<string, WatchDayTag>;
+
+function sessionLink(
+  session: ProgramDaySession,
+  sessionHref: SessionHref,
+): WeekCardLink {
+  return session.raceId
+    ? { href: `/races/${session.raceId}`, sessionKey: session.sessionKey }
+    : {
+        href: sessionHref(session.sessionKey),
+        onClick: markSessionOpened,
+        sessionKey: session.sessionKey,
+      };
+}
+
+function cardCompliance(day: ProgramDay) {
+  if (day.sessions.length > 1) {
+    const done = day.sessions.filter(
+      (session) => session.state === "done" || session.state === "partial",
+    ).length;
+    return done > 0 ? `${done}/${day.sessions.length}` : undefined;
+  }
+  return day.compliancePct !== null ? `${day.compliancePct} %` : undefined;
+}
+
+function CardDetail({
+  session,
+  watch,
+}: {
+  session: ProgramDaySession;
+  watch: WatchDayTag | undefined;
+}) {
+  const state =
+    session.state === "proposed" ||
+    session.state === "substituted" ||
+    session.state === "missed";
+  if (!state && !watch) return null;
+  return (
+    <span className="flex flex-col gap-1">
+      {state && <DayState state={session.state} compliancePct={null} />}
+      {session.state !== "proposed" && <WatchTag tag={watch} />}
+    </span>
+  );
+}
+
+function weekCardDay(
+  day: ProgramDay,
+  sessionHref: SessionHref,
+  watchTags: WatchTags,
+): WeekCardDay {
+  const [single] = day.sessions;
+  return {
+    date: day.date,
+    dayLabel: shortDay(day),
+    state: rowState(day, day.state, day.sessionKey === null),
+    isToday: day.isToday,
+    isPast: day.isPast,
+    compliance: cardCompliance(day),
+    metrics: dayCardMetrics(day.sessions) ?? undefined,
+    link:
+      single && day.sessions.length === 1
+        ? sessionLink(single, sessionHref)
+        : undefined,
+    sessions:
+      day.sessions.length > 0
+        ? day.sessions.map((session) => ({
+            key: session.sessionKey,
+            title: session.title,
+            intensity: dayIntensity(session.family, session.blocks),
+            link: sessionLink(session, sessionHref),
+            detail: (
+              <CardDetail
+                session={session}
+                watch={watchTags[session.sessionKey]}
+              />
+            ),
+          }))
+        : [{ key: day.date, title: day.title, intensity: null }],
+  };
+}
 
 function SessionLink({
   session,
@@ -193,7 +278,7 @@ function SessionCells({
       </span>
       <span className="max-sm:hidden">
         {intensity && (
-          <Chip intensity={intensity.level ?? undefined}>
+          <Chip intensity={intensity.level ?? undefined} race={intensity.race}>
             {intensity.label}
           </Chip>
         )}
@@ -291,8 +376,10 @@ function DayRows({
 function WeekNote({ note }: { note: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <StrideMark className="mt-0.75 size-3.5 shrink-0" />
-      <p className="max-w-170 text-body-lg text-secondary-foreground">{note}</p>
+      <StaffAvatar agent="coach" size={22} decorative />
+      <p className="max-w-170 pt-0.5 text-body-lg text-secondary-foreground">
+        {note}
+      </p>
     </div>
   );
 }
@@ -607,7 +694,7 @@ export function ProgramWeekPanel({
         </div>
         {navigation}
       </div>
-      <div className="grid gap-4 sm:gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <dl className="flex flex-wrap items-baseline gap-3.5 sm:gap-4.5">
             {weekMetrics(week).map((metric) => (
@@ -640,7 +727,12 @@ export function ProgramWeekPanel({
       {proposals.length > 0 && (
         <WeekProposals proposals={proposals} reviewHref={reviewHref} />
       )}
-      <ol className="-mx-4 border-t border-border md:-mx-5">
+      <WeekDayCards
+        label="Séances de la semaine"
+        days={week.days.map((day) => weekCardDay(day, sessionHref, watchTags))}
+        className="-mx-5 border-t border-border max-lg:hidden"
+      />
+      <ol className="-mx-4 border-t border-border md:-mx-5 lg:hidden">
         {week.days.map((day) => (
           <DayRows
             key={day.date}

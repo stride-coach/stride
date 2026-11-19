@@ -6,10 +6,15 @@ import { cn } from "@/lib/utils";
 export function Chip({
   intensity,
   proposal = false,
+  race = false,
   className,
   children,
   ...props
-}: React.ComponentProps<"span"> & { intensity?: Zone; proposal?: boolean }) {
+}: React.ComponentProps<"span"> & {
+  intensity?: Zone;
+  proposal?: boolean;
+  race?: boolean;
+}) {
   return (
     <Badge
       data-slot="chip"
@@ -17,10 +22,13 @@ export function Chip({
       className={className}
       {...props}
     >
-      {intensity && (
+      {(intensity || race) && (
         <span
           aria-hidden="true"
-          className={cn("size-1.75 rounded-mark", zoneFills[intensity])}
+          className={cn(
+            "size-1.75 rounded-mark",
+            race ? "bg-race" : intensity && zoneFills[intensity],
+          )}
         />
       )}
       {children}

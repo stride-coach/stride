@@ -252,7 +252,10 @@ function ActivityRow({
           </span>
           <span className="max-lg:hidden">
             {intensity && (
-              <Chip intensity={intensity.level ?? undefined}>
+              <Chip
+                intensity={intensity.level ?? undefined}
+                race={intensity.race}
+              >
                 {intensity.label}
               </Chip>
             )}

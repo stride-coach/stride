@@ -96,7 +96,7 @@ export function AppHeader({
             <span className="truncate text-muted-foreground">{detail}</span>
           ))}
       </div>
-      <div className="flex min-w-0 flex-1 max-md:hidden">
+      <div className="flex min-w-0 flex-1 self-stretch max-md:hidden">
         {breadcrumb ?? (
           <Crumbs crumbs={crumbs ?? [{ label: title }]} detail={detail} />
         )}

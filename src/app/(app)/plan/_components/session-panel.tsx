@@ -77,7 +77,10 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
           </SheetTitle>
           {panel.proposal && <Chip proposal>Proposition</Chip>}
           {intensity && (
-            <Chip intensity={intensity.level ?? undefined}>
+            <Chip
+              intensity={intensity.level ?? undefined}
+              race={intensity.race}
+            >
               {intensity.label}
             </Chip>
           )}
