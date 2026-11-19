@@ -4,6 +4,7 @@ import {
   chartMonths,
   chartRange,
   chartTicks,
+  chartToday,
 } from "@/features/plans/view/program-chart";
 import {
   chartDescription,
@@ -20,13 +21,16 @@ function RaceMark({
   letter,
   primary,
   className,
+  style,
 }: {
   letter: string;
   primary: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <span
+      style={style}
       className={cn(
         "grid size-4 place-items-center rounded-sm text-micro leading-none font-bold tabular-nums",
         primary
@@ -104,10 +108,12 @@ export function ProgramChart({
   weeks,
   bands,
   past = false,
+  today: todayDate = null,
   selected,
   onSelect,
 }: {
   past?: boolean;
+  today?: string | null;
   weeks: ProgramWeek[];
   bands: ProgramBand[];
   selected: string | null;
@@ -123,6 +129,13 @@ export function ProgramChart({
   const selectedIndex = weeks.findIndex((week) => week.weekKey === selected);
   const ticks = chartTicks(weeks.length, selectedIndex);
   const range = chartRange(weeks);
+  const months = chartMonths(weeks);
+  const today = chartToday(weeks, todayDate);
+  const progress = past ? 1 : (today?.fraction ?? 0);
+  const raceIndex = weeks.findLastIndex((week) => week.race?.primary);
+  const monthsLabel = today
+    ? `Mois de la préparation : mois ${today.month} sur ${today.months}, aujourd’hui le ${today.label}`
+    : `Mois de la préparation : ${months.map((item) => item.label).join(", ")}`;
   return (
     <section aria-labelledby="program-volume" className="flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -133,6 +146,8 @@ export function ProgramChart({
           <span className="text-muted-foreground tabular-nums">
             {range}
             {past && " · ce que tu as couru"}
+            {today &&
+              ` · aujourd’hui ${today.label} · mois ${today.month} sur ${today.months}`}
           </span>
         )}
         <span className="ml-auto flex gap-3.5 text-label text-muted-foreground">
@@ -158,19 +173,59 @@ export function ProgramChart({
           className="flex min-w-[calc(var(--weeks)*2.25rem)] flex-col gap-2 sm:min-w-0"
         >
           <div
-            aria-hidden="true"
+            role="img"
+            aria-label={monthsLabel}
             style={columns}
-            className="grid gap-x-0.75 sm:gap-x-1.5"
+            className="relative grid h-7.5 gap-x-0.75 sm:gap-x-1.5"
           >
-            {chartMonths(weeks).map((item) => (
+            {months.map((item, index) => {
+              const current = today?.month === index + 1;
+              return (
+                <span
+                  key={item.start}
+                  style={column(item.start, item.span)}
+                  className={cn(
+                    "flex h-5.5 items-baseline gap-1.25 overflow-hidden border-l border-control-border pl-1.5 text-micro leading-4 whitespace-nowrap sm:pl-1.75 sm:text-label",
+                    index === months.length - 1 && "border-r",
+                    current
+                      ? "font-semibold text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {item.label}
+                  <span className="text-micro font-normal text-muted-foreground tabular-nums opacity-75">
+                    {Math.round(item.seconds / 3600)} h
+                  </span>
+                </span>
+              );
+            })}
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-1.5 h-px bg-control-border"
+            />
+            {progress > 0 && (
               <span
-                key={item.start}
-                style={column(item.start, item.span)}
-                className="text-micro whitespace-nowrap text-muted-foreground"
-              >
-                {item.label}
-              </span>
-            ))}
+                aria-hidden="true"
+                className="absolute bottom-1.25 left-0 h-0.75 rounded-mark bg-primary"
+                style={{ width: `${progress * 100}%` }}
+              />
+            )}
+            {today && (
+              <span
+                aria-hidden="true"
+                title={`Aujourd’hui · ${today.label}`}
+                className="absolute bottom-0.5 size-2.25 -translate-x-1/2 rounded-full bg-primary ring-2 ring-card"
+                style={{ left: `${today.fraction * 100}%` }}
+              />
+            )}
+            {raceIndex >= 0 && weeks[raceIndex]?.race && (
+              <RaceMark
+                letter={weeks[raceIndex].race.letter}
+                primary
+                className="absolute bottom-0 -translate-x-1/2"
+                style={{ left: `${((raceIndex + 0.5) / weeks.length) * 100}%` }}
+              />
+            )}
           </div>
           <div
             aria-hidden="true"
