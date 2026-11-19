@@ -45,6 +45,7 @@ export type PlanHistoryEntry = {
 
 export type PlanHistory = {
   subtitle: string | null;
+  current: { version: number; since: string | null } | null;
   filter: HistoryFilter;
   filters: { key: HistoryFilter; label: string; count: number }[];
   groups: { key: string; label: string; entries: PlanHistoryEntry[] }[];
@@ -246,6 +247,14 @@ export function buildPlanHistory(input: PlanHistoryInput): PlanHistory {
           input.plan.title,
           `version ${input.plan.activeVersion} en cours${input.plan.since ? ` depuis le ${formatStampDate(input.plan.since, input.timeZone)}` : ""}`,
         ].join(" · ")
+      : null,
+    current: input.plan
+      ? {
+          version: input.plan.activeVersion,
+          since: input.plan.since
+            ? formatStampDate(input.plan.since, input.timeZone)
+            : null,
+        }
       : null,
     filter: input.filter,
     filters: historyFilters.map((key) => ({

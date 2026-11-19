@@ -121,8 +121,8 @@ test("accepting applies the proposal and lists it as Appliquée", async ({
   await page.goto("/plan/history");
   await expect(
     page
-      .getByText(/^Marathon de Paris · version 4 en cours depuis le /)
-      .filter({ visible: true }),
+      .getByRole("complementary", { name: "Version du plan" })
+      .getByText(/^v4\b/),
   ).toBeVisible();
   const entry = page.getByRole("article", { name: "Retirer un footing" });
   await expect(entry.getByText("Appliquée", { exact: true })).toBeVisible();
