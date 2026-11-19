@@ -97,20 +97,20 @@ function Bar({
         />
       )}
       <span
-        className={cn("rounded-t-mark bg-primary", muted && "opacity-45")}
-        style={{ height: `${(raceSeconds(week) / maximum) * 100}%` }}
-      />
-      <span
         className={cn(
           "bg-intensity-4",
           muted ? "opacity-45" : "opacity-90",
-          raceSeconds(week) === 0 && "rounded-t-mark",
+          "rounded-t-mark",
         )}
         style={{ height: `${(week.qualitySeconds / maximum) * 100}%` }}
       />
       <span
         className={cn("bg-intensity-2", muted && "opacity-45")}
         style={{ height: `${(week.easySeconds / maximum) * 100}%` }}
+      />
+      <span
+        className={cn("bg-secondary-foreground", muted && "opacity-45")}
+        style={{ height: `${(raceSeconds(week) / maximum) * 100}%` }}
       />
     </button>
   );
@@ -183,7 +183,7 @@ export function ProgramChart({
             <span className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
-                className="size-2 rounded-mark bg-primary"
+                className="size-2 rounded-mark bg-secondary-foreground"
               />
               Course
             </span>
