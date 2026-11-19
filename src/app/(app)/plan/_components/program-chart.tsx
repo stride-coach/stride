@@ -1,20 +1,16 @@
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/features/plans/view/format";
 import {
+  chartMonths,
+  chartRange,
+  chartTicks,
+} from "@/features/plans/view/program-chart";
+import {
   chartDescription,
-  type BandTone,
   type ProgramBand,
   type ProgramWeek,
 } from "@/features/plans/view/program";
 import { formatInteger } from "@/features/progress/format";
-
-const bandTones: Record<BandTone, string> = {
-  dim: "bg-data-1",
-  provider: "bg-foreground",
-  terrain: "bg-intensity-3",
-  success: "bg-primary",
-  accent: "bg-primary",
-};
 
 function column(start: number, span: number) {
   return { gridColumn: `${start + 1} / span ${span}` };
@@ -46,12 +42,12 @@ function RaceMark({
 
 function Bar({
   week,
-  scale,
+  maximum,
   selected,
   onSelect,
 }: {
   week: ProgramWeek;
-  scale: number;
+  maximum: number;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -72,55 +68,32 @@ function Bar({
       ]
         .filter(Boolean)
         .join(", ")}
+      title={`S${week.number} · ${formatDuration(week.totals.durationSeconds)}`}
       onClick={onSelect}
       className={cn(
-        "flex min-w-0 flex-col items-center gap-1.5 rounded-lg py-2 transition-colors duration-150 ease-stride hover:bg-muted",
-        selected && "bg-muted",
+        "relative flex h-24 min-w-0 flex-col justify-end rounded-xs outline-offset-3 transition-opacity duration-150 ease-stride hover:opacity-100 sm:h-37.5",
+        selected && "outline-1 outline-foreground",
         week.status === "past" && !selected && "opacity-55",
       )}
     >
+      {week.race && (
+        <RaceMark
+          letter={week.race.letter}
+          primary={week.race.primary}
+          className="absolute -top-5.5 left-1/2 -translate-x-1/2"
+        />
+      )}
       <span
         className={cn(
-          "text-micro leading-none font-semibold tabular-nums",
-          selected ? "text-foreground" : "text-secondary-foreground",
+          "rounded-t-mark bg-intensity-4",
+          muted ? "opacity-45" : "opacity-90",
         )}
-      >
-        {formatDuration(week.totals.durationSeconds)}
-      </span>
-      <span className="relative flex h-16 w-full flex-col items-center justify-end sm:h-18.5">
-        {week.race && (
-          <RaceMark
-            letter={week.race.letter}
-            primary={week.race.primary}
-            className="absolute top-0"
-          />
-        )}
-        <span
-          className={cn(
-            "w-[62%] rounded-t-mark bg-intensity-2",
-            muted && "opacity-45",
-          )}
-          style={{ height: `${week.easySeconds * scale}px` }}
-        />
-        <span
-          className={cn(
-            "w-[62%] bg-intensity-4",
-            muted ? "opacity-45" : "opacity-90",
-          )}
-          style={{ height: `${week.qualitySeconds * scale}px` }}
-        />
-      </span>
-      <span className="text-micro leading-none font-medium text-muted-foreground tabular-nums">
-        {distance ? `${approximate ? "≈" : ""}${distance}` : "–"}
-      </span>
+        style={{ height: `${(week.qualitySeconds / maximum) * 100}%` }}
+      />
       <span
-        className={cn(
-          "text-micro font-medium tabular-nums",
-          selected ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
-        S{week.number}
-      </span>
+        className={cn("bg-intensity-2", muted && "opacity-45")}
+        style={{ height: `${(week.easySeconds / maximum) * 100}%` }}
+      />
     </button>
   );
 }
@@ -143,17 +116,18 @@ export function ProgramChart({
   const columns = {
     gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
   };
+  const selectedIndex = weeks.findIndex((week) => week.weekKey === selected);
+  const ticks = chartTicks(weeks.length, selectedIndex);
+  const range = chartRange(weeks);
   return (
-    <section aria-labelledby="program-volume" className="flex flex-col gap-1.5">
-      <div className="flex flex-wrap items-center gap-3.5 px-1 max-sm:sr-only">
-        <h2
-          id="program-volume"
-          className="text-label font-medium text-secondary-foreground"
-        >
-          {weeks.length > 1
-            ? `Les ${weeks.length} semaines · durée en haut, km en bas`
-            : "Durée en haut, km en bas"}
+    <section aria-labelledby="program-volume" className="flex flex-col gap-3.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h2 id="program-volume" className="font-semibold">
+          {weeks.length > 1 ? `${weeks.length} semaines` : "1 semaine"}
         </h2>
+        {range && (
+          <span className="text-muted-foreground tabular-nums">{range}</span>
+        )}
         <span className="ml-auto flex gap-3.5 text-label text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span
@@ -174,19 +148,54 @@ export function ProgramChart({
       <div className="-mx-2.5 overflow-x-auto px-2.5 sm:mx-0 sm:px-0">
         <div
           style={{ "--weeks": weeks.length } as React.CSSProperties}
-          className="flex min-w-[calc(var(--weeks)*2.25rem)] flex-col sm:min-w-0"
+          className="flex min-w-[calc(var(--weeks)*1.5rem)] flex-col gap-2 sm:min-w-0"
         >
+          <div
+            aria-hidden="true"
+            style={columns}
+            className="grid gap-x-0.75 sm:gap-x-1.5"
+          >
+            {chartMonths(weeks).map((item) => (
+              <span
+                key={item.start}
+                style={column(item.start, item.span)}
+                className="text-micro whitespace-nowrap text-muted-foreground"
+              >
+                {item.label}
+              </span>
+            ))}
+          </div>
+          <div
+            aria-hidden="true"
+            style={columns}
+            className="grid gap-x-0.75 sm:gap-x-1.5"
+          >
+            {bands.map((band) => (
+              <span
+                key={`${band.key}-${band.start}`}
+                style={column(band.start, band.span)}
+                className={cn(
+                  "flex h-6 min-w-0 items-center overflow-hidden rounded-md border bg-muted px-2 text-label font-medium whitespace-nowrap",
+                  band.current
+                    ? "border-control-border text-foreground"
+                    : "border-border text-muted-foreground",
+                )}
+              >
+                <span className="truncate">{band.name}</span>
+              </span>
+            ))}
+          </div>
           <div
             role="group"
             aria-label={chartDescription(weeks)}
             style={columns}
-            className="grid items-stretch gap-x-0.75 sm:gap-x-1"
+            className="grid items-end gap-x-0.75 pt-5.5 sm:gap-x-1.5"
           >
             {weeks.map((week) => (
               <Bar
                 key={week.weekKey}
                 week={week}
-                scale={56 / maximum}
+                maximum={maximum}
                 selected={week.weekKey === selected}
                 onSelect={() => onSelect(week.weekKey)}
               />
@@ -195,29 +204,19 @@ export function ProgramChart({
           <div
             aria-hidden="true"
             style={columns}
-            className="mt-2.5 grid gap-x-0.75 sm:gap-x-1"
+            className="grid gap-x-0.75 sm:gap-x-1.5"
           >
-            {bands.map((band) => (
+            {weeks.map((week, index) => (
               <span
-                key={`${band.key}-${band.start}`}
-                style={column(band.start, band.span)}
-                className="flex min-w-0 flex-col gap-1.25"
+                key={week.weekKey}
+                className={cn(
+                  "text-center text-micro font-medium whitespace-nowrap tabular-nums",
+                  week.weekKey === selected
+                    ? "text-foreground"
+                    : "text-muted-foreground",
+                )}
               >
-                <span
-                  className={cn(
-                    "h-0.75 rounded-mark",
-                    bandTones[band.tone],
-                    !band.current && "opacity-55",
-                  )}
-                />
-                <span
-                  className={cn(
-                    "truncate text-micro font-medium",
-                    band.current ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
-                  {band.name}
-                </span>
+                {ticks.has(index) ? `S${week.number}` : ""}
               </span>
             ))}
           </div>

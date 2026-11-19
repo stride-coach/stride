@@ -41,11 +41,11 @@ test("an athlete browses the plan and opens its sessions", async ({ page }) => {
   await chart.getByRole("button", { name: /^Semaine 3, / }).click();
   await expect(page).toHaveURL(/\/plan\?week=\d{4}-\d{2}-\d{2}$/);
   await expect(
-    page.getByRole("heading", { level: 2, name: /^S3 / }),
+    page.getByRole("heading", { level: 2, name: /^Semaine 3 / }),
   ).toBeVisible();
   await page.keyboard.press("ArrowRight");
   await expect(
-    page.getByRole("heading", { level: 2, name: /^S4 / }),
+    page.getByRole("heading", { level: 2, name: /^Semaine 4 / }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Aujourd’hui" }).click();
   await expect(current).toHaveAttribute("aria-pressed", "true");

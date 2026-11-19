@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { todayLoad } from "@/features/today/load";
+import { loadTrend } from "@/features/progress/load-trend";
 
 const today = "2026-11-19";
 
@@ -15,17 +15,17 @@ function series(acute: (week: number) => number, weeks = 12) {
   });
 }
 
-describe("today load chart", () => {
+describe("load trend", () => {
   it("needs a signal and enough weekly samples", () => {
     expect(
-      todayLoad(
+      loadTrend(
         series(() => 100),
         null,
         today,
       ),
     ).toBeNull();
     expect(
-      todayLoad(
+      loadTrend(
         series(() => 100, 3),
         { ratio: 1, average: 1 },
         today,
@@ -34,7 +34,7 @@ describe("today load chart", () => {
   });
 
   it("stays within the range when no week exceeds it", () => {
-    const load = todayLoad(
+    const load = loadTrend(
       series(() => 100),
       { ratio: 1, average: 1 },
       today,
@@ -48,7 +48,7 @@ describe("today load chart", () => {
   });
 
   it("marks the highest week above the range", () => {
-    const load = todayLoad(
+    const load = loadTrend(
       series((week) => (week === 5 ? 180 : 100)),
       { ratio: 1.7, average: 1 },
       today,

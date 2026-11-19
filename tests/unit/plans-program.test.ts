@@ -80,7 +80,7 @@ describe("program overview", () => {
       ["Course", "8 nov."],
       ["Total prévu", "5 h"],
       ["Plus longue sortie", "1h30"],
-      ["Semaine de pic", "3h10"],
+      ["Pic", "3h10"],
     ]);
     expect(program.bands).toEqual([
       {

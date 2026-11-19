@@ -25,6 +25,8 @@ import {
   loadPreviousWeeks,
   programInput,
 } from "@/server/plans/overview";
+import { loadRecovery } from "@/server/progress/recovery";
+import { loadTrend } from "@/features/progress/load-trend";
 import { loadIntensityPaces } from "@/server/plans/paces";
 import { loadProposalReview } from "@/server/plans/proposals";
 import { loadSessionSheet } from "@/server/plans/session-sheet";
@@ -167,7 +169,10 @@ export default async function PlanPage({
         {reviewSheet}
       </PlanFrame>
     );
-  const watch = await loadWatchView(context, overview.plan);
+  const [watch, recovery] = await Promise.all([
+    loadWatchView(context, overview.plan),
+    loadRecovery(context, overview.today).catch(() => null),
+  ]);
   const { planId, state } = overview.plan;
   const activeSheet =
     sheetPlanId === null ||
@@ -185,37 +190,50 @@ export default async function PlanPage({
   const requested =
     param("week") ?? (session ? mondayOf(session.scheduledOn) : null);
   const current = seasons.find((item) => item.status === "current");
+  const load =
+    recovery && program.status === "current"
+      ? loadTrend(recovery.loadSeries, recovery.load, overview.today)
+      : null;
   const initialWeekKey =
     program.weeks.find((week) => week.weekStart === requested)?.weekKey ?? null;
+  const copyText = programText({
+    state: overview.plan.state,
+    version: overview.plan.version,
+    summary: overview.plan.versionSummary,
+    races: overview.races,
+    today: overview.today,
+    paces,
+  });
+  const toolbar =
+    program.status === "past" || (current && current.id !== program.id);
   return (
-    <PlanFrame className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
-        {program.status === "past" && (
-          <Chip>
-            <LockIcon aria-hidden="true" className="size-3" />
-            Saison terminée · lecture seule
-          </Chip>
-        )}
-        <div className="ml-auto flex min-w-0 flex-wrap justify-end gap-1.5">
+    <PlanFrame
+      className="max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0"
+      actions={
+        <div className="max-md:hidden">
+          <CopyProgramButton text={copyText} />
+        </div>
+      }
+    >
+      {toolbar && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 md:px-5">
+          {program.status === "past" && (
+            <Chip>
+              <LockIcon aria-hidden="true" className="size-3" />
+              Saison terminée · lecture seule
+            </Chip>
+          )}
           {current && current.id !== program.id && (
             <CurrentSeasonLink href={current.href} />
           )}
-          <CopyProgramButton
-            text={programText({
-              state: overview.plan.state,
-              version: overview.plan.version,
-              summary: overview.plan.versionSummary,
-              races: overview.races,
-              today: overview.today,
-              paces,
-            })}
-          />
         </div>
-      </div>
+      )}
       <ProgramExplorer
         key={program.id}
         program={program}
         initialWeekKey={initialWeekKey}
+        load={load}
+        mobileAction={<CopyProgramButton text={copyText} />}
         proposals={proposalsByWeek(state, overview.proposals)}
         watchTags={watchDayTags({
           enabled: watch.enabled,

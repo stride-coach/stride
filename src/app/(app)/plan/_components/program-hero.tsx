@@ -2,82 +2,89 @@ import { ChevronRightIcon } from "lucide-react";
 import { SeasonBadge } from "@/features/app-shell/components/season-menu";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import type {
+  ProgramKpi,
   ProgramSeasonLink,
-  ProgramSeasonRace,
   SeasonProgram,
 } from "@/features/plans/view/program";
 
-export function ProgramHeader({
-  program,
-  eyebrow = program.eyebrow,
-}: {
-  program: SeasonProgram;
-  eyebrow?: string;
-}) {
+export function ProgramHeader({ program }: { program: SeasonProgram }) {
+  const { position } = program;
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <span className="text-label font-medium text-muted-foreground">
-          {eyebrow}
+          {position
+            ? program.letter
+              ? `Programme · objectif ${program.letter}`
+              : "Programme"
+            : program.eyebrow}
         </span>
         <p className="text-title font-semibold text-balance">{program.title}</p>
-        {program.summary && (
-          <p className="text-secondary-foreground">{program.summary}</p>
-        )}
       </div>
       <dl className="flex flex-col">
-        {program.kpis.map((kpi) => (
-          <div
-            key={kpi.key}
-            className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5"
-          >
-            <dt className="text-muted-foreground">{kpi.label}</dt>
-            <dd className="flex min-w-0 items-baseline gap-2 tabular-nums">
-              <span className="font-semibold">{kpi.value}</span>
-              {kpi.detail && (
-                <span className="truncate text-muted-foreground">
-                  {kpi.detail}
-                </span>
-              )}
-            </dd>
-          </div>
+        {program.kpis.slice(0, 1).map((kpi) => (
+          <KpiRow key={kpi.key} kpi={kpi} />
+        ))}
+        {position && (
+          <>
+            <RailRow label="Phase">
+              <span className="min-w-0 truncate font-semibold">
+                {position.phase.name}
+              </span>
+              <span className="shrink-0 whitespace-nowrap text-muted-foreground">
+                {position.phase.detail}
+              </span>
+            </RailRow>
+            <RailRow label="Avancement">
+              <span className="font-semibold">S{position.step.number}</span>
+              <span className="text-muted-foreground">
+                / {position.step.total}
+              </span>
+              <span
+                aria-hidden="true"
+                className="h-1 min-w-0 flex-1 overflow-hidden rounded-mark bg-border"
+              >
+                <span
+                  className="block h-full bg-primary"
+                  style={{ width: `${position.step.pct}%` }}
+                />
+              </span>
+            </RailRow>
+          </>
+        )}
+        {program.kpis.slice(1).map((kpi) => (
+          <KpiRow key={kpi.key} kpi={kpi} />
         ))}
       </dl>
     </section>
   );
 }
 
-export function SeasonRaces({ races }: { races: ProgramSeasonRace[] }) {
+function RailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section aria-labelledby="season-races" className="flex flex-col gap-1">
-      <h2
-        id="season-races"
-        className="text-label font-medium text-muted-foreground"
-      >
-        Courses de la saison
-      </h2>
-      <ul className="flex flex-col">
-        {races.map((race) => (
-          <li
-            key={race.raceId}
-            className="grid grid-cols-[30px_minmax(0,1fr)_auto] items-baseline gap-2.5 border-t border-border py-2 first:border-0"
-          >
-            <span className="text-label text-muted-foreground tabular-nums">
-              S{race.number}
-            </span>
-            <span className="flex min-w-0 flex-col gap-px">
-              <span className="truncate font-medium">{race.name}</span>
-              <span className="text-label text-muted-foreground tabular-nums">
-                {race.detail}
-              </span>
-            </span>
-            <span className="text-label whitespace-nowrap text-muted-foreground tabular-nums">
-              {race.when}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="flex min-w-0 items-baseline gap-2 tabular-nums">
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+function KpiRow({ kpi }: { kpi: ProgramKpi }) {
+  return (
+    <RailRow label={kpi.label}>
+      <span className="font-semibold">{kpi.value}</span>
+      {kpi.detail && (
+        <span className="truncate text-muted-foreground">{kpi.detail}</span>
+      )}
+    </RailRow>
   );
 }
 
