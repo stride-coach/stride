@@ -809,21 +809,32 @@ function RecentSection({ recent }: { recent: TodayRecent }) {
       </h2>
       <Link
         href={recent.href}
-        className="flex items-center gap-2 rounded-md font-medium hover:text-primary"
+        className="flex flex-col gap-0.5 rounded-md hover:text-primary"
       >
-        {recent.compliance && (
-          <CircleCheckIcon
-            aria-hidden="true"
-            className={cn(
-              "size-3.5 shrink-0",
-              recent.compliance.partial ? "text-warning" : "text-primary",
-            )}
-          />
-        )}
-        <span className="min-w-0 truncate">{recent.title}</span>
-        <span className="ml-auto text-label font-normal whitespace-nowrap text-muted-foreground tabular-nums">
+        <span className="flex items-center gap-2 font-medium">
+          {recent.compliance && (
+            <CircleCheckIcon
+              aria-hidden="true"
+              className={cn(
+                "size-3.5 shrink-0",
+                recent.compliance.partial ? "text-warning" : "text-primary",
+              )}
+            />
+          )}
+          <span className="min-w-0 truncate">{recent.title}</span>
+          {recent.compliance?.pct != null && (
+            <span className="ml-auto text-muted-foreground tabular-nums">
+              {recent.compliance.pct} %
+            </span>
+          )}
+        </span>
+        <span
+          className={cn(
+            "text-label text-muted-foreground tabular-nums",
+            recent.compliance && "pl-5.5",
+          )}
+        >
           {recent.detail}
-          {recent.compliance?.pct != null && ` · ${recent.compliance.pct} %`}
         </span>
       </Link>
       {recent.note && (
