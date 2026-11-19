@@ -62,6 +62,7 @@ export function AppHeader({
   breadcrumb,
   back,
   actions,
+  dataStatus = true,
   className,
 }: {
   title: string;
@@ -71,6 +72,7 @@ export function AppHeader({
   breadcrumb?: React.ReactNode;
   back?: { href: string; label: string };
   actions?: React.ReactNode;
+  dataStatus?: boolean;
   className?: string;
 }) {
   return (
@@ -102,7 +104,9 @@ export function AppHeader({
         )}
       </div>
       {actions}
-      <DataActivityStatus compact className="shrink-0 md:hidden" />
+      {dataStatus && (
+        <DataActivityStatus compact className="shrink-0 md:hidden" />
+      )}
       <MobileHeaderActions />
       <DataActivityThread />
     </header>

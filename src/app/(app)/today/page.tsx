@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DataActivityStatus } from "@/features/data-activity/components/status";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { CoachContextSource } from "@/features/coach/components/coach-context";
 import {
@@ -26,7 +27,15 @@ export default async function TodayPage() {
           context={{ kind: "session", id: view.session.panel.sessionKey }}
         />
       )}
-      <AppHeader title="Aujourd’hui" detail={view.header.date} />
+      <AppHeader
+        title="Aujourd’hui"
+        detail={view.header.date}
+        dataStatus={false}
+      />
+      <DataActivityStatus
+        row
+        className="h-8.5 w-full shrink-0 gap-2 border-b border-border px-4 md:hidden"
+      />
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
         <main className="flex w-full flex-col pb-tab-bar-reserve md:pb-6 xl:flex-row xl:items-start">
           <h1 className="sr-only">{`Aujourd’hui, ${view.header.date}`}</h1>
