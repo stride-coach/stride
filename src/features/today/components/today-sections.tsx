@@ -154,8 +154,6 @@ function PlannedSession({
   const done = panel.status === "done" || panel.status === "partial";
   const proposal = done ? null : panel.proposal;
   const waiting = !done && !proposal && verdict?.waiting === true;
-  const stepsInVerdict =
-    !done && verdict?.actions.some((action) => action.key === "steps");
   return (
     <>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
@@ -209,10 +207,16 @@ function PlannedSession({
         </p>
       )}
       {verdict && !done && !waiting && !proposal && (
-        <VerdictBlock verdict={verdict} />
+        <VerdictBlock
+          verdict={{
+            ...verdict,
+            actions: verdict.actions.filter((action) => action.key !== "steps"),
+          }}
+        />
       )}
       {!done && (
         <TodayDecisions
+          stepsHref={session.href}
           sessionKey={panel.sessionKey}
           plannedTitle={panel.title}
           proposal={proposal}
@@ -223,7 +227,7 @@ function PlannedSession({
         {!done && panel.shoes && (
           <TodayShoeChip shoes={panel.shoes} href={session.href} />
         )}
-        {!stepsInVerdict && (
+        {done && (
           <Link
             href={session.href}
             className="ml-auto rounded-md font-medium text-primary hover:underline"

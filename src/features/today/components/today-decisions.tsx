@@ -66,14 +66,15 @@ export function TodayDecisions({
   plannedTitle,
   proposal,
   moveDays,
+  stepsHref,
 }: {
+  stepsHref: string;
   sessionKey: string;
   plannedTitle: string;
   proposal: { id: string } | null;
   moveDays: MoveDay[];
 }) {
   const [pending, startTransition] = useTransition();
-  if (!proposal && moveDays.length === 0) return null;
 
   const run = (
     action: () => Promise<ProposalActionResult>,
@@ -99,6 +100,7 @@ export function TodayDecisions({
           <Button
             type="button"
             size="md"
+            className="flex-1 sm:flex-none"
             disabled={pending}
             onClick={() =>
               run(
@@ -113,6 +115,7 @@ export function TodayDecisions({
             type="button"
             variant="outline"
             size="md"
+            className="flex-1 sm:flex-none"
             disabled={pending}
             onClick={() =>
               run(
@@ -169,6 +172,12 @@ export function TodayDecisions({
           <Link href={`/plan?proposal=${proposal.id}`}>Pourquoi ?</Link>
         </Button>
       )}
+      <Link
+        href={stepsHref}
+        className="ml-auto rounded-md font-medium text-secondary-foreground hover:text-foreground hover:underline"
+      >
+        Voir les étapes →
+      </Link>
     </div>
   );
 }
