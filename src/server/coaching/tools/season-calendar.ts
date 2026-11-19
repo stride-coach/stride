@@ -57,6 +57,7 @@ const calendarRaceSchema = z.object({
   kmEffort: z.number(),
   recoveryDays: z.number(),
   recoveryEndsOn: z.string(),
+  objectiveShare: z.number().nullable(),
   taperDays: z.number().nullable(),
   taperStartsOn: z.string().nullable(),
 });
@@ -101,6 +102,7 @@ export const readSeasonCalendarTool = defineTool({
     conflicts: z.array(
       z.object({
         code: z.string(),
+        severity: z.enum(["conflict", "tight"]),
         firstRaceId: z.string(),
         secondRaceId: z.string(),
         requiredDays: z.number(),

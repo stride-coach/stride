@@ -143,6 +143,7 @@ describe("checkCalendar", () => {
     expect(result.conflicts).toEqual([
       {
         code: "inside_taper",
+        severity: "conflict",
         firstRaceId: "fun",
         secondRaceId: "half",
         requiredDays: 14,
@@ -159,6 +160,7 @@ describe("checkCalendar", () => {
     expect(result.conflicts).toEqual([
       {
         code: "preparation_recovery_overlaps_taper",
+        severity: "conflict",
         firstRaceId: "ten",
         secondRaceId: "marathon",
         requiredDays: 28,
@@ -240,6 +242,47 @@ describe("checkCalendar", () => {
     });
   });
 
+  describe("severity", () => {
+    function severityOf(gapDays: number) {
+      const first = "2027-01-10";
+      const date = new Date(Date.parse(first) + gapDays * 86400000)
+        .toISOString()
+        .slice(0, 10);
+      return checkCalendar([
+        race("first", first, 21.1, "preparation"),
+        race("second", date, 21.1, "preparation"),
+      ]).conflicts.map((conflict) => conflict.severity);
+    }
+
+    it("marks a gap one day short as tight", () => {
+      expect(severityOf(20)).toEqual(["tight"]);
+    });
+
+    it("marks a gap exactly at the tolerance as tight", () => {
+      expect(severityOf(21 - calendarRules.tightToleranceDays)).toEqual([
+        "tight",
+      ]);
+    });
+
+    it("marks a gap one day beyond the tolerance as a conflict", () => {
+      expect(severityOf(21 - calendarRules.tightToleranceDays - 1)).toEqual([
+        "conflict",
+      ]);
+    });
+
+    it("keeps a race inside the main objective taper a conflict within the tolerance", () => {
+      const result = checkCalendar([
+        race("ten", "2027-03-30", 10, "fun"),
+        race("marathon", "2027-04-11", 42.2, "primary"),
+      ]);
+      expect(result.conflicts[0]).toMatchObject({
+        code: "inside_taper",
+        severity: "conflict",
+        actualDays: 12,
+      });
+    });
+  });
+
   it("requires the full recovery before a race run hard", () => {
     expect(
       checkCalendar([
@@ -249,6 +292,7 @@ describe("checkCalendar", () => {
     ).toEqual([
       {
         code: "recovery_too_short",
+        severity: "conflict",
         firstRaceId: "first",
         secondRaceId: "second",
         requiredDays: 21,
@@ -291,6 +335,7 @@ describe("checkCalendar", () => {
     ).toEqual([
       {
         code: "fun_too_close",
+        severity: "tight",
         firstRaceId: "fun",
         secondRaceId: "ten",
         requiredDays: 7,
@@ -308,6 +353,7 @@ describe("checkCalendar", () => {
     ).toEqual([
       {
         code: "fun_too_soon",
+        severity: "conflict",
         firstRaceId: "marathon",
         secondRaceId: "fun",
         requiredDays: 14,

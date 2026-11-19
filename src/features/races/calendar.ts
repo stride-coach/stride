@@ -24,6 +24,7 @@ export const calendarRules = {
   funBeforeHardRaceDays: 7,
   funAfterRaceRecoveryShare: 0.5,
   smallPreparationMaxShare: 0.5,
+  tightToleranceDays: 3,
   bands: [
     { maxKmEffort: 15, recoveryDays: 14, taperDays: 10 },
     { maxKmEffort: 30, recoveryDays: 21, taperDays: 14 },
@@ -66,8 +67,11 @@ export type CalendarGap = {
   weeks: number;
 };
 
+export type CalendarConflictSeverity = "conflict" | "tight";
+
 export type CalendarConflict = {
   code: CalendarConflictCode;
+  severity: CalendarConflictSeverity;
   firstRaceId: string;
   secondRaceId: string;
   requiredDays: number;
@@ -174,6 +178,15 @@ function withProportionateRecovery(races: CalendarRace[]) {
   });
 }
 
+function gapSeverity(
+  requiredDays: number,
+  actualDays: number,
+): CalendarConflictSeverity {
+  return requiredDays - actualDays <= calendarRules.tightToleranceDays
+    ? "tight"
+    : "conflict";
+}
+
 function taperConflicts(races: CalendarRace[]) {
   const conflicts: CalendarConflict[] = [];
   for (const primary of races) {
@@ -185,6 +198,7 @@ function taperConflicts(races: CalendarRace[]) {
       if (before < primary.taperDays) {
         conflicts.push({
           code: "inside_taper",
+          severity: "conflict",
           firstRaceId: race.id,
           secondRaceId: primary.id,
           requiredDays: primary.taperDays,
@@ -196,6 +210,7 @@ function taperConflicts(races: CalendarRace[]) {
       ) {
         conflicts.push({
           code: "preparation_recovery_overlaps_taper",
+          severity: gapSeverity(race.recoveryDays + primary.taperDays, before),
           firstRaceId: race.id,
           secondRaceId: primary.id,
           requiredDays: race.recoveryDays + primary.taperDays,
@@ -219,6 +234,7 @@ function sequenceConflicts(races: CalendarRace[]) {
     if (actualDays < requiredDays) {
       conflicts.push({
         code,
+        severity: gapSeverity(requiredDays, actualDays),
         firstRaceId: first.id,
         secondRaceId: second.id,
         requiredDays,
