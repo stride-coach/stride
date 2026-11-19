@@ -62,7 +62,8 @@ function About({ groups }: { groups: FactGroup[] }) {
         </h2>
         <Chip>Tu l’as dit</Chip>
         <p className="text-label leading-normal text-muted-foreground">
-          Une information que tu as ajoutée ou corrigée toi-même.
+          Ce que tu as écrit au staff, répondu à l’inscription, ajouté ou
+          corrigé toi-même.
         </p>
         <Chip>Observé</Chip>
         <p className="text-label leading-normal text-muted-foreground">
