@@ -141,8 +141,12 @@ test("the athlete confirms, corrects and counts what the staff observed", async 
 
   await page.getByRole("button", { name: "Tout effacer" }).click();
   const confirm = page.getByRole("alertdialog");
-  await expect(confirm.getByText("Ce que tu lui as dit")).toBeVisible();
-  await expect(confirm.getByText("Ce qu’il a observé")).toBeVisible();
+  await expect(
+    confirm.getByText("Ce que tu lui as dit", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    confirm.getByText("Ce qu’il a observé", { exact: true }),
+  ).toBeVisible();
   await confirm.getByRole("button", { name: "Annuler" }).click();
 });
 
