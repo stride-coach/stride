@@ -248,6 +248,7 @@ export type RecoveryModel = {
   hrv: RangeSignal | null;
   restingHeartRate: RangeSignal | null;
   load: LoadSignal | null;
+  loadSeries: LoadPoint[];
   checkin: Checkin | null;
   races: RaceRecovery[];
   nextRace: ProgressRace | null;
@@ -497,6 +498,7 @@ export function recoveryModel({
       false,
     ),
     load: loadSignal(load, today),
+    loadSeries: load.filter((point) => point.day >= addDays(today, -84)),
     checkin: checkin?.day === today ? checkin : null,
     races: raceRecoveries(nights, races, today),
     nextRace:

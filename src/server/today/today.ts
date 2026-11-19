@@ -6,6 +6,7 @@ import type { Activity } from "@/features/activities/activities";
 import { listActivities, readActivity } from "@/server/activities/activities";
 import { pairQuestion } from "@/features/gear/check-view";
 import { loadWatchView } from "@/server/garmin/watch";
+import { loadOnTrackInputs } from "@/server/races/on-track";
 import { loadPairChecks } from "@/server/gear/checks";
 import { reconcileGearNotificationsAfterResponse } from "@/server/notifications/garmin";
 import type { OnboardingContext } from "@/server/onboarding/context";
@@ -58,6 +59,7 @@ export async function loadToday(context: OnboardingContext, now: Date) {
     debrief,
     conditions,
     latestGroup,
+    onTrack,
   ] = await Promise.all([
     overviewRead,
     loadIntensityPaces(context),
@@ -90,6 +92,11 @@ export async function loadToday(context: OnboardingContext, now: Date) {
     Promise.all([overviewRead, latestRead]).then(([overview, latest]) =>
       loadLatestGroup(context, overview?.matches ?? [], latest),
     ),
+    overviewRead.then((overview) =>
+      loadOnTrackInputs(context, overview?.today ?? localToday(now)).catch(
+        () => null,
+      ),
+    ),
   ]);
   const today = overview?.today ?? localToday(now);
   const plan = overview?.plan.state ?? null;
@@ -109,6 +116,7 @@ export async function loadToday(context: OnboardingContext, now: Date) {
     debrief,
     pairQuestion:
       latestCheck && checks ? pairQuestion(latestCheck, checks.shoes) : null,
+    onTrack,
     pain: conditions.some(
       (condition) => condition.kind === "pain" && condition.status === "active",
     ),

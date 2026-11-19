@@ -37,6 +37,9 @@ import {
   activityTotals,
 } from "@/features/plans/view/session-activities";
 import { formatClock, formatInteger } from "@/features/progress/format";
+import { raceGoalCard, type GoalInputs } from "@/features/progress/goal";
+import { loadZone } from "@/features/progress/health";
+import { todayLoad } from "./load";
 import {
   checkinDone,
   readinessTones,
@@ -176,16 +179,34 @@ export type TodayQueueItem =
     }
   | { kind: "checkin"; key: string; label: string; checkin: Checkin | null };
 
+export type RailLevel = "ok" | "watch" | "alert";
+
 export type TodayGoal = {
   id: string;
   letter: string;
   name: string;
   detail: string;
+  dateLabel: string;
   days: number;
+  status: { label: string; level: RailLevel } | null;
   block: { name: string; week: string } | null;
-  light: string | null;
+  volume: { done: string; planned: string; pct: number } | null;
+  intensity: { easyPct: number; qualityPct: number } | null;
+  injury: { label: string; level: RailLevel } | null;
   href: string;
 };
+
+export type TodayLoad = {
+  label: string;
+  level: RailLevel;
+  description: string;
+  band: string;
+  line: string;
+  peak: { x: number; y: number } | null;
+  current: { x: number; y: number };
+};
+
+export type TodayRecent = TodayActivity & { note: string | null };
 
 export type TodayView = {
   header: TodayHeader;
@@ -195,6 +216,8 @@ export type TodayView = {
   queue: TodayQueueItem[];
   week: TodayWeek | null;
   goal: TodayGoal | null;
+  load: TodayLoad | null;
+  recent: TodayRecent | null;
 };
 
 export type TodayMatch = {
@@ -217,6 +240,7 @@ export type TodayInput = {
   debrief?: DebriefView | null;
   pairQuestion?: PairQuestion | null;
   pain?: boolean;
+  onTrack?: Omit<GoalInputs, "preparation"> | null;
 };
 
 const dayMs = 86_400_000;
@@ -273,7 +297,38 @@ function currentWeek(program: ProgramOverview | null) {
   );
 }
 
-function goal(input: TodayInput): TodayGoal | null {
+const dayMonth = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+
+function goalStatus(
+  race: ProgramRace & { date: string },
+  input: TodayInput,
+): TodayGoal["status"] {
+  if (!input.onTrack) return null;
+  const status = raceGoalCard(
+    { ...race, priority: race.priority ?? "C", revision: 0 },
+    { ...input.onTrack, preparation: null },
+  ).status;
+  return status === "on-track"
+    ? { label: "En bonne voie", level: "ok" }
+    : status === "building"
+      ? { label: "À construire", level: "watch" }
+      : null;
+}
+
+function injury(input: TodayInput): TodayGoal["injury"] {
+  if (input.pain) return { label: "Douleur signalée", level: "alert" };
+  const load = input.recovery.load;
+  if (!load) return null;
+  return loadZone(load.ratio) === "high"
+    ? { label: "Risque à surveiller", level: "watch" }
+    : { label: "Aucun signal", level: "ok" };
+}
+
+function goal(input: TodayInput, week: TodayWeek | null): TodayGoal | null {
   const races = upcomingRaces(input.races, input.today);
   const primary = input.plan?.plan.primaryRaceId ?? null;
   const race =
@@ -286,9 +341,7 @@ function goal(input: TodayInput): TodayGoal | null {
   if (!race) return null;
   const { program, today } = input;
   const current = currentWeek(program);
-  const light = program?.weeks.find(
-    (week) => week.isLight && week.weekStart > today && !week.race,
-  );
+  const split = current ? weekSplit(current) : null;
   return {
     id: race.id,
     letter: race.priority ?? "·",
@@ -302,7 +355,9 @@ function goal(input: TodayInput): TodayGoal | null {
     ]
       .filter(Boolean)
       .join(" · "),
+    dateLabel: dayMonth.format(new Date(`${race.date}T00:00:00Z`)),
     days: daysBetween(today, race.date),
+    status: goalStatus(race, input),
     block:
       current && program
         ? {
@@ -310,9 +365,17 @@ function goal(input: TodayInput): TodayGoal | null {
             week: `S${current.number} / ${program.weeks.length}`,
           }
         : null,
-    light: light
-      ? `S${light.number} · dès le ${formatTodayDate(light.weekStart)}`
+    volume: week
+      ? {
+          done: week.done.duration,
+          planned: week.planned.duration,
+          pct: week.pct,
+        }
       : null,
+    intensity: split
+      ? { easyPct: split.easyPct, qualityPct: 100 - split.easyPct }
+      : null,
+    injury: injury(input),
     href: `/races/${race.id}`,
   };
 }
@@ -755,6 +818,8 @@ export function buildToday(input: TodayInput): TodayView {
     (today.panel.status === "done" ||
       today.panel.status === "partial" ||
       today.panel.status === "substituted");
+  const week = todayWeek(input.program);
+  const recent = latest(input);
   return {
     header: { date: formatTodayDate(input.today) },
     session: today,
@@ -777,7 +842,21 @@ export function buildToday(input: TodayInput): TodayView {
         }),
     form: day,
     queue: queue(input),
-    week: todayWeek(input.program),
-    goal: goal(input),
+    week,
+    goal: goal(input, week),
+    load: todayLoad(
+      input.recovery.loadSeries,
+      input.recovery.load,
+      input.today,
+    ),
+    recent: recent
+      ? {
+          ...recent,
+          note:
+            input.latest && input.debrief?.activityIds.includes(input.latest.id)
+              ? input.debrief.note
+              : null,
+        }
+      : null,
   };
 }

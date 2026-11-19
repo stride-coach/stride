@@ -36,6 +36,7 @@ function model(values: Partial<RecoveryModel> = {}): RecoveryModel {
     hrv: null,
     restingHeartRate: null,
     load: null,
+    loadSeries: [],
     checkin: null,
     races: [],
     nextRace: null,

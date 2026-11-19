@@ -52,14 +52,18 @@ export default async function TodayPage() {
           </div>
           <aside
             aria-label="Contexte du jour"
-            className="flex flex-col gap-6 px-4 py-4.5 md:px-5 xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border"
+            className="flex flex-col xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border"
           >
             {view.queue.length > 0 && (
-              <div className="max-xl:hidden">
+              <div className="border-b border-border px-4 py-4.5 max-xl:hidden md:px-5">
                 <TodayQueue items={view.queue} />
               </div>
             )}
-            <GoalSection goal={view.goal} />
+            <GoalSection
+              goal={view.goal}
+              load={view.load}
+              recent={view.recent}
+            />
           </aside>
         </main>
       </div>

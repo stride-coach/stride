@@ -599,3 +599,22 @@ describe("today double day", () => {
     expect(view.session).toMatchObject({ count: 1, before: [], after: [] });
   });
 });
+
+describe("today context rail", () => {
+  it("summarises the goal, the week volume and the injury signal", () => {
+    const { goal } = buildToday(input());
+    expect(goal).toMatchObject({
+      dateLabel: "8 novembre",
+      days: 17,
+      status: null,
+    });
+    expect(goal?.volume).not.toBeNull();
+  });
+
+  it("flags a reported pain on the goal", () => {
+    expect(buildToday(input({ pain: true })).goal?.injury).toEqual({
+      label: "Douleur signalée",
+      level: "alert",
+    });
+  });
+});
