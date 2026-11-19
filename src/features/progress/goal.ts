@@ -68,6 +68,7 @@ export type GoalCard = {
   verdict: string | null;
   targetNote: string | null;
   gap: { label: string; tone: "success" | "warning" } | null;
+  status: "on-track" | "building" | null;
   phaseShort: string | null;
   longestDay: string | null;
   raceGain: string | null;
@@ -254,7 +255,7 @@ export function nextKeySession(
     : null;
 }
 
-export function preparationVerdict({
+export function preparationCovered({
   longestMeters,
   distanceKm,
   weeklyGainMeters,
@@ -273,6 +274,16 @@ export function preparationVerdict({
     !raceGainM || weeklyGainMeters === null
       ? null
       : weeklyGainMeters >= raceGainM;
+  return { distance, gain };
+}
+
+export function preparationVerdict(inputs: {
+  longestMeters: number | null;
+  distanceKm: number | null;
+  weeklyGainMeters: number | null;
+  raceGainM: number | null;
+}) {
+  const { distance, gain } = preparationCovered(inputs);
   if (distance === null && gain === null) return null;
   if (gain === null)
     return distance
@@ -304,6 +315,20 @@ function roadVerdict(
   return gap <= 0
     ? `Dans les temps. La prévision Garmin (${predicted}) est sous ton objectif.`
     : `${signedClock(gap)} sur ton objectif. La prévision Garmin (${predicted}) reste au-dessus de ${formatClock(target)}.`;
+}
+
+function raceStatus(
+  gap: number | null,
+  road: boolean,
+  predicted: boolean,
+  preparation: Parameters<typeof preparationCovered>[0],
+): GoalCard["status"] {
+  if (predicted)
+    return gap === null ? null : gap <= 0 ? "on-track" : "building";
+  if (road) return null;
+  const { distance, gain } = preparationCovered(preparation);
+  if (distance === null && gain === null) return null;
+  return distance || gain ? "on-track" : "building";
 }
 
 function phaseShort(program: ProgramOverview | null) {
@@ -394,6 +419,12 @@ export function raceGoalCard(
             label: gap === 0 ? "0:00" : signedClock(gap),
             tone: gap <= 0 ? "success" : "warning",
           },
+    status: raceStatus(gap, road, key !== null, {
+      longestMeters: longestRunMeters,
+      distanceKm: race.distanceKm,
+      weeklyGainMeters: maxWeeklyGainMeters,
+      raceGainM: raceGain,
+    }),
     phaseShort: phaseShort(program),
     longestDay:
       longestRunMeters !== null && longestRunDay

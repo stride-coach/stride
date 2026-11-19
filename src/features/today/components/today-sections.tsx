@@ -1,6 +1,11 @@
 import { Fragment } from "react";
 import { CountUp } from "@/components/stride/count-up";
-import { CheckIcon, MessageCircleIcon } from "lucide-react";
+import {
+  ChartNoAxesColumnIcon,
+  CheckIcon,
+  CircleCheckIcon,
+  MessageCircleIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
@@ -24,9 +29,12 @@ import { TodayShoeChip } from "@/features/gear/components/session-shoes";
 import { recoveryPath } from "@/features/progress/health";
 import { cn } from "@/lib/utils";
 import type {
+  RailLevel,
   TodayDaySession,
   TodayForm,
   TodayGoal,
+  TodayLoad,
+  TodayRecent,
   TodaySession,
   TodayWeek,
   TodayWeekDay,
@@ -723,63 +731,228 @@ export function SessionStrip({ date, count }: { date: string; count: number }) {
   );
 }
 
-export function GoalSection({ goal }: { goal: TodayGoal | null }) {
+const railLevels: Record<RailLevel, StatusLevel> = {
+  ok: "ok",
+  watch: "watch",
+  alert: "alert",
+};
+
+function RailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section aria-labelledby="today-goal" className="flex flex-col gap-3">
+    <div className="grid min-h-7.5 grid-cols-[84px_minmax(0,1fr)] items-center gap-2.5">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="flex min-w-0 items-center gap-2">{children}</dd>
+    </div>
+  );
+}
+
+function LoadWidget({ load }: { load: TodayLoad }) {
+  return (
+    <Widget
+      headingLevel={2}
+      icon={<ChartNoAxesColumnIcon />}
+      title="Charge · 12 sem."
+      verdict={<Status level={railLevels[load.level]}>{load.label}</Status>}
+    >
+      <svg
+        viewBox="0 0 260 84"
+        role="img"
+        aria-label={load.description}
+        className="block w-full"
+      >
+        <polygon points={load.band} className="fill-accent" />
+        <polyline
+          points={load.line}
+          fill="none"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          className="stroke-foreground"
+        />
+        {load.peak && (
+          <circle
+            cx={load.peak.x}
+            cy={load.peak.y}
+            r="3.5"
+            strokeWidth="1.5"
+            className="fill-warning stroke-background"
+          />
+        )}
+        <circle
+          cx={load.current.x}
+          cy={load.current.y}
+          r="3.5"
+          strokeWidth="1.5"
+          className="fill-foreground stroke-background"
+        />
+      </svg>
+    </Widget>
+  );
+}
+
+function RecentSection({ recent }: { recent: TodayRecent }) {
+  return (
+    <section
+      aria-labelledby="today-recent"
+      className="flex flex-col gap-2 px-4 py-3.5 md:px-5"
+    >
       <h2
-        id="today-goal"
+        id="today-recent"
         className="text-label font-medium text-muted-foreground"
       >
-        {goal ? `Objectif ${goal.letter}` : "Objectif"}
+        {recent.heading}
       </h2>
-      {goal ? (
-        <>
-          <Link
-            href={goal.href}
-            className="rounded-md text-body-lg font-semibold hover:text-primary"
-          >
-            {goal.name}
-          </Link>
-          <dl className="flex flex-col">
-            <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
-              <dt className="text-muted-foreground">Échéance</dt>
-              <dd className="flex min-w-0 flex-col py-1 tabular-nums">
-                {goal.days === 0 ? "Jour J" : `J-${goal.days}`}
-                <span className="text-label text-muted-foreground">
-                  {goal.detail}
-                </span>
-              </dd>
-            </div>
-            {goal.block && (
-              <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
-                <dt className="text-muted-foreground">Phase</dt>
-                <dd className="flex items-baseline gap-2">
-                  {goal.block.name}
-                  <span className="text-muted-foreground tabular-nums">
-                    {goal.block.week}
-                  </span>
-                </dd>
-              </div>
+      <Link
+        href={recent.href}
+        className="flex items-center gap-2 rounded-md font-medium hover:text-primary"
+      >
+        {recent.compliance && (
+          <CircleCheckIcon
+            aria-hidden="true"
+            className={cn(
+              "size-3.5 shrink-0",
+              recent.compliance.partial ? "text-warning" : "text-primary",
             )}
-            {goal.light && (
-              <div className="grid min-h-7.5 grid-cols-[96px_minmax(0,1fr)] items-center gap-2.5">
-                <dt className="text-muted-foreground">Semaine allégée</dt>
-                <dd>{goal.light}</dd>
-              </div>
-            )}
-          </dl>
-        </>
-      ) : (
-        <p className="text-muted-foreground">
-          Aucune course objectif pour l’instant.{" "}
-          <Link
-            href="/races"
-            className="rounded-md text-primary hover:underline"
-          >
-            Voir les courses
-          </Link>
-        </p>
+          />
+        )}
+        <span className="min-w-0 truncate">{recent.title}</span>
+        <span className="ml-auto text-label font-normal whitespace-nowrap text-muted-foreground tabular-nums">
+          {recent.detail}
+          {recent.compliance?.pct != null && ` · ${recent.compliance.pct} %`}
+        </span>
+      </Link>
+      {recent.note && (
+        <p className="text-secondary-foreground">{recent.note}</p>
       )}
     </section>
+  );
+}
+
+export function GoalSection({
+  goal,
+  load,
+  recent,
+}: {
+  goal: TodayGoal | null;
+  load: TodayLoad | null;
+  recent: TodayRecent | null;
+}) {
+  return (
+    <>
+      <section
+        aria-labelledby="today-goal"
+        className="flex flex-col gap-1 border-b border-border px-4 py-4 md:px-5"
+      >
+        <h2
+          id="today-goal"
+          className="text-label font-medium text-muted-foreground"
+        >
+          {goal ? `Objectif ${goal.letter}` : "Objectif"}
+        </h2>
+        {goal ? (
+          <>
+            <Link
+              href={goal.href}
+              className="rounded-md text-body-lg font-semibold hover:text-primary"
+            >
+              {goal.name}
+            </Link>
+            {goal.status && (
+              <Status level={railLevels[goal.status.level]}>
+                {goal.status.label}
+              </Status>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground">
+            Aucune course objectif pour l’instant.{" "}
+            <Link
+              href="/races"
+              className="rounded-md text-primary hover:underline"
+            >
+              Voir les courses
+            </Link>
+          </p>
+        )}
+      </section>
+      {goal && (
+        <dl className="flex flex-col border-b border-border px-4 py-2.5 md:px-5">
+          <RailRow label="Échéance">
+            <span className="font-medium tabular-nums">{goal.dateLabel}</span>
+            <span className="text-muted-foreground tabular-nums">
+              {goal.days === 0 ? "Jour J" : `J-${goal.days}`}
+            </span>
+          </RailRow>
+          {goal.block && (
+            <RailRow label="Phase">
+              <span className="font-medium">{goal.block.name}</span>
+              <span className="text-muted-foreground tabular-nums">
+                {goal.block.week}
+              </span>
+            </RailRow>
+          )}
+          {goal.volume && (
+            <RailRow label="Volume">
+              <span className="font-medium tabular-nums">
+                {goal.volume.done}
+              </span>
+              <span className="text-muted-foreground tabular-nums">
+                / {goal.volume.planned}
+              </span>
+              <span
+                aria-hidden="true"
+                className="h-1 min-w-0 flex-1 overflow-hidden rounded-mark bg-border"
+              >
+                <span
+                  className="block h-full bg-primary"
+                  style={{ width: `${Math.min(100, goal.volume.pct)}%` }}
+                />
+              </span>
+            </RailRow>
+          )}
+          {goal.intensity && (
+            <RailRow label="Intensité">
+              <span className="font-medium tabular-nums">
+                {goal.intensity.easyPct} %
+              </span>
+              <span className="text-muted-foreground">facile</span>
+              <span
+                aria-hidden="true"
+                className="flex h-1.5 min-w-0 flex-1 gap-0.5"
+              >
+                <span
+                  className="rounded-mark bg-intensity-2"
+                  style={{ flex: goal.intensity.easyPct }}
+                />
+                {goal.intensity.qualityPct > 0 && (
+                  <span
+                    className="rounded-mark bg-intensity-4"
+                    style={{ flex: goal.intensity.qualityPct }}
+                  />
+                )}
+              </span>
+            </RailRow>
+          )}
+          {goal.injury && (
+            <RailRow label="Blessure">
+              <Status level={railLevels[goal.injury.level]}>
+                {goal.injury.label}
+              </Status>
+            </RailRow>
+          )}
+        </dl>
+      )}
+      {load && (
+        <div className="border-b border-border p-3">
+          <LoadWidget load={load} />
+        </div>
+      )}
+      {recent && <RecentSection recent={recent} />}
+    </>
   );
 }
