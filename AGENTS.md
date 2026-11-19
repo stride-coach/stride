@@ -35,6 +35,7 @@ Stride is a web-first personal running coach for road and trail athletes. This r
 - Reuse existing primitives before adding abstractions. Avoid unnecessary wrappers, utilities, and duplicate UI libraries.
 - Use `next/font` for project fonts. Preserve keyboard navigation, focus-visible states, and reduced-motion behavior.
 - Follow `docs/architecture/frontend-data-loading.md` for reads, revalidation and navigation: revalidate inside Server Actions without a client `router.refresh()`, wrap shared reads in React `cache()`, and add no server-side data cache.
+- Keep loading skeletons in step with the page: when a screen layout changes, update its `loading.tsx` and loading components (`src/features/data-activity/components/loading.tsx`, feature `*-loading.tsx`) in the same pull request, with the same breakpoints.
 
 ## Component conventions
 
