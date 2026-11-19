@@ -132,16 +132,31 @@ export function ActivitiesLoading() {
   return (
     <LoadingScope
       label="Chargement des activités"
-      className="flex min-h-0 flex-1 flex-col"
+      className="flex min-h-0 flex-1"
     >
-      {snapshot ? (
-        <ActivityListPane {...snapshot} registerSnapshot={false} />
-      ) : (
-        <>
-          <ActivityListHeader loading />
-          <ActivityRowsLoading />
-        </>
-      )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {snapshot ? (
+          <ActivityListPane {...snapshot} registerSnapshot={false} />
+        ) : (
+          <>
+            <ActivityListHeader loading />
+            <ActivityRowsLoading />
+          </>
+        )}
+      </div>
+      <div
+        aria-hidden="true"
+        className="flex flex-col gap-3 px-4 py-4.5 max-xl:hidden xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border xl:px-5"
+      >
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="mt-2 h-3 w-1/3" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="mt-2 h-3 w-1/3" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-full" />
+      </div>
     </LoadingScope>
   );
 }
