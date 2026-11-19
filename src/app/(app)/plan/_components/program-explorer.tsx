@@ -43,9 +43,11 @@ type Landmark = {
 };
 
 function Milestones({
+  title,
   landmarks,
   onSelect,
 }: {
+  title: string;
   landmarks: Landmark[];
   onSelect: (weekKey: string) => void;
 }) {
@@ -58,7 +60,7 @@ function Milestones({
         id="program-milestones"
         className="text-label font-medium text-muted-foreground"
       >
-        Jalons
+        {title}
       </h2>
       <ul className="flex flex-col">
         {landmarks.map((landmark) => (
@@ -104,8 +106,12 @@ function Milestones({
 
 function landmarksOf(program: SeasonProgram): Landmark[] {
   const fromWeeks = new Map(program.weeks.map((week) => [week.number, week]));
+  const past = program.status === "past";
   return [
-    ...program.milestones.map((item) => ({ ...item, detail: null })),
+    ...(past ? [] : program.milestones).map((item) => ({
+      ...item,
+      detail: null,
+    })),
     ...program.races.flatMap((race) => {
       const week = fromWeeks.get(race.number);
       return week
@@ -233,9 +239,15 @@ export function ProgramExplorer({
     <div className="flex flex-col xl:flex-row xl:items-start">
       <div className="flex min-w-0 flex-1 flex-col">
         <h1 className="sr-only">{program.title}</h1>
+        {program.status === "past" && (
+          <div className="border-b border-border px-4 py-3 xl:hidden">
+            <ProgramHeader program={program} compact />
+          </div>
+        )}
         <div className="px-4 pt-4.5 md:px-5">
           <ProgramChart
             weeks={weeks}
+            past={program.status === "past"}
             bands={program.bands}
             selected={selected}
             onSelect={select}
@@ -269,7 +281,12 @@ export function ProgramExplorer({
         aria-label="Programme"
         className="flex flex-col xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border"
       >
-        <div className="border-b border-border px-4 py-4.5 md:px-5">
+        <div
+          className={cn(
+            "border-b border-border px-4 py-4.5 md:px-5",
+            program.status === "past" && "max-xl:hidden",
+          )}
+        >
           <ProgramHeader program={program} />
         </div>
         {load && (
@@ -279,7 +296,13 @@ export function ProgramExplorer({
         )}
         {landmarks.length > 0 && (
           <div className="border-b border-border px-4 py-4.5 md:px-5">
-            <Milestones landmarks={landmarks} onSelect={select} />
+            <Milestones
+              title={
+                program.status === "past" ? "Courses de la saison" : "Jalons"
+              }
+              landmarks={landmarks}
+              onSelect={select}
+            />
           </div>
         )}
         {program.next && (
