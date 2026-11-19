@@ -1,6 +1,5 @@
 "use client";
 
-import { CopyIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -20,11 +19,14 @@ export function CopyProgramButton({ text }: { text: string }) {
     }
   }
   return (
-    <Button type="button" variant="ghost" size="md" onClick={copy}>
-      <CopyIcon aria-hidden="true" />
-      <span>
-        Copier<span className="max-sm:sr-only"> le programme</span>
-      </span>
+    <Button
+      type="button"
+      variant="ghost"
+      size="md"
+      onClick={copy}
+      className="text-secondary-foreground"
+    >
+      Copier<span className="max-sm:sr-only"> le programme</span>
     </Button>
   );
 }

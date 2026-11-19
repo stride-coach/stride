@@ -203,9 +203,6 @@ export function ProgramExplorer({
 
   const navigation = (
     <div className="ml-auto flex items-center gap-1.5 max-sm:hidden">
-      <span className="mr-1.5 text-label text-muted-foreground max-lg:hidden">
-        ← → au clavier
-      </span>
       <Button
         variant="outline"
         size="icon-sm"
