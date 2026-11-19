@@ -32,3 +32,9 @@ description: Season calendar for a running athlete. Race roles, recovery and tap
 ## Conflicts
 
 A conflict is never hidden. Show it and propose the nearest alternative: another date, a shorter format of the same event, or downgrading the race to Plaisir. Health beats ambition: an open pain report or a Medical limit always wins over the calendar.
+
+## Common mistakes
+
+- Presenting a recovery window as a training limit (« ses 4 semaines de récupération mangent ton pic »). It only spaces races; the plan decides the volume.
+- Recommending a weekly volume, a peak or a progression rate. Volume belongs to the coach, who reads it from the active plan.
+- Quoting plan figures or the athlete's horizon from memory. Read the plan, and confirm the month the athlete means before answering about a peak.
