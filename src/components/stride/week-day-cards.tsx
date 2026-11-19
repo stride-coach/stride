@@ -110,14 +110,14 @@ function Sessions({ day }: { day: WeekCardDay }) {
 function CardContent({ day }: { day: WeekCardDay }) {
   return (
     <>
-      <span className="flex items-center gap-1 text-label whitespace-nowrap">
+      <span className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-label">
         <SessionStateMark state={day.state} />
-        <span className="text-muted-foreground tabular-nums">
+        <span className="whitespace-nowrap text-muted-foreground tabular-nums">
           {day.dayLabel}
         </span>
         <span className="sr-only">{sessionStateLabels[day.state]}</span>
         {day.compliance && (
-          <span className="ml-auto font-medium text-primary tabular-nums">
+          <span className="ml-auto font-medium whitespace-nowrap text-primary tabular-nums">
             {day.compliance}
           </span>
         )}
@@ -151,9 +151,12 @@ export function WeekDayCards({
           day.isPast && !day.isToday && "opacity-55",
         );
         return (
-          <li key={day.date} aria-current={day.isToday ? "date" : undefined}>
+          <li
+            key={day.date}
+            aria-current={day.isToday && !day.link ? "date" : undefined}
+          >
             {day.link ? (
-              <CardLink link={day.link} className={card}>
+              <CardLink link={day.link} current={day.isToday} className={card}>
                 <CardContent day={day} />
               </CardLink>
             ) : (
