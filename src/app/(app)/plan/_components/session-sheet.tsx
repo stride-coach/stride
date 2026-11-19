@@ -20,6 +20,7 @@ import {
   useWatchSend,
   WatchSendButton,
 } from "@/features/garmin/components/watch-status";
+import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SessionCheckInButton } from "./session-check-in";
 import { SessionPanelBody } from "./session-panel";
 
@@ -284,6 +285,44 @@ export function SessionSheet({
             watchPending={watchSend.pending}
           />
         </div>
+        {panel.completion && (
+          <footer
+            className={cn(
+              "flex flex-wrap items-center gap-2 border-t border-border bg-background",
+              mobile
+                ? "px-5 pt-3 pb-[max(1.875rem,env(safe-area-inset-bottom))]"
+                : "px-4 py-3.5",
+            )}
+          >
+            <Button
+              asChild
+              variant="outline"
+              size="md"
+              className={mobile ? "h-12 flex-1" : undefined}
+            >
+              <Link
+                href={
+                  panel.completion.activities[0]?.href ??
+                  `/activities/${panel.completion.activityId}`
+                }
+              >
+                Voir l’activité
+              </Link>
+            </Button>
+            {panel.completion.debrief && !panel.readOnly && (
+              <Button
+                asChild
+                variant="ghost"
+                size="md"
+                className={mobile ? "h-12 flex-1" : "ml-auto"}
+              >
+                <Link href={panel.completion.debrief.coachHref}>
+                  En parler au coach
+                </Link>
+              </Button>
+            )}
+          </footer>
+        )}
         {(watch?.action || (panel.checkIn && !panel.readOnly)) && (
           <footer
             className={cn(
