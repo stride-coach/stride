@@ -20,10 +20,7 @@ import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { SyncNowButton } from "@/features/data-activity/components/sync-request";
 import { TodayDecisions } from "./today-decisions";
-import {
-  TodayShoeChip,
-  TodayShoeRow,
-} from "@/features/gear/components/session-shoes";
+import { TodayShoeChip } from "@/features/gear/components/session-shoes";
 import { recoveryPath } from "@/features/progress/health";
 import { cn } from "@/lib/utils";
 import type {
@@ -221,22 +218,22 @@ function PlannedSession({
           plannedTitle={panel.title}
           proposal={proposal}
           moveDays={proposal ? [] : session.moveDays}
-        />
+        >
+          {panel.shoes && (
+            <TodayShoeChip shoes={panel.shoes} href={session.href} />
+          )}
+        </TodayDecisions>
       )}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        {!done && panel.shoes && (
-          <TodayShoeChip shoes={panel.shoes} href={session.href} />
-        )}
-        {done && (
+      {done && (
+        <div className="flex items-center">
           <Link
             href={session.href}
             className="ml-auto rounded-md font-medium text-primary hover:underline"
           >
             Voir les étapes →
           </Link>
-        )}
-      </div>
-      {!done && panel.shoes && <TodayShoeRow shoes={panel.shoes} />}
+        </div>
+      )}
     </>
   );
 }

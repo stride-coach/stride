@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, type ReactNode } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,9 @@ export function TodayDecisions({
   proposal,
   moveDays,
   stepsHref,
+  children,
 }: {
+  children?: ReactNode;
   stepsHref: string;
   sessionKey: string;
   plannedTitle: string;
@@ -141,7 +143,7 @@ export function TodayDecisions({
               <ChevronDownIcon data-icon="inline-end" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="start" className="w-auto min-w-64">
             <DropdownMenuLabel>Déplacer à</DropdownMenuLabel>
             {moveDays.map((day) => (
               <DropdownMenuItem
@@ -172,6 +174,7 @@ export function TodayDecisions({
           <Link href={`/plan?proposal=${proposal.id}`}>Pourquoi ?</Link>
         </Button>
       )}
+      {children}
       <Link
         href={stepsHref}
         className="ml-auto rounded-md font-medium text-secondary-foreground hover:text-foreground hover:underline"

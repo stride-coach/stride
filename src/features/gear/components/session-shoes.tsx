@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -284,6 +283,9 @@ export function SessionShoesBlock({ shoes }: { shoes: SessionShoesView }) {
   );
 }
 
+const shoeChipClass =
+  "inline-flex min-h-6 items-center gap-1.5 rounded-md border border-control-border px-2 whitespace-nowrap text-foreground transition-colors duration-150 ease-stride hover:border-muted-foreground";
+
 export function TodayShoeChip({
   shoes,
   href,
@@ -291,43 +293,26 @@ export function TodayShoeChip({
   shoes: SessionShoesView;
   href: string;
 }) {
-  if (!shoes.chosen) return null;
-  return (
-    <Link
-      href={href}
-      aria-label={`Paire ${shoes.chosen.badge === "Ton choix" ? "choisie" : "conseillée"} : ${shoes.chosen.name}`}
-      className="inline-flex min-h-6 items-center gap-1.5 rounded-md border border-control-border px-2 whitespace-nowrap text-foreground transition-colors duration-150 ease-stride hover:border-muted-foreground max-md:hidden"
-    >
-      <NavGearIcon className="size-3.5 text-muted-foreground" />
-      {shoes.chosen.name}
-    </Link>
-  );
-}
-
-export function TodayShoeRow({ shoes }: { shoes: SessionShoesView }) {
   const [picking, setPicking] = useState(false);
   if (!shoes.chosen) return null;
   return (
     <>
+      <Link
+        href={href}
+        aria-label={`Paire ${shoes.chosen.badge === "Ton choix" ? "choisie" : "conseillée"} : ${shoes.chosen.name}`}
+        className={`${shoeChipClass} max-md:hidden`}
+      >
+        <NavGearIcon className="size-3.5 text-muted-foreground" />
+        {shoes.chosen.name}
+      </Link>
       <button
         type="button"
         onClick={() => setPicking(true)}
         aria-label={`Changer de paire, actuellement ${shoes.chosen.name}`}
-        className="flex min-h-control-touch w-full items-center gap-2.5 rounded-lg border border-border px-3 py-1.5 text-left text-foreground md:hidden"
+        className={`${shoeChipClass} min-h-control-touch md:hidden`}
       >
-        <NavGearIcon className="size-3.5 shrink-0 text-muted-foreground" />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span>{shoes.chosen.name}</span>
-          {shoes.chip && (
-            <span className="truncate text-label text-muted-foreground">
-              {shoes.chip}
-            </span>
-          )}
-        </span>
-        <span className="flex items-center text-label text-muted-foreground">
-          Changer
-          <ChevronRightIcon aria-hidden="true" className="size-3" />
-        </span>
+        <NavGearIcon className="size-3.5 text-muted-foreground" />
+        {shoes.chosen.name}
       </button>
       {picking && (
         <ShoePicker shoes={shoes} open={picking} onOpenChange={setPicking} />
