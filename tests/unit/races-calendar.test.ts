@@ -173,6 +173,73 @@ describe("checkCalendar", () => {
     ).toEqual([]);
   });
 
+  describe("proportionate preparation recovery", () => {
+    const ecotrail = race("eco", "2027-03-20", 121, "primary", {
+      kind: "trail",
+      elevationGainM: 1852,
+    });
+    function maxiCross(date: string, distanceKm = 42, gain = 1455) {
+      return race("maxi", date, distanceKm, "preparation", {
+        kind: "trail",
+        elevationGainM: gain,
+      });
+    }
+
+    it("steps the recovery of a small preparation race one band down", () => {
+      const result = checkCalendar([maxiCross("2027-01-31"), ecotrail]);
+      const maxi = result.races.find((item) => item.id === "maxi");
+      expect(maxi?.kmEffort).toBe(56.6);
+      expect(maxi?.recoveryDays).toBe(21);
+      expect(maxi?.recoveryEndsOn).toBe("2027-02-21");
+      expect(maxi?.objectiveShare).toBeCloseTo(0.41, 2);
+      expect(result.conflicts).toEqual([]);
+    });
+
+    it("keeps the full recovery just above the threshold", () => {
+      const result = checkCalendar([
+        race("half", "2027-01-31", 35, "preparation"),
+        race("ultra", "2027-04-30", 60, "primary"),
+      ]);
+      expect(result.races[0].objectiveShare).toBeGreaterThan(
+        calendarRules.smallPreparationMaxShare,
+      );
+      expect(result.races[0].recoveryDays).toBe(28);
+    });
+
+    it("never goes below the first band", () => {
+      const result = checkCalendar([
+        race("ten", "2027-03-01", 10, "preparation"),
+        ecotrail,
+      ]);
+      expect(result.races[0].recoveryDays).toBe(14);
+    });
+
+    it("leaves a preparation race with no later main objective unchanged", () => {
+      const result = checkCalendar([
+        maxiCross("2027-01-31"),
+        race("fun", "2027-04-10", 10, "fun"),
+      ]);
+      expect(result.races[0].recoveryDays).toBe(28);
+      expect(result.races[0].objectiveShare).toBeNull();
+    });
+
+    it("leaves fun and main objective races unchanged", () => {
+      const result = checkCalendar([
+        race("fun", "2027-01-01", 40, "fun"),
+        race("small", "2027-02-01", 20, "primary"),
+        race("big", "2027-06-01", 100, "primary"),
+      ]);
+      expect(result.races.map((item) => item.recoveryDays)).toEqual([
+        28, 21, 42,
+      ]);
+      expect(result.races.map((item) => item.objectiveShare)).toEqual([
+        null,
+        null,
+        null,
+      ]);
+    });
+  });
+
   it("requires the full recovery before a race run hard", () => {
     expect(
       checkCalendar([

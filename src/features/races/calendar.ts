@@ -23,6 +23,7 @@ export const calendarRules = {
   elevationMetersPerKm: 100,
   funBeforeHardRaceDays: 7,
   funAfterRaceRecoveryShare: 0.5,
+  smallPreparationMaxShare: 0.5,
   bands: [
     { maxKmEffort: 15, recoveryDays: 14, taperDays: 10 },
     { maxKmEffort: 30, recoveryDays: 21, taperDays: 14 },
@@ -53,6 +54,7 @@ export type CalendarRace = {
   kmEffort: number;
   recoveryDays: number;
   recoveryEndsOn: string;
+  objectiveShare: number | null;
   taperDays: number | null;
   taperStartsOn: string | null;
 };
@@ -143,9 +145,33 @@ function toCalendarRace(
     kmEffort: effort,
     recoveryDays: band.recoveryDays,
     recoveryEndsOn: addDays(input.date, band.recoveryDays),
+    objectiveShare: null,
     taperDays,
     taperStartsOn: taperDays === null ? null : addDays(input.date, -taperDays),
   };
+}
+
+function withProportionateRecovery(races: CalendarRace[]) {
+  return races.map((race, index) => {
+    if (race.role !== "preparation") return race;
+    const objective = races
+      .slice(index + 1)
+      .find((later) => later.role === "primary");
+    if (!objective) return race;
+    const objectiveShare =
+      Math.round((race.kmEffort / objective.kmEffort) * 100) / 100;
+    if (objectiveShare > calendarRules.smallPreparationMaxShare) {
+      return { ...race, objectiveShare };
+    }
+    const own = calendarRules.bands.indexOf(calendarBand(race.kmEffort));
+    const { recoveryDays } = calendarRules.bands[Math.max(own - 1, 0)];
+    return {
+      ...race,
+      objectiveShare,
+      recoveryDays,
+      recoveryEndsOn: addDays(race.date, recoveryDays),
+    };
+  });
 }
 
 function taperConflicts(races: CalendarRace[]) {
@@ -236,17 +262,20 @@ export function checkCalendar(
 ): CalendarCheck {
   const undated: CalendarRaceInput[] = [];
   const incomplete: CalendarRaceInput[] = [];
-  const races: CalendarRace[] = [];
+  const unsized: CalendarRace[] = [];
   for (const input of inputs) {
     const { date, distanceKm } = input;
     if (date === null) undated.push(input);
     else if (distanceKm === null || distanceKm <= 0) incomplete.push(input);
     else
-      races.push(toCalendarRace({ ...input, date, distanceKm }, options.today));
+      unsized.push(
+        toCalendarRace({ ...input, date, distanceKm }, options.today),
+      );
   }
-  races.sort(
+  unsized.sort(
     (a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id),
   );
+  const races = withProportionateRecovery(unsized);
   const gaps = races.slice(1).map((race, index) => {
     const days = daysBetween(races[index].date, race.date);
     return {
