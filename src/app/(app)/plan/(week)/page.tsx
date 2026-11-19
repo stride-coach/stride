@@ -239,6 +239,7 @@ export default async function PlanPage({
         program={program}
         initialWeekKey={initialWeekKey}
         load={load}
+        today={overview.today}
         mobileAction={<CopyProgramButton text={copyText} />}
         proposals={proposalsByWeek(state, overview.proposals)}
         watchTags={watchDayTags({

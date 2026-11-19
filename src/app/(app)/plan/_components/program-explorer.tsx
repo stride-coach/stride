@@ -137,8 +137,10 @@ export function ProgramExplorer({
   proposals = {},
   watchTags = {},
   load = null,
+  today = null,
   mobileAction,
 }: {
+  today?: string | null;
   load?: LoadTrend | null;
   mobileAction?: React.ReactNode;
   program: SeasonProgram;
@@ -248,6 +250,7 @@ export function ProgramExplorer({
           <ProgramChart
             weeks={weeks}
             past={program.status === "past"}
+            today={today}
             bands={program.bands}
             selected={selected}
             onSelect={select}
