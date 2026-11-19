@@ -178,9 +178,13 @@ test("today stacks the day in reading order on mobile", async ({ page }) => {
   expect(order.length).toBeGreaterThanOrEqual(4);
   expect([...order].sort((a, b) => a - b)).toEqual(order);
   const week = page.getByRole("region", { name: /^Cette semaine/ });
-  await expect(
-    week.locator('[data-slot="session-row"][data-state="today"]'),
-  ).toHaveCount(1);
+  await expect(week.getByRole("listitem")).toHaveCount(7);
+  const today = week.locator('[aria-current="date"]');
+  await expect(today).toHaveCount(1);
+  const box = await today.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   await expect(page.getByRole("region", { name: /^Semaine \d+$/ })).toHaveCount(
     0,
   );
