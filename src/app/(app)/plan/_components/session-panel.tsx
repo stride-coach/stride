@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SheetTitle } from "@/components/ui/sheet";
 import { isWorkZone, zoneHeights } from "@/components/stride/session-blocks";
 import { Chip } from "@/components/stride/chip";
+import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { Status } from "@/components/stride/status";
 import { dayIntensity } from "@/features/plans/view/intensity";
 import { FreeBlock, zoneFills } from "@/components/stride/session-shape";
@@ -64,23 +65,29 @@ function Hero({ panel, titleId }: { panel: SessionPanel; titleId: string }) {
         zone: segment.zone,
       })),
   );
+  const terrain = panel.stats.find((stat) => stat.key === "terrain");
   return (
     <div className="flex items-start gap-3">
-      <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-col gap-2.5">
         {panel.status && <PanelStatusLabel status={panel.status} />}
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
           <SheetTitle id={titleId} className="text-verdict font-semibold">
             {panel.title}
           </SheetTitle>
+          {panel.proposal && <Chip proposal>Proposition</Chip>}
           {intensity && (
             <Chip intensity={intensity.level ?? undefined}>
               {intensity.label}
             </Chip>
           )}
+          {terrain && <Chip>{terrain.value}</Chip>}
         </div>
-        <p className="text-body leading-normal text-secondary-foreground max-sm:hidden">
-          {panel.purpose}
-        </p>
+        {panel.purpose && (
+          <p className="flex items-start gap-2.5 text-body leading-normal text-secondary-foreground">
+            <StaffAvatar agent="coach" size={22} decorative />
+            {panel.purpose}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -123,17 +130,19 @@ function Proposal({
 
 function Stats({ panel }: { panel: SessionPanel }) {
   return (
-    <dl className="grid grid-cols-3 gap-x-3 gap-y-3.5">
-      {panel.stats.map((stat) => (
-        <div key={stat.key} className="flex min-w-0 flex-col gap-0.75">
-          <dt className="order-2">
-            <Dk>{stat.label}</Dk>
-          </dt>
-          <dd className="order-1 truncate text-title leading-none font-semibold tabular-nums">
-            {stat.value}
-          </dd>
-        </div>
-      ))}
+    <dl className="grid grid-cols-2 gap-x-3 gap-y-4 border-y border-border py-4 sm:grid-cols-4">
+      {panel.stats
+        .filter((stat) => stat.key !== "terrain")
+        .map((stat) => (
+          <div key={stat.key} className="flex min-w-0 flex-col gap-0.75">
+            <dt className="order-2">
+              <Dk>{stat.label}</Dk>
+            </dt>
+            <dd className="order-1 truncate text-title leading-none font-semibold tabular-nums">
+              {stat.value}
+            </dd>
+          </div>
+        ))}
     </dl>
   );
 }
@@ -144,7 +153,7 @@ function Structure({ panel }: { panel: SessionPanel }) {
       aria-labelledby="panel-structure"
       className="flex flex-col gap-1.5"
     >
-      <Dk id="panel-structure">Structure</Dk>
+      <Dk id="panel-structure">Déroulé</Dk>
       <div
         role="img"
         aria-label={panel.structureLabel}
@@ -170,12 +179,6 @@ function Structure({ panel }: { panel: SessionPanel }) {
                 />
               )}
             </span>
-            <span
-              aria-hidden="true"
-              className="h-3 text-center text-micro leading-none font-medium text-muted-foreground tabular-nums"
-            >
-              {segment.label}
-            </span>
           </div>
         ))}
       </div>
@@ -186,40 +189,32 @@ function Structure({ panel }: { panel: SessionPanel }) {
 function Steps({ panel }: { panel: SessionPanel }) {
   return (
     <section aria-labelledby="panel-steps" className="flex flex-col">
-      <Dk id="panel-steps" className="pb-1 text-label">
+      <h3 id="panel-steps" className="sr-only">
         Étapes
-      </Dk>
+      </h3>
       <ol>
         {panel.steps.map((step) => (
           <li
             key={step.key}
-            className="grid grid-cols-[4px_minmax(0,1fr)_auto] items-start gap-3 border-t border-border py-2.75"
+            className="grid grid-cols-[8px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-t border-border py-2.5 first:border-0 sm:grid-cols-[8px_minmax(0,1fr)_auto_auto]"
           >
             <span
               aria-hidden="true"
-              className={cn("self-stretch rounded-mark", zoneFills[step.zone])}
+              className={cn("size-2 rounded-mark", zoneFills[step.zone])}
             />
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-body font-semibold">{step.name}</span>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-body font-medium">{step.name}</span>
               {step.cue && (
                 <span className="text-label text-muted-foreground">
                   {step.cue}
                 </span>
               )}
             </span>
-            <span className="flex flex-col items-end gap-0.5">
-              <span className="text-body-lg font-semibold tabular-nums">
-                {step.duration}
-              </span>
-              <span className="text-label whitespace-nowrap text-secondary-foreground">
-                {step.target}
-                {step.pace && (
-                  <>
-                    {" · "}
-                    <span className="text-muted-foreground">{step.pace}</span>
-                  </>
-                )}
-              </span>
+            <span className="font-medium tabular-nums sm:order-2">
+              {step.duration}
+            </span>
+            <span className="text-label whitespace-nowrap text-muted-foreground tabular-nums max-sm:col-span-2 max-sm:col-start-2 sm:order-3 sm:text-right">
+              {[step.pace, step.target].filter(Boolean).join(" · ")}
             </span>
           </li>
         ))}
@@ -231,19 +226,21 @@ function Steps({ panel }: { panel: SessionPanel }) {
 function Contents({ panel }: { panel: SessionPanel }) {
   return (
     <section aria-labelledby="panel-contents" className="flex flex-col">
-      <Dk id="panel-contents" className="pb-1 text-label">
+      <h3 id="panel-contents" className="sr-only">
         Contenu
-      </Dk>
+      </h3>
       <ol>
         {panel.steps.map((step) => (
           <li
             key={step.key}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-t border-border py-2.75"
+            className="grid grid-cols-[8px_minmax(0,1fr)_auto] items-center gap-3 border-t border-border py-2.5 first:border-0"
           >
-            <span className="text-body leading-normal">{step.cue}</span>
-            <span className="text-body-lg font-semibold tabular-nums">
-              {step.duration}
-            </span>
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-mark bg-muted-foreground"
+            />
+            <span className="text-body font-medium">{step.cue}</span>
+            <span className="tabular-nums">{step.duration}</span>
           </li>
         ))}
       </ol>

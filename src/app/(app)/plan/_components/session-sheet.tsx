@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,7 +24,7 @@ import { SessionCheckInButton } from "./session-check-in";
 import { SessionPanelBody } from "./session-panel";
 
 const iconButton =
-  "size-8.5 rounded-md border-border text-secondary-foreground hover:text-foreground";
+  "size-8 rounded-md border-transparent text-secondary-foreground hover:text-foreground";
 
 let openedFromPlan = false;
 let overlayTrigger: HTMLElement | null = null;
@@ -168,24 +168,24 @@ export function SessionSheet({
   const position = `Séance ${panel.position.index} / ${panel.position.count}`;
   const previous = (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
       aria-label="Séance précédente"
       disabled={!panel.previousKey}
       onClick={() => go(panel.previousKey)}
-      className={cn(iconButton, "max-sm:size-11")}
+      className={cn(iconButton, "max-sm:size-9")}
     >
       <ChevronLeftIcon aria-hidden="true" />
     </Button>
   );
   const next = (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
       aria-label="Séance suivante"
       disabled={!panel.nextKey}
       onClick={() => go(panel.nextKey)}
-      className={cn(iconButton, "max-sm:size-11")}
+      className={cn(iconButton, "max-sm:size-9")}
     >
       <ChevronRightIcon aria-hidden="true" />
     </Button>
@@ -232,38 +232,42 @@ export function SessionSheet({
             mobile ? "px-4 pt-1.5 pb-3" : "px-4 py-3.5",
           )}
         >
-          {previous}
           {mobile ? (
             <>
-              <span className="flex flex-1 flex-col text-center">
-                <span className="text-body">{panel.day}</span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-medium">{panel.day}</span>
                 <span className="text-label text-muted-foreground">
                   {position} · glisse ← →
                 </span>
               </span>
+              {previous}
               {next}
+              <SheetClose asChild>
+                <Button variant="ghost" size="md">
+                  Fermer
+                </Button>
+              </SheetClose>
             </>
           ) : (
             <>
-              {next}
-              <span className="ml-1.5 flex min-w-0 flex-col">
-                <span className="text-secondary-foreground">
-                  {panel.heading}
-                </span>
+              <span className="flex min-w-0 flex-col">
+                <span className="font-semibold">{panel.heading}</span>
                 <span className="text-label text-muted-foreground">
-                  {position} de la semaine · ← → · Échap
+                  {position} de la semaine · ← →
                 </span>
               </span>
-              <SheetClose asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Fermer"
-                  className={cn(iconButton, "ml-auto")}
-                >
-                  <XIcon aria-hidden="true" />
-                </Button>
-              </SheetClose>
+              <span className="ml-auto flex items-center gap-1.5">
+                {previous}
+                {next}
+                <SheetClose asChild>
+                  <Button variant="ghost" size="md">
+                    Fermer
+                    <kbd className="rounded-sm border border-control-border px-1 text-micro font-normal text-muted-foreground">
+                      Échap
+                    </kbd>
+                  </Button>
+                </SheetClose>
+              </span>
             </>
           )}
         </header>
