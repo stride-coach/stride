@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   createShoe,
+  replaceShoe,
   suggestShoe,
   updateShoe,
   type SuggestionOutcome,
@@ -208,31 +209,53 @@ function splitName(name: string) {
   };
 }
 
+export type ReplacedShoe = { name: string; totalKm: string };
+
+const successMessages = {
+  create: "Paire ajoutée.",
+  edit: "Paire enregistrée.",
+  replace: "Paire remplacée.",
+} as const;
+
+const submitLabels = {
+  create: {
+    idle: "Enregistrer et créer dans Garmin",
+    busy: "Création dans Garmin…",
+  },
+  edit: { idle: "Enregistrer", busy: "Enregistrement…" },
+  replace: { idle: "Remplacer la paire", busy: "Remplacement…" },
+} as const;
+
 export function ShoeForm({
   mode,
   id,
   spec = null,
   suggested: initialSuggested = [],
+  replaced,
   today,
 }: {
-  mode: "create" | "edit";
+  mode: "create" | "edit" | "replace";
   id?: string;
   spec?: ShoeSpec | null;
   suggested?: SuggestedField[];
+  replaced?: ReplacedShoe;
   today: string;
 }) {
   const router = useRouter();
+  const fresh = mode !== "edit";
   const [draft, setDraft] = useState<Draft>(() => draftOf(spec));
   const [suggested, setSuggested] =
     useState<SuggestedField[]>(initialSuggested);
-  const [lifespanTouched, setLifespanTouched] = useState(mode === "edit");
+  const [lifespanTouched, setLifespanTouched] = useState(spec !== null);
   const [name, setName] = useState("");
   const [suggesting, startSuggesting] = useTransition();
   const [suggestion, setSuggestion] = useState("");
   const [worn, setWorn] = useState(false);
   const [currentKm, setCurrentKm] = useState("");
   const [firstUse, setFirstUse] = useState(formatFrenchDate(today));
-  const [garminDefault, setGarminDefault] = useState<GarminDefault>("none");
+  const [garminDefault, setGarminDefault] = useState<GarminDefault>(
+    mode === "replace" && spec ? defaultGarminActivity(spec.terrain) : "none",
+  );
   const [garminTouched, setGarminTouched] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [message, setMessage] = useState("");
@@ -252,7 +275,7 @@ export function ShoeForm({
         next.lifespanKm = lifespanFor(next.category, next.terrain);
       return next;
     });
-    if (key === "terrain" && mode === "create" && !garminTouched && value)
+    if (key === "terrain" && fresh && !garminTouched && value)
       setGarminDefault(defaultGarminActivity(value as ShoeTerrain));
     clearError(key);
     if (key === "category" || key === "terrain" || key === "description")
@@ -324,7 +347,7 @@ export function ShoeForm({
     if (sizeEu === undefined) nextErrors.push("sizeEu");
     const firstUseDate = parseFrenchDate(firstUse);
     const km = worn ? parseKm(currentKm) : 0;
-    if (mode === "create") {
+    if (fresh) {
       if (!firstUseDate || firstUseDate > today) nextErrors.push("firstUse");
       if (km === null) nextErrors.push("currentKm");
     }
@@ -343,21 +366,26 @@ export function ShoeForm({
       sizeEu: sizeEu ?? null,
       lifespanKm: Math.round(lifespan ?? 0),
     };
+    const created = {
+      spec: shoe,
+      currentKm: km ?? 0,
+      firstUseDate,
+      garminDefault,
+      suggested,
+    };
     startTransition(async () => {
       const response =
         mode === "create"
-          ? await createShoe({
-              spec: shoe,
-              currentKm: km ?? 0,
-              firstUseDate,
-              garminDefault,
-              suggested,
-            })
-          : await updateShoe({ id, spec: shoe, suggested });
+          ? await createShoe(created)
+          : mode === "replace"
+            ? await replaceShoe({ id, shoe: created })
+            : await updateShoe({ id, spec: shoe, suggested });
       if (response.status === "saved" && response.id) {
-        toast.success(
-          mode === "create" ? "Paire ajoutée." : "Paire enregistrée.",
-        );
+        if (response.previousStillActive)
+          toast.warning(
+            "Nouvelle paire créée, mais l’ancienne est toujours en service. Retire-la depuis sa fiche.",
+          );
+        else toast.success(successMessages[mode]);
         startTransition(() => router.push(`/activities/gear/${response.id}`));
       } else toast.error(gearErrorMessage(response));
     });
@@ -510,7 +538,7 @@ export function ShoeForm({
         </div>
       </section>
 
-      {mode === "create" && (
+      {fresh && (
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card px-4 py-3.5">
           <h2 className="font-semibold">Kilomètres</h2>
           <Chips
@@ -560,15 +588,16 @@ export function ShoeForm({
         </section>
       )}
 
-      {mode === "create" && (
+      {fresh && (
         <section className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
           <h2 className="flex items-center gap-2 font-semibold">
             <SourceMark source="provider" />
             Dans Garmin
           </h2>
           <p className="text-body text-secondary-foreground">
-            Stride crée la paire dans Garmin Connect. Garmin comptera ensuite
-            chaque sortie et te préviendra quand elle atteindra sa durée de vie.
+            {replaced
+              ? `Stride crée la paire neuve dans Garmin Connect, puis retire ta ${replaced.name} actuelle (${replaced.totalKm} km), ici et dans Garmin. Son historique est conservé et tu pourras la remettre en service.`
+              : "Stride crée la paire dans Garmin Connect. Garmin comptera ensuite chaque sortie et te préviendra quand elle atteindra sa durée de vie."}
           </p>
           <Chips
             legend="Paire par défaut dans Garmin pour"
@@ -593,13 +622,7 @@ export function ShoeForm({
           Annuler
         </Button>
         <Button type="submit" disabled={pending}>
-          {mode === "create"
-            ? pending
-              ? "Création dans Garmin…"
-              : "Enregistrer et créer dans Garmin"
-            : pending
-              ? "Enregistrement…"
-              : "Enregistrer"}
+          {submitLabels[mode][pending ? "busy" : "idle"]}
         </Button>
       </div>
     </form>

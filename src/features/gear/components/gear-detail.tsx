@@ -75,6 +75,13 @@ export function GearDetailPanel({ shoe }: { shoe: ShoeInput }) {
           </Link>
         </Button>
         <RetireShoeButton id={shoe.id} retired={retired} />
+        {!retired && (
+          <Button asChild variant="outline">
+            <Link href={`/activities/gear/${shoe.id}/replace`}>
+              Remplacer par une paire neuve
+            </Link>
+          </Button>
+        )}
       </div>
     </GearPanelSection>
   );
