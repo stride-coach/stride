@@ -16,8 +16,10 @@ export function WeekStrip({
     const strip = list.current;
     const today = strip?.querySelector<HTMLElement>('li[data-today="true"]');
     if (!strip || !today || strip.scrollWidth <= strip.clientWidth) return;
-    strip.scrollLeft =
-      today.offsetLeft - Number.parseFloat(getComputedStyle(strip).paddingLeft);
+    strip.scrollLeft +=
+      today.getBoundingClientRect().left -
+      strip.getBoundingClientRect().left -
+      Number.parseFloat(getComputedStyle(strip).paddingLeft);
   }, []);
   return (
     <ol ref={list} aria-label={label} className={className}>
