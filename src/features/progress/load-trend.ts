@@ -1,8 +1,19 @@
-import { productiveLoad, loadZone } from "@/features/progress/health";
-import type { LoadPoint } from "@/features/progress/history";
-import { addDays, daysBetween } from "@/features/progress/period";
-import type { LoadSignal } from "@/features/progress/recovery";
-import type { TodayLoad } from "./today";
+import { loadZone, productiveLoad } from "./health";
+import type { LoadPoint } from "./history";
+import { addDays, daysBetween } from "./period";
+import type { LoadSignal } from "./recovery";
+
+export type TrendLevel = "ok" | "watch" | "alert";
+
+export type LoadTrend = {
+  label: string;
+  level: TrendLevel;
+  description: string;
+  band: string;
+  line: string;
+  peak: { x: number; y: number } | null;
+  current: { x: number; y: number };
+};
 
 const weeks = 12;
 const minimumWeeks = 4;
@@ -24,11 +35,11 @@ function sample(series: LoadPoint[], day: string) {
     : null;
 }
 
-export function todayLoad(
+export function loadTrend(
   series: LoadPoint[],
   signal: LoadSignal | null,
   today: string,
-): TodayLoad | null {
+): LoadTrend | null {
   if (!signal) return null;
   const samples = Array.from({ length: weeks }, (_, index) => {
     const point = sample(series, addDays(today, -7 * (weeks - 1 - index)));

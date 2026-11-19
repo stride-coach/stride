@@ -220,6 +220,11 @@ export type ProgramBlock = {
   current: boolean;
 };
 
+export type ProgramPosition = {
+  phase: { name: string; detail: string };
+  step: { number: number; total: number; pct: number };
+};
+
 export type ProgramKpi = {
   key: string;
   label: string;
@@ -280,6 +285,7 @@ export type SeasonProgram = Pick<
   title: string;
   summary: string | null;
   kpis: ProgramKpi[];
+  position: ProgramPosition | null;
   weeks: ProgramWeek[];
   bands: ProgramBand[];
   milestones: ProgramMilestone[];
@@ -932,7 +938,14 @@ function programKpis(weeks: ProgramWeek[]): ProgramKpi[] {
   const total = sum(weeks.map((week) => week.totals.durationSeconds));
   const distance = weeksDistance(weeks);
   const longest = Math.max(0, ...weeks.map((week) => week.longestRunSeconds));
-  const peak = Math.max(0, ...weeks.map((week) => week.totals.durationSeconds));
+  const peakWeek = weeks.reduce<ProgramWeek | null>(
+    (best, week) =>
+      week.totals.durationSeconds > (best?.totals.durationSeconds ?? 0)
+        ? week
+        : best,
+    null,
+  );
+  const peak = peakWeek?.totals.durationSeconds ?? 0;
   const kpis: ProgramKpi[] = [
     {
       key: "duration",
@@ -952,11 +965,12 @@ function programKpis(weeks: ProgramWeek[]): ProgramKpi[] {
       label: "Plus longue sortie",
       value: formatDuration(longest),
     });
-  if (peak > 0 && weeks.length > 1)
+  if (peakWeek && peak > 0 && weeks.length > 1)
     kpis.push({
       key: "peak",
-      label: "Semaine de pic",
+      label: "Pic",
       value: formatDuration(peak),
+      detail: `en S${peakWeek.number}`,
     });
   return kpis;
 }
@@ -984,6 +998,25 @@ function eyebrow(weeks: ProgramWeek[]) {
   return first && first.daysUntil > 0
     ? `${span} · débute dans ${plural(first.daysUntil, "jour", "jours")}`
     : span;
+}
+
+function programPosition(weeks: ProgramWeek[]): ProgramPosition | null {
+  const current = weeks.find((week) => week.status === "current");
+  if (!current) return null;
+  const inBlock = weeks.filter(
+    (week) => week.block?.key === current.block?.key,
+  ).length;
+  return {
+    phase: {
+      name: current.blockName,
+      detail: `${current.numberInBlock} / ${inBlock} sem.`,
+    },
+    step: {
+      number: current.number,
+      total: weeks.length,
+      pct: Math.round((current.number / weeks.length) * 100),
+    },
+  };
 }
 
 function seasonKpis(weeks: ProgramWeek[]): ProgramKpi[] {
@@ -1131,6 +1164,7 @@ function seasonPrograms(
             : openSeasonName,
       summary: season.id === initial?.id ? input.summary : null,
       kpis: [...raceKpi, ...(past ? seasonKpis(weeks) : programKpis(weeks))],
+      position: past ? null : programPosition(weeks),
       weeks,
       bands: programBands(weeks),
       milestones: programMilestones(state, weeks),

@@ -39,7 +39,7 @@ import {
 import { formatClock, formatInteger } from "@/features/progress/format";
 import { raceGoalCard, type GoalInputs } from "@/features/progress/goal";
 import { loadZone } from "@/features/progress/health";
-import { todayLoad } from "./load";
+import { loadTrend, type LoadTrend } from "@/features/progress/load-trend";
 import {
   checkinDone,
   readinessTones,
@@ -196,16 +196,6 @@ export type TodayGoal = {
   href: string;
 };
 
-export type TodayLoad = {
-  label: string;
-  level: RailLevel;
-  description: string;
-  band: string;
-  line: string;
-  peak: { x: number; y: number } | null;
-  current: { x: number; y: number };
-};
-
 export type TodayRecent = TodayActivity & { note: string | null };
 
 export type TodayView = {
@@ -216,7 +206,7 @@ export type TodayView = {
   queue: TodayQueueItem[];
   week: TodayWeek | null;
   goal: TodayGoal | null;
-  load: TodayLoad | null;
+  load: LoadTrend | null;
   recent: TodayRecent | null;
 };
 
@@ -844,7 +834,7 @@ export function buildToday(input: TodayInput): TodayView {
     queue: queue(input),
     week,
     goal: goal(input, week),
-    load: todayLoad(
+    load: loadTrend(
       input.recovery.loadSeries,
       input.recovery.load,
       input.today,

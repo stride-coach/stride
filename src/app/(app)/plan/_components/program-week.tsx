@@ -534,7 +534,7 @@ export function ProgramWeekPanel({
   proposals?: WeekProposal[];
   reviewHref: (proposalId: string) => string;
 }) {
-  const subtitle = [week.blockName, week.label].filter(Boolean).join(" · ");
+  const subtitle = week.blockName;
   const split = weekSplit(week);
   return (
     <section
@@ -547,14 +547,19 @@ export function ProgramWeekPanel({
             id="program-week-title"
             className="flex flex-wrap items-baseline gap-2.5"
           >
-            <span className="text-title font-semibold tabular-nums">
-              S{week.number}
+            <span className="text-title font-semibold">
+              Semaine {week.number}
             </span>
-            <span className="text-title font-semibold">{week.range}</span>
+            <span className="text-secondary-foreground tabular-nums">
+              {week.range}
+            </span>
+            {subtitle && (
+              <span className="text-secondary-foreground">· {subtitle}</span>
+            )}
           </h2>
           <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label text-muted-foreground">
             <WeekStatus week={week} />
-            {subtitle}
+            {week.label}
           </span>
         </div>
         {navigation}

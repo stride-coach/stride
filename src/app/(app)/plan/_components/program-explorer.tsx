@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { WeekProposal } from "@/features/plans/review/proposal";
 import {
-  weekEyebrow,
   type MilestoneTone,
-  type ProgramMilestone,
   type SeasonProgram,
 } from "@/features/plans/view/program";
 import { ProgramChart } from "./program-chart";
-import { NextSeason, ProgramHeader, SeasonRaces } from "./program-hero";
+import { NextSeason, ProgramHeader } from "./program-hero";
+import { LoadTrendWidget } from "@/features/progress/components/load-trend-widget";
+import type { LoadTrend } from "@/features/progress/load-trend";
 import { ProgramWeekPanel } from "./program-week";
 import type { WatchDayTag } from "@/features/garmin/watch";
 
@@ -32,11 +32,21 @@ function typing(target: EventTarget | null) {
   );
 }
 
+type Landmark = {
+  key: string;
+  weekKey: string;
+  number: number;
+  label: string;
+  detail: string | null;
+  when: string;
+  tone: MilestoneTone;
+};
+
 function Milestones({
-  milestones,
+  landmarks,
   onSelect,
 }: {
-  milestones: ProgramMilestone[];
+  landmarks: Landmark[];
   onSelect: (weekKey: string) => void;
 }) {
   return (
@@ -48,31 +58,41 @@ function Milestones({
         id="program-milestones"
         className="text-label font-medium text-muted-foreground"
       >
-        Repères du programme
+        Jalons
       </h2>
       <ul className="flex flex-col">
-        {milestones.map((milestone) => (
-          <li key={milestone.key}>
+        {landmarks.map((landmark) => (
+          <li
+            key={landmark.key}
+            className="border-t border-border first:border-0"
+          >
             <button
               type="button"
-              onClick={() => onSelect(milestone.weekKey)}
-              className="grid w-full grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-md py-1.5 text-left transition-colors duration-150 ease-stride hover:bg-muted"
+              onClick={() => onSelect(landmark.weekKey)}
+              className="grid w-full grid-cols-[30px_minmax(0,1fr)_auto] items-baseline gap-2.5 rounded-md py-2 text-left transition-colors duration-150 ease-stride hover:bg-muted"
             >
               <span className="text-label text-muted-foreground tabular-nums">
-                S{milestone.number}
+                S{landmark.number}
               </span>
-              <span className="flex min-w-0 items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "size-1.5 shrink-0 rounded-full",
-                    milestoneTones[milestone.tone],
-                  )}
-                />
-                <span className="truncate">{milestone.label}</span>
+              <span className="flex min-w-0 flex-col gap-px">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "size-1.5 shrink-0 rounded-full",
+                      milestoneTones[landmark.tone],
+                    )}
+                  />
+                  <span className="truncate font-medium">{landmark.label}</span>
+                </span>
+                {landmark.detail && (
+                  <span className="truncate text-label text-muted-foreground tabular-nums">
+                    {landmark.detail}
+                  </span>
+                )}
               </span>
-              <span className="text-label whitespace-nowrap text-muted-foreground">
-                {milestone.when}
+              <span className="text-label whitespace-nowrap text-muted-foreground tabular-nums">
+                {landmark.when}
               </span>
             </button>
           </li>
@@ -82,12 +102,39 @@ function Milestones({
   );
 }
 
+function landmarksOf(program: SeasonProgram): Landmark[] {
+  const fromWeeks = new Map(program.weeks.map((week) => [week.number, week]));
+  return [
+    ...program.milestones.map((item) => ({ ...item, detail: null })),
+    ...program.races.flatMap((race) => {
+      const week = fromWeeks.get(race.number);
+      return week
+        ? [
+            {
+              key: `race-${race.raceId}`,
+              weekKey: week.weekKey,
+              number: race.number,
+              label: race.name,
+              detail: race.detail,
+              when: race.when,
+              tone: "provider" as const,
+            },
+          ]
+        : [];
+    }),
+  ].sort((first, second) => first.number - second.number);
+}
+
 export function ProgramExplorer({
   program,
   initialWeekKey,
   proposals = {},
   watchTags = {},
+  load = null,
+  mobileAction,
 }: {
+  load?: LoadTrend | null;
+  mobileAction?: React.ReactNode;
   program: SeasonProgram;
   initialWeekKey: string | null;
   proposals?: Record<string, WeekProposal[]>;
@@ -102,6 +149,7 @@ export function ProgramExplorer({
     setRequested(initialWeekKey);
     if (initialWeekKey) setSelected(initialWeekKey);
   }
+  const landmarks = landmarksOf(program);
   const index = weeks.findIndex((week) => week.weekKey === selected);
   const week = weeks[index] ?? null;
 
@@ -219,31 +267,29 @@ export function ProgramExplorer({
       </div>
       <aside
         aria-label="Programme"
-        className="contents xl:flex xl:w-panel xl:shrink-0 xl:flex-col xl:gap-6 xl:self-stretch xl:border-l xl:border-border xl:px-5 xl:py-4.5"
+        className="flex flex-col xl:w-panel xl:shrink-0 xl:self-stretch xl:border-l xl:border-border"
       >
-        <div className="border-b border-border px-4 py-4.5 max-xl:order-first md:px-5 xl:border-0 xl:p-0">
-          <ProgramHeader
-            program={program}
-            eyebrow={
-              week && selected !== program.defaultWeekKey
-                ? weekEyebrow(week, weeks.length)
-                : program.eyebrow
-            }
-          />
+        <div className="border-b border-border px-4 py-4.5 md:px-5">
+          <ProgramHeader program={program} />
         </div>
-        {program.milestones.length > 0 && (
-          <div className="px-4 py-4.5 md:px-5 xl:p-0">
-            <Milestones milestones={program.milestones} onSelect={select} />
+        {load && (
+          <div className="border-b border-border p-3">
+            <LoadTrendWidget load={load} />
           </div>
         )}
-        {program.races.length > 0 && (
-          <div className="px-4 py-4.5 md:px-5 xl:p-0">
-            <SeasonRaces races={program.races} />
+        {landmarks.length > 0 && (
+          <div className="border-b border-border px-4 py-4.5 md:px-5">
+            <Milestones landmarks={landmarks} onSelect={select} />
           </div>
         )}
         {program.next && (
-          <div className="px-4 py-4.5 md:px-5 xl:p-0">
+          <div className="px-4 py-4.5 md:px-5">
             <NextSeason season={program.next} />
+          </div>
+        )}
+        {mobileAction && (
+          <div className="flex justify-center px-4 pb-4.5 md:hidden">
+            {mobileAction}
           </div>
         )}
       </aside>

@@ -1,11 +1,6 @@
 import { Fragment } from "react";
 import { CountUp } from "@/components/stride/count-up";
-import {
-  ChartNoAxesColumnIcon,
-  CheckIcon,
-  CircleCheckIcon,
-  MessageCircleIcon,
-} from "lucide-react";
+import { CheckIcon, CircleCheckIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/stride/chip";
 import { PlageTrack } from "@/components/stride/plage";
@@ -20,6 +15,8 @@ import {
 import { SessionShape } from "@/components/stride/session-shape";
 import { Status, type StatusLevel } from "@/components/stride/status";
 import { Widget } from "@/components/stride/widget";
+import { LoadTrendWidget } from "@/features/progress/components/load-trend-widget";
+import type { LoadTrend } from "@/features/progress/load-trend";
 import { coachRequestHref } from "@/features/coach/request";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
@@ -33,7 +30,6 @@ import type {
   TodayDaySession,
   TodayForm,
   TodayGoal,
-  TodayLoad,
   TodayRecent,
   TodaySession,
   TodayWeek,
@@ -752,49 +748,6 @@ function RailRow({
   );
 }
 
-function LoadWidget({ load }: { load: TodayLoad }) {
-  return (
-    <Widget
-      headingLevel={2}
-      icon={<ChartNoAxesColumnIcon />}
-      title="Charge · 12 sem."
-      verdict={<Status level={railLevels[load.level]}>{load.label}</Status>}
-    >
-      <svg
-        viewBox="0 0 260 84"
-        role="img"
-        aria-label={load.description}
-        className="block w-full"
-      >
-        <polygon points={load.band} className="fill-accent" />
-        <polyline
-          points={load.line}
-          fill="none"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-          className="stroke-foreground"
-        />
-        {load.peak && (
-          <circle
-            cx={load.peak.x}
-            cy={load.peak.y}
-            r="3.5"
-            strokeWidth="1.5"
-            className="fill-warning stroke-background"
-          />
-        )}
-        <circle
-          cx={load.current.x}
-          cy={load.current.y}
-          r="3.5"
-          strokeWidth="1.5"
-          className="fill-foreground stroke-background"
-        />
-      </svg>
-    </Widget>
-  );
-}
-
 function RecentSection({ recent }: { recent: TodayRecent }) {
   return (
     <section
@@ -850,7 +803,7 @@ export function GoalSection({
   recent,
 }: {
   goal: TodayGoal | null;
-  load: TodayLoad | null;
+  load: LoadTrend | null;
   recent: TodayRecent | null;
 }) {
   return (
@@ -960,7 +913,7 @@ export function GoalSection({
       )}
       {load && (
         <div className="border-b border-border p-3">
-          <LoadWidget load={load} />
+          <LoadTrendWidget load={load} />
         </div>
       )}
       {recent && <RecentSection recent={recent} />}
