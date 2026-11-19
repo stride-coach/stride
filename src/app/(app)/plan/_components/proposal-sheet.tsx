@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { MonoLabel } from "@/components/stride/mono-label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import type { ProposalReview } from "@/features/plans/review/review";
@@ -232,25 +230,27 @@ export function ProposalSheet({ review }: { review: ProposalReview }) {
         )}
         <header className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
           <span className="flex min-w-0 flex-col gap-0.5">
-            <MonoLabel size="micro">{review.kicker}</MonoLabel>
-            <span className="truncate text-body text-secondary-foreground">
+            <span className="font-medium">{review.kicker}</span>
+            <span className="truncate text-label text-muted-foreground">
               {review.subkicker}
             </span>
           </span>
-          <MonoLabel
-            size="micro"
-            className={cn("ml-auto text-right", toneText[review.status.tone])}
+          <span
+            className={cn(
+              "ml-auto text-right text-label font-medium",
+              toneText[review.status.tone],
+            )}
           >
             {review.status.label}
-          </MonoLabel>
+          </span>
           <SheetClose asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Fermer"
-              className="size-8.5 rounded-md border-border text-secondary-foreground hover:text-foreground max-sm:size-11"
-            >
-              <XIcon aria-hidden="true" />
+            <Button variant="ghost" size="md">
+              Fermer
+              {!mobile && (
+                <kbd className="rounded-sm border border-control-border px-1 text-micro font-normal text-muted-foreground">
+                  Échap
+                </kbd>
+              )}
             </Button>
           </SheetClose>
         </header>

@@ -6,7 +6,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { MonoLabel } from "@/components/stride/mono-label";
+import { Chip } from "@/components/stride/chip";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { PulseDot } from "@/components/stride/marks";
 import { cn } from "@/lib/utils";
@@ -165,9 +165,9 @@ function Operations({ review }: { review: ProposalReview }) {
       aria-labelledby="review-operations"
       className="flex flex-col gap-2.5"
     >
-      <MonoLabel asChild size="micro">
-        <h3 id="review-operations">{heading}</h3>
-      </MonoLabel>
+      <h3 id="review-operations" className={labelClass}>
+        {heading}
+      </h3>
       <ul className="flex flex-col border-b border-border">
         {review.operations.map((operation, index) => (
           <li
@@ -175,9 +175,7 @@ function Operations({ review }: { review: ProposalReview }) {
             className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-t border-border py-3 max-sm:grid-cols-1 max-sm:gap-1.5"
           >
             <span className="flex flex-col gap-1">
-              <MonoLabel size="micro" tone="foreground">
-                {operation.label}
-              </MonoLabel>
+              <span className="text-label font-medium">{operation.label}</span>
               <span className="text-label text-muted-foreground">
                 {operation.context}
               </span>
@@ -201,48 +199,27 @@ function Operations({ review }: { review: ProposalReview }) {
         ))}
       </ul>
       {review.weekTotals.map((week) => (
-        <div
+        <p
           key={week.label}
-          className="flex flex-wrap items-baseline gap-x-5.5 gap-y-2 rounded-lg border border-border bg-background px-3.5 py-3"
+          className="flex flex-wrap items-baseline gap-x-2 text-body text-secondary-foreground tabular-nums"
         >
-          <MonoLabel size="micro">{week.label}</MonoLabel>
-          <span className="flex items-baseline gap-2">
-            <span className="text-verdict font-semibold text-muted-foreground tabular-nums">
-              {week.duration.before}
-            </span>
-            <ArrowRightIcon
-              aria-label="devient"
-              className="size-3.5 self-center text-muted-foreground"
-            />
-            <span className="text-verdict font-semibold tabular-nums">
-              {week.duration.after}
-            </span>
-            {week.duration.delta && (
-              <span className="text-label text-secondary-foreground">
-                {week.duration.delta}
-              </span>
-            )}
+          <span className="text-muted-foreground">{week.label}</span>
+          <span>
+            {week.duration.before} → {week.duration.after}
+            {week.duration.delta && ` (${week.duration.delta})`}
           </span>
           {week.elevation && (
-            <span className="flex items-baseline gap-2">
-              <span className="text-verdict font-semibold text-muted-foreground tabular-nums">
-                {week.elevation.before}
-              </span>
-              <ArrowRightIcon
-                aria-label="devient"
-                className="size-3.5 self-center text-muted-foreground"
-              />
-              <span className="text-verdict font-semibold tabular-nums">
-                {week.elevation.after}
-              </span>
-              <span className="text-label text-secondary-foreground">D+</span>
+            <span>
+              · D+ {week.elevation.before} → {week.elevation.after}
             </span>
           )}
-        </div>
+        </p>
       ))}
     </section>
   );
 }
+
+const labelClass = "text-label font-medium text-muted-foreground";
 
 const phaseTones: Record<string, string> = {
   lead_in: "bg-data-1",
@@ -261,7 +238,7 @@ function Metrics({ metrics }: { metrics: { label: string; value: string }[] }) {
       {metrics.map((metric) => (
         <div key={metric.label} className="flex flex-col gap-0.75">
           <dt className="order-2">
-            <MonoLabel size="micro">{metric.label}</MonoLabel>
+            <span className={labelClass}>{metric.label}</span>
           </dt>
           <dd className="order-1 text-metric font-semibold tabular-nums">
             {metric.value}
@@ -289,7 +266,7 @@ function Extension({
       />
       {extension.phases.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <MonoLabel size="micro">Programme</MonoLabel>
+          <span className={labelClass}>Programme</span>
           <span aria-hidden="true" className="flex h-2.5 gap-0.5">
             {extension.keptWeeks > 0 && (
               <span
@@ -350,7 +327,7 @@ function NewPlan({ plan }: { plan: NonNullable<ProposalReview["newPlan"]> }) {
       />
       {plan.phases.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <MonoLabel size="micro">Phases</MonoLabel>
+          <span className={labelClass}>Phases</span>
           <span aria-hidden="true" className="flex h-2.5 gap-0.5">
             {plan.phases.map((phase) => (
               <span
@@ -374,7 +351,7 @@ function NewPlan({ plan }: { plan: NonNullable<ProposalReview["newPlan"]> }) {
       )}
       {plan.races.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <MonoLabel size="micro">Courses</MonoLabel>
+          <span className={labelClass}>Courses</span>
           <ul className="flex flex-col gap-1.5">
             {plan.races.map((race) => (
               <li
@@ -402,9 +379,9 @@ function Opinions({ review }: { review: ProposalReview }) {
   if (review.opinions.length === 0) return null;
   return (
     <section aria-labelledby="review-why" className="flex flex-col gap-3">
-      <MonoLabel asChild size="micro">
-        <h3 id="review-why">Pourquoi</h3>
-      </MonoLabel>
+      <h3 id="review-why" className={labelClass}>
+        Pourquoi
+      </h3>
       {review.opinions.map((opinion, index) => (
         <div
           key={index}
@@ -418,9 +395,9 @@ function Opinions({ review }: { review: ProposalReview }) {
           <div className="flex min-w-0 flex-col gap-1.5">
             <span className="flex flex-wrap items-center gap-2 text-body font-semibold">
               {opinion.name}
-              <MonoLabel size="micro" className="font-normal">
+              <span className="text-label font-normal text-muted-foreground">
                 {opinion.label}
-              </MonoLabel>
+              </span>
               {opinion.verdict && (
                 <span className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-control-border px-2 py-0.5 text-label font-normal">
                   <ToneDot tone={opinion.verdict.tone} />
@@ -472,9 +449,9 @@ function Checks({ checks }: { checks: ReviewCheck[] }) {
   if (checks.length === 0) return null;
   return (
     <section aria-labelledby="review-checks" className="flex flex-col gap-2">
-      <MonoLabel asChild size="micro">
-        <h3 id="review-checks">Contrôles de Stride</h3>
-      </MonoLabel>
+      <h3 id="review-checks" className={labelClass}>
+        Contrôles de Stride
+      </h3>
       <ul className="flex flex-col gap-2 text-body text-secondary-foreground">
         {checks.map((check) => (
           <li
@@ -503,22 +480,23 @@ export function ProposalReviewBody({
   return (
     <div className="flex flex-col gap-5.5">
       {review.banner && <Banner banner={review.banner} />}
-      <div className="flex flex-col gap-2">
-        {titleSlot}
+      <div className="flex flex-col gap-2.5">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          {titleSlot}
+          <Chip proposal>Proposition</Chip>
+        </div>
         {review.summary && (
-          <p className="text-body text-secondary-foreground">
+          <p className="flex items-start gap-2.5 text-body leading-normal text-secondary-foreground">
+            <StaffAvatar agent="coach" size={22} decorative />
             {review.summary}
           </p>
         )}
-      </div>
-      <div className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-body text-secondary-foreground">
-        <StaffStack staff={review.origin.staff} />
-        <span className="flex min-w-0 flex-1 flex-col gap-px">
-          <span className="text-foreground">{review.origin.line}</span>
-          <span className="text-label text-muted-foreground">
-            {review.origin.detail}
+        <p className="flex items-center gap-2.5 text-label text-muted-foreground">
+          <StaffStack staff={review.origin.staff} />
+          <span>
+            {review.origin.line} · {review.origin.detail}
           </span>
-        </span>
+        </p>
       </div>
       {review.kind !== "new_plan" && review.operations.length > 0 && (
         <Operations review={review} />
