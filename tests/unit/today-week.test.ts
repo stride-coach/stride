@@ -33,6 +33,14 @@ describe("today week rows", () => {
     expect(dayIntensity("rest", [])).toBeNull();
   });
 
+  it("marks races so their chip uses the race colour", () => {
+    expect(dayIntensity("race", [])).toEqual({
+      level: null,
+      label: "Course",
+      race: true,
+    });
+  });
+
   it("writes a short French day label", () => {
     expect(shortDayLabel("2026-11-10")).toBe("Mar 10");
     expect(shortDayLabel("2026-11-15")).toBe("Dim 15");

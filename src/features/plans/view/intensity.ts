@@ -1,7 +1,11 @@
 import type { SessionBlock, Zone } from "@/components/stride/session-blocks";
 import { familyLabels, type SessionFamily } from "./program";
 
-export type SessionIntensity = { level: Zone | null; label: string };
+export type SessionIntensity = {
+  level: Zone | null;
+  label: string;
+  race?: boolean;
+};
 
 export const intensityLabels: Record<Zone, string> = {
   1: "Récup",
@@ -26,6 +30,7 @@ export function dayIntensity(
 ): SessionIntensity | null {
   if (family === "rest") return null;
   const unranked = unrankedFamilies[family];
+  if (family === "race") return { level: null, label: "Course", race: true };
   if (unranked) return { level: null, label: unranked };
   const peak = blocks.reduce<Zone | null>(
     (zone, block) =>

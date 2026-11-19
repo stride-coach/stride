@@ -79,7 +79,7 @@ export function SessionRow({
   selected?: boolean;
   day: React.ReactNode;
   title: React.ReactNode;
-  intensity?: { level?: Zone | null; label: string } | null;
+  intensity?: { level?: Zone | null; label: string; race?: boolean } | null;
   duration?: React.ReactNode;
   distance?: React.ReactNode;
   elevation?: React.ReactNode;
@@ -100,7 +100,7 @@ export function SessionRow({
       <span className="min-w-0 truncate font-medium">{title}</span>
       <span className="max-sm:hidden">
         {intensity && (
-          <Chip intensity={intensity.level ?? undefined}>
+          <Chip intensity={intensity.level ?? undefined} race={intensity.race}>
             {intensity.label}
           </Chip>
         )}
