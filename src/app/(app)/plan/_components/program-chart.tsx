@@ -44,6 +44,13 @@ function RaceMark({
   );
 }
 
+function raceSeconds(week: ProgramWeek) {
+  return Math.max(
+    0,
+    week.totals.durationSeconds - week.easySeconds - week.qualitySeconds,
+  );
+}
+
 function Bar({
   week,
   maximum,
@@ -90,9 +97,14 @@ function Bar({
         />
       )}
       <span
+        className={cn("rounded-t-mark bg-primary", muted && "opacity-45")}
+        style={{ height: `${(raceSeconds(week) / maximum) * 100}%` }}
+      />
+      <span
         className={cn(
-          "rounded-t-mark bg-intensity-4",
+          "bg-intensity-4",
           muted ? "opacity-45" : "opacity-90",
+          raceSeconds(week) === 0 && "rounded-t-mark",
         )}
         style={{ height: `${(week.qualitySeconds / maximum) * 100}%` }}
       />
@@ -121,8 +133,11 @@ export function ProgramChart({
 }) {
   const maximum = Math.max(
     1,
-    ...weeks.map((week) => week.easySeconds + week.qualitySeconds),
+    ...weeks.map(
+      (week) => week.easySeconds + week.qualitySeconds + raceSeconds(week),
+    ),
   );
+  const hasRace = weeks.some((week) => raceSeconds(week) > 0);
   const columns = {
     gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
   };
@@ -132,7 +147,6 @@ export function ProgramChart({
   const months = chartMonths(weeks);
   const today = chartToday(weeks, todayDate);
   const progress = past ? 1 : (today?.fraction ?? 0);
-  const raceIndex = weeks.findLastIndex((week) => week.race?.primary);
   const monthsLabel = today
     ? `Mois de la préparation : mois ${today.month} sur ${today.months}, aujourd’hui le ${today.label}`
     : `Mois de la préparation : ${months.map((item) => item.label).join(", ")}`;
@@ -165,6 +179,15 @@ export function ProgramChart({
             />
             Qualité
           </span>
+          {hasRace && (
+            <span className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 rounded-mark bg-primary"
+              />
+              Course
+            </span>
+          )}
         </span>
       </div>
       <div className="-mx-2.5 overflow-x-auto px-2.5 sm:mx-0 sm:px-0">
@@ -216,14 +239,6 @@ export function ProgramChart({
                 title={`Aujourd’hui · ${today.label}`}
                 className="absolute bottom-0.5 size-2.25 -translate-x-1/2 rounded-full bg-primary ring-2 ring-card"
                 style={{ left: `${today.fraction * 100}%` }}
-              />
-            )}
-            {raceIndex >= 0 && weeks[raceIndex]?.race && (
-              <RaceMark
-                letter={weeks[raceIndex].race.letter}
-                primary
-                className="absolute bottom-0 -translate-x-1/2"
-                style={{ left: `${((raceIndex + 0.5) / weeks.length) * 100}%` }}
               />
             )}
           </div>
