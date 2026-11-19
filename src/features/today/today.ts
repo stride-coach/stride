@@ -18,6 +18,7 @@ import {
   formatDuration,
   formatLongDay,
 } from "@/features/plans/view/format";
+import { formatDayMonthShort, formatDecimal } from "@/features/progress/format";
 import {
   dayIntensity,
   type SessionIntensity as TodayIntensity,
@@ -144,6 +145,7 @@ export type TodayWeek = {
   split: { easyPct: number; met: boolean } | null;
   days: TodayWeekDay[];
   done: { duration: string; distance: string | null };
+  distanceProgress: string | null;
   planned: {
     duration: string;
     distance: string | null;
@@ -264,6 +266,10 @@ function daysBetween(from: string, to: string) {
   return Math.round(
     (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / dayMs,
   );
+}
+
+export function formatTodayHeaderDate(iso: string) {
+  return `${weekday.format(new Date(`${iso}T00:00:00Z`))} ${formatDayMonthShort(iso)}`;
 }
 
 export function formatTodayDate(iso: string) {
@@ -530,6 +536,16 @@ function sum(values: (number | null)[]) {
     : null;
 }
 
+export function weekDistanceProgress(
+  doneMeters: number | null,
+  plannedMeters: number | null,
+  plannedEstimated: boolean,
+) {
+  if (plannedMeters === null) return null;
+  const done = formatDecimal((doneMeters ?? 0) / 1000);
+  return `${done} / ${plannedEstimated ? "≈ " : ""}${formatDistance(plannedMeters)}`;
+}
+
 export function todayWeek(program: ProgramOverview | null): TodayWeek | null {
   const current = currentWeek(program);
   if (!program || !current) return null;
@@ -626,6 +642,11 @@ export function todayWeek(program: ProgramOverview | null): TodayWeek | null {
         current.done.distanceEstimated,
       ),
     },
+    distanceProgress: weekDistanceProgress(
+      current.done.distanceMeters,
+      current.totals.distanceMeters,
+      current.totals.distanceEstimated,
+    ),
     planned: {
       duration: formatDuration(current.totals.durationSeconds),
       distance: distance(
@@ -811,7 +832,7 @@ export function buildToday(input: TodayInput): TodayView {
   const week = todayWeek(input.program);
   const recent = latest(input);
   return {
-    header: { date: formatTodayDate(input.today) },
+    header: { date: formatTodayHeaderDate(input.today) },
     session: today,
     verdict: done
       ? null

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckIcon, DatabaseIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, DatabaseIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -100,10 +100,12 @@ export function DataActivityStatus({
   className,
   compact = false,
   short = false,
+  row = false,
 }: {
   className?: string;
   compact?: boolean;
   short?: boolean;
+  row?: boolean;
 }) {
   const activity = useDataActivity();
   const isMobile = useIsMobile();
@@ -172,6 +174,12 @@ export function DataActivityStatus({
           >
             {label}
           </span>
+          {row && (
+            <span className="ml-auto flex shrink-0 items-center gap-0.5">
+              Tes données
+              <ChevronRightIcon aria-hidden="true" className="size-3.5" />
+            </span>
+          )}
         </button>
       </SheetTrigger>
       <SheetContent
@@ -350,7 +358,7 @@ export function DataActivityFeedback() {
       {activity.fresh.length > 0 && (
         <div
           role="status"
-          className="absolute right-4 bottom-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-control-border bg-muted py-1 pr-1 pl-3 text-label max-md:group-has-[[data-slot=mobile-tab-bar]]/inset:bottom-[calc(var(--spacing-tab-bar-top)+12px)] max-md:z-30 md:top-2 md:right-5 md:bottom-auto"
+          className="absolute right-4 bottom-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-control-border bg-muted py-1 pr-1 pl-3 text-label max-md:z-30 max-md:group-has-[[data-slot=mobile-tab-bar]]/inset:bottom-[calc(var(--spacing-tab-bar-top)+12px)] md:top-2 md:right-5 md:bottom-auto"
         >
           <PulseDot tone="provider" breathing={false} />
           <span className="min-w-0 truncate">Nouvelles données Garmin</span>

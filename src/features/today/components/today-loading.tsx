@@ -4,15 +4,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AppHeader } from "@/features/app-shell/components/app-header";
 import { localToday } from "@/features/app-shell/shell";
 import { LoadingScope } from "@/features/data-activity/components/loading";
-import { formatTodayDate } from "@/features/today/today";
+import { formatTodayHeaderDate } from "@/features/today/today";
 
 const signals = ["Sommeil", "VFC", "FC repos", "Charge 7 j"];
 
 export function TodayLoading() {
-  const date = formatTodayDate(localToday(new Date()));
+  const date = formatTodayHeaderDate(localToday(new Date()));
   return (
     <>
-      <AppHeader title="Aujourd’hui" detail={date} />
+      <AppHeader title="Aujourd’hui" detail={date} dataStatus={false} />
+      <div
+        aria-hidden="true"
+        className="flex h-8.5 shrink-0 items-center gap-2 border-b border-border px-4 md:hidden"
+      >
+        <Skeleton className="size-1.5 rounded-full" />
+        <Skeleton className="h-3 w-36" />
+      </div>
       <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain">
         <LoadingScope
           label="Chargement de la journée"

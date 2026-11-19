@@ -11,9 +11,11 @@ import {
 import {
   buildToday,
   formatTodayDate,
+  formatTodayHeaderDate,
   todaySessionKey,
   todaySessionKeys,
   todayWeek,
+  weekDistanceProgress,
   type TodayInput,
   type TodayMatch,
 } from "@/features/today/today";
@@ -130,6 +132,10 @@ function input(overrides: Partial<TodayInput> = {}): TodayInput {
 describe("today view", () => {
   it("formats the date as JJ/MM/AAAA with the weekday", () => {
     expect(formatTodayDate(today)).toBe("jeu. 22/10/2026");
+  });
+
+  it("formats the header date as the short weekday and day", () => {
+    expect(formatTodayHeaderDate(today)).toBe("jeu. 22 oct.");
   });
 
   it("shows the plan goal race once with its block and next light week", () => {
@@ -276,6 +282,12 @@ describe("today view", () => {
     expect(week?.days[1]).toMatchObject({ family: "easy", state: "done" });
     expect(week?.days[3]).toMatchObject({ isToday: true, family: "threshold" });
     expect(week?.pct).toBeGreaterThan(0);
+  });
+
+  it("pairs the done and planned distance of the week", () => {
+    expect(weekDistanceProgress(16_400, 52_000, false)).toBe("16,4 / 52,0 km");
+    expect(weekDistanceProgress(null, 52_000, true)).toBe("0,0 / ≈ 52,0 km");
+    expect(weekDistanceProgress(8_000, null, false)).toBeNull();
   });
 
   it("queues the feeling, then the pair, then the check-in", () => {

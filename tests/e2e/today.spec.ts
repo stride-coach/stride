@@ -39,7 +39,7 @@ test("today weighs the session against the form and asks one question at a time"
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: /^Aujourd’hui, [a-z]{3}\. \d{2}\/\d{2}\/\d{4}$/,
+      name: /^Aujourd’hui, [a-z]{3}\. \d{1,2} [a-zéû]+\.?$/,
     }),
   ).toBeAttached();
   await expect(page.getByRole("region", { name: "À venir" })).toHaveCount(0);

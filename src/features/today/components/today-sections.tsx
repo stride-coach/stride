@@ -484,9 +484,14 @@ export function WeekSection({ week }: { week: TodayWeek }) {
         <h2>Semaine {week.number}</h2>
         <span className="text-muted-foreground">{week.blockName}</span>
         <span className="ml-auto text-muted-foreground tabular-nums">
-          {week.done.duration} / {week.planned.duration}
-          {week.planned.distance &&
-            ` · ${week.done.distance ?? "–"} / ${week.planned.distance}`}
+          <span className={week.distanceProgress ? "max-sm:hidden" : undefined}>
+            {week.done.duration} / {week.planned.duration}
+            {week.planned.distance &&
+              ` · ${week.done.distance ?? "–"} / ${week.planned.distance}`}
+          </span>
+          {week.distanceProgress && (
+            <span className="sm:hidden">{week.distanceProgress}</span>
+          )}
         </span>
         <span
           role="progressbar"
@@ -503,7 +508,7 @@ export function WeekSection({ week }: { week: TodayWeek }) {
         </span>
         <Link
           href={week.href}
-          className="rounded-md text-secondary-foreground hover:text-foreground"
+          className="rounded-md text-secondary-foreground hover:text-foreground max-sm:hidden"
         >
           Plan
         </Link>
