@@ -7,6 +7,7 @@ import {
 } from "@/features/activities/activities";
 import { localToday } from "@/features/app-shell/shell";
 import { loadActivityList } from "@/server/activities/list";
+import { loadActivityRail } from "@/server/activities/rail";
 import { requireAthlete } from "@/server/app/session";
 
 export const metadata: Metadata = { title: "Activités" };
@@ -22,7 +23,10 @@ export default async function ActivitiesPage({
   const context = await requireAthlete();
   const today = localToday(new Date());
   const search = parseActivitySearch(query.q);
-  const list = await loadActivityList(context, filter, limit, search, today);
+  const [list, rail] = await Promise.all([
+    loadActivityList(context, filter, limit, search, today),
+    loadActivityRail(context, today).catch(() => null),
+  ]);
   return (
     <ActivitiesView
       list={list}
@@ -30,6 +34,7 @@ export default async function ActivitiesPage({
       limit={limit}
       search={search}
       today={today}
+      rail={rail}
     />
   );
 }
