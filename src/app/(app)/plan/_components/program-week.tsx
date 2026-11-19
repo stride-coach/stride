@@ -1,12 +1,7 @@
 import { CheckIcon, WatchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { Chip } from "@/components/stride/chip";
-import {
-  MissingValue,
-  SessionStateMark,
-  type SessionRowState,
-} from "@/components/stride/session-row";
+import { type SessionRowState } from "@/components/stride/session-row";
 import { Status } from "@/components/stride/status";
 import {
   WeekDayCards,
@@ -17,11 +12,7 @@ import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { dayCardMetrics } from "@/features/plans/view/day-card";
 import { dayIntensity } from "@/features/plans/view/intensity";
 import { cn } from "@/lib/utils";
-import {
-  formatDuration,
-  formatElevation,
-  formatLongDay,
-} from "@/features/plans/view/format";
+import { formatDuration, formatElevation } from "@/features/plans/view/format";
 import {
   easyTargetPct,
   weekSplit,
@@ -161,43 +152,6 @@ function weekCardDay(
   };
 }
 
-function SessionLink({
-  session,
-  sessionHref,
-  current = false,
-  className,
-  children,
-}: {
-  session: ProgramDaySession;
-  sessionHref: SessionHref;
-  current?: boolean;
-  className: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={
-        session.raceId
-          ? `/races/${session.raceId}`
-          : sessionHref(session.sessionKey)
-      }
-      onClick={session.raceId ? undefined : markSessionOpened}
-      data-session-key={session.sessionKey}
-      aria-current={current ? "date" : undefined}
-      className={cn(
-        className,
-        "data-panel-source:bg-muted data-panel-source:shadow-[inset_2px_0_0_var(--foreground)]",
-      )}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function sessionCount(day: ProgramDay) {
-  return `${day.sessions.length} séances`;
-}
-
 function shortDay(day: ProgramDay) {
   const weekday = day.weekday.replace(".", "");
   return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${day.dayNumber}`;
@@ -215,162 +169,6 @@ export function rowState(
   if (state === "missed") return "missed";
   if (state === "proposed") return "proposed";
   return "upcoming";
-}
-
-const rowGrid =
-  "grid min-h-row-touch grid-cols-[14px_48px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:min-h-row sm:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_96px] sm:py-1.5 md:px-5 lg:grid-cols-[14px_52px_minmax(0,1fr)_104px_60px_62px_62px_96px]";
-
-function SessionCells({
-  day,
-  session,
-  rest,
-  showDay,
-  watch,
-}: {
-  day: ProgramDay;
-  session: Pick<
-    ProgramDaySession,
-    | "family"
-    | "title"
-    | "summary"
-    | "duration"
-    | "distance"
-    | "elevation"
-    | "blocks"
-    | "state"
-    | "compliancePct"
-  >;
-  rest: boolean;
-  showDay: boolean;
-  watch: WatchDayTag | undefined;
-}) {
-  const state = rowState(day, session.state, rest);
-  const intensity = dayIntensity(session.family, session.blocks);
-  return (
-    <>
-      <SessionStateMark state={state} />
-      <span className="flex flex-col text-label text-muted-foreground tabular-nums">
-        {showDay && shortDay(day)}
-        {showDay && day.sessions.length > 1 && (
-          <span className="text-micro">{sessionCount(day)}</span>
-        )}
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span
-          className={cn(
-            "truncate",
-            rest ? "text-muted-foreground" : "font-medium",
-          )}
-        >
-          {session.title}
-        </span>
-        {(session.summary || session.elevation) && (
-          <span className="truncate text-label text-muted-foreground tabular-nums lg:hidden">
-            <span className="sm:hidden">
-              {[session.summary, session.elevation].filter(Boolean).join(" · ")}
-            </span>
-            {session.elevation && (
-              <span className="max-sm:hidden">{session.elevation}</span>
-            )}
-          </span>
-        )}
-        {session.state !== "proposed" && <WatchTag tag={watch} />}
-      </span>
-      <span className="max-sm:hidden">
-        {intensity && (
-          <Chip intensity={intensity.level ?? undefined} race={intensity.race}>
-            {intensity.label}
-          </Chip>
-        )}
-      </span>
-      <span className="text-right tabular-nums max-sm:hidden">
-        {rest || session.family === "race" ? null : (
-          <MissingValue value={session.duration} />
-        )}
-      </span>
-      <span className="text-right tabular-nums max-sm:hidden">
-        {rest ? null : <MissingValue value={session.distance} />}
-      </span>
-      <span className="text-right text-muted-foreground tabular-nums max-lg:hidden">
-        {session.elevation?.replace(" D+", "")}
-      </span>
-      <span className="justify-self-end">
-        <DayState state={session.state} compliancePct={session.compliancePct} />
-      </span>
-    </>
-  );
-}
-
-function DayRows({
-  day,
-  sessionHref,
-  watchTags,
-}: {
-  day: ProgramDay;
-  sessionHref: SessionHref;
-  watchTags: WatchTags;
-}) {
-  const rest = day.sessionKey === null;
-  const frame = cn(
-    "border-b border-border",
-    day.isPast && !day.isToday && "opacity-55",
-    day.isToday && "bg-muted",
-  );
-  const link = cn(
-    rowGrid,
-    "transition-colors duration-150 ease-stride hover:bg-muted focus-visible:outline-offset-[-2px]",
-  );
-  if (day.sessions.length > 1)
-    return (
-      <li className={frame}>
-        <div
-          role="group"
-          aria-label={`${formatLongDay(day.date)}, ${sessionCount(day)}`}
-          aria-current={day.isToday ? "date" : undefined}
-        >
-          {day.sessions.map((session, index) => (
-            <SessionLink
-              key={session.sessionKey}
-              session={session}
-              sessionHref={sessionHref}
-              className={cn(
-                link,
-                index > 0 && "border-t border-dashed border-border",
-              )}
-            >
-              <SessionCells
-                day={day}
-                session={session}
-                rest={false}
-                showDay={index === 0}
-                watch={watchTags[session.sessionKey]}
-              />
-            </SessionLink>
-          ))}
-        </div>
-      </li>
-    );
-  const watch = day.sessionKey ? watchTags[day.sessionKey] : undefined;
-  const cells = (
-    <SessionCells day={day} session={day} rest={rest} showDay watch={watch} />
-  );
-  const single = day.sessions[0];
-  return (
-    <li className={frame}>
-      {single ? (
-        <SessionLink
-          session={single}
-          sessionHref={sessionHref}
-          current={day.isToday}
-          className={link}
-        >
-          {cells}
-        </SessionLink>
-      ) : (
-        <div className={rowGrid}>{cells}</div>
-      )}
-    </li>
-  );
 }
 
 function WeekNote({ note }: { note: string }) {
@@ -730,18 +528,8 @@ export function ProgramWeekPanel({
       <WeekDayCards
         label="Séances de la semaine"
         days={week.days.map((day) => weekCardDay(day, sessionHref, watchTags))}
-        className="-mx-5 border-t border-border max-lg:hidden"
+        className="-mx-4 border-t border-border md:-mx-5"
       />
-      <ol className="-mx-4 border-t border-border md:-mx-5 lg:hidden">
-        {week.days.map((day) => (
-          <DayRows
-            key={day.date}
-            day={day}
-            sessionHref={sessionHref}
-            watchTags={watchTags}
-          />
-        ))}
-      </ol>
     </section>
   );
 }
