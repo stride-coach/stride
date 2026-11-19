@@ -42,7 +42,7 @@ function sessionDetail(session: CalendarSession) {
 }
 
 function dotClass(session: CalendarSession) {
-  if (session.family === "race") return "bg-primary";
+  if (session.family === "race") return "bg-race";
   return session.zone ? zoneFills[session.zone] : "bg-control-border";
 }
 
@@ -130,7 +130,7 @@ function DesktopGrid({ calendar }: { calendar: CalendarMonth }) {
     <div
       role="grid"
       aria-labelledby="calendar-title"
-      className="flex flex-col max-md:hidden"
+      className="flex flex-col max-md:hidden md:flex-1"
     >
       <div role="row" className="grid grid-cols-7 border-b border-border">
         {weekdays.map((weekday) => (
@@ -148,7 +148,7 @@ function DesktopGrid({ calendar }: { calendar: CalendarMonth }) {
         <div
           key={week.weekStart}
           role="row"
-          className="grid grid-cols-7 border-b border-border"
+          className="grid flex-1 grid-cols-7 border-b border-border"
         >
           {week.days.map((day, column) => {
             const index = row * 7 + column;
@@ -169,7 +169,7 @@ function DesktopGrid({ calendar }: { calendar: CalendarMonth }) {
                   )
                 }
                 className={cn(
-                  "flex min-h-30 min-w-0 flex-col gap-1.5 border-border px-2.5 py-2 not-last:border-r focus-visible:outline-offset-[-2px]",
+                  "flex min-h-24 min-w-0 flex-col gap-1.5 border-border px-2.5 py-2 not-last:border-r focus-visible:outline-offset-[-2px]",
                   day.isToday && "bg-muted",
                   !day.inMonth && "opacity-45",
                 )}

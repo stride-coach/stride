@@ -32,7 +32,8 @@ import { CalendarMonthView } from "./_components/calendar-month";
 
 export const metadata: Metadata = { title: "Calendrier · Plan" };
 
-const frameClass = "max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:pt-0";
+const frameClass =
+  "max-w-none gap-0 px-0 pt-0 sm:gap-0 sm:px-0 md:min-h-full md:pt-0 md:pb-0";
 
 function monthHref(month: string | null) {
   return month ? `/plan/calendar?month=${month}` : "/plan/calendar";
@@ -237,7 +238,7 @@ export default async function PlanCalendarPage({
         </div>
       }
     >
-      <div className="flex flex-col xl:flex-row xl:items-start">
+      <div className="flex flex-col md:flex-1 xl:flex-row">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-x-3 gap-y-1 px-4 pt-4 pb-3 md:flex-wrap md:px-5">
             <h1
