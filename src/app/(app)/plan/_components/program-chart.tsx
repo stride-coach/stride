@@ -155,7 +155,7 @@ export function ProgramChart({
       <div className="-mx-2.5 overflow-x-auto px-2.5 sm:mx-0 sm:px-0">
         <div
           style={{ "--weeks": weeks.length } as React.CSSProperties}
-          className="flex min-w-[calc(var(--weeks)*1.5rem)] flex-col gap-2 sm:min-w-0"
+          className="flex min-w-[calc(var(--weeks)*2.25rem)] flex-col gap-2 sm:min-w-0"
         >
           <div
             aria-hidden="true"
@@ -193,6 +193,25 @@ export function ProgramChart({
             ))}
           </div>
           <div
+            aria-hidden="true"
+            style={columns}
+            className="grid gap-x-0.75 sm:gap-x-1.5"
+          >
+            {weeks.map((week) => (
+              <span
+                key={week.weekKey}
+                className={cn(
+                  "text-center text-micro leading-none font-semibold whitespace-nowrap tabular-nums",
+                  week.weekKey === selected
+                    ? "text-foreground"
+                    : "text-secondary-foreground",
+                )}
+              >
+                {formatDuration(week.totals.durationSeconds)}
+              </span>
+            ))}
+          </div>
+          <div
             role="group"
             aria-label={chartDescription(weeks)}
             style={columns}
@@ -207,6 +226,22 @@ export function ProgramChart({
                 selected={week.weekKey === selected}
                 onSelect={() => onSelect(week.weekKey)}
               />
+            ))}
+          </div>
+          <div
+            aria-hidden="true"
+            style={columns}
+            className="grid gap-x-0.75 sm:gap-x-1.5"
+          >
+            {weeks.map((week) => (
+              <span
+                key={week.weekKey}
+                className="text-center text-micro leading-none whitespace-nowrap text-muted-foreground tabular-nums"
+              >
+                {week.totals.distanceMeters === null
+                  ? "–"
+                  : `${week.totals.distanceEstimated ? "≈" : ""}${formatInteger(week.totals.distanceMeters / 1000)}`}
+              </span>
             ))}
           </div>
           <div
