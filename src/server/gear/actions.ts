@@ -10,6 +10,7 @@ import {
   shoeSpecSchema,
   suggestedFieldsSchema,
   type GarminDefault,
+  type NewShoe,
 } from "@/features/gear/model";
 import {
   garminLimitMeters,
@@ -22,10 +23,20 @@ import { suggestShoeFromName } from "@/server/ai/skills/shoe-suggestion";
 import type { ShoeSuggestion } from "@/features/gear/suggestion";
 import { loadPairChecks, recordDecision } from "./checks";
 import { loadPlanShoes } from "./planned";
-import { readGarminGear, readShoe, shoeColumns } from "./shoes";
+import {
+  readGarminGear,
+  readShoe,
+  shoeColumns,
+  type StoredShoe,
+} from "./shoes";
 
 export type GearActionResult =
-  | { status: "saved"; id?: string; count?: number }
+  | {
+      status: "saved";
+      id?: string;
+      count?: number;
+      previousStillActive?: true;
+    }
   | {
       status:
         | "invalid"
@@ -65,13 +76,12 @@ async function context() {
   return getOnboardingContext({ writable: true });
 }
 
-export async function createShoe(input: unknown): Promise<GearActionResult> {
-  const parsed = newShoeSchema.safeParse(input);
-  if (!parsed.success) return { status: "invalid" };
-  const athlete = await context();
-  if (!athlete) return { status: "session-expired" };
-  const { spec, currentKm, firstUseDate, garminDefault, suggested } =
-    parsed.data;
+type Athlete = NonNullable<Awaited<ReturnType<typeof context>>>;
+
+async function insertShoe(
+  athlete: Athlete,
+  { spec, currentKm, firstUseDate, garminDefault, suggested }: NewShoe,
+): Promise<GearActionResult> {
   const startingDistanceM = startingDistanceFor(currentKm, 0);
   const created = await getGarminClient()
     .createGear(
@@ -104,8 +114,37 @@ export async function createShoe(input: unknown): Promise<GearActionResult> {
     .select("id")
     .single();
   if (error) return { status: "error" };
-  refresh();
   return { status: "saved", id: data.id };
+}
+
+export async function createShoe(input: unknown): Promise<GearActionResult> {
+  const parsed = newShoeSchema.safeParse(input);
+  if (!parsed.success) return { status: "invalid" };
+  const athlete = await context();
+  if (!athlete) return { status: "session-expired" };
+  const result = await insertShoe(athlete, parsed.data);
+  if (result.status === "saved") refresh();
+  return result;
+}
+
+const replaceSchema = z.strictObject({ id: z.uuid(), shoe: newShoeSchema });
+
+export async function replaceShoe(input: unknown): Promise<GearActionResult> {
+  const parsed = replaceSchema.safeParse(input);
+  if (!parsed.success) return { status: "invalid" };
+  const athlete = await context();
+  if (!athlete) return { status: "session-expired" };
+  const previous = await readShoe(athlete, parsed.data.id);
+  if (!previous) return { status: "not-found" };
+  if (previous.retiredOn !== null) return { status: "invalid" };
+  const created = await insertShoe(athlete, parsed.data.shoe);
+  if (created.status !== "saved") return created;
+  const retired = await writeRetired(athlete, previous, true);
+  refresh(previous.id);
+  if (created.id) revalidatePath(`/activities/gear/${created.id}`);
+  return retired.status === "saved"
+    ? { status: "saved", id: created.id }
+    : { status: "saved", id: created.id, previousStillActive: true };
 }
 
 export async function importShoes(input: unknown): Promise<GearActionResult> {
@@ -230,16 +269,11 @@ export async function setCurrentKm(input: unknown): Promise<GearActionResult> {
 
 const retireSchema = z.strictObject({ id: z.uuid(), retired: z.boolean() });
 
-export async function setShoeRetired(
-  input: unknown,
+async function writeRetired(
+  athlete: Athlete,
+  shoe: Pick<StoredShoe, "id" | "garminGearUuid" | "firstUseDate">,
+  retired: boolean,
 ): Promise<GearActionResult> {
-  const parsed = retireSchema.safeParse(input);
-  if (!parsed.success) return { status: "invalid" };
-  const athlete = await context();
-  if (!athlete) return { status: "session-expired" };
-  const shoe = await readShoe(athlete, parsed.data.id);
-  if (!shoe) return { status: "not-found" };
-  const { retired } = parsed.data;
   if (shoe.garminGearUuid) {
     const updated = await getGarminClient()
       .updateGear({ accessToken: athlete.accessToken }, shoe.garminGearUuid, {
@@ -261,8 +295,21 @@ export async function setShoeRetired(
     })
     .eq("id", shoe.id);
   if (error) return { status: "error" };
-  refresh(shoe.id);
   return { status: "saved", id: shoe.id };
+}
+
+export async function setShoeRetired(
+  input: unknown,
+): Promise<GearActionResult> {
+  const parsed = retireSchema.safeParse(input);
+  if (!parsed.success) return { status: "invalid" };
+  const athlete = await context();
+  if (!athlete) return { status: "session-expired" };
+  const shoe = await readShoe(athlete, parsed.data.id);
+  if (!shoe) return { status: "not-found" };
+  const result = await writeRetired(athlete, shoe, parsed.data.retired);
+  if (result.status === "saved") refresh(shoe.id);
+  return result;
 }
 
 export type SuggestionOutcome =

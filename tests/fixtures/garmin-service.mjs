@@ -355,6 +355,25 @@ export function createGarminService() {
       return json(response, 200, { configured: true });
     }
 
+    const gearPath =
+      /^\/v1\/connections\/garmin\/gear(?:\/([0-9a-f]{32}))?$/.exec(
+        url.pathname,
+      );
+    if (gearPath && request.method === (gearPath[1] ? "PATCH" : "POST"))
+      return json(response, gearPath[1] ? 200 : 201, {
+        gear: {
+          gear_uuid: gearPath[1] ?? randomUUID().replaceAll("-", ""),
+          brand: body.brand ?? null,
+          model: body.model ?? null,
+          display_name: body.name ?? null,
+          status: body.status ?? "active",
+          first_use_date: body.first_use_date ?? null,
+          maximum_meters: body.max_distance_meters ?? null,
+          total_distance_meters: 0,
+          total_activities: 0,
+        },
+      });
+
     if (url.pathname === "/__test__/watch" && request.method === "POST") {
       if (!connection) return failure(response, 409, "disconnected");
       connection.failWorkouts = body.fail === true;

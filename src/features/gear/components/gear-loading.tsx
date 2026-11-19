@@ -46,18 +46,18 @@ function ShoeBreadcrumb({ current }: { current?: string }) {
   );
 }
 
-function FormLoading({ create }: { create: boolean }) {
+function FormLoading({ variant }: { variant: "create" | "edit" | "replace" }) {
   return (
     <div aria-hidden="true" className="flex flex-col gap-5">
       <Skeleton
         className={
-          create
+          variant === "create"
             ? "h-80 w-full rounded-xl sm:h-52"
             : "h-60 w-full rounded-xl sm:h-28"
         }
       />
       <Skeleton className="h-96 w-full rounded-xl sm:h-80" />
-      {create && (
+      {variant !== "edit" && (
         <>
           <Skeleton className="h-60 w-full rounded-xl sm:h-44" />
           <Skeleton className="h-52 w-full rounded-xl sm:h-44" />
@@ -172,7 +172,35 @@ export function GearEditLoading() {
         className="flex flex-col gap-4"
       >
         <h1 className={pageTitle}>Modifier la fiche</h1>
-        <FormLoading create={false} />
+        <FormLoading variant="edit" />
+      </LoadingScope>
+    </GearFrame>
+  );
+}
+
+export function GearReplaceLoading() {
+  const id = useShoeId();
+  return (
+    <GearFrame
+      crumbs={[{ label: "Matériel", href: "/activities/gear" }]}
+      breadcrumb={<ShoeBreadcrumb current="Remplacer" />}
+      back={{
+        href: id ? `/activities/gear/${id}` : "/activities/gear",
+        label: id ? "Retour à la paire" : "Retour au matériel",
+      }}
+    >
+      <LoadingScope
+        label="Chargement du formulaire"
+        className="flex flex-col gap-4"
+      >
+        <section className="flex flex-col gap-2.5">
+          <Skeleton aria-hidden="true" className="h-8 w-64" />
+          <p className="max-w-155 text-body-lg text-pretty text-secondary-foreground">
+            La fiche est reprise de ta paire actuelle, à 0 km. Modifie ce qui
+            change avant de valider.
+          </p>
+        </section>
+        <FormLoading variant="replace" />
       </LoadingScope>
     </GearFrame>
   );
@@ -199,7 +227,7 @@ export function GearNewLoading() {
           </p>
         </section>
         <AddTabs current="name" />
-        <FormLoading create />
+        <FormLoading variant="create" />
       </LoadingScope>
     </GearFrame>
   );
