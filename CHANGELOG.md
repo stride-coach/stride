@@ -1,5 +1,45 @@
 # Changelog
 
+## [2.6.0](https://github.com/stride-coach/stride/compare/v2.5.0...v2.6.0) (2026-11-19)
+
+
+### Features
+
+* **activities:** add the right column to the activity list ([#701](https://github.com/stride-coach/stride/issues/701)) ([a91a7f2](https://github.com/stride-coach/stride/commit/a91a7f2fadc5bee4d193e478be521c88382f3598)), closes [#700](https://github.com/stride-coach/stride/issues/700)
+* **coach:** observed facts and facts recorded by the staff ([#647](https://github.com/stride-coach/stride/issues/647)) ([2cc2fb8](https://github.com/stride-coach/stride/commit/2cc2fb89aeb27403f0a85a99fb6c203b6cf1f282))
+* **coach:** record who led a proposal and whether the athlete asked for it ([#651](https://github.com/stride-coach/stride/issues/651)) ([637d453](https://github.com/stride-coach/stride/commit/637d453d2fa4f284f87accdfca0f3dea9f13d747))
+* **coach:** show decision outcomes, modified proposals and race decisions ([#650](https://github.com/stride-coach/stride/issues/650)) ([11e9297](https://github.com/stride-coach/stride/commit/11e92974de4d8b9f1b782ce266bc5eb56ed9a375))
+* **design:** add the race token and use it for race time in the program chart ([01acc16](https://github.com/stride-coach/stride/commit/01acc16821ac7e13d8eab03f8bd703ee4aba0521))
+* **gear:** replace a worn pair with a fresh one at 0 km ([#706](https://github.com/stride-coach/stride/issues/706)) ([7dabe7d](https://github.com/stride-coach/stride/commit/7dabe7db0660e458a894205ea61b55f7ee50f6fd))
+* **plan:** align completed session panels with the board ([#659](https://github.com/stride-coach/stride/issues/659)) ([#666](https://github.com/stride-coach/stride/issues/666)) ([dfad069](https://github.com/stride-coach/stride/commit/dfad069e79b4691a3e860cc2d77fc75d5d87c325))
+* **plan:** align past seasons with the board ([#657](https://github.com/stride-coach/stride/issues/657)) ([#664](https://github.com/stride-coach/stride/issues/664)) ([18db8d3](https://github.com/stride-coach/stride/commit/18db8d33972e6fd9716f9ae1acd57f6ee556c285))
+* **plan:** align Plan · Calendrier with the board ([#655](https://github.com/stride-coach/stride/issues/655)) ([#662](https://github.com/stride-coach/stride/issues/662)) ([cf00e34](https://github.com/stride-coach/stride/commit/cf00e34b514d57736c7337593d7bd1cbcc600bcf))
+* **plan:** align Plan · Historique with the board ([#656](https://github.com/stride-coach/stride/issues/656)) ([#663](https://github.com/stride-coach/stride/issues/663)) ([35795ad](https://github.com/stride-coach/stride/commit/35795ad312be09fd3627e3f8fee6c59ccf4188b5))
+* **plan:** align Plan · Programme with the board ([#654](https://github.com/stride-coach/stride/issues/654)) ([#661](https://github.com/stride-coach/stride/issues/661)) ([4cdea9e](https://github.com/stride-coach/stride/commit/4cdea9e8fd7b08d6d5479021eeb8dee1fceebe2a))
+* **plan:** align planned session panels with the board ([#658](https://github.com/stride-coach/stride/issues/658)) ([#665](https://github.com/stride-coach/stride/issues/665)) ([ebe670f](https://github.com/stride-coach/stride/commit/ebe670f64ff46d19895131834e0ba1a9026a8133))
+* **plan:** align the proposal review with the board ([#660](https://github.com/stride-coach/stride/issues/660)) ([#667](https://github.com/stride-coach/stride/issues/667)) ([7571835](https://github.com/stride-coach/stride/commit/75718358c7c2b26dae366db12bc9cd2216ab2967))
+* **plan:** show planned time and distance on each program week ([#668](https://github.com/stride-coach/stride/issues/668)) ([01cc269](https://github.com/stride-coach/stride/commit/01cc269c29482e9422ec80f7d1579a5d46ae75b5))
+* **plan:** show the program week as day cards ([#696](https://github.com/stride-coach/stride/issues/696)) ([dc6e1bf](https://github.com/stride-coach/stride/commit/dc6e1bf14f6e51f466a5dd8e898cb2c642ec6560))
+* **plan:** show the week as scrolling day cards on every screen size ([#698](https://github.com/stride-coach/stride/issues/698)) ([9b4a02b](https://github.com/stride-coach/stride/commit/9b4a02b9793746ee919bba9dd43e53a19ecea7ac))
+* **plans:** validate the placement of heavy strength sessions ([#645](https://github.com/stride-coach/stride/issues/645)) ([3361fc3](https://github.com/stride-coach/stride/commit/3361fc330a47bbef6716a510db16ce3a679aee6c)), closes [#642](https://github.com/stride-coach/stride/issues/642)
+* **races:** flag calendar gaps missed by a few days as tight ([#712](https://github.com/stride-coach/stride/issues/712)) ([d6e4644](https://github.com/stride-coach/stride/commit/d6e464442f77215a845ed4a2a8840d73ebe37f69))
+* **races:** size a Préparation race's recovery against its main objective ([#711](https://github.com/stride-coach/stride/issues/711)) ([7a9b0bc](https://github.com/stride-coach/stride/commit/7a9b0bc6bd75b2824d690548145f8ee799af05ba))
+* **today:** align the context rail with the V2 board ([#652](https://github.com/stride-coach/stride/issues/652)) ([#653](https://github.com/stride-coach/stride/issues/653)) ([e4c4b38](https://github.com/stride-coach/stride/commit/e4c4b38e42b729312d0793645c7a47bd8dd8548a))
+* **today:** align the page header and shell with the board ([#704](https://github.com/stride-coach/stride/issues/704)) ([12ebdf8](https://github.com/stride-coach/stride/commit/12ebdf807154707219610746bc330abe5c77fa6c)), closes [#669](https://github.com/stride-coach/stride/issues/669)
+
+
+### Bug Fixes
+
+* **activities:** add the right column to the list skeleton ([#702](https://github.com/stride-coach/stride/issues/702)) ([2293232](https://github.com/stride-coach/stride/commit/2293232c36b3a7f60c898e8c4c344c690f0094f4))
+* **ci:** restore a green main ([#699](https://github.com/stride-coach/stride/issues/699)) ([9d51bb1](https://github.com/stride-coach/stride/commit/9d51bb195b06dceaeb301b3932d6ba6e79964ebc))
+* **coach:** align the memory origin legend with the board ([#692](https://github.com/stride-coach/stride/issues/692)) ([#694](https://github.com/stride-coach/stride/issues/694)) ([b01da03](https://github.com/stride-coach/stride/commit/b01da036aef84701183e83ec1e0102b742756f8a))
+* **coach:** keep the Sports Director off volume and recovery-as-limit wording ([#710](https://github.com/stride-coach/stride/issues/710)) ([2208209](https://github.com/stride-coach/stride/commit/22082091005939619934f15025181ff7019b2ac7))
+* **plan:** include the race in the program chart bars and drop the duplicate race mark ([5349208](https://github.com/stride-coach/stride/commit/5349208b538df1827f0c8d45555d54bdbf54979c))
+* **plan:** keep the quality share on top of the program chart bars ([21a18e2](https://github.com/stride-coach/stride/commit/21a18e25b30eae48925eb65472a06f6176c62658))
+* **today:** keep session decisions and step link on one row ([a2229bd](https://github.com/stride-coach/stride/commit/a2229bd37e233005e06be8a448d6e2a9f279caf1))
+* **today:** put the shoe chip on the decision row and widen the move menu ([b60b354](https://github.com/stride-coach/stride/commit/b60b3541df4ea25ba128cc2b313c3536b3409427))
+* **today:** show the latest activity detail on its own line in the rail ([c2b0576](https://github.com/stride-coach/stride/commit/c2b0576d1fda99ff93d9c907e711d26f43fd610f))
+
 ## [2.5.0](https://github.com/stride-coach/stride/compare/v2.4.0...v2.5.0) (2026-11-17)
 
 
