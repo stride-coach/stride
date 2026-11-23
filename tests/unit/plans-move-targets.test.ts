@@ -90,6 +90,7 @@ describe("loading move targets", () => {
       "unknown",
     ])
       expect(await loadSessionMoveTargets(context, key)).toEqual([]);
+    expect(loadPlanningInput).not.toHaveBeenCalled();
   });
 
   it("lists the other days of the week and flags the unavailable one", async () => {

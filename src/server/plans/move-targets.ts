@@ -20,10 +20,7 @@ export async function loadSessionMoveTargets(
   const stored = await readActivePlan(context);
   if (!stored) return [];
   const { state, activeVersion: version } = stored;
-  const [matches, { input }] = await Promise.all([
-    readSessionMatches(context, stored.planId),
-    loadPlanningInput(context),
-  ]);
+  const matches = await readSessionMatches(context, stored.planId);
   const today = localToday(state.plan.timeZone);
   const matchedSessionKeys = new Set(
     matches
@@ -32,6 +29,7 @@ export async function loadSessionMoveTargets(
   );
   const days = weekMoveDays(state, sessionKey, today, matchedSessionKeys);
   if (days.length === 0) return [];
+  const { input } = await loadPlanningInput(context);
   const before = validatePlanChange(input, state, state, {
     versions: { expected: version, current: version },
     matchedSessionKeys,
