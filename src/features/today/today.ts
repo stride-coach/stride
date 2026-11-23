@@ -10,7 +10,8 @@ import {
 import type { PairQuestion } from "@/features/gear/check-view";
 import type { MatchStatus } from "@/features/plans/matching/adherence";
 import { addDays } from "@/features/plans/model/dates";
-import { moveDays, type MoveDay } from "./move";
+import type { MoveDay } from "@/features/plans/schedule/week-moves";
+import { moveDays } from "./move";
 import type { PlanState } from "@/features/plans/model/plan";
 import { isQuality } from "@/features/plans/validation/input";
 import {

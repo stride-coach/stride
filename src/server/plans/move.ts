@@ -1,7 +1,10 @@
 import "server-only";
 import { localToday } from "@/features/plans/constraints";
-import type { PlanOperation } from "@/features/plans/operations/operations";
-import { moveDays } from "@/features/today/move";
+import { moveOperations } from "@/features/plans/schedule/move-check";
+import {
+  moveDayLabel,
+  weekMoveDays,
+} from "@/features/plans/schedule/week-moves";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { planChangeset } from "@/server/plans/apply";
 import { readSessionMatches } from "@/server/plans/matches";
@@ -19,7 +22,7 @@ export async function submitSessionMove(
   const stored = await readActivePlan(context);
   if (!stored) return { ok: false, reason: "no_active_plan" };
   const matches = await readSessionMatches(context, stored.planId);
-  const day = moveDays(
+  const day = weekMoveDays(
     stored.state,
     sessionKey,
     localToday(stored.state.plan.timeZone),
@@ -42,15 +45,9 @@ export async function submitSessionMove(
     )
   )
     return { ok: false, reason: "proposal_pending" };
-  const operations: PlanOperation[] = [
-    ...(day.restKey
-      ? [{ op: "skip_session" as const, sessionKey: day.restKey }]
-      : []),
-    { op: "move_session", sessionKey, toDate },
-  ];
   const changeset = await planChangeset(context, {
     scope: "session",
-    operations,
+    operations: moveOperations(sessionKey, day),
     plan_id: stored.planId,
     base_version: stored.activeVersion,
   });
@@ -63,7 +60,7 @@ export async function submitSessionMove(
       p_session_key: sessionKey,
       p_to_date: toDate,
       p_title: `Séance déplacée : ${session.title}`,
-      p_summary: `Tu as déplacé « ${session.title} » d’aujourd’hui à ${day.label}.`,
+      p_summary: `Tu as déplacé « ${session.title} » de ${moveDayLabel(session.scheduledOn)} à ${day.label}.`,
       p_preview: JSON.parse(JSON.stringify(changeset)),
       ...(day.restKey ? { p_rest_key: day.restKey } : {}),
     },

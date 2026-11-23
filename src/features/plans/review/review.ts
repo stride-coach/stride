@@ -630,6 +630,26 @@ export function introducedRules(
   );
 }
 
+export function introducedBlocks(
+  input: DeterministicPlanInput,
+  base: PlanState,
+  candidate: PlanState,
+  context: {
+    version: number;
+    matchedSessionKeys: ReadonlySet<string>;
+    before?: ValidationReport;
+  },
+): RuleId[] {
+  const options = {
+    versions: { expected: context.version, current: context.version },
+    matchedSessionKeys: context.matchedSessionKeys,
+  };
+  const before =
+    context.before ?? validatePlanChange(input, base, base, options);
+  const after = validatePlanChange(input, base, candidate, options);
+  return introducedRules(after, before, "block");
+}
+
 function checksFrom(
   after: ValidationReport,
   before: ValidationReport | null,

@@ -10,6 +10,10 @@ import {
 } from "@/server/onboarding/context";
 import { applyAcceptedProposal } from "@/server/plans/apply";
 import { submitSessionMove } from "@/server/plans/move";
+import {
+  loadSessionMoveTargets,
+  type MoveTarget,
+} from "@/server/plans/move-targets";
 
 export type ProposalActionResult =
   | { status: "applied"; version: number | null }
@@ -138,4 +142,26 @@ export async function moveSession(
   const result = await apply(context, submitted.proposalId);
   refresh();
   return result;
+}
+
+const targetsSchema = z.strictObject({ sessionKey: z.string().min(1).max(64) });
+
+export async function readMoveTargets(
+  input: unknown,
+): Promise<
+  | { status: "ok"; targets: MoveTarget[] }
+  | { status: "invalid-request" | "session-expired" | "error" }
+> {
+  const parsed = targetsSchema.safeParse(input);
+  if (!parsed.success) return { status: "invalid-request" };
+  const context = await getOnboardingContext();
+  if (!context) return { status: "session-expired" };
+  const { sessionKey } = parsed.data;
+  const targets = await loadSessionMoveTargets(context, sessionKey).catch(
+    (error: unknown) => {
+      console.error("Unable to load move targets", { sessionKey, error });
+      return null;
+    },
+  );
+  return targets ? { status: "ok", targets } : { status: "error" };
 }

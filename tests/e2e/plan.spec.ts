@@ -211,3 +211,88 @@ test("an athlete scrolls the week cards and opens a session on mobile", async ({
   await week.getByRole("link").filter({ hasText: /Seuil/ }).first().click();
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
 });
+
+test("an athlete moves a session to another day from the week menu", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signInAs(page, "plan@example.com");
+  await page.goto("/plan");
+  const week = page.getByRole("list", { name: "Séances de la semaine" });
+  const days = week.getByRole("listitem");
+  await expect(days).toHaveCount(7);
+  const handles = week.getByRole("button", { name: /^Déplacer « / });
+  await expect(week.getByRole("listitem").first()).toBeVisible();
+  test.skip(
+    (await handles.count()) === 0,
+    "No movable session is left in the week.",
+  );
+  const label = await handles.last().getAttribute("aria-label");
+  const title = label?.match(/^Déplacer « (.+) »$/)?.[1] ?? "";
+  expect(title).not.toBe("");
+  const handle = days
+    .filter({ has: page.getByRole("button", { name: label ?? "" }) })
+    .first()
+    .getByRole("button", { name: label ?? "" });
+
+  const dayOfHandle = (name: string) =>
+    days.evaluateAll(
+      (items, name) =>
+        items.findIndex((item) =>
+          [...item.querySelectorAll("button")].some(
+            (button) => button.getAttribute("aria-label") === name,
+          ),
+        ),
+      name,
+    );
+  const origin = await dayOfHandle(label ?? "");
+
+  const targetsRead = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      "next-action" in response.request().headers(),
+  );
+  await handle.click();
+  await targetsRead;
+  const menu = page.getByRole("menu");
+  await expect(menu.getByText("Déplacer vers…")).toBeVisible();
+  const originText = await menu
+    .getByText(
+      new RegExp(`^${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} · `),
+    )
+    .textContent();
+  const originDay = originText?.match(/ · ([^·]+)$/)?.[1] ?? "";
+  expect(originDay).not.toBe("");
+  const blocked = menu.getByRole("menuitem", { disabled: true });
+  if ((await blocked.count()) > 0)
+    await expect(blocked.first()).toContainText(
+      /indisponible|Durée maximale|Contrainte|Déconseillé|règles de Stride/,
+    );
+  const free = menu.getByRole("menuitem", { disabled: false }).first();
+  await expect(free).toBeVisible();
+  const destination =
+    (await free.locator("span").first().textContent())?.trim() ?? "";
+  await free.click();
+  await expect(
+    page.getByText(`Séance déplacée : ${destination}.`),
+  ).toBeVisible();
+  await expect.poll(() => dayOfHandle(label ?? "")).not.toBe(origin);
+
+  const moved = days
+    .nth(await dayOfHandle(label ?? ""))
+    .getByRole("button", { name: label ?? "" });
+  const reread = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      "next-action" in response.request().headers(),
+  );
+  await moved.click();
+  await reread;
+  const back = page
+    .getByRole("menuitem", { disabled: false })
+    .filter({ hasText: originDay })
+    .first();
+  await back.click();
+  await expect(page.getByText(`Séance déplacée : ${originDay}.`)).toBeVisible();
+  await expect.poll(() => dayOfHandle(label ?? "")).toBe(origin);
+});

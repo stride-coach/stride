@@ -23,7 +23,12 @@ export type WeekCardSession = {
   intensity: { level?: Zone | null; label: string; race?: boolean } | null;
   link?: WeekCardLink;
   detail?: React.ReactNode;
+  action?: React.ReactNode;
 };
+
+export type WeekCardDrop = "target" | "over" | "blocked" | "source";
+
+export type WeekCardItemProps = React.ComponentProps<"li"> & { date: string };
 
 export type WeekCardDay = {
   date: string;
@@ -35,6 +40,10 @@ export type WeekCardDay = {
   metrics?: string;
   link?: WeekCardLink;
   sessions: WeekCardSession[];
+  action?: React.ReactNode;
+  drop?: WeekCardDrop;
+  note?: React.ReactNode;
+  pending?: boolean;
 };
 
 const linkClass =
@@ -65,10 +74,20 @@ function CardLink({
   );
 }
 
-function SessionContent({ session }: { session: WeekCardSession }) {
+function SessionContent({
+  session,
+  inset = false,
+}: {
+  session: WeekCardSession;
+  inset?: boolean;
+}) {
   return (
     <>
-      <span className="line-clamp-2 font-medium">{session.title}</span>
+      <span
+        className={cn("line-clamp-2 font-medium", inset && "pr-7.5 md:pr-5")}
+      >
+        {session.title}
+      </span>
       {session.intensity && (
         <span>
           <Chip
@@ -95,39 +114,79 @@ function Sessions({ day }: { day: WeekCardDay }) {
       )}
     >
       {linked && session.link ? (
-        <CardLink
-          link={session.link}
-          className="-mx-1.5 -my-1 flex flex-col gap-2 rounded-md px-1.5 py-1 focus-visible:outline-offset-0"
-        >
-          <SessionContent session={session} />
-        </CardLink>
+        <span className="flex items-start gap-1">
+          <CardLink
+            link={session.link}
+            className="-mx-1.5 -my-1 flex min-w-0 flex-1 flex-col gap-2 rounded-md px-1.5 py-1 focus-visible:outline-offset-0"
+          >
+            <SessionContent session={session} />
+          </CardLink>
+          {session.action}
+        </span>
       ) : (
-        <SessionContent session={session} />
+        <SessionContent session={session} inset={Boolean(day.action)} />
       )}
     </div>
   ));
 }
 
 function CardContent({ day }: { day: WeekCardDay }) {
+  const faded = day.drop === "blocked" || day.drop === "source";
   return (
     <>
-      <span className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-label">
-        <SessionStateMark state={day.state} />
-        <span className="whitespace-nowrap text-muted-foreground tabular-nums">
-          {day.dayLabel}
+      <span
+        className={cn(
+          "flex flex-col gap-2",
+          !day.note && "flex-1",
+          faded && "opacity-35",
+        )}
+      >
+        <span className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-label">
+          <SessionStateMark state={day.state} />
+          <span className="whitespace-nowrap text-muted-foreground tabular-nums">
+            {day.dayLabel}
+          </span>
+          <span className="sr-only">{sessionStateLabels[day.state]}</span>
+          {day.compliance && (
+            <span className="ml-auto font-medium whitespace-nowrap text-primary tabular-nums">
+              {day.compliance}
+            </span>
+          )}
         </span>
-        <span className="sr-only">{sessionStateLabels[day.state]}</span>
-        {day.compliance && (
-          <span className="ml-auto font-medium whitespace-nowrap text-primary tabular-nums">
-            {day.compliance}
+        <Sessions day={day} />
+        {!day.note && (
+          <span className="mt-auto text-label text-muted-foreground tabular-nums">
+            <MissingValue value={day.metrics} />
           </span>
         )}
       </span>
-      <Sessions day={day} />
-      <span className="mt-auto text-label text-muted-foreground tabular-nums">
-        <MissingValue value={day.metrics} />
-      </span>
+      {day.note && <span className="mt-auto text-label">{day.note}</span>}
     </>
+  );
+}
+
+const dropClasses: Record<WeekCardDrop, string> = {
+  target: "outline-1 outline-offset-2 outline-primary outline-dashed",
+  over: "bg-accent outline-2 outline-offset-2 outline-primary outline-solid",
+  blocked: "cursor-not-allowed bg-background",
+  source: "border-dashed border-control-border bg-transparent",
+};
+
+function cardClass(day: WeekCardDay) {
+  return cn(
+    "flex h-full min-h-44 flex-col gap-2 rounded-lg border bg-card p-3",
+    day.isToday ? "border-foreground" : "border-border",
+    day.isPast && !day.isToday && "opacity-55",
+    day.drop && dropClasses[day.drop],
+    day.pending && "opacity-60",
+  );
+}
+
+export function WeekCardPreview({ day }: { day: WeekCardDay }) {
+  return (
+    <div className={cn(cardClass(day), "border-control-border shadow-float")}>
+      <CardContent day={day} />
+    </div>
   );
 }
 
@@ -135,10 +194,12 @@ export function WeekDayCards({
   days,
   label,
   className,
+  item: Item,
 }: {
   days: WeekCardDay[];
   label?: string;
   className?: string;
+  item?: React.ComponentType<WeekCardItemProps>;
 }) {
   return (
     <WeekStrip
@@ -150,28 +211,42 @@ export function WeekDayCards({
       )}
     >
       {days.map((day) => {
-        const card = cn(
-          "flex h-full min-h-44 flex-col gap-2 rounded-lg border bg-card p-3",
-          day.isToday ? "border-foreground" : "border-border",
-          day.isPast && !day.isToday && "opacity-55",
-        );
-        return (
-          <li
-            key={day.date}
-            data-today={day.isToday}
-            aria-current={day.isToday && !day.link ? "date" : undefined}
-            className="w-34 shrink-0 snap-start scroll-ml-4 md:scroll-ml-5 lg:w-auto lg:shrink"
-          >
-            {day.link ? (
-              <CardLink link={day.link} current={day.isToday} className={card}>
-                <CardContent day={day} />
-              </CardLink>
-            ) : (
-              <div className={card}>
-                <CardContent day={day} />
-              </div>
-            )}
-          </li>
+        const card = cardClass(day);
+        const props = {
+          "data-today": day.isToday,
+          "aria-current":
+            day.isToday && !day.link ? ("date" as const) : undefined,
+          "aria-busy": day.pending || undefined,
+          "aria-disabled": day.drop === "blocked" || undefined,
+          className:
+            "relative w-34 shrink-0 snap-start scroll-ml-4 md:scroll-ml-5 lg:w-auto lg:shrink",
+          children: (
+            <>
+              {day.link ? (
+                <CardLink
+                  link={day.link}
+                  current={day.isToday}
+                  className={card}
+                >
+                  <CardContent day={day} />
+                </CardLink>
+              ) : (
+                <div className={card}>
+                  <CardContent day={day} />
+                </div>
+              )}
+              {day.action && (
+                <span className="absolute top-0.75 right-0.75 z-1 flex md:top-2 md:right-2">
+                  {day.action}
+                </span>
+              )}
+            </>
+          ),
+        };
+        return Item ? (
+          <Item key={day.date} date={day.date} {...props} />
+        ) : (
+          <li key={day.date} {...props} />
         );
       })}
     </WeekStrip>
