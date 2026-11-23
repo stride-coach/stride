@@ -65,6 +65,7 @@ describe("submitting a move of today's session", () => {
         p_session_key: "s-2026-10-20-1",
         p_to_date: "2026-10-21",
         p_title: "Séance déplacée : Footing",
+        p_summary: "Tu as déplacé « Footing » de mardi 20 à mercredi 21.",
       }),
     );
   });
@@ -91,6 +92,9 @@ describe("submitting a move of today's session", () => {
   it("refuses a day outside the week and a session already matched", async () => {
     expect(
       await submitSessionMove(context, "s-2026-10-20-1", "2026-10-27"),
+    ).toEqual({ ok: false, reason: "not_allowed" });
+    expect(
+      await submitSessionMove(context, "s-2026-10-20-1", "2026-10-19"),
     ).toEqual({ ok: false, reason: "not_allowed" });
     readSessionMatches.mockResolvedValue([
       { sessionKey: "s-2026-10-20-1", status: "completed" },
@@ -119,5 +123,34 @@ describe("submitting a move of today's session", () => {
       sessionKey: "s-2026-10-21-rest",
     });
     expect(rpc.mock.calls[0][1].p_rest_key).toBe("s-2026-10-21-rest");
+  });
+});
+
+describe("submitting a move of a later session", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    readActivePlan.mockResolvedValue(stored());
+    readSessionMatches.mockResolvedValue([]);
+    planChangeset.mockResolvedValue({ sessions: {} });
+    readReadyProposals.mockResolvedValue([]);
+    rpc.mockResolvedValue({ data: { id: "proposal-1" }, error: null });
+  });
+
+  it("words the summary from the session's own day", async () => {
+    await submitSessionMove(context, "s-2026-10-22-1", "2026-10-21");
+    expect(rpc.mock.calls[0][1]).toMatchObject({
+      p_to_date: "2026-10-21",
+      p_summary: "Tu as déplacé « Seuil · 4 × 6' » de jeudi 22 à mercredi 21.",
+    });
+  });
+
+  it("refuses another week and a past day", async () => {
+    expect(
+      await submitSessionMove(context, "s-2026-10-22-1", "2026-10-27"),
+    ).toEqual({ ok: false, reason: "not_allowed" });
+    expect(
+      await submitSessionMove(context, "s-2026-10-22-1", "2026-10-19"),
+    ).toEqual({ ok: false, reason: "not_allowed" });
+    expect(rpc).not.toHaveBeenCalled();
   });
 });
