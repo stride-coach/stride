@@ -211,3 +211,92 @@ test("an athlete scrolls the week cards and opens a session on mobile", async ({
   await week.getByRole("link").filter({ hasText: /Seuil/ }).first().click();
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
 });
+
+test("an athlete moves a session to another day from the week menu", async ({
+  page,
+}) => {
+  const weekday = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    timeZone: "Europe/Paris",
+  }).format(new Date());
+  test.skip(
+    weekday === "Sunday",
+    "No other session is left to move on Sunday.",
+  );
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signInAs(page, "plan@example.com");
+  await page.goto("/plan");
+  const week = page.getByRole("list", { name: "Séances de la semaine" });
+  const days = week.getByRole("listitem");
+  await expect(days).toHaveCount(7);
+  const handles = week.getByRole("button", { name: /^Déplacer « / });
+  await expect(handles.last()).toBeVisible();
+  const label = await handles.last().getAttribute("aria-label");
+  const title = label?.match(/^Déplacer « (.+) »$/)?.[1] ?? "";
+  expect(title).not.toBe("");
+  const handle = days
+    .filter({ has: page.getByRole("button", { name: label ?? "" }) })
+    .first()
+    .getByRole("button", { name: label ?? "" });
+
+  const dayOfHandle = (name: string) =>
+    days.evaluateAll(
+      (items, name) =>
+        items.findIndex((item) =>
+          [...item.querySelectorAll("button")].some(
+            (button) => button.getAttribute("aria-label") === name,
+          ),
+        ),
+      name,
+    );
+  const origin = await dayOfHandle(label ?? "");
+
+  const targetsRead = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      "next-action" in response.request().headers(),
+  );
+  await handle.click();
+  await targetsRead;
+  const menu = page.getByRole("menu");
+  await expect(menu.getByText("Déplacer vers…")).toBeVisible();
+  const subtitle = await menu
+    .locator('[data-slot="dropdown-menu-label"] span')
+    .last()
+    .textContent();
+  await expect(
+    menu
+      .getByRole("menuitem", { disabled: true })
+      .filter({ hasText: "Jour indisponible dans ton profil" })
+      .first(),
+  ).toBeVisible();
+  const free = menu.getByRole("menuitem", { disabled: false }).first();
+  await expect(free).toBeVisible();
+  const destination =
+    (await free.locator("span").first().textContent())?.trim() ?? "";
+  await free.click();
+  await expect(
+    page.getByText(`Séance déplacée : ${destination}.`),
+  ).toBeVisible();
+  await expect.poll(() => dayOfHandle(label ?? "")).not.toBe(origin);
+
+  const moved = days
+    .nth(await dayOfHandle(label ?? ""))
+    .getByRole("button", { name: label ?? "" });
+  const reread = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      "next-action" in response.request().headers(),
+  );
+  await moved.click();
+  await reread;
+  const back = page
+    .getByRole("menuitem", { disabled: false })
+    .filter({ hasText: (subtitle ?? "").split(" · ")[1] ?? "" })
+    .first();
+  await back.click();
+  await expect(
+    page.getByText(`Séance déplacée : ${(subtitle ?? "").split(" · ")[1]}.`),
+  ).toBeVisible();
+  await expect.poll(() => dayOfHandle(label ?? "")).toBe(origin);
+});
