@@ -1,9 +1,6 @@
 import "server-only";
 import { localToday } from "@/features/plans/constraints";
-import {
-  validateNewPlan,
-  validatePlanChange,
-} from "@/features/plans/detailing/build";
+import { validateNewPlan } from "@/features/plans/detailing/build";
 import {
   applyOperations,
   type OperationError,
@@ -11,7 +8,10 @@ import {
 } from "@/features/plans/operations/apply";
 import { planOperationsSchema } from "@/features/plans/operations/operations";
 import { outcomeOf } from "@/features/plans/review/proposal";
-import { introducedRules } from "@/features/plans/review/review";
+import {
+  introducedBlocks,
+  introducedRules,
+} from "@/features/plans/review/review";
 import type { OnboardingContext } from "@/server/onboarding/context";
 import { loadPlanningInput } from "@/server/plans/draft";
 import { readSessionMatches } from "@/server/plans/matches";
@@ -76,19 +76,10 @@ export async function planChangeset(
   });
   if (!result.ok) return failureReason(result.errors);
   const { input } = await loadPlanningInput(context);
-  const versions = {
-    expected: stored.activeVersion,
-    current: stored.activeVersion,
-  };
-  const before = validatePlanChange(input, stored.state, stored.state, {
-    versions,
+  return introducedBlocks(input, stored.state, result.state, {
+    version: stored.activeVersion,
     matchedSessionKeys,
-  });
-  const after = validatePlanChange(input, stored.state, result.state, {
-    versions,
-    matchedSessionKeys,
-  });
-  return introducedRules(after, before, "block").length > 0
+  }).length > 0
     ? "validation_failed"
     : result.changeset;
 }

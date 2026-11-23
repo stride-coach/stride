@@ -1,9 +1,8 @@
-import { validatePlanChange } from "@/features/plans/detailing/build";
 import type { DeterministicPlanInput } from "@/features/plans/detailing/build";
 import type { PlanState } from "@/features/plans/model/plan";
 import { applyOperations } from "@/features/plans/operations/apply";
 import type { PlanOperation } from "@/features/plans/operations/operations";
-import { introducedRules } from "@/features/plans/review/review";
+import { introducedBlocks } from "@/features/plans/review/review";
 import type {
   RuleId,
   ValidationReport,
@@ -54,9 +53,11 @@ export function checkMove(
     matchedSessionKeys: context.matchedSessionKeys,
   });
   if (!result.ok) return "rules";
-  const after = validatePlanChange(input, state, result.state, {
-    versions: { expected: context.version, current: context.version },
-    matchedSessionKeys: context.matchedSessionKeys,
-  });
-  return blockOf(introducedRules(after, before, "block"));
+  return blockOf(
+    introducedBlocks(input, state, result.state, {
+      version: context.version,
+      matchedSessionKeys: context.matchedSessionKeys,
+      before,
+    }),
+  );
 }
