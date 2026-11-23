@@ -342,6 +342,8 @@ function options(move: WeekMove, sessionKey: string): MoveTarget[] {
   );
 }
 
+const noTarget = "Aucun autre jour possible cette semaine";
+
 function BlockReason({ block }: { block: MoveBlock }) {
   return (
     <span className="flex items-start gap-1.5 text-label text-secondary-foreground">
@@ -466,6 +468,11 @@ export function MoveHandle({
                 {subtitle}
               </SheetDescription>
             </SheetHeader>
+            {items.length === 0 && (
+              <p className="flex min-h-14 items-center px-2.5 py-1.5 text-muted-foreground">
+                {noTarget}
+              </p>
+            )}
             {items.map((option) => (
               <button
                 key={option.date}
@@ -491,6 +498,14 @@ export function MoveHandle({
           </span>
           <span>{subtitle}</span>
         </DropdownMenuLabel>
+        {items.length === 0 && (
+          <DropdownMenuItem
+            disabled
+            className="min-h-11 px-2.5 data-disabled:text-muted-foreground data-disabled:opacity-100"
+          >
+            {noTarget}
+          </DropdownMenuItem>
+        )}
         {items.map((option) => (
           <DropdownMenuItem
             key={option.date}
