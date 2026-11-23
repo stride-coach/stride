@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
 import { mondayOf } from "@/features/plans/model/dates";
 import { proposalsByWeek } from "@/features/plans/review/proposal";
+import { upcomingMoveDays } from "@/features/plans/schedule/week-moves";
 import {
   archivedProgram,
   buildProgram,
@@ -242,6 +243,19 @@ export default async function PlanPage({
         today={overview.today}
         mobileAction={<CopyProgramButton text={copyText} />}
         proposals={proposalsByWeek(state, overview.proposals)}
+        moveDays={
+          program.status === "current"
+            ? upcomingMoveDays(
+                state,
+                overview.today,
+                new Set(
+                  overview.matches
+                    .filter((match) => match.status !== "dismissed")
+                    .map((match) => match.sessionKey),
+                ),
+              )
+            : undefined
+        }
         watchTags={watchDayTags({
           enabled: watch.enabled,
           rows: watch.rows,

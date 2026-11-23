@@ -15,6 +15,7 @@ import { LoadTrendWidget } from "@/features/progress/components/load-trend-widge
 import type { LoadTrend } from "@/features/progress/load-trend";
 import { ProgramWeekPanel } from "./program-week";
 import type { WatchDayTag } from "@/features/garmin/watch";
+import type { MoveDay } from "@/features/plans/schedule/week-moves";
 
 const milestoneTones: Record<MilestoneTone, string> = {
   provider: "bg-foreground",
@@ -136,6 +137,7 @@ export function ProgramExplorer({
   initialWeekKey,
   proposals = {},
   watchTags = {},
+  moveDays,
   load = null,
   today = null,
   mobileAction,
@@ -147,6 +149,7 @@ export function ProgramExplorer({
   initialWeekKey: string | null;
   proposals?: Record<string, WeekProposal[]>;
   watchTags?: Record<string, WatchDayTag>;
+  moveDays?: Record<string, MoveDay[]>;
 }) {
   const { weeks } = program;
   const [selected, setSelected] = useState(
@@ -257,6 +260,7 @@ export function ProgramExplorer({
           <ProgramWeekPanel
             week={week}
             watchTags={watchTags}
+            moveDays={moveDays}
             navigation={navigation}
             sessionHref={(sessionKey) => {
               const query = new URLSearchParams();

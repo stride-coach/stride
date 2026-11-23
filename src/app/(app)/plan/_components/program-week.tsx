@@ -4,9 +4,11 @@ import { DataActivityLink as Link } from "@/features/data-activity/components/na
 import { type SessionRowState } from "@/components/stride/session-row";
 import { Status } from "@/components/stride/status";
 import {
+  WeekCardPreview,
   WeekDayCards,
   type WeekCardDay,
   type WeekCardLink,
+  type WeekCardSession,
 } from "@/components/stride/week-day-cards";
 import { StaffAvatar } from "@/features/coach/components/staff-avatar";
 import { dayCardMetrics } from "@/features/plans/view/day-card";
@@ -22,9 +24,11 @@ import {
 } from "@/features/plans/view/program";
 import type { WeekProposal } from "@/features/plans/review/proposal";
 import type { WatchDayTag } from "@/features/garmin/watch";
+import type { MoveDay } from "@/features/plans/schedule/week-moves";
 import { formatInteger } from "@/features/progress/format";
 import { markProposalOpened } from "./proposal-sheet";
 import { markSessionOpened } from "./session-sheet";
+import { MoveHandle, WeekMoveCards, WeekMoveProvider } from "./session-move";
 
 function DayState({
   state,
@@ -72,6 +76,7 @@ function WatchTag({ tag }: { tag: WatchDayTag | undefined }) {
 
 type SessionHref = (sessionKey: string) => string;
 type WatchTags = Record<string, WatchDayTag>;
+type MoveDays = Record<string, MoveDay[]>;
 
 function sessionLink(
   session: ProgramDaySession,
@@ -114,6 +119,64 @@ function CardDetail({
       {session.state !== "proposed" && <WatchTag tag={watch} />}
     </span>
   );
+}
+
+function moveHandle(
+  day: WeekCardDay,
+  session: ProgramDaySession,
+  card: WeekCardSession,
+  moveDays: MoveDays,
+  inline: boolean,
+) {
+  if (session.family === "rest" || !moveDays[session.sessionKey]?.length)
+    return undefined;
+  return (
+    <MoveHandle
+      sessionKey={session.sessionKey}
+      title={session.title}
+      date={day.date}
+      inline={inline}
+      preview={
+        <WeekCardPreview
+          day={{
+            ...day,
+            isPast: false,
+            isToday: false,
+            compliance: undefined,
+            metrics: dayCardMetrics([session]) ?? undefined,
+            link: undefined,
+            sessions: [{ ...card, link: undefined, detail: undefined }],
+          }}
+        />
+      }
+    />
+  );
+}
+
+function withMoves(
+  card: WeekCardDay,
+  day: ProgramDay,
+  moveDays: MoveDays,
+): WeekCardDay {
+  if (day.sessions.length === 0) return card;
+  if (day.sessions.length === 1)
+    return {
+      ...card,
+      action: moveHandle(
+        card,
+        day.sessions[0]!,
+        card.sessions[0]!,
+        moveDays,
+        false,
+      ),
+    };
+  return {
+    ...card,
+    sessions: card.sessions.map((item, index) => ({
+      ...item,
+      action: moveHandle(card, day.sessions[index]!, item, moveDays, true),
+    })),
+  };
 }
 
 function weekCardDay(
@@ -454,9 +517,11 @@ export function ProgramWeekPanel({
   proposals = [],
   reviewHref,
   watchTags = {},
+  moveDays,
 }: {
   week: ProgramWeek;
   watchTags?: Record<string, WatchDayTag>;
+  moveDays?: MoveDays;
   navigation: React.ReactNode;
   sessionHref: (sessionKey: string) => string;
   proposals?: WeekProposal[];
@@ -525,11 +590,29 @@ export function ProgramWeekPanel({
       {proposals.length > 0 && (
         <WeekProposals proposals={proposals} reviewHref={reviewHref} />
       )}
-      <WeekDayCards
-        label="Séances de la semaine"
-        days={week.days.map((day) => weekCardDay(day, sessionHref, watchTags))}
-        className="-mx-4 border-t border-border md:-mx-5"
-      />
+      {moveDays ? (
+        <WeekMoveProvider moveDays={moveDays}>
+          <WeekMoveCards
+            label="Séances de la semaine"
+            days={week.days.map((day) =>
+              withMoves(
+                weekCardDay(day, sessionHref, watchTags),
+                day,
+                moveDays,
+              ),
+            )}
+            className="-mx-4 border-t border-border md:-mx-5"
+          />
+        </WeekMoveProvider>
+      ) : (
+        <WeekDayCards
+          label="Séances de la semaine"
+          days={week.days.map((day) =>
+            weekCardDay(day, sessionHref, watchTags),
+          )}
+          className="-mx-4 border-t border-border md:-mx-5"
+        />
+      )}
     </section>
   );
 }
