@@ -30,6 +30,7 @@ export function weekMoveDays(
   if (
     !session ||
     session.kind === "race" ||
+    isRest(session) ||
     session.scheduledOn < today ||
     matchedSessionKeys.has(sessionKey)
   )

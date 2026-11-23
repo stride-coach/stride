@@ -38,6 +38,27 @@ describe("same-week move days", () => {
     expect(weekMoveDays(planState(), "missing", today)).toEqual([]);
   });
 
+  it("never moves a rest row", () => {
+    const plan = planState();
+    plan.sessions.push({
+      ...plan.sessions[2],
+      sessionKey: "rest-21",
+      scheduledOn: "2026-10-21",
+      kind: "rest",
+      sport: "rest",
+      title: "Repos",
+    });
+    expect(weekMoveDays(plan, "rest-21", today)).toEqual([]);
+    const sportOnly = planState();
+    sportOnly.sessions.push({
+      ...sportOnly.sessions[2],
+      sessionKey: "rest-sport",
+      scheduledOn: "2026-10-21",
+      sport: "rest",
+    });
+    expect(weekMoveDays(sportOnly, "rest-sport", today)).toEqual([]);
+  });
+
   it("never offers a race day", () => {
     const plan = planState();
     plan.sessions.push({
