@@ -19,7 +19,7 @@ import {
   rejectProposal,
   type ProposalActionResult,
 } from "@/server/plans/actions";
-import type { MoveDay } from "../move";
+import type { MoveDay } from "@/features/plans/schedule/week-moves";
 
 const failures: Partial<Record<ProposalActionResult["status"], string>> = {
   error: "Ta décision n’a pas pu être enregistrée. Réessaie dans un instant.",
