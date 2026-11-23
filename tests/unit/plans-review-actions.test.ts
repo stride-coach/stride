@@ -7,6 +7,7 @@ const applyAcceptedProposal = vi.hoisted(() => vi.fn());
 const getOnboardingContext = vi.hoisted(() => vi.fn());
 const syncWatchAfterResponse = vi.hoisted(() => vi.fn());
 const submitSessionMove = vi.hoisted(() => vi.fn());
+const loadSessionMoveTargets = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("../../src/server/plans/apply", () => ({
@@ -18,7 +19,7 @@ vi.mock("../../src/server/onboarding/context", () => ({
 vi.mock("../../src/server/garmin/watch", () => ({ syncWatchAfterResponse }));
 vi.mock("../../src/server/plans/move", () => ({ submitSessionMove }));
 vi.mock("../../src/server/plans/move-targets", () => ({
-  loadSessionMoveTargets: vi.fn(),
+  loadSessionMoveTargets,
 }));
 
 import {
@@ -174,5 +175,48 @@ describe("reading move targets", () => {
       status: "invalid-request",
     });
     expect(getOnboardingContext).not.toHaveBeenCalled();
+  });
+
+  it("returns the targets of the athlete session", async () => {
+    const context = { userId: "a0000000-0000-4000-8000-00000000000a" };
+    const targets = [
+      {
+        date: "2026-10-21",
+        label: "mercredi 21",
+        sessions: [],
+        restKey: null,
+        block: "duration",
+      },
+    ];
+    getOnboardingContext.mockResolvedValue(context);
+    loadSessionMoveTargets.mockResolvedValue(targets);
+    expect(await readMoveTargets({ sessionKey: "s-1" })).toEqual({
+      status: "ok",
+      targets,
+    });
+    expect(loadSessionMoveTargets).toHaveBeenCalledWith(context, "s-1");
+  });
+
+  it("reports an expired session without reading targets", async () => {
+    getOnboardingContext.mockResolvedValue(null);
+    expect(await readMoveTargets({ sessionKey: "s-1" })).toEqual({
+      status: "session-expired",
+    });
+    expect(loadSessionMoveTargets).not.toHaveBeenCalled();
+  });
+
+  it("logs a failed read and reports an error", async () => {
+    const error = new Error("network");
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    getOnboardingContext.mockResolvedValue({ userId: "a" });
+    loadSessionMoveTargets.mockRejectedValue(error);
+    expect(await readMoveTargets({ sessionKey: "s-1" })).toEqual({
+      status: "error",
+    });
+    expect(log).toHaveBeenCalledWith("Unable to load move targets", {
+      sessionKey: "s-1",
+      error,
+    });
+    log.mockRestore();
   });
 });

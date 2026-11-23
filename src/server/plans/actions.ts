@@ -156,9 +156,12 @@ export async function readMoveTargets(
   if (!parsed.success) return { status: "invalid-request" };
   const context = await getOnboardingContext();
   if (!context) return { status: "session-expired" };
-  const targets = await loadSessionMoveTargets(
-    context,
-    parsed.data.sessionKey,
-  ).catch(() => null);
+  const { sessionKey } = parsed.data;
+  const targets = await loadSessionMoveTargets(context, sessionKey).catch(
+    (error: unknown) => {
+      console.error("Unable to load move targets", { sessionKey, error });
+      return null;
+    },
+  );
   return targets ? { status: "ok", targets } : { status: "error" };
 }
