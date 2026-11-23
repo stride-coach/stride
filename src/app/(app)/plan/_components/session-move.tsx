@@ -3,6 +3,7 @@
 import {
   createContext,
   use,
+  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -87,7 +88,13 @@ type WeekMove = {
   over: string | null;
   moving: { sessionKey: string; date: string } | null;
   load: (sessionKey: string) => void;
-  move: (sessionKey: string, from: string, day: MoveDay) => void;
+  move: (
+    sessionKey: string,
+    from: string,
+    day: MoveDay,
+    refocus?: boolean,
+  ) => void;
+  handle: (sessionKey: string, node: HTMLButtonElement) => () => void;
 };
 
 const WeekMoveContext = createContext<WeekMove | null>(null);
@@ -190,6 +197,8 @@ export function WeekMoveProvider({
   const [over, setOver] = useState<string | null>(null);
   const [moving, setMoving] = useState<WeekMove["moving"]>(null);
   const [pending, startTransition] = useTransition();
+  const handles = useRef(new Map<string, HTMLButtonElement>());
+  const refocus = useRef<string | null>(null);
   const reducedMotion = useReducedMotion();
   const sensors = useSensors(
     useSensor(MovePointerSensor, { activationConstraint: { distance: 6 } }),
@@ -222,7 +231,29 @@ export function WeekMoveProvider({
       .finally(() => keys.delete(sessionKey));
   };
 
-  const move = (sessionKey: string, from: string, day: MoveDay) => {
+  useEffect(() => {
+    if (pending || !refocus.current) return;
+    const node = handles.current.get(refocus.current);
+    refocus.current = null;
+    const focused = document.activeElement;
+    if (node && (!focused || focused === document.body)) node.focus();
+  }, [pending]);
+
+  const handle = (sessionKey: string, node: HTMLButtonElement) => {
+    handles.current.set(sessionKey, node);
+    return () => {
+      if (handles.current.get(sessionKey) === node)
+        handles.current.delete(sessionKey);
+    };
+  };
+
+  const move = (
+    sessionKey: string,
+    from: string,
+    day: MoveDay,
+    restore = false,
+  ) => {
+    refocus.current = restore ? sessionKey : null;
     setMoving({ sessionKey, date: from });
     startTransition(async () => {
       const result = await moveSession({ sessionKey, toDate: day.date }).catch(
@@ -270,6 +301,7 @@ export function WeekMoveProvider({
         moving: pending ? moving : null,
         load,
         move,
+        handle,
       }}
     >
       <DndContext
@@ -361,12 +393,13 @@ export function MoveHandle({
     disabled: busy,
   });
   const change = (next: boolean) => {
+    if (next && busy) return;
     if (next) move.load(sessionKey);
     setOpen(next);
   };
   const choose = (option: MoveTarget) => {
     setOpen(false);
-    move.move(sessionKey, date, option);
+    move.move(sessionKey, date, option, true);
   };
   const items = options(move, sessionKey);
   const subtitle = `${title} · ${moveDayLabel(date)}`;
@@ -375,17 +408,24 @@ export function MoveHandle({
       ref={(node) => {
         handle.current = node;
         setNodeRef(node);
+        if (!node) return;
+        const release = move.handle(sessionKey, node);
+        return () => {
+          release();
+          if (handle.current === node) handle.current = null;
+          setNodeRef(null);
+        };
       }}
       type="button"
       aria-label={`Déplacer « ${title} »`}
       aria-describedby={attributes["aria-describedby"]}
       aria-haspopup={mobile ? "dialog" : "menu"}
       aria-expanded={open}
-      disabled={busy}
+      aria-disabled={busy || undefined}
       onFocus={() => move.load(sessionKey)}
       onPointerDown={(event) => {
         wasOpen.current = open;
-        move.load(sessionKey);
+        if (!busy) move.load(sessionKey);
         listeners?.onPointerDown?.(event);
         event.preventDefault();
       }}
@@ -395,7 +435,7 @@ export function MoveHandle({
         wasOpen.current = false;
       }}
       className={cn(
-        "inline-flex size-8 shrink-0 cursor-grab touch-manipulation items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 ease-stride select-none [-webkit-touch-callout:none] hover:bg-muted hover:text-foreground disabled:cursor-default disabled:opacity-50 aria-expanded:bg-muted aria-expanded:text-foreground md:size-5.5",
+        "inline-flex size-8 shrink-0 cursor-grab touch-manipulation items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 ease-stride select-none [-webkit-touch-callout:none] hover:bg-muted hover:text-foreground aria-disabled:cursor-default aria-disabled:opacity-50 aria-expanded:bg-muted aria-expanded:text-foreground md:size-5.5",
         isDragging && "cursor-grabbing bg-muted text-foreground",
         inline && "-mt-0.75 -mr-1",
       )}
