@@ -56,3 +56,23 @@ export function weekMoveDays(
   }
   return days;
 }
+
+export function upcomingMoveDays(
+  plan: PlanState,
+  today: string,
+  matchedSessionKeys: ReadonlySet<string> = new Set(),
+): Record<string, MoveDay[]> {
+  const monday = mondayOf(today);
+  const result: Record<string, MoveDay[]> = {};
+  for (const session of plan.sessions) {
+    if (session.scheduledOn < monday) continue;
+    const days = weekMoveDays(
+      plan,
+      session.sessionKey,
+      today,
+      matchedSessionKeys,
+    );
+    if (days.length > 0) result[session.sessionKey] = days;
+  }
+  return result;
+}

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { weekMoveDays } from "../../src/features/plans/schedule/week-moves";
+import {
+  upcomingMoveDays,
+  weekMoveDays,
+} from "../../src/features/plans/schedule/week-moves";
 import { planState } from "./plan-fixture";
 
 const today = "2026-10-20";
@@ -80,5 +83,23 @@ describe("same-week move days", () => {
       (item) => item.date === "2026-10-21",
     );
     expect(day).toMatchObject({ sessions: [], restKey: "rest-21" });
+  });
+});
+
+describe("upcoming move days", () => {
+  it("covers every session from this week on, without past or matched ones", () => {
+    const state = planState();
+    state.sessions.push({
+      ...state.sessions[0],
+      sessionKey: "s-2026-11-03-1",
+      scheduledOn: "2026-11-03",
+    });
+    const result = upcomingMoveDays(state, today, new Set(["s-2026-10-20-1"]));
+    expect(Object.keys(result).sort()).toEqual([
+      "s-2026-10-22-1",
+      "s-2026-10-25-1",
+      "s-2026-11-03-1",
+    ]);
+    expect(dates(result["s-2026-10-22-1"])).toContain("2026-10-21");
   });
 });

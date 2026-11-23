@@ -17,10 +17,14 @@ vi.mock("../../src/server/onboarding/context", () => ({
 }));
 vi.mock("../../src/server/garmin/watch", () => ({ syncWatchAfterResponse }));
 vi.mock("../../src/server/plans/move", () => ({ submitSessionMove }));
+vi.mock("../../src/server/plans/move-targets", () => ({
+  loadSessionMoveTargets: vi.fn(),
+}));
 
 import {
   acceptProposal,
   moveSession,
+  readMoveTargets,
   rejectProposal,
   retryProposal,
 } from "../../src/server/plans/actions";
@@ -156,5 +160,19 @@ describe("proposal actions", () => {
       expect(rpc).not.toHaveBeenCalled();
       expect(applyAcceptedProposal).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("reading move targets", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects an invalid request before touching the session", async () => {
+    expect(await readMoveTargets({ sessionKey: "" })).toEqual({
+      status: "invalid-request",
+    });
+    expect(await readMoveTargets({ sessionKey: "a", extra: 1 })).toEqual({
+      status: "invalid-request",
+    });
+    expect(getOnboardingContext).not.toHaveBeenCalled();
   });
 });

@@ -16,7 +16,7 @@ vi.mock("../../src/features/plans/constraints", () => ({
   localToday: () => "2026-10-20",
 }));
 
-import { loadMoveTargets } from "../../src/server/plans/move-targets";
+import { loadSessionMoveTargets } from "../../src/server/plans/move-targets";
 
 const context = { userId: "a0000000-0000-4000-8000-00000000000a" } as never;
 const stored = (state: PlanState) => ({
@@ -67,10 +67,10 @@ describe("loading move targets", () => {
 
   it("returns nothing without an active plan", async () => {
     readActivePlan.mockResolvedValue(null);
-    expect(await loadMoveTargets(context)).toEqual({});
+    expect(await loadSessionMoveTargets(context, "s-2026-10-22-1")).toEqual([]);
   });
 
-  it("skips past, matched and race sessions", async () => {
+  it("returns nothing for past, matched, race and unknown sessions", async () => {
     const state = planState();
     state.sessions.push({
       ...easyRun(0),
@@ -82,31 +82,18 @@ describe("loading move targets", () => {
     readActivePlan.mockResolvedValue(stored(state));
     readSessionMatches.mockResolvedValue([
       { sessionKey: "s-2026-10-20-1", status: "completed" },
-      { sessionKey: "s-2026-10-25-1", status: "dismissed" },
     ]);
-    const targets = await loadMoveTargets(context);
-    expect(Object.keys(targets).sort()).toEqual([
-      "s-2026-10-22-1",
-      "s-2026-10-25-1",
-    ]);
-  });
-
-  it("only covers the current and the next week", async () => {
-    const state = planState();
-    state.sessions.push({
-      ...easyRun(40),
-      sessionKey: "s-2026-11-03-1",
-      scheduledOn: "2026-11-03",
-    });
-    readActivePlan.mockResolvedValue(stored(state));
-    const targets = await loadMoveTargets(context);
-    expect(targets["s-2026-11-03-1"]).toBeUndefined();
-    expect(targets["s-2026-10-25-1"]).toBeDefined();
+    for (const key of [
+      "s-2026-10-13-1",
+      "s-2026-10-20-1",
+      "s-2026-11-01-race",
+      "unknown",
+    ])
+      expect(await loadSessionMoveTargets(context, key)).toEqual([]);
   });
 
   it("lists the other days of the week and flags the unavailable one", async () => {
-    const targets = await loadMoveTargets(context);
-    const days = targets["s-2026-10-22-1"];
+    const days = await loadSessionMoveTargets(context, "s-2026-10-22-1");
     expect(days.map((day) => day.date)).toEqual([
       "2026-10-20",
       "2026-10-21",
