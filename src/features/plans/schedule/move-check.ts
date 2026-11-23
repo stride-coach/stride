@@ -8,18 +8,8 @@ import type {
   RuleId,
   ValidationReport,
 } from "@/features/plans/validation/report";
+import type { MoveBlock } from "./move-block";
 import type { MoveDay } from "./week-moves";
-
-export type MoveBlock =
-  "unavailable" | "duration" | "specialist" | "health" | "rules";
-
-export const moveBlockText: Record<MoveBlock, string> = {
-  unavailable: "Jour indisponible dans ton profil",
-  duration: "Durée maximale du jour dépassée",
-  specialist: "Contrainte de ton suivi médical",
-  health: "Déconseillé vu ton état de forme",
-  rules: "Ne respecte pas les règles de Stride",
-};
 
 const blockRules: [MoveBlock, readonly RuleId[]][] = [
   ["health", ["H1", "H2", "H3"]],

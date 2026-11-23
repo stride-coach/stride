@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { DeterministicPlanInput } from "@/features/plans/detailing/build";
 import { validatePlanChange } from "@/features/plans/detailing/build";
+import { moveBlockText } from "@/features/plans/schedule/move-block";
 import {
   blockOf,
   checkMove,
-  moveBlockText,
   moveOperations,
 } from "@/features/plans/schedule/move-check";
 import type { MoveDay } from "@/features/plans/schedule/week-moves";

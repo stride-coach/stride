@@ -59,7 +59,7 @@ import { cn } from "@/lib/utils";
 import {
   moveBlockText,
   type MoveBlock,
-} from "@/features/plans/schedule/move-check";
+} from "@/features/plans/schedule/move-block";
 import {
   moveDayLabel,
   type MoveDay,

@@ -1,10 +1,8 @@
 import "server-only";
 import { validatePlanChange } from "@/features/plans/detailing/build";
 import { localToday } from "@/features/plans/constraints";
-import {
-  checkMove,
-  type MoveBlock,
-} from "@/features/plans/schedule/move-check";
+import type { MoveBlock } from "@/features/plans/schedule/move-block";
+import { checkMove } from "@/features/plans/schedule/move-check";
 import {
   weekMoveDays,
   type MoveDay,
