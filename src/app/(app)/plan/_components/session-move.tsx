@@ -29,7 +29,6 @@ import {
   type PointerSensorOptions,
 } from "@dnd-kit/core";
 import { BanIcon, GripVerticalIcon } from "lucide-react";
-import { toast } from "sonner";
 import {
   WeekDayCards,
   type WeekCardDay,
@@ -51,6 +50,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  reportDecision,
+  type DecisionFailures,
+  type MoveMessages,
+} from "@/features/today/components/report-decision";
 import { cn } from "@/lib/utils";
 import {
   moveBlockText,
@@ -94,7 +98,7 @@ function useWeekMove() {
   return move;
 }
 
-const failures: Partial<Record<ProposalActionResult["status"], string>> = {
+const failures: DecisionFailures = {
   error: "Le déplacement n’a pas pu être enregistré. Réessaie dans un instant.",
   pending:
     "Le déplacement est enregistré, mais le plan n’a pas pu être mis à jour. Recharge la page pour réessayer.",
@@ -103,7 +107,7 @@ const failures: Partial<Record<ProposalActionResult["status"], string>> = {
   "invalid-request": "Cette séance ne peut plus être déplacée.",
 };
 
-const moveMessages = {
+const moveMessages: MoveMessages = {
   blocked:
     "Ce jour-là, la séance ne respecte pas les règles de Stride. Elle reste à sa place.",
   stale:
@@ -111,21 +115,6 @@ const moveMessages = {
   pending:
     "Le coach propose déjà un ajustement pour cette séance : décide-le d’abord.",
 };
-
-function report(result: ProposalActionResult, success: string) {
-  if (result.status === "applied") {
-    toast.success(success, { id: "plan-move" });
-    return;
-  }
-  const text = !(result.status === "stale" || result.status === "invalid")
-    ? failures[result.status]
-    : result.reason === "proposal_pending"
-      ? moveMessages.pending
-      : result.status === "invalid"
-        ? moveMessages.blocked
-        : moveMessages.stale;
-  if (text) toast.error(text, { id: "plan-move" });
-}
 
 class MovePointerSensor extends PointerSensor {
   static activators = [
@@ -195,8 +184,8 @@ export function WeekMoveProvider({
     source: moveDays,
     targets: {} as Record<string, MoveTarget[]>,
   });
+  const loading = useRef({ source: moveDays, keys: new Set<string>() });
   if (cache.source !== moveDays) setCache({ source: moveDays, targets: {} });
-  const loading = useRef(new Set<string>());
   const [active, setActive] = useState<Dragged | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const [moving, setMoving] = useState<WeekMove["moving"]>(null);
@@ -211,9 +200,12 @@ export function WeekMoveProvider({
   const targets = cache.source === moveDays ? cache.targets : {};
 
   const load = (sessionKey: string) => {
-    if (targets[sessionKey] || loading.current.has(sessionKey)) return;
+    if (loading.current.source !== moveDays)
+      loading.current = { source: moveDays, keys: new Set() };
+    const { keys } = loading.current;
+    if (targets[sessionKey] || keys.has(sessionKey)) return;
     const source = moveDays;
-    loading.current.add(sessionKey);
+    keys.add(sessionKey);
     readMoveTargets({ sessionKey })
       .then((result) => {
         if (result.status !== "ok") return;
@@ -227,7 +219,7 @@ export function WeekMoveProvider({
         );
       })
       .catch(() => undefined)
-      .finally(() => loading.current.delete(sessionKey));
+      .finally(() => keys.delete(sessionKey));
   };
 
   const move = (sessionKey: string, from: string, day: MoveDay) => {
@@ -236,7 +228,12 @@ export function WeekMoveProvider({
       const result = await moveSession({ sessionKey, toDate: day.date }).catch(
         (): ProposalActionResult => ({ status: "error" }),
       );
-      report(result, `Séance déplacée : ${day.label}.`);
+      reportDecision(result, {
+        id: "plan-move",
+        success: `Séance déplacée : ${day.label}.`,
+        failures,
+        move: moveMessages,
+      });
     });
   };
 
@@ -357,7 +354,8 @@ export function MoveHandle({
   const [open, setOpen] = useState(false);
   const wasOpen = useRef(false);
   const busy = move.moving !== null;
-  const { setNodeRef, listeners, isDragging } = useDraggable({
+  const handle = useRef<HTMLButtonElement | null>(null);
+  const { attributes, setNodeRef, listeners, isDragging } = useDraggable({
     id: sessionKey,
     data: { sessionKey, title, date, preview } satisfies Dragged,
     disabled: busy,
@@ -374,9 +372,13 @@ export function MoveHandle({
   const subtitle = `${title} · ${moveDayLabel(date)}`;
   const button = (
     <button
-      ref={setNodeRef}
+      ref={(node) => {
+        handle.current = node;
+        setNodeRef(node);
+      }}
       type="button"
       aria-label={`Déplacer « ${title} »`}
+      aria-describedby={attributes["aria-describedby"]}
       aria-haspopup={mobile ? "dialog" : "menu"}
       aria-expanded={open}
       disabled={busy}
@@ -409,6 +411,10 @@ export function MoveHandle({
           <SheetContent
             side="bottom"
             showCloseButton={false}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              handle.current?.focus();
+            }}
             className="gap-0.5 px-2 pt-2 pb-5"
           >
             <span

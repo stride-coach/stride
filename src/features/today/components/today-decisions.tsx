@@ -2,7 +2,6 @@
 
 import { useTransition, type ReactNode } from "react";
 import { ChevronDownIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataActivityLink as Link } from "@/features/data-activity/components/navigation";
-import { reasonText } from "@/features/plans/review/proposal";
+import {
+  reportDecision,
+  type DecisionFailures,
+  type MoveMessages,
+} from "@/features/today/components/report-decision";
 import {
   acceptProposal,
   moveSession,
@@ -21,36 +24,13 @@ import {
 } from "@/server/plans/actions";
 import type { MoveDay } from "@/features/plans/schedule/week-moves";
 
-const failures: Partial<Record<ProposalActionResult["status"], string>> = {
+const failures: DecisionFailures = {
   error: "Ta décision n’a pas pu être enregistrée. Réessaie dans un instant.",
   pending:
     "Ta décision est enregistrée, mais le plan n’a pas pu être mis à jour. Réessaie depuis Plan.",
   "session-expired": "Ta session a expiré. Reconnecte-toi pour décider.",
   "invalid-request": "Cette séance ne peut plus être modifiée.",
 };
-
-type MoveMessages = { blocked: string; stale: string; pending: string };
-
-function report(
-  result: ProposalActionResult,
-  success: string,
-  move?: MoveMessages,
-) {
-  if (result.status === "applied" || result.status === "rejected") {
-    toast.success(success, { id: "today-decision" });
-    return;
-  }
-  const text = !(result.status === "stale" || result.status === "invalid")
-    ? failures[result.status]
-    : !move
-      ? reasonText(result.reason)
-      : result.reason === "proposal_pending"
-        ? move.pending
-        : result.status === "invalid"
-          ? move.blocked
-          : move.stale;
-  if (text) toast.error(text, { id: "today-decision" });
-}
 
 const moveMessages: MoveMessages = {
   blocked:
@@ -87,7 +67,12 @@ export function TodayDecisions({
       const result = await action().catch((): ProposalActionResult => ({
         status: "error",
       }));
-      report(result, success, move);
+      reportDecision(result, {
+        id: "today-decision",
+        success,
+        failures,
+        move,
+      });
     });
 
   return (
