@@ -422,7 +422,6 @@ export function MoveHandle({
       aria-haspopup={mobile ? "dialog" : "menu"}
       aria-expanded={open}
       aria-disabled={busy || undefined}
-      onFocus={() => move.load(sessionKey)}
       onPointerDown={(event) => {
         wasOpen.current = open;
         if (!busy) move.load(sessionKey);
