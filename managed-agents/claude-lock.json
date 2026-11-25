@@ -9,10 +9,10 @@
     "./agents/coach.md": {
       "kind": "agent",
       "id": "agent_01KnNH1A58RfAggYG7AkUmRR",
-      "version": "35",
-      "hash": "b28cbc812c265144ffcbb65942856ca5",
-      "remote_hash": "9640afbf98c14eaa22de924f803a9e56",
-      "stamp": "35"
+      "version": "36",
+      "hash": "dca2e98850017606e910d14ab854e99d",
+      "remote_hash": "07e9aad6c7df05315692965c8824cf1a",
+      "stamp": "36"
     },
     "./agents/director.md": {
       "kind": "agent",
@@ -127,7 +127,8 @@
       "kind": "skill",
       "id": "skill_01QWi4yaJZQLoZAfGZU5aBBF",
       "version": "skver_014Q7sx6WGLZdfxBDJ1dgPoj",
-      "hash": "03f03a09cb8edc61b90d07062284a07f"
+      "hash": "03f03a09cb8edc61b90d07062284a07f",
+      "stamp": "skver_014Q7sx6WGLZdfxBDJ1dgPoj"
     },
     "./skills/session-design": {
       "kind": "skill",
