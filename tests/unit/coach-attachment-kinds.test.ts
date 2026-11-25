@@ -146,7 +146,7 @@ describe("health and file references", () => {
     expect(attachmentSuggestion("health", [], "2026-11-16")).toBe(
       "VFC, sommeil…",
     );
-    expect(attachmentSuggestion("file", [], "2026-11-16")).toBe("GPX, capture");
+    expect(attachmentSuggestion("file", [], "2026-11-16")).toBe("Capture, PDF, GPX");
     expect(attachmentMeta(hrv, "2026-11-16")).toBe("lun. 16/11/2026 · 42 ms");
   });
 

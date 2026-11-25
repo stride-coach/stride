@@ -89,7 +89,7 @@ export const attachmentMenuHints: Record<AttachmentKind, string> = {
   activity: "Activités importées",
   race: "Tes courses",
   health: "VFC, sommeil…",
-  file: "GPX, capture",
+  file: "Capture, PDF, GPX",
 };
 
 const dayMs = 86_400_000;

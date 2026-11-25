@@ -615,7 +615,7 @@ test("context chips are picked with the keyboard, survive a failed send and reac
     /Une activité/,
     /Une course.*Trail des Lacs/,
     /Une donnée de santé.*VFC/,
-    /Une photo ou un fichier.*GPX, capture/,
+    /Une photo ou un fichier.*Capture, PDF, GPX/,
   ]);
   await menu.getByRole("menuitem", { name: /Une séance/ }).click();
   const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
