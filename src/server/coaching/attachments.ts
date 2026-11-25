@@ -21,6 +21,10 @@ import {
   type HealthTopicId,
 } from "@/features/coach/health-attachments";
 import { fileSizeLabel } from "@/features/coach/files";
+import type {
+  BetaManagedAgentsDocumentBlock,
+  BetaManagedAgentsImageBlock,
+} from "@anthropic-ai/sdk/resources/beta/sessions/events";
 import { readCoachFiles } from "@/server/coaching/files";
 import { addDays } from "@/features/plans/model/dates";
 import { listActivities, readActivity } from "@/server/activities/activities";
@@ -146,9 +150,14 @@ const fileContextSchema = z.strictObject({
   image: z
     .strictObject({ width: z.int().positive(), height: z.int().positive() })
     .optional(),
+  pdf: z.strictObject({ pages: z.int().positive() }).optional(),
 });
 
 const imageNote =
+  "Image jointe par l’athlète, transmise avec ce message : lis son contenu.";
+const pdfNote =
+  "Document PDF joint par l’athlète, transmis en entier avec ce message : lis son contenu.";
+const unseenImageNote =
   "Image jointe par l’athlète. Le staff ne voit pas l’image : seuls son nom, son format et ses dimensions sont transmis. Si son contenu compte, demande à l’athlète de le décrire.";
 const gpxNote =
   "Trace GPX jointe par l’athlète. Le staff reçoit le résumé du parcours (distance, dénivelé positif, points), pas les coordonnées.";
@@ -171,7 +180,10 @@ export const attachmentContextSchema = z.strictObject({
 });
 
 export type AttachmentContext = z.output<typeof attachmentContextSchema>;
-export type ResolvedAttachment = AttachmentContext["attachments"][number];
+export type AttachmentMedia = { type: "image" | "pdf"; fileId: string };
+export type ResolvedAttachment = AttachmentContext["attachments"][number] & {
+  media?: AttachmentMedia;
+};
 
 const contextNote =
   "Éléments que l’athlète a joints à ce message. Fiches lues dans Stride pour son compte, en lecture seule.";
@@ -368,30 +380,44 @@ async function resolveFiles(
     const row = rows.find((item) => item.id === id);
     if (!row) throw new AttachmentAccessError();
     const { summary } = row;
-    return {
-      kind: "file",
+    const size = ` Taille : ${fileSizeLabel(row.size_bytes)}.`;
+    const base = {
+      kind: "file" as const,
       id,
       title: row.file_name,
       date: row.created_at.slice(0, 10),
       contentType: row.content_type,
       sizeBytes: row.size_bytes,
-      note:
-        summary.type === "gpx"
-          ? `${gpxNote} Taille : ${fileSizeLabel(row.size_bytes)}.`
-          : `${imageNote} Taille : ${fileSizeLabel(row.size_bytes)}.`,
-      ...(summary.type === "gpx"
-        ? {
-            gpx: {
-              ...(summary.name && { name: summary.name }),
-              distanceKm: summary.distanceKm,
-              ...(summary.elevationGainM !== null && {
-                elevationGainM: summary.elevationGainM,
-              }),
-              points: summary.points,
-              waypoints: summary.waypoints,
-            },
-          }
-        : { image: { width: summary.width, height: summary.height } }),
+    };
+    if (summary.type === "gpx")
+      return {
+        ...base,
+        note: `${gpxNote}${size}`,
+        gpx: {
+          ...(summary.name && { name: summary.name }),
+          distanceKm: summary.distanceKm,
+          ...(summary.elevationGainM !== null && {
+            elevationGainM: summary.elevationGainM,
+          }),
+          points: summary.points,
+          waypoints: summary.waypoints,
+        },
+      };
+    const fileId = row.model_file_id;
+    if (summary.type === "pdf") {
+      if (!fileId) throw new AttachmentAccessError();
+      return {
+        ...base,
+        note: `${pdfNote}${size}`,
+        pdf: { pages: summary.pages },
+        media: { type: "pdf", fileId },
+      };
+    }
+    return {
+      ...base,
+      note: `${fileId ? imageNote : unseenImageNote}${size}`,
+      image: { width: summary.width, height: summary.height },
+      ...(fileId && { media: { type: "image" as const, fileId } }),
     };
   });
 }
@@ -422,14 +448,34 @@ export async function resolveAttachments(
   );
 }
 
+function withoutMedia(attachment: ResolvedAttachment) {
+  const item = { ...attachment };
+  delete item.media;
+  return item;
+}
+
 export function attachmentContextText(attachments: ResolvedAttachment[]) {
   return JSON.stringify(
     attachmentContextSchema.parse({
       type: "athlete_attachments",
       note: contextNote,
-      attachments,
+      attachments: attachments.map(withoutMedia),
     }),
   );
+}
+
+export function attachmentMediaBlocks(
+  attachments: ResolvedAttachment[],
+): Array<BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock> {
+  return attachments.flatMap<
+    BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock
+  >(({ media, title }) => {
+    if (!media) return [];
+    const source = { type: "file" as const, file_id: media.fileId };
+    return media.type === "image"
+      ? [{ type: "image", source }]
+      : [{ type: "document", source, title }];
+  });
 }
 
 export function sentAttachments(

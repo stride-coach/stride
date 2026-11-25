@@ -1,6 +1,11 @@
-export const maxFileBytes = 10 * 1024 * 1024;
+const megabyte = 1024 * 1024;
 
-export const fileFormats = ["jpeg", "png", "webp", "gpx"] as const;
+export const maxFileBytes = 10 * megabyte;
+export const maxPdfBytes = 30 * megabyte;
+export const maxUploadBytes = maxPdfBytes;
+export const maxPdfPages = 600;
+
+export const fileFormats = ["jpeg", "png", "webp", "gpx", "pdf"] as const;
 export type FileFormat = (typeof fileFormats)[number];
 
 export const formatContentType: Record<FileFormat, string> = {
@@ -8,17 +13,22 @@ export const formatContentType: Record<FileFormat, string> = {
   png: "image/png",
   webp: "image/webp",
   gpx: "application/gpx+xml",
+  pdf: "application/pdf",
 };
 
-export const fileAccept = ".gpx,.jpg,.jpeg,.png,.webp";
+export const fileAccept = ".gpx,.jpg,.jpeg,.png,.webp,.pdf";
 
 export const fileErrors = {
   empty: "Ce fichier est vide.",
   tooLarge: "Ce fichier dépasse 10 Mo. Choisis-en un plus léger.",
-  unsupported: "Choisis une trace GPX ou une image JPEG, PNG ou WebP.",
+  pdfTooLarge: "Ce PDF dépasse 30 Mo. Choisis-en un plus léger.",
+  unsupported: "Choisis une image JPEG, PNG ou WebP, un PDF ou une trace GPX.",
   mismatch: "Le contenu de ce fichier ne correspond pas à son format.",
   corrupt: "Ce fichier est illisible. Choisis-en un autre.",
   noTrack: "Cette trace GPX ne contient aucun parcours exploitable.",
+  pdfProtected:
+    "Ce PDF est protégé par un mot de passe. Retire la protection puis réessaie.",
+  pdfTooLong: "Ce PDF dépasse 600 pages. Joins seulement les pages utiles.",
   failed: "L’import du fichier a échoué. Réessaie.",
   missing: "Aucun fichier reçu.",
 } as const;
@@ -31,6 +41,7 @@ const extensionFormats: Record<string, FileFormat> = {
   jpeg: "jpeg",
   png: "png",
   webp: "webp",
+  pdf: "pdf",
 };
 
 const gpxTypes = new Set([
@@ -47,9 +58,8 @@ export function formatOfName(name: string): FileFormat | null {
 }
 
 export function declaredTypeAllowed(format: FileFormat, type: string) {
-  return format === "gpx"
-    ? gpxTypes.has(type)
-    : type === formatContentType[format];
+  if (format === "gpx") return gpxTypes.has(type);
+  return type === formatContentType[format];
 }
 
 const startsWith = (bytes: Uint8Array, signature: readonly number[]) =>
@@ -63,6 +73,7 @@ export function sniffFormat(bytes: Uint8Array): FileFormat | null {
   if (startsWith(bytes, [137, 80, 78, 71, 13, 10, 26, 10])) return "png";
   if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 12) === "WEBP")
     return "webp";
+  if (ascii(bytes, 0, 5) === "%PDF-") return "pdf";
   const head = new TextDecoder("utf-8")
     .decode(bytes.subarray(0, 2048))
     .replace(/^﻿/, "")
@@ -80,10 +91,13 @@ export function checkFileMeta(file: {
   type: string;
 }): { format: FileFormat } | { error: FileError } {
   if (file.size <= 0) return { error: fileErrors.empty };
-  if (file.size > maxFileBytes) return { error: fileErrors.tooLarge };
   const format = formatOfName(file.name);
   if (!format || !declaredTypeAllowed(format, file.type))
     return { error: fileErrors.unsupported };
+  if (format === "pdf" && file.size > maxPdfBytes)
+    return { error: fileErrors.pdfTooLarge };
+  if (format !== "pdf" && file.size > maxFileBytes)
+    return { error: fileErrors.tooLarge };
   return { format };
 }
 
@@ -103,7 +117,8 @@ export type FileSummary =
       points: number;
       waypoints: number;
     }
-  | { type: "image"; width: number; height: number };
+  | { type: "image"; width: number; height: number }
+  | { type: "pdf"; pages: number };
 
 export function fileSizeLabel(bytes: number) {
   const size = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });

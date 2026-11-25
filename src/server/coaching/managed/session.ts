@@ -26,6 +26,7 @@ import {
 } from "@/features/coach/staff";
 import {
   attachmentContextText,
+  attachmentMediaBlocks,
   resolveAttachments,
   sentAttachments,
 } from "@/server/coaching/attachments";
@@ -718,6 +719,7 @@ export async function* streamCoachTurn(
               type: "user.message",
               content: [
                 ...(topic ? [{ type: "text" as const, text: topic }] : []),
+                ...attachmentMediaBlocks(attachments),
                 { type: "text", text: input.text },
                 ...(attachmentContext
                   ? [{ type: "text" as const, text: attachmentContext }]

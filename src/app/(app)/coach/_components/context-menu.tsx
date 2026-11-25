@@ -61,7 +61,7 @@ function ContextMenu({
         align="start"
         sideOffset={6}
         aria-label="Ajouter du contexte"
-        className="w-80 max-w-[calc(100vw-1.5rem)] p-1.5"
+        className="w-84 max-w-[calc(100vw-1.5rem)] p-1.5"
       >
         <DropdownMenuLabel className="px-2 pt-1 pb-1.5 text-label font-normal text-muted-foreground">
           Ajouter du contexte

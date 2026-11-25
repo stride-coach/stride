@@ -615,7 +615,7 @@ test("context chips are picked with the keyboard, survive a failed send and reac
     /Une activité/,
     /Une course.*Trail des Lacs/,
     /Une donnée de santé.*VFC/,
-    /Une photo ou un fichier.*GPX, capture/,
+    /Une photo ou un fichier.*Capture, PDF, GPX/,
   ]);
   await menu.getByRole("menuitem", { name: /Une séance/ }).click();
   const picker = page.getByRole("dialog", { name: "Ajouter du contexte" });
@@ -760,6 +760,45 @@ test("context chips are picked with the keyboard, survive a failed send and reac
   await expect(sent).toContainText("27/06/2027");
 });
 
+test("a file dropped on the composer joins the message context", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await signIn(page);
+  await page.goto("/coach");
+  const composer = page.getByRole("textbox", { name: "Écrire au staff" });
+  const drop = async (name: string, type: string, content: string) => {
+    const transfer = await page.evaluateHandle(
+      ([fileName, fileType, body]) => {
+        const data = new DataTransfer();
+        data.items.add(new File([body], fileName, { type: fileType }));
+        return data;
+      },
+      [name, type, content] as const,
+    );
+    await composer.dispatchEvent("dragover", { dataTransfer: transfer });
+    await composer.dispatchEvent("drop", { dataTransfer: transfer });
+  };
+  const error = page.getByText(/^Choisis une image/);
+  await drop("notes.txt", "text/plain", "pas une trace");
+  await expect(error).toHaveRole("alert");
+  await expect(error).toHaveText(
+    "Choisis une image JPEG, PNG ou WebP, un PDF ou une trace GPX.",
+  );
+  await drop(
+    "sortie.gpx",
+    "application/gpx+xml",
+    '<?xml version="1.0"?><gpx version="1.1"><trk><trkseg>' +
+      '<trkpt lat="45.000" lon="6.000"><ele>1000</ele></trkpt>' +
+      '<trkpt lat="45.002" lon="6.000"><ele>1030</ele></trkpt>' +
+      "</trkseg></trk></gpx>",
+  );
+  const chips = page.getByRole("list", { name: "Contexte joint au message" });
+  await expect(chips.getByRole("listitem")).toHaveCount(1);
+  await expect(chips).toContainText("sortie.gpx");
+  await expect(error).toHaveCount(0);
+});
+
 test("health data and a file are attached from the menu and sent to the staff", async ({
   page,
 }) => {
@@ -780,7 +819,7 @@ test("health data and a file are attached from the menu and sent to the staff", 
     buffer: Buffer.from("pas une trace"),
   });
   await expect(picker.getByRole("alert")).toHaveText(
-    "Choisis une trace GPX ou une image JPEG, PNG ou WebP.",
+    "Choisis une image JPEG, PNG ou WebP, un PDF ou une trace GPX.",
   );
   await upload.setInputFiles({
     name: "sortie.gpx",

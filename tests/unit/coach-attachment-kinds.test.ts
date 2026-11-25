@@ -2,6 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import sharp from "sharp";
 
 vi.mock("server-only", () => ({}));
+const modelFiles = vi.hoisted(() => ({
+  upload: vi.fn(async () => ({ id: "file_model" })),
+  delete: vi.fn(async () => ({ id: "file_model" })),
+}));
+vi.mock("../../src/server/coaching/managed/resources", () => ({
+  managedClient: () => ({ files: modelFiles }),
+}));
 vi.mock("../../src/server/activities/activities", () => ({
   readActivity: vi.fn(),
   listActivities: vi.fn(),
@@ -24,6 +31,7 @@ import {
   checkFileMeta,
   fileErrors,
   maxFileBytes,
+  maxPdfBytes,
   sniffFormat,
 } from "../../src/features/coach/files";
 import {
@@ -33,6 +41,7 @@ import {
 import {
   AttachmentAccessError,
   attachmentContextText,
+  attachmentMediaBlocks,
   loadAttachmentOptions,
   resolveAttachments,
 } from "../../src/server/coaching/attachments";
@@ -68,6 +77,27 @@ function fakeContext(tables: Record<string, unknown>) {
     client: { from, storage: { from: () => ({ upload, remove }) } },
   } as unknown as OnboardingContext;
   return { context, upload, remove, inserted };
+}
+
+function onePagePdf() {
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>",
+  ];
+  let body = "%PDF-1.4\n";
+  const offsets = objects.map((object, index) => {
+    const offset = body.length;
+    body += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    return offset;
+  });
+  const xref = body.length;
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  body += offsets
+    .map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`)
+    .join("");
+  body += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return body;
 }
 
 const gpx = `<?xml version="1.0"?><gpx version="1.1"><trk><name>Sortie</name><trkseg>
@@ -116,7 +146,7 @@ describe("health and file references", () => {
     expect(attachmentSuggestion("health", [], "2026-11-16")).toBe(
       "VFC, sommeil…",
     );
-    expect(attachmentSuggestion("file", [], "2026-11-16")).toBe("GPX, capture");
+    expect(attachmentSuggestion("file", [], "2026-11-16")).toBe("Capture, PDF, GPX");
     expect(attachmentMeta(hrv, "2026-11-16")).toBe("lun. 16/11/2026 · 42 ms");
   });
 
@@ -156,6 +186,19 @@ describe("file validation", () => {
     });
   });
 
+  it("allows a heavier PDF than an image", () => {
+    const pdf = { name: "roadbook.pdf", type: "application/pdf" };
+    expect(checkFileMeta({ ...pdf, size: 25 * 1024 * 1024 })).toEqual({
+      format: "pdf",
+    });
+    expect(checkFileMeta({ ...pdf, size: maxPdfBytes + 1 })).toEqual({
+      error: fileErrors.pdfTooLarge,
+    });
+    expect(
+      checkFileMeta({ name: "a.png", size: maxFileBytes + 1, type: "image/png" }),
+    ).toEqual({ error: fileErrors.tooLarge });
+  });
+
   it("sniffs magic bytes instead of trusting the name", () => {
     const png = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
     expect(sniffFormat(png)).toBe("png");
@@ -164,6 +207,7 @@ describe("file validation", () => {
     expect(sniffFormat(new TextEncoder().encode("<html><gpx>"))).toBeNull();
     expect(checkFileBytes("jpeg", png)).toBe(fileErrors.mismatch);
     expect(checkFileBytes("png", png)).toBeNull();
+    expect(sniffFormat(new TextEncoder().encode("%PDF-1.7\n"))).toBe("pdf");
   });
 
   it("stores nothing for an invalid file", async () => {
@@ -225,7 +269,41 @@ describe("file validation", () => {
     );
     expect(inserted[1]).toMatchObject({
       summary: { type: "image", width: 4, height: 3 },
+      model_file_id: "file_model",
     });
+    expect(inserted[0]).toMatchObject({ model_file_id: null });
+  });
+
+  it("stores a PDF with its page count and a copy for the staff", async () => {
+    const { context, inserted } = fakeContext({});
+    const stored = await storeCoachFile(
+      context,
+      new File([onePagePdf()], "roadbook.pdf", { type: "application/pdf" }),
+    );
+    expect(stored).toMatchObject({ attachment: { title: "roadbook.pdf" } });
+    expect(inserted[0]).toMatchObject({
+      content_type: "application/pdf",
+      summary: { type: "pdf", pages: 1 },
+      model_file_id: "file_model",
+    });
+  });
+
+  it("rejects an unreadable PDF and stores nothing when the copy fails", async () => {
+    const { context, upload } = fakeContext({});
+    expect(
+      await storeCoachFile(
+        context,
+        new File(["%PDF-1.4 rien"], "cassé.pdf", { type: "application/pdf" }),
+      ),
+    ).toEqual({ error: fileErrors.corrupt });
+    modelFiles.upload.mockRejectedValueOnce(new Error("down"));
+    expect(
+      await storeCoachFile(
+        context,
+        new File([onePagePdf()], "roadbook.pdf", { type: "application/pdf" }),
+      ),
+    ).toEqual({ error: fileErrors.failed });
+    expect(upload).not.toHaveBeenCalled();
   });
 });
 
@@ -293,6 +371,49 @@ describe("health and file resolution", () => {
       image: { width: 4, height: 3 },
     });
     expect(file).toHaveProperty("note", expect.stringContaining("ne voit pas"));
+    expect(attachmentMediaBlocks([file])).toEqual([]);
+  });
+
+  it("hands the staff the image and the PDF themselves", async () => {
+    const pdfId = "f0000000-0000-4000-8000-0000000000ff";
+    const { context } = fakeContext({
+      coach_attachment_files: [
+        {
+          id: fileId,
+          file_name: "page-course.png",
+          content_type: "image/png",
+          size_bytes: 2048,
+          created_at: "2026-11-16T10:00:00Z",
+          summary: { type: "image", width: 4, height: 3 },
+          model_file_id: "file_image",
+        },
+        {
+          id: pdfId,
+          file_name: "roadbook.pdf",
+          content_type: "application/pdf",
+          size_bytes: 4096,
+          created_at: "2026-11-16T10:00:00Z",
+          summary: { type: "pdf", pages: 48 },
+          model_file_id: "file_pdf",
+        },
+      ],
+    });
+    const files = await resolveAttachments(context, [
+      { kind: "file", id: fileId },
+      { kind: "file", id: pdfId },
+    ]);
+    expect(attachmentMediaBlocks(files)).toEqual([
+      { type: "image", source: { type: "file", file_id: "file_image" } },
+      {
+        type: "document",
+        source: { type: "file", file_id: "file_pdf" },
+        title: "roadbook.pdf",
+      },
+    ]);
+    const text = attachmentContextText(files);
+    expect(text).not.toContain("file_image");
+    expect(text).not.toContain("ne voit pas");
+    expect(JSON.parse(text).attachments[1]).toMatchObject({ pdf: { pages: 48 } });
   });
 
   it("offers health topics that have observations", async () => {

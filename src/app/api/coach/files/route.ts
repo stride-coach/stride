@@ -1,4 +1,4 @@
-import { fileErrors, maxFileBytes } from "@/features/coach/files";
+import { fileErrors, maxUploadBytes } from "@/features/coach/files";
 import { storeCoachFile } from "@/server/coaching/files";
 import { getOnboardingContext } from "@/server/onboarding/context";
 import { json, sameOrigin } from "@/server/races/request";
@@ -8,7 +8,7 @@ const envelopeBytes = 64 * 1024;
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return json({ code: "forbidden" }, 403);
   const length = Number(request.headers.get("content-length") ?? 0);
-  if (length > maxFileBytes + envelopeBytes)
+  if (length > maxUploadBytes + envelopeBytes)
     return json({ error: fileErrors.tooLarge }, 413);
   const context = await getOnboardingContext({ writable: true }).catch(
     () => null,

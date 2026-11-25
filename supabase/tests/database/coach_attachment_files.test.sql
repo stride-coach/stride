@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(7);
+select plan(9);
 
 insert into auth.users (id, aud, role, email) values
   ('a7000000-0000-4000-8000-0000000000a7', 'authenticated', 'authenticated', 'files-a@example.com'),
@@ -37,7 +37,19 @@ select throws_ok(
       'a7000000-0000-4000-8000-0000000000a7/four.exe', 'x.exe', 'application/x-msdownload', 1200, '{}')$$,
   '23514', null, 'an unsupported content type is refused'
 );
-select is((select count(*)::int from public.coach_attachment_files), 1, 'athlete reads their own file');
+select lives_ok(
+  $$insert into public.coach_attachment_files (user_id, storage_path, file_name, content_type, size_bytes, summary, model_file_id)
+    values ('a7000000-0000-4000-8000-0000000000a7',
+      'a7000000-0000-4000-8000-0000000000a7/five.pdf', 'roadbook.pdf', 'application/pdf', 26214400, '{}', 'file_roadbook')$$,
+  'a PDF roadbook may weigh up to 30 MB'
+);
+select throws_ok(
+  $$insert into public.coach_attachment_files (user_id, storage_path, file_name, content_type, size_bytes, summary)
+    values ('a7000000-0000-4000-8000-0000000000a7',
+      'a7000000-0000-4000-8000-0000000000a7/six.png', 'capture.png', 'image/png', 26214400, '{}')$$,
+  '23514', null, 'an image stays limited to 10 MB'
+);
+select is((select count(*)::int from public.coach_attachment_files), 2, 'athlete reads their own files');
 
 select pg_temp.act_as('b7000000-0000-4000-8000-0000000000b7');
 select is((select count(*)::int from public.coach_attachment_files), 0, 'another athlete reads nothing');

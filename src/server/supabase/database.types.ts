@@ -643,6 +643,7 @@ export type Database = {
           created_at: string;
           file_name: string;
           id: string;
+          model_file_id: string | null;
           size_bytes: number;
           storage_path: string;
           summary: NonNullable<Json>;
@@ -654,6 +655,7 @@ export type Database = {
           created_at?: string;
           file_name: string;
           id?: string;
+          model_file_id?: string | null;
           size_bytes: number;
           storage_path: string;
           summary: NonNullable<Json>;
@@ -664,6 +666,7 @@ export type Database = {
           created_at?: string;
           file_name?: string;
           id?: string;
+          model_file_id?: string | null;
           size_bytes?: number;
           storage_path?: string;
           summary?: NonNullable<Json>;

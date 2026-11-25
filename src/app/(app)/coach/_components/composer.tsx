@@ -39,6 +39,12 @@ import {
 } from "@/features/coach/mentions";
 import { staff } from "@/features/coach/staff";
 import type { SpecialistAgent, StaffAgent } from "@/features/coach/staff";
+import {
+  attachmentsFullError,
+  filesToAttach,
+  uploadCoachFile,
+} from "@/features/coach/upload";
+import { maxAttachments } from "@/features/coach/attachments";
 import { ContextAdd } from "./context-menu";
 import { useKeyboardInset } from "./composer-hooks";
 
@@ -217,6 +223,8 @@ export function Composer({
   const [dismissed, setDismissed] = useState<number | null>(null);
   const [active, setActive] = useState({ key: "", index: 0 });
   const [restored, setRestored] = useState<string | null>(null);
+  const [importing, setImporting] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const nextCaret = useRef<number | null>(null);
   const listId = useId();
@@ -273,6 +281,7 @@ export function Composer({
     setText("");
     setCaret(0);
     setDismissed(null);
+    setImportError(null);
     if (!answering) setAttachments([]);
     await onSend({
       text: message,
@@ -294,6 +303,33 @@ export function Composer({
     });
   }
 
+  async function attachFiles(files: readonly File[]) {
+    if (answering || importing || files.length === 0) return;
+    const picked = filesToAttach(files, attachments.length);
+    setImportError(picked.length > 0 ? null : attachmentsFullError);
+    for (const file of picked) {
+      setImporting(file.name || "fichier");
+      const result = await uploadCoachFile(file);
+      if ("error" in result) {
+        setImportError(result.error);
+        break;
+      }
+      const option = {
+        ...result.attachment,
+        distanceKm: null,
+        elevationGainM: null,
+        detail: null,
+      };
+      setAttachments((current) =>
+        current.length >= maxAttachments
+          ? current
+          : toggleAttachment(current, option),
+      );
+    }
+    setImporting(null);
+    input.current?.focus();
+  }
+
   function remove(option: AttachmentOption) {
     setAttachments((current) => toggleAttachment(current, option));
     input.current?.focus();
@@ -305,6 +341,15 @@ export function Composer({
   return (
     <form
       data-keyboard={keyboard ? "open" : undefined}
+      onDragOver={(event) => {
+        if (!answering && event.dataTransfer.types.includes("Files"))
+          event.preventDefault();
+      }}
+      onDrop={(event) => {
+        if (answering || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        void attachFiles([...event.dataTransfer.files]);
+      }}
       style={{ "--keyboard-inset": `${keyboard}px` } as React.CSSProperties}
       onSubmit={(event) => {
         event.preventDefault();
@@ -407,6 +452,13 @@ export function Composer({
               setCaret(event.target.selectionStart);
             }}
             onSelect={(event) => setCaret(event.currentTarget.selectionStart)}
+            onPaste={(event) => {
+              const files = [...event.clipboardData.files];
+              const plain = event.clipboardData.getData("text/plain");
+              if (answering || files.length === 0 || plain.trim()) return;
+              event.preventDefault();
+              void attachFiles(files);
+            }}
             onKeyDown={(event) => {
               if (event.nativeEvent.isComposing) return;
               if (open && choices.length > 0) {
@@ -456,6 +508,16 @@ export function Composer({
           </div>
         </InputGroup>
       </div>
+      {importing && (
+        <p role="status" className="text-label text-muted-foreground">
+          Import de {importing}…
+        </p>
+      )}
+      {importError && (
+        <p role="alert" className="text-label text-destructive">
+          {importError}
+        </p>
+      )}
       {notice && (
         <p
           role="status"
