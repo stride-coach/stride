@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.7.0](https://github.com/stride-coach/stride/compare/v2.6.0...v2.7.0) (2026-11-25)
+
+
+### Features
+
+* **agents:** brief specialists on what the athlete attached ([3480a96](https://github.com/stride-coach/stride/commit/3480a96166efd3a54f8324d234d71a922ac695b6))
+* **coach:** let the staff read pasted images and PDF attachments ([#724](https://github.com/stride-coach/stride/issues/724)) ([1dce7bb](https://github.com/stride-coach/stride/commit/1dce7bb55f7f99ef0aa1d108dc3ea3b50db4db2d))
+* **plan:** drag a session to another day of its week ([#721](https://github.com/stride-coach/stride/issues/721)) ([a0c49cd](https://github.com/stride-coach/stride/commit/a0c49cd52b386fd995e3dd4c6366e3ae8630d85e))
+
 ## [2.6.0](https://github.com/stride-coach/stride/compare/v2.5.0...v2.6.0) (2026-11-19)
 
 
