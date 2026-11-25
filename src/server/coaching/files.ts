@@ -1,4 +1,5 @@
 import "server-only";
+import { toFile } from "@anthropic-ai/sdk";
 import sharp from "sharp";
 import { z } from "zod";
 import {
@@ -6,6 +7,7 @@ import {
   checkFileMeta,
   fileErrors,
   formatContentType,
+  maxPdfPages,
   type FileError,
   type FileFormat,
   type FileSummary,
@@ -13,6 +15,7 @@ import {
 import type { SentAttachment } from "@/features/coach/attachments";
 import { buildCourse } from "@/features/races/course";
 import { parseGpx } from "@/features/races/gpx";
+import { managedClient } from "@/server/coaching/managed/resources";
 import type { OnboardingContext } from "@/server/onboarding/context";
 
 export const fileSummarySchema = z.discriminatedUnion("type", [
@@ -29,11 +32,16 @@ export const fileSummarySchema = z.discriminatedUnion("type", [
     width: z.int().positive(),
     height: z.int().positive(),
   }),
+  z.strictObject({
+    type: z.literal("pdf"),
+    pages: z.int().positive(),
+  }),
 ]);
 
 const bucket = "coach-files";
 const maxNameLength = 120;
 const maxImagePixels = 40_000_000;
+const modelImageEdge = 2000;
 
 const rounded = (value: number, digits: number) =>
   Math.round(value * 10 ** digits) / 10 ** digits;
@@ -59,6 +67,7 @@ async function summarize(
       waypoints: parsed.waypoints.length,
     };
   }
+  if (format === "pdf") return summarizePdf(bytes);
   try {
     const image = sharp(bytes, {
       limitInputPixels: maxImagePixels,
@@ -72,6 +81,61 @@ async function summarize(
   } catch {
     return fileErrors.corrupt;
   }
+}
+
+async function summarizePdf(bytes: Buffer): Promise<FileSummary | FileError> {
+  const { getDocumentProxy } = await import("unpdf");
+  try {
+    const document = await getDocumentProxy(new Uint8Array(bytes));
+    const pages = document.numPages;
+    if (pages < 1) return fileErrors.corrupt;
+    if (pages > maxPdfPages) return fileErrors.pdfTooLong;
+    return { type: "pdf", pages };
+  } catch (error) {
+    return error instanceof Error && error.name === "PasswordException"
+      ? fileErrors.pdfProtected
+      : fileErrors.corrupt;
+  }
+}
+
+async function modelReadyFile(format: FileFormat, bytes: Buffer, name: string) {
+  if (format === "gpx") return null;
+  if (format === "pdf")
+    return toFile(bytes, name, { type: formatContentType.pdf });
+  const jpeg = await sharp(bytes, { limitInputPixels: maxImagePixels })
+    .rotate()
+    .resize(modelImageEdge, modelImageEdge, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .flatten({ background: "#ffffff" })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+  return toFile(jpeg, name.replace(/\.[^.]*$/, "") + ".jpg", {
+    type: "image/jpeg",
+  });
+}
+
+async function uploadModelCopy(
+  format: FileFormat,
+  bytes: Buffer,
+  name: string,
+): Promise<{ id: string | null } | null> {
+  try {
+    const file = await modelReadyFile(format, bytes, name);
+    if (!file) return { id: null };
+    const uploaded = await managedClient().files.upload({ file });
+    return { id: uploaded.id };
+  } catch {
+    return null;
+  }
+}
+
+async function discardModelCopy(id: string | null) {
+  if (!id) return;
+  await managedClient()
+    .files.delete(id)
+    .catch(() => undefined);
 }
 
 function displayName(name: string) {
@@ -93,11 +157,17 @@ export async function storeCoachFile(
   const contentType = formatContentType[meta.format];
   const extension = meta.format === "jpeg" ? "jpg" : meta.format;
   const path = `${context.userId}/${crypto.randomUUID()}.${extension}`;
+  const name = displayName(file.name);
+  const copy = await uploadModelCopy(meta.format, bytes, name);
+  if (!copy) return { error: fileErrors.failed };
+  const modelFileId = copy.id;
   const uploaded = await context.client.storage
     .from(bucket)
     .upload(path, bytes, { contentType });
-  if (uploaded.error) return { error: fileErrors.failed };
-  const name = displayName(file.name);
+  if (uploaded.error) {
+    await discardModelCopy(modelFileId);
+    return { error: fileErrors.failed };
+  }
   const { data, error } = await context.client
     .from("coach_attachment_files")
     .insert({
@@ -107,11 +177,13 @@ export async function storeCoachFile(
       content_type: contentType,
       size_bytes: bytes.length,
       summary,
+      model_file_id: modelFileId,
     })
     .select("id, created_at")
     .single();
   if (error || !data) {
     await context.client.storage.from(bucket).remove([path]);
+    await discardModelCopy(modelFileId);
     return { error: fileErrors.failed };
   }
   return {
@@ -131,7 +203,9 @@ export async function readCoachFiles(
   if (ids.length === 0) return [];
   const { data, error } = await context.client
     .from("coach_attachment_files")
-    .select("id, file_name, content_type, size_bytes, summary, created_at")
+    .select(
+      "id, file_name, content_type, size_bytes, summary, model_file_id, created_at",
+    )
     .eq("user_id", context.userId)
     .in("id", [...ids])
     .order("created_at", { ascending: false });

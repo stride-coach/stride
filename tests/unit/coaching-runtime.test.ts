@@ -1475,6 +1475,46 @@ describe("coach turn stream", () => {
     expect(store.appendThreadItem.mock.calls[1][2].text).toHaveLength(7000);
   });
 
+  it("hands the staff an attached image before the athlete text", async () => {
+    store.findOwnSession.mockResolvedValue(record());
+    resolveAttachments.mockResolvedValue([
+      {
+        kind: "file",
+        id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        title: "page-course.png",
+        date: "2026-11-16",
+        contentType: "image/png",
+        sizeBytes: 2048,
+        note: "Image jointe",
+        image: { width: 4, height: 3 },
+        media: { type: "image", fileId: "file_image" },
+      },
+    ]);
+    managed.stream.mockResolvedValue(
+      streamOf([
+        { type: "session.status_idle", stop_reason: { type: "end_turn" } },
+      ]),
+    );
+    await collect(
+      streamCoachTurn(contextFor(athleteA), {
+        ...request,
+        input: {
+          kind: "message",
+          text: "Laquelle choisir ?",
+          attachments: [
+            { kind: "file", id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" },
+          ],
+        },
+      }),
+    );
+    const content = managed.send.mock.calls[0][1].events[0].content;
+    expect(content.slice(0, 2)).toEqual([
+      { type: "image", source: { type: "file", file_id: "file_image" } },
+      { type: "text", text: "Laquelle choisir ?" },
+    ]);
+    expect(content[2].text).not.toContain("file_image");
+  });
+
   it("hands the staff a typed context block and records the attached items", async () => {
     store.findOwnSession.mockResolvedValue(record());
     resolveAttachments.mockResolvedValue([
