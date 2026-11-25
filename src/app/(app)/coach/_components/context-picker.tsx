@@ -125,8 +125,9 @@ function FileUpload({
         {busy ? "Import en cours…" : "Choisir un fichier"}
       </Button>
       <p className="text-label text-muted-foreground">
-        Trace GPX ou image JPEG, PNG, WebP, 10 Mo au plus. Le fichier reste
-        privé. Le staff reçoit le résumé d’une trace, et le nom d’une image.
+        Image JPEG, PNG ou WebP (10 Mo), PDF (30 Mo) ou trace GPX. Tu peux
+        aussi coller ou déposer un fichier dans le message. Le fichier reste
+        privé. Le staff lit l’image ou le PDF et reçoit le résumé d’une trace.
       </p>
       {error && (
         <p role="alert" className="text-label text-destructive">
