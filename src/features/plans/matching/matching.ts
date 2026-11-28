@@ -1,13 +1,11 @@
 import { isRunning } from "@/features/progress/history";
-import { mondayOf } from "../model/dates";
 import type { PlanSession } from "../model/plan";
 import { flatten, stepSeconds } from "../model/structure";
 
-export const matchingAlgorithmVersion = "match-v1";
+export const matchingAlgorithmVersion = "match-v2";
 
 export const matchConfidence = {
   sameDay: 0.9,
-  moved: 0.6,
   substituted: 0.5,
 } as const;
 
@@ -235,24 +233,6 @@ export function matchSessions({
             assign(session, [done[index]], matchConfidence.sameDay, false);
         });
     }
-  }
-
-  for (const session of open) {
-    if (matched.has(session.sessionKey)) continue;
-    const week = mondayOf(session.scheduledOn);
-    const candidates = available().filter(
-      (activity) =>
-        mondayOf(day(activity)) === week &&
-        day(activity) !== session.scheduledOn &&
-        activityFamily(activity.type) === sessionFamily(session),
-    );
-    const distance = (activity: MatchActivity) =>
-      Math.abs(Date.parse(day(activity)) - Date.parse(session.scheduledOn));
-    const closest = [...candidates].sort(
-      (first, second) =>
-        distance(first) - distance(second) || byStart(first, second),
-    )[0];
-    if (closest) assign(session, [closest], matchConfidence.moved, false);
   }
 
   for (const session of open) {

@@ -89,26 +89,19 @@ describe("session matching", () => {
     expect(match.compliance.duration).toBe(0.75);
   });
 
-  it("matches a session moved within its week with lower confidence", () => {
-    const moved = matchSessions({
-      sessions: [
-        session("tue", "2026-10-13"),
-        session("a", "2026-10-15"),
-        session("b", "2026-10-15"),
-      ],
+  it("never carries an activity over to a session on another day", () => {
+    const { matches } = matchSessions({
+      sessions: [session("wed", "2026-10-14"), session("thu", "2026-10-15")],
       activities: [
-        activity("one", "2026-10-15T07:00:00"),
-        activity("two", "2026-10-15T09:00:00"),
-        activity("three", "2026-10-15T18:00:00"),
+        activity("short", "2026-10-12T18:05:00", { durationSeconds: 900 }),
+        activity("wed-run", "2026-10-14T07:00:00"),
       ],
       overrides: [],
       today,
-    }).matches;
-    expect(moved.find((match) => match.sessionKey === "tue")).toMatchObject({
-      activityId: "three",
-      status: "completed",
-      confidence: 0.6,
     });
+    expect(
+      matches.map((match) => [match.sessionKey, match.activityId]),
+    ).toEqual([["wed", "wed-run"]]);
   });
 
   it("splits a session across same-family activities on combined totals", () => {
@@ -225,7 +218,7 @@ describe("session matching", () => {
         match.activityId,
         match.confidence,
       ]),
-    ).toEqual([["b", "x", 0.6]]);
+    ).toEqual([]);
   });
 
   it("never matches a session scheduled after today", () => {

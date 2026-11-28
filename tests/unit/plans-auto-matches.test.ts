@@ -179,7 +179,7 @@ describe("session match refresh", () => {
           status: "completed",
         }),
       ],
-      p_algorithm_version: "match-v1",
+      p_algorithm_version: "match-v2",
       p_activities_through: "2026-10-16T06:00:00Z",
     });
   });
