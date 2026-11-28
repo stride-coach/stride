@@ -63,7 +63,7 @@ Each capability maps to one GitHub issue under parent [#95](https://github.com/J
   - **success:** pgTAP proves cross-athlete isolation, no direct athlete writes to plan rows or proposals, stale-version and frozen-session rejection, and that reading version `v` returns exactly its rows.
 - **CAP-9 Matching and Régularité**
   - **intent:** A deterministic matcher links activities to planned sessions, matches are persisted with an athlete override, and Progression's Régularité uses them.
-  - **success:** Fixture tests cover same-day, moved, split, substituted and missed sessions; an override survives recomputation; without an active plan Régularité keeps its empty state.
+  - **success:** Fixture tests cover same-day, split, substituted and missed sessions; an override survives recomputation; without an active plan Régularité keeps its empty state.
 
 ## Shared contracts
 
@@ -184,7 +184,7 @@ Tables, columns, version ranges, the apply algorithm and the access matrix follo
 
 ### Matching
 
-Same-day match first, then a session moved within the same week, then substitutions across sports. Statuses `completed`, `partial` and `substituted` are persisted with confidence and compliance ratios (duration, distance, intensity); `missed` is derived for unmatched past sessions. The algorithm version is recorded. An `athlete` match always wins over `auto`. Activity ids are plain `uuid` values without foreign keys to garmin_mcp tables (ADR 0005).
+Same-day match first, then same-day substitutions across sports. An activity only ever matches a session scheduled on its own day: a session done on another day is moved in the plan first (#725). Statuses `completed`, `partial` and `substituted` are persisted with confidence and compliance ratios (duration, distance, intensity); `missed` is derived for unmatched past sessions. The algorithm version is recorded. An `athlete` match always wins over `auto`. Activity ids are plain `uuid` values without foreign keys to garmin_mcp tables (ADR 0005).
 
 ### Plan screens
 
